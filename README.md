@@ -88,11 +88,11 @@ yarn start
 2. Start the development server (skip if it's running already):
 
 ```bash
-   npx expo start
-   # or
-   npm start
-   # or
-   yarn start
+npx expo start
+# or
+npm start
+# or
+yarn start
 ```
 
 3. Scan the QR code with:
@@ -129,6 +129,27 @@ npx expo run:ios
 # Install iOS dependencies
 cd ios && pod install && cd ..
 ```
+
+## 📱 How to Change Role (User/Business)
+
+Find **_user.json_** in this directory: **_\root\assets\data\user.json_**
+
+```bash
+{
+  "user": {
+    "email": "abc@gmail.com",
+    "token": "e4544fsefs46ty24f",
+    "role": "user",
+    "subRole": "manager",
+    "permission": {
+      "business_overview": true,
+      "people_management": true,
+      "job_management": true,
+      "shift_and_schedule": true
+}
+```
+
+Update the "role" field to "user" or "business" to navigate into different role. This project has been configured this way by keeping the API integration phase in mind, so it becomes easier to integrate quickly.
 
 ## 📱 How to build APK
 
