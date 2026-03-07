@@ -54,7 +54,7 @@ type UiShift = {
   location?: string;
   company: string;
   companyLogo?: string;
-  status: "ongoing" | "upcoming" | "completed";
+  status: "ongoing" | "upcoming" | "completed" | "missed" | "no_shift";
   countdown?: string;
   countdownTargetAt?: number;
   message?: string;
@@ -170,10 +170,12 @@ const ShiftSchedule = () => {
         message = "You missed this shift.";
       } else if (now >= shiftStart && now <= shiftEnd) {
         type = "ongoing";
+        status = "ongoing";
         countdownTargetAt = shiftEnd.getTime();
         countdown = formatCountdownFromSeconds((countdownTargetAt - now.getTime()) / 1000);
       } else if (now < shiftStart) {
         type = "upcoming";
+        status = "upcoming";
         countdownTargetAt = shiftStart.getTime();
         countdown = formatCountdownFromSeconds((countdownTargetAt - now.getTime()) / 1000);
       } else {
@@ -217,9 +219,10 @@ const ShiftSchedule = () => {
             })}`
             : `${to12Hour(start)} - ${to12Hour(end)}`,
         breakTime,
-        company: shift?.employment?.business?.name || "Business",
-        companyLogo: resolveMediaUrl(shift?.employment?.business?.logo),
-        status: type,
+        company: business?.name || "Business",
+        companyLogo: resolveMediaUrl(business?.logo),
+        location: business?.address?.address,
+        status,
         countdown,
         countdownTargetAt,
         message,
