@@ -6,6 +6,7 @@ import {
   ForgotPasswordData,
   LoginData,
   OAuthData,
+  RequestVerifyAccountData,
   RegisterData,
   ResendOTPData,
   ResetPasswordData,
@@ -59,7 +60,7 @@ interface AuthState {
   forgotPassword: (data: ForgotPasswordData) => Promise<any>;
   resetPassword: (data: ResetPasswordData) => Promise<any>;
   changePassword: (data: ChangePasswordData) => Promise<any>;
-  requestVerifyAccount: () => Promise<any>;
+  requestVerifyAccount: (data: RequestVerifyAccountData) => Promise<any>;
   resendOTP: (data: ResendOTPData) => Promise<any>;
   addContact: (data: AddContactData) => Promise<any>;
   logout: () => Promise<void>;
@@ -258,11 +259,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  requestVerifyAccount: async () => {
+  requestVerifyAccount: async (data) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await authService.requestVerifyAccount();
+      const response = await authService.requestVerifyAccount(data);
       set({ isLoading: false });
       return response;
     } catch (error) {

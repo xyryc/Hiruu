@@ -5,6 +5,7 @@ import {
     ForgotPasswordData,
     LoginData,
     OAuthData,
+    RequestVerifyAccountData,
     RefreshTokenResponse,
     RegisterData,
     ResendOTPData,
@@ -156,9 +157,9 @@ class AuthService {
     }
 
     // Request account verification (for logged-in users)
-    async requestVerifyAccount(): Promise<SimpleResponse> {
+    async requestVerifyAccount(data: RequestVerifyAccountData): Promise<SimpleResponse> {
         try {
-            const response = await axiosInstance.post('/auth/req-verify-account');
+            const response = await axiosInstance.post('/auth/req-verify-account', data);
             const result = response.data;
 
             if (!result.success) {

@@ -14,6 +14,8 @@ const TaskCard = ({
   shiftTitle,
   startTime,
   endTime,
+  startsAt,
+  endsAt,
   startDateTime,
   endDateTime,
   shiftImage,
@@ -42,13 +44,24 @@ const TaskCard = ({
     }
 
     const now = Date.now();
-    const targetRaw = status === "upcoming" ? startDateTime : endDateTime;
+    const targetRaw =
+      status === "upcoming"
+        ? startsAt || startDateTime
+        : endsAt || endDateTime;
     const target = targetRaw ? new Date(targetRaw).getTime() : NaN;
     if (Number.isNaN(target)) {
       return "00:00:00";
     }
     return formatDuration((target - now) / 1000);
-  }, [endDateTime, formatDuration, hasLiveTimer, startDateTime, status]);
+  }, [
+    endDateTime,
+    endsAt,
+    formatDuration,
+    hasLiveTimer,
+    startDateTime,
+    startsAt,
+    status,
+  ]);
 
   const [elapsedTime, setElapsedTime] = useState(() => getCountdown());
 

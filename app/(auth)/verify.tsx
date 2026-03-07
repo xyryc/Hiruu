@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -21,9 +21,8 @@ import { toast } from "sonner-native";
 const Verify = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
-  // console.log("Verify screen", params);
-
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const didRequestInitialCode = useRef(false);
 
   // Create refs for each input
   const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -48,7 +47,31 @@ const Verify = () => {
 
   const isOtpComplete = otp.every((digit) => digit !== "");
 
-  const { verifyAccount, resendOTP, isLoading, clearError } = useAuthStore();
+  const { verifyAccount, requestVerifyAccount, resendOTP, isLoading, clearError } = useAuthStore();
+  const source = params.source === "login" ? "login" : "signup";
+  const email = typeof params.email === "string" ? params.email : "";
+  const phoneNumber = typeof params.phoneNumber === "string" ? params.phoneNumber : "";
+  const countryCode = typeof params.countryCode === "string" ? params.countryCode : "+1";
+
+  const getVerificationType = () => {
+    const hasEmail = Boolean(email);
+    const hasPhone = Boolean(phoneNumber);
+
+    if (hasEmail && hasPhone) return "both" as const;
+    if (hasPhone) return "phone" as const;
+    return "email" as const;
+  };
+
+  useEffect(() => {
+    if (source !== "login") return;
+    if (didRequestInitialCode.current) return;
+    didRequestInitialCode.current = true;
+
+    requestVerifyAccount({ type: getVerificationType() }).catch((error) => {
+      const message = error instanceof Error ? error.message : t("common.error");
+      toast.error(message);
+    });
+  }, [requestVerifyAccount, source]);
 
   const handleVerify = async () => {
     if (!isOtpComplete) return;
@@ -59,18 +82,23 @@ const Verify = () => {
     try {
       const payload = {
         code: otpCode,
-        ...(params.email
-          ? { email: params.email as string }
+        ...(email
+          ? { email }
           : {
-              phoneNumber: params.phoneNumber as string,
-              countryCode: (params.countryCode as string) || "+1",
+              phoneNumber,
+              countryCode,
             }),
       };
 
       const result = await verifyAccount(payload);
 
       if (result?.success) {
-        router.push("/(setup)/user-setup/progress");
+        if (source === "login") {
+          router.replace("/(tabs)/home");
+          return;
+        }
+
+        router.replace("/(setup)/user-setup/progress");
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : t("common.error");
@@ -79,15 +107,19 @@ const Verify = () => {
   };
 
   const handleResendOTP = async () => {
-    const payload = params.email
-      ? { email: params.email as string }
-      : {
-          phoneNumber: params.phoneNumber as string,
-          countryCode: (params.countryCode as string) || "+1",
-        };
-
     try {
-      const result = await resendOTP(payload);
+      const result =
+        source === "login"
+          ? await requestVerifyAccount({ type: getVerificationType() })
+          : await resendOTP(
+              email
+                ? { email }
+                : {
+                    phoneNumber,
+                    countryCode,
+                  }
+            );
+
       if (result?.success) {
         toast.success(translateApiMessage(result?.message || "otp_sent_email"));
       }
@@ -110,7 +142,7 @@ const Verify = () => {
           <TitleHeader
             className="mt-28 mb-7"
             title="Verify OTP Now"
-            subtitle={`Onetime OTP has been sent to your registered ${params.email ? 'email' : 'phone number'}`}
+            subtitle={`Onetime OTP has been sent to your registered ${email ? "email" : "phone number"}`}
           />
 
           {/* OTP Input Boxes */}

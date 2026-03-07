@@ -47,6 +47,8 @@ type ShiftCardData = {
   shiftTitle: string;
   startTime: string;
   endTime: string;
+  startsAt?: string;
+  endsAt?: string;
   startDateTime?: string;
   endDateTime?: string;
   shiftImage: any;
@@ -96,7 +98,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     if (value.includes("T")) {
       const date = new Date(value);
       if (!Number.isNaN(date.getTime())) {
-        return { hour: date.getHours(), minute: date.getMinutes() };
+        // API sends ISO with UTC suffix (Z); use UTC clock to preserve shift time.
+        return { hour: date.getUTCHours(), minute: date.getUTCMinutes() };
       }
     }
 
@@ -182,8 +185,10 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         return {
           id: shift.id || `${business?.id || "business"}-${shift?.date || "date"}`,
           shiftTitle: shift?.shiftTemplate?.name || business?.name || "Shift",
-          startTime: to12Hour(shift?.startsAt || shift?.shiftTemplate?.startTime),
-          endTime: to12Hour(shift?.endsAt || shift?.shiftTemplate?.endTime),
+          startTime: to12Hour(shift?.shiftTemplate?.startTime || shift?.startsAt),
+          endTime: to12Hour(shift?.shiftTemplate?.endTime || shift?.endsAt),
+          startsAt: shift?.startsAt,
+          endsAt: shift?.endsAt,
           startDateTime: shift?.startsAt,
           endDateTime: shift?.endsAt,
           shiftImage: business?.logo || require("@/assets/images/placeholder.png"),
@@ -260,6 +265,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
                 shiftTitle={card.shiftTitle}
                 startTime={card.startTime}
                 endTime={card.endTime}
+                startsAt={card.startsAt}
+                endsAt={card.endsAt}
                 startDateTime={card.startDateTime}
                 endDateTime={card.endDateTime}
                 shiftImage={card.shiftImage}

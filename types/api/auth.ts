@@ -48,6 +48,10 @@ export interface ChangePasswordData {
   newPassword: string;
 }
 
+export interface RequestVerifyAccountData {
+  type: "both" | "email" | "phone";
+}
+
 export interface ResendOTPData {
   email?: string;
   phoneNumber?: string;

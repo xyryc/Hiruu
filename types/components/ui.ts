@@ -232,6 +232,8 @@ export interface WorkShiftCardProps {
   shiftTitle: string;
   startTime: string;
   endTime: string;
+  startsAt?: string;
+  endsAt?: string;
   startDateTime?: string;
   endDateTime?: string;
   shiftImage: any;

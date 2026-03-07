@@ -10,8 +10,20 @@ export default function Index() {
 
   // User is logged in
   if (user) {
-    // Always land on Home after login/app reopen.
-    // Incomplete profile can still be continued from ProgressCard.
+    if (user.email && user.isEmailVerified === false) {
+      return (
+        <Redirect
+          href={{
+            pathname: "/(auth)/verify",
+            params: {
+              email: user.email,
+              source: "login",
+            },
+          }}
+        />
+      );
+    }
+
     return <Redirect href="/(tabs)/home" />;
   }
 

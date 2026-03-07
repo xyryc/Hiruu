@@ -112,6 +112,18 @@ const Login = () => {
           if (email) {
             await AsyncStorage.setItem(lastEmailKey, email);
           }
+          if (result?.data?.isEmailVerified === false) {
+            toast.success(translateApiMessage(result?.message || "auth_login_success"));
+            router.replace({
+              pathname: "/(auth)/verify",
+              params: {
+                email,
+                source: "login",
+              },
+            });
+            return;
+          }
+
           toast.success(t("common.success", "Success"));
           router.replace("/(tabs)/home");
         }

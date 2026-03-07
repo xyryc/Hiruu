@@ -108,7 +108,7 @@ const SignUp = () => {
         if (result?.success) {
           router.push({
             pathname: "/(auth)/verify",
-            params: { email },
+            params: { email, source: "signup" },
           });
         }
       } catch (error) {
@@ -143,6 +143,7 @@ const SignUp = () => {
             params: {
               phoneNumber: normalizedPhone,
               countryCode: effectiveCountryCode,
+              source: "signup",
             },
           });
         }
