@@ -1,6 +1,7 @@
+import { useServerStatusStore } from '@/stores/serverStatusStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { useServerStatusStore } from '@/stores/serverStatusStore';
+import { router } from 'expo-router';
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'auth_access_token',
@@ -84,6 +85,20 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Response interceptor - Handle errors globally
 axiosInstance.interceptors.response.use(
   (response) => {
@@ -96,9 +111,27 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/');
+
     // Handle 401 Unauthorized - Token refresh logic
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const refreshToken = await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -119,6 +152,8 @@ axiosInstance.interceptors.response.use(
             await AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken);
             await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
 
+            processQueue(null, newAccessToken);
+
             // Retry original request with new token
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -128,16 +163,40 @@ axiosInstance.interceptors.response.use(
           } else {
             throw new Error(result.message || 'Token refresh failed');
           }
+        } else {
+          throw new Error('No refresh token available');
         }
       } catch (refreshError) {
+        processQueue(refreshError as Error, null);
+
         // Token refresh failed - clear storage and redirect to login
         await AsyncStorage.multiRemove([
           STORAGE_KEYS.ACCESS_TOKEN,
           STORAGE_KEYS.REFRESH_TOKEN,
+          'auth_user', // Clear user data
         ]);
+
+        try {
+          const { useAuthStore } = require('@/stores/authStore');
+          const { useBusinessStore } = require('@/stores/businessStore');
+          if (useBusinessStore?.getState) {
+            useBusinessStore.getState().resetBusinessSession();
+          }
+          if (useAuthStore?.getState) {
+            useAuthStore.getState().setTokens(null, null);
+            useAuthStore.getState().setUser(null);
+          }
+        } catch (e) {
+          console.error('Failed to clear store state:', e);
+        }
+
+        // Redirect to login page
+        router.replace('/(auth)/login');
 
         // You can emit an event here or use a navigation service to redirect to login
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
