@@ -1,6 +1,9 @@
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { SimpleLineIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 
 // ToggleButton Component
 type ToggleButtonProps = {
@@ -29,17 +32,14 @@ const ToggleButton = ({ isOn, setIsOn, className = "" }: ToggleButtonProps) => {
 // TimePicker Component
 type TimePickerProps = {
   time: string;
+  onPress?: () => void;
   onTimeChange?: (time: string) => void;
 };
 
-const TimePicker = ({ time, onTimeChange }: TimePickerProps) => {
+const TimePicker = ({ time, onPress }: TimePickerProps) => {
   return (
     <TouchableOpacity
-      onPress={() => {
-        // আপনার time picker modal open করুন
-        console.log("Open time picker for:", time);
-        // onTimeChange?.('11:00 AM') // example
-      }}
+      onPress={onPress}
       className="flex-row items-center bg-white dark:bg-dark-card border border-gray-300 dark:border-gray-600 px-2 py-1.5 rounded-full"
     >
       <Text className="text-xs text-primary dark:text-dark-primary">
@@ -63,23 +63,172 @@ type WeekSchedule = {
   [key: string]: DaySchedule;
 };
 
-// Main WeeklySchedule Component
-const WeeklySchedule = ({ business }: { business?: boolean }) => {
-  const [schedule, setSchedule] = useState<WeekSchedule>({
-    Monday: { isOn: true, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Tuesday: { isOn: true, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Wednesday: { isOn: true, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Thursday: { isOn: true, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Friday: { isOn: true, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Saturday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-    Sunday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+type WeeklyAvailabilityItem = {
+  day: string;
+  isOpen: boolean;
+  startTime?: string;
+  endTime?: string;
+};
+
+const DEFAULT_WEEK_SCHEDULE: WeekSchedule = {
+  Monday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Tuesday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Wednesday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Thursday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Friday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Saturday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Sunday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+};
+
+const dayKeyMap: Record<string, keyof typeof DEFAULT_WEEK_SCHEDULE> = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
+  sunday: "Sunday",
+};
+
+const formatApiTime = (value?: string) => {
+  if (!value) return "10:00 AM";
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return value;
+
+  const hour24 = Number(match[1]);
+  const minute = match[2];
+  const period = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+  return `${hour12}:${minute} ${period}`;
+};
+
+const parseDisplayTimeToDate = (value: string) => {
+  const match = value.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+  const date = new Date();
+
+  if (!match) {
+    date.setHours(10, 0, 0, 0);
+    return date;
+  }
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const meridiem = match[3].toUpperCase();
+  const normalizedHour =
+    meridiem === "PM" ? (hour % 12) + 12 : hour % 12;
+
+  date.setHours(normalizedHour, minute, 0, 0);
+  return date;
+};
+
+const formatDateToDisplayTime = (value: Date) => {
+  const hour24 = value.getHours();
+  const minute = `${value.getMinutes()}`.padStart(2, "0");
+  const period = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+  return `${hour12}:${minute} ${period}`;
+};
+
+const isEndAfterStart = (startTime: string, endTime: string) => {
+  const start = parseDisplayTimeToDate(startTime).getTime();
+  const end = parseDisplayTimeToDate(endTime).getTime();
+  return end > start;
+};
+
+const formatDisplayTimeToApi = (value: string) => {
+  const match = value.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+  if (!match) return value;
+
+  const hour12 = Number(match[1]);
+  const minute = match[2];
+  const meridiem = match[3].toUpperCase();
+  const hour24 =
+    meridiem === "PM" ? (hour12 % 12) + 12 : hour12 % 12;
+
+  return `${`${hour24}`.padStart(2, "0")}:${minute}`;
+};
+
+const mapScheduleToAvailability = (
+  currentSchedule: WeekSchedule
+): WeeklyAvailabilityItem[] =>
+  Object.entries(currentSchedule).map(([day, value]) => ({
+    day: day.toLowerCase(),
+    isOpen: value.isOn,
+    ...(value.isOn
+      ? {
+          startTime: formatDisplayTimeToApi(value.startTime),
+          endTime: formatDisplayTimeToApi(value.endTime),
+        }
+      : {}),
+  }));
+
+const mapAvailabilityToSchedule = (
+  availability?: WeeklyAvailabilityItem[]
+): WeekSchedule => {
+  const nextSchedule: WeekSchedule = JSON.parse(JSON.stringify(DEFAULT_WEEK_SCHEDULE));
+
+  if (!Array.isArray(availability) || availability.length === 0) {
+    return nextSchedule;
+  }
+
+  availability.forEach((item) => {
+    const mappedDay = dayKeyMap[item.day?.toLowerCase?.() || ""];
+    if (!mappedDay) return;
+
+    nextSchedule[mappedDay] = {
+      isOn: Boolean(item.isOpen),
+      startTime: formatApiTime(item.startTime),
+      endTime: formatApiTime(item.endTime),
+    };
   });
 
+  return nextSchedule;
+};
+
+// Main WeeklySchedule Component
+const WeeklySchedule = ({
+  business,
+  availability,
+  onChange,
+}: {
+  business?: boolean;
+  availability?: WeeklyAvailabilityItem[];
+  onChange?: (availability: WeeklyAvailabilityItem[]) => void;
+}) => {
+  const initialSchedule = useMemo(
+    () => mapAvailabilityToSchedule(availability),
+    [availability]
+  );
+  const [schedule, setSchedule] = useState<WeekSchedule>(initialSchedule);
+  const [pickerState, setPickerState] = useState<{
+    day: string;
+    timeType: "startTime" | "endTime";
+  } | null>(null);
+
+  useEffect(() => {
+    setSchedule(initialSchedule);
+  }, [initialSchedule]);
+
   const toggleDay = (day: string) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], isOn: !prev[day].isOn },
-    }));
+    setSchedule((prev) => {
+      const nextIsOn = !prev[day].isOn;
+      const nextDaySchedule = {
+        ...prev[day],
+        isOn: nextIsOn,
+        ...(nextIsOn && !isEndAfterStart(prev[day].startTime, prev[day].endTime)
+          ? {
+              startTime: "9:00 AM",
+              endTime: "5:00 PM",
+            }
+          : {}),
+      };
+      const nextSchedule = {
+        ...prev,
+        [day]: nextDaySchedule,
+      };
+      onChange?.(mapScheduleToAvailability(nextSchedule));
+      return nextSchedule;
+    });
   };
 
   const updateTime = (
@@ -87,10 +236,50 @@ const WeeklySchedule = ({ business }: { business?: boolean }) => {
     timeType: "startTime" | "endTime",
     newTime: string
   ) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], [timeType]: newTime },
-    }));
+    setSchedule((prev) => {
+      const nextSchedule = {
+        ...prev,
+        [day]: { ...prev[day], [timeType]: newTime },
+      };
+      onChange?.(mapScheduleToAvailability(nextSchedule));
+      return nextSchedule;
+    });
+  };
+
+  const activePickerDate = pickerState
+    ? parseDisplayTimeToDate(schedule[pickerState.day]?.[pickerState.timeType])
+    : new Date();
+
+  const handlePickerChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    if (!pickerState) return;
+
+    if (Platform.OS === "android") {
+      if (event.type === "dismissed") {
+        setPickerState(null);
+        return;
+      }
+
+      if (selectedDate) {
+        updateTime(
+          pickerState.day,
+          pickerState.timeType,
+          formatDateToDisplayTime(selectedDate)
+        );
+      }
+      setPickerState(null);
+      return;
+    }
+
+    if (selectedDate) {
+      updateTime(
+        pickerState.day,
+        pickerState.timeType,
+        formatDateToDisplayTime(selectedDate)
+      );
+    }
   };
 
   const renderDayRow = (day: string) => {
@@ -114,14 +303,14 @@ const WeeklySchedule = ({ business }: { business?: boolean }) => {
 
             <TimePicker
               time={dayData.startTime}
-              onTimeChange={(time) => updateTime(day, "startTime", time)}
+              onPress={() => setPickerState({ day, timeType: "startTime" })}
             />
             <Text className="text-xs text-primary dark:text-dark-primary">
               to
             </Text>
             <TimePicker
               time={dayData.endTime}
-              onTimeChange={(time) => updateTime(day, "endTime", time)}
+              onPress={() => setPickerState({ day, timeType: "endTime" })}
             />
           </View>
         ) : (
@@ -149,6 +338,15 @@ const WeeklySchedule = ({ business }: { business?: boolean }) => {
       )}
 
       {Object.keys(schedule).map((day) => renderDayRow(day))}
+
+      {pickerState ? (
+        <DateTimePicker
+          value={activePickerDate}
+          mode="time"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handlePickerChange}
+        />
+      ) : null}
     </View>
   );
 };

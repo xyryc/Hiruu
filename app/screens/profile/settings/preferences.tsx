@@ -8,6 +8,11 @@ import TimezoneSwitcherModal from "@/components/ui/modals/TimezoneSwitcherModal"
 import { getTimezoneLabel } from "@/constants/timezones";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import {
+  useSettingsStore,
+  WeeklyAvailabilityItem,
+} from "@/stores/settingsStore";
+import { useFocusEffect } from "@react-navigation/native";
+import {
   AntDesign,
   Entypo,
   Ionicons,
@@ -15,12 +20,19 @@ import {
 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const preferences = () => {
+const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
+  availability.every((item) => {
+    if (!item.isOpen) return true;
+    if (!item.startTime || !item.endTime) return false;
+    return item.startTime < item.endTime;
+  });
+
+const Preferences = () => {
   const [isOn, setIsOn] = useState(false);
   const [isSoundOn, setIsSoundOn] = useState(false);
   const { colorScheme } = useColorScheme();
@@ -32,6 +44,13 @@ const preferences = () => {
   const resetTimezoneToDevice = usePreferencesStore(
     (state) => state.resetTimezoneToDevice
   );
+  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
+  const updateMyJobProfile = useSettingsStore((state) => state.updateMyJobProfile);
+  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const [pendingAvailability, setPendingAvailability] = useState<
+    WeeklyAvailabilityItem[] | null
+  >(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // language
   const { i18n, t } = useTranslation();
@@ -42,6 +61,57 @@ const preferences = () => {
       resetTimezoneToDevice();
     }
   }, [resetTimezoneToDevice, timezone]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadJobProfile = async () => {
+        try {
+          const data = await getMyJobProfile();
+          console.log(
+            "weekly schedule integration check:",
+            data?.weeklyAvailability ?? null
+          );
+        } catch (error) {
+          console.log("weekly schedule integration error:", error);
+        }
+      };
+
+      loadJobProfile();
+    }, [getMyJobProfile])
+  );
+
+  useEffect(() => {
+    if (!pendingAvailability) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        if (!isValidWeeklyAvailability(pendingAvailability)) {
+          console.log(
+            "weekly schedule autosave skipped: invalid time range",
+            pendingAvailability
+          );
+          return;
+        }
+
+        await updateMyJobProfile({
+          weeklyAvailability: pendingAvailability,
+        });
+        console.log("weekly schedule autosaved:", pendingAvailability);
+      } catch (error) {
+        console.log("weekly schedule autosave error:", error);
+      }
+    }, 700);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [pendingAvailability, updateMyJobProfile]);
 
   return (
     <SafeAreaView
@@ -151,10 +221,15 @@ const preferences = () => {
           border={true}
         />
 
-        {schedule && <WeeklySchedule />}
+        {schedule && (
+          <WeeklySchedule
+            availability={jobProfile?.weeklyAvailability}
+            onChange={setPendingAvailability}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default preferences;
+export default Preferences;
