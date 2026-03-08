@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import useUnreadApplications from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -25,6 +26,11 @@ const UserJobs = () => {
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedJobs, setSuggestedJobs] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+
+  const { unreadCount } = useUnreadApplications({
+    autoRefresh: true,
+    refreshInterval: 30000,
+  });
 
   const loadFeaturedJobs = useCallback(async () => {
     try {
@@ -91,9 +97,11 @@ const UserJobs = () => {
               className="w-10 h-10 justify-center items-center bg-[#f5f5f5] border-[0.5px] border-[#b2b1b169] rounded-full"
             >
               <Ionicons name="newspaper-outline" size={20} color="#4b5563" />
-              <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-                <Text className="text-[10px] text-white">1</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
+                  <Text className="text-[10px] text-white">{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* right */}

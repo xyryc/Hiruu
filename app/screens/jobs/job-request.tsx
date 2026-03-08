@@ -1,21 +1,22 @@
+import ScreenHeader from "@/components/header/ScreenHeader";
+import JobRequestCard from "@/components/ui/cards/JobRequestCard";
+import SearchBar from "@/components/ui/inputs/SearchBar";
+import useUnreadApplications from "@/hooks/useUnreadApplications";
+import { walletService } from "@/services/walletService";
+import { useJobStore } from "@/stores/jobStore";
+import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  View,
   Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import React, { useCallback, useMemo, useState } from "react";
-import { Image } from "expo-image";
-import ScreenHeader from "@/components/header/ScreenHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
-import SearchBar from "@/components/ui/inputs/SearchBar";
-import JobRequestCard from "@/components/ui/cards/JobRequestCard";
-import { useFocusEffect } from "@react-navigation/native";
-import { useJobStore } from "@/stores/jobStore";
-import { walletService } from "@/services/walletService";
 import { toast } from "sonner-native";
 
 const JobRequest = () => {
@@ -32,7 +33,15 @@ const JobRequest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [walletCoins, setWalletCoins] = useState<number>(0);
+  const [unreadSent, setUnreadSent] = useState(0);
+  const [unreadReceived, setUnreadReceived] = useState(0);
   const limit = 10;
+
+  const { markAsRead } = useUnreadApplications({
+    autoRefresh: false,
+  });
+
+  const getUnreadCount = useJobStore((s) => s.getUnreadCount);
 
   const loadApplications = useCallback(
     async (targetPage = 1, append = false) => {
@@ -80,11 +89,29 @@ const JobRequest = () => {
     }
   }, []);
 
+  const loadUnreadCounts = useCallback(async () => {
+    try {
+      const result = await getUnreadCount({ scope: "user" });
+      setUnreadSent(result.user_applied ?? 0);
+      setUnreadReceived(result.business_invited ?? 0);
+    } catch (err) {
+      console.error("Failed to fetch unread counts:", err);
+      setUnreadSent(0);
+      setUnreadReceived(0);
+    }
+  }, [getUnreadCount]);
+
   useFocusEffect(
     useCallback(() => {
       loadApplications(1, false);
       loadWallet();
-    }, [loadApplications, loadWallet])
+      loadUnreadCounts();
+
+      // Mark all as read when user opens this screen (don't update UI)
+      markAsRead().catch((err) => {
+        console.error("Failed to mark as read:", err);
+      });
+    }, [loadApplications, loadWallet, loadUnreadCounts, markAsRead])
   );
 
   const sourceFiltered = useMemo(() => {
@@ -211,25 +238,30 @@ const JobRequest = () => {
       />
 
       <View className="flex-row justify-center mx-5">
-        {tabs.map((tab, index) => (
-          <TouchableOpacity
-            key={index}
-            className={`w-1/2 flex-row items-center justify-center gap-2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
-            onPress={() => setIsActive(tab)}
-          >
-            <Text
-              className={`text-center capitalize ${isActive === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
-            >
-              {tab}
-            </Text>
+        {tabs.map((tab, index) => {
+          // Use unread counts from API based on tab
+          const totalCount = tab === "send request" ? unreadSent : unreadReceived;
 
-            <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
-              <Text className="font-proximanova-semibold text-sm text-white">
-                {tab === "send request" ? sentCount : receivedCount}
+          return (
+            <TouchableOpacity
+              key={index}
+              className={`w-1/2 flex-row items-center justify-center gap-2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
+              onPress={() => setIsActive(tab)}
+            >
+              <Text
+                className={`text-center capitalize ${isActive === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+              >
+                {tab}
               </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+
+              <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
+                <Text className="font-proximanova-semibold text-sm text-white">
+                  {totalCount}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <FlatList
@@ -275,18 +307,16 @@ const JobRequest = () => {
                 <TouchableOpacity
                   onPress={goToPrevPage}
                   disabled={page <= 1 || isLoading || isLoadingMore}
-                  className={`px-4 py-2 rounded-lg border ${
-                    page <= 1 || isLoading || isLoadingMore
-                      ? "border-[#E5E7EB] bg-[#F9FAFB]"
-                      : "border-[#D1D5DB] bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border ${page <= 1 || isLoading || isLoadingMore
+                    ? "border-[#E5E7EB] bg-[#F9FAFB]"
+                    : "border-[#D1D5DB] bg-white"
+                    }`}
                 >
                   <Text
-                    className={`text-sm font-proximanova-semibold ${
-                      page <= 1 || isLoading || isLoadingMore
-                        ? "text-[#9CA3AF]"
-                        : "text-primary"
-                    }`}
+                    className={`text-sm font-proximanova-semibold ${page <= 1 || isLoading || isLoadingMore
+                      ? "text-[#9CA3AF]"
+                      : "text-primary"
+                      }`}
                   >
                     Previous
                   </Text>
@@ -299,18 +329,16 @@ const JobRequest = () => {
                 <TouchableOpacity
                   onPress={goToNextPage}
                   disabled={page >= totalPages || isLoading || isLoadingMore}
-                  className={`px-4 py-2 rounded-lg border ${
-                    page >= totalPages || isLoading || isLoadingMore
-                      ? "border-[#E5E7EB] bg-[#F9FAFB]"
-                      : "border-[#D1D5DB] bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border ${page >= totalPages || isLoading || isLoadingMore
+                    ? "border-[#E5E7EB] bg-[#F9FAFB]"
+                    : "border-[#D1D5DB] bg-white"
+                    }`}
                 >
                   <Text
-                    className={`text-sm font-proximanova-semibold ${
-                      page >= totalPages || isLoading || isLoadingMore
-                        ? "text-[#9CA3AF]"
-                        : "text-primary"
-                    }`}
+                    className={`text-sm font-proximanova-semibold ${page >= totalPages || isLoading || isLoadingMore
+                      ? "text-[#9CA3AF]"
+                      : "text-primary"
+                      }`}
                   >
                     Next
                   </Text>

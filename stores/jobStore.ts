@@ -1,7 +1,7 @@
-import { translateApiMessage } from "@/utils/apiMessages";
-import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
-import axiosInstance from "@/utils/axios";
 import type { RecruitmentFilterQuery, RecruitmentShiftType } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
+import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
 import { AxiosError } from "axios";
 import { create } from "zustand";
 
@@ -84,6 +84,32 @@ type AllJobsFilters = Pick<
   | "limit"
 >;
 
+type RecruitmentApplicationSource = "user_applied" | "business_invited";
+type RecruitmentApplicationReadScope = "user" | "business";
+
+type GetUnreadCountQuery = {
+  scope?: RecruitmentApplicationReadScope;
+  businessId?: string;
+  type?: RecruitmentApplicationSource;
+};
+
+type UnreadCountResponse = {
+  user_applied?: number;
+  business_invited?: number;
+};
+
+type MarkAsReadQuery = {
+  scope?: RecruitmentApplicationReadScope;
+  businessId?: string;
+};
+
+type MarkAsReadResponse = {
+  updatedCount: number;
+  type: RecruitmentApplicationSource;
+  scope: RecruitmentApplicationReadScope;
+  businessId?: string;
+};
+
 interface JobState {
   isLoading: boolean;
   error: Error | null;
@@ -111,6 +137,11 @@ interface JobState {
     businessId: string,
     payload: CreateRecruitmentPayload
   ) => Promise<any>;
+  getUnreadCount: (query?: GetUnreadCountQuery) => Promise<UnreadCountResponse>;
+  markApplicationsAsRead: (
+    type: RecruitmentApplicationSource,
+    query?: MarkAsReadQuery
+  ) => Promise<MarkAsReadResponse>;
   clearError: () => void;
 }
 
@@ -384,6 +415,80 @@ export const useJobStore = create<JobState>((set) => ({
       const finalError = new Error(message);
       set({ isLoading: false, error: finalError });
       throw finalError;
+    }
+  },
+
+  getUnreadCount: async (query = {}) => {
+    try {
+      const params: Record<string, string> = {};
+
+      if (query.scope) {
+        params.scope = query.scope;
+      }
+      if (query.businessId) {
+        params.businessId = query.businessId;
+      }
+      if (query.type) {
+        params.type = query.type;
+      }
+
+      const response = await axiosInstance.get(
+        "/recruitment-application/unreads",
+        { params }
+      );
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return result?.data || { user_applied: 0, business_invited: 0 };
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to fetch unread count";
+      throw new Error(message);
+    }
+  },
+
+  markApplicationsAsRead: async (type, query = {}) => {
+    try {
+      const params: Record<string, string> = {};
+
+      if (query.scope) {
+        params.scope = query.scope;
+      }
+      if (query.businessId) {
+        params.businessId = query.businessId;
+      }
+
+      const response = await axiosInstance.patch(
+        `/recruitment-application/read/${type}`,
+        {},
+        { params }
+      );
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return result?.data || { updatedCount: 0, type, scope: query.scope || "user" };
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to mark applications as read";
+      throw new Error(message);
     }
   },
 
