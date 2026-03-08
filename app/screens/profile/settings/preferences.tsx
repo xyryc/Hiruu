@@ -4,6 +4,9 @@ import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LanguageSwitcherModal from "@/components/ui/modals/LanguageSwitcherModal";
+import TimezoneSwitcherModal from "@/components/ui/modals/TimezoneSwitcherModal";
+import { getTimezoneLabel } from "@/constants/timezones";
+import { usePreferencesStore } from "@/stores/preferencesStore";
 import {
   AntDesign,
   Entypo,
@@ -12,7 +15,7 @@ import {
 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,11 +26,22 @@ const preferences = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [showModal, setShowModal] = useState(false);
+  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [schedule, setSchedule] = useState(false);
+  const timezone = usePreferencesStore((state) => state.timezone);
+  const resetTimezoneToDevice = usePreferencesStore(
+    (state) => state.resetTimezoneToDevice
+  );
 
   // language
   const { i18n, t } = useTranslation();
   const currentLanguage = i18n.language;
+
+  useEffect(() => {
+    if (!timezone) {
+      resetTimezoneToDevice();
+    }
+  }, [resetTimezoneToDevice, timezone]);
 
   return (
     <SafeAreaView
@@ -74,14 +88,18 @@ const preferences = () => {
         />
 
         <SettingsCard
-          subtitle={t("user.profile.timeZoneValue")}
-          //   click={() => router.push("/(user)/profile/settings/preferences")}
+          click={() => setShowTimezoneModal(true)}
+          subtitle={`${getTimezoneLabel(timezone)} (${timezone})`}
           icon={<AntDesign name="global" size={24} color="black" />}
           className="mt-4"
           text={t("user.profile.timeZone")}
           arrowIcon={
             <Entypo name="chevron-thin-down" size={20} color="black" />
           }
+        />
+        <TimezoneSwitcherModal
+          visible={showTimezoneModal}
+          onClose={() => setShowTimezoneModal(false)}
         />
 
         <SettingsCard

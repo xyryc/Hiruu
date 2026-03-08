@@ -1,3 +1,6 @@
+import { getCalendars } from "expo-localization";
+import { DateTime } from "luxon";
+
 export const formatDate = (
     value?: string | Date | null,
     fallback = "-"
@@ -49,4 +52,34 @@ export const getCountdownLabel = (
 
     const secondsLeft = (targetTimestamp - nowTimestamp) / 1000;
     return formatCountdownFromSeconds(secondsLeft);
+};
+
+export const getDeviceTimezone = (): string => {
+    return getCalendars()[0]?.timeZone || "UTC";
+};
+
+export const formatInTimezone = (
+    value?: string | Date | null,
+    timezone = "UTC",
+    format = "dd LLL yyyy, hh:mm a",
+    fallback = "-"
+): string => {
+    if (!value) return fallback;
+
+    const dateTime =
+        typeof value === "string"
+            ? DateTime.fromISO(value, { zone: "utc" })
+            : DateTime.fromJSDate(value, { zone: "utc" });
+
+    if (!dateTime.isValid) return fallback;
+
+    return dateTime.setZone(timezone).toFormat(format);
+};
+
+export const formatTimeInTimezone = (
+    value?: string | Date | null,
+    timezone = "UTC",
+    fallback = "-"
+): string => {
+    return formatInTimezone(value, timezone, "hh:mm a", fallback);
 };
