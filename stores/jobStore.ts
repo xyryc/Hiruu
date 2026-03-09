@@ -110,6 +110,27 @@ type MarkAsReadResponse = {
   businessId?: string;
 };
 
+type JobProfileFilters = {
+  search?: string;
+  isPremium?: boolean;
+  skills?: string;
+  preferredRoleId?: string;
+  page?: number;
+  limit?: number;
+};
+
+type JobProfileListResponse = {
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+};
+
 interface JobState {
   isLoading: boolean;
   error: Error | null;
@@ -142,6 +163,11 @@ interface JobState {
     type: RecruitmentApplicationSource,
     query?: MarkAsReadQuery
   ) => Promise<MarkAsReadResponse>;
+  getJobProfiles: (query?: JobProfileFilters) => Promise<JobProfileListResponse>;
+  getBusinessApplications: (
+    businessId: string,
+    query?: RecruitmentApplicationFilterQuery
+  ) => Promise<RecruitmentApplicationListResponse>;
   clearError: () => void;
 }
 
@@ -488,6 +514,128 @@ export const useJobStore = create<JobState>((set) => ({
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
         "Failed to mark applications as read";
+      throw new Error(message);
+    }
+  },
+
+  getJobProfiles: async (query = {}) => {
+    try {
+      const params: Record<string, string | number | boolean> = {};
+
+      if (query.page) params.page = query.page;
+      if (query.limit) params.limit = query.limit;
+      if (query.search) params.search = query.search;
+      if (query.skills) params.skills = query.skills;
+      if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
+      if (query.isPremium !== undefined) params.isPremium = query.isPremium;
+
+      console.log("[JobStore] getJobProfiles called with params:", params);
+
+      const response = await axiosInstance.get("/job-profile/open-to-work", {
+        params,
+      });
+      const result = response.data;
+
+      console.log("[JobStore] getJobProfiles response:", {
+        statusCode: result?.statusCode,
+        dataLength: Array.isArray(result?.data) ? result.data.length : 0,
+        pagination: result?.pagination,
+      });
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        console.error("[JobStore] getJobProfiles error:", result?.message);
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return {
+        data: Array.isArray(result?.data) ? result.data : [],
+        pagination: {
+          page: Number(result?.pagination?.page || query.page || 1),
+          limit: Number(result?.pagination?.limit || query.limit || 20),
+          total: Number(result?.pagination?.total || 0),
+          totalPages: Number(result?.pagination?.totalPages || 1),
+          hasNext: Boolean(result?.pagination?.hasNext),
+          hasPrev: Boolean(result?.pagination?.hasPrev),
+        },
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      console.error("[JobStore] getJobProfiles exception:", {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+      });
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to fetch job profiles";
+      throw new Error(message);
+    }
+  },
+
+  getBusinessApplications: async (businessId, query = {}) => {
+    try {
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 10;
+
+      console.log("[JobStore] getBusinessApplications called:", {
+        businessId,
+        page,
+        limit,
+        status: query.status,
+        recruitmentId: query.recruitmentId,
+      });
+
+      const response = await axiosInstance.get(
+        `/recruitment-application/business/${businessId}`,
+        {
+          params: {
+            page,
+            limit,
+            ...(query.status ? { status: query.status } : {}),
+            ...(query.recruitmentId ? { recruitmentId: query.recruitmentId } : {}),
+          },
+        }
+      );
+      const result = response.data;
+
+      console.log("[JobStore] getBusinessApplications response:", {
+        statusCode: result?.statusCode,
+        dataLength: Array.isArray(result?.data) ? result.data.length : 0,
+        pagination: result?.pagination,
+      });
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        console.error("[JobStore] getBusinessApplications error:", result?.message);
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return {
+        data: Array.isArray(result?.data) ? result.data : [],
+        pagination: {
+          page: Number(result?.pagination?.page || page),
+          limit: Number(result?.pagination?.limit || limit),
+          total: Number(result?.pagination?.total || 0),
+          totalPages: Number(result?.pagination?.totalPages || 1),
+          hasNext: Boolean(result?.pagination?.hasNext),
+          hasPrev: Boolean(result?.pagination?.hasPrev),
+        },
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      console.error("[JobStore] getBusinessApplications exception:", {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+      });
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to fetch business applications";
       throw new Error(message);
     }
   },

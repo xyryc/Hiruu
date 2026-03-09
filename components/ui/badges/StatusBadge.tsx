@@ -81,6 +81,13 @@ const StatusBadge = ({
           dotClasses: "bg-[#3EBF5A]",
           label: "Available",
         };
+      case "unavailable":
+        return {
+          containerClasses: "bg-gray-100 border-gray-300",
+          textClasses: "text-gray-600",
+          dotClasses: "bg-gray-600",
+          label: "Offline",
+        };
       default:
         return {
           containerClasses: "bg-gray-100",

@@ -1,7 +1,10 @@
+import { chatService } from "@/services/chatService";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
 import ShiftRequestModal from "../modals/ShiftRequestModal";
 
 const BusinessShiftPending = ({
@@ -11,10 +14,39 @@ const BusinessShiftPending = ({
   approved,
   modal,
   setReject,
+  userId, // Add userId prop to identify the user to chat with
 }: any) => {
+  const router = useRouter();
   const [isFilterModal, setIsFilterModal] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
 
   console.log(approved && selectedTab);
+
+  const handleMessageClick = async () => {
+    if (!userId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      setIsCreatingChat(true);
+      const result = await chatService.createDirectChat(userId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/jobs/chatscreen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    } finally {
+      setIsCreatingChat(false);
+    }
+  };
 
   const handleButton = (e: string) => {
     if (modal) {
@@ -88,13 +120,21 @@ const BusinessShiftPending = ({
           </View>
           {selectedTab ? (
             <View className="flex-row gap-1.5">
-              <TouchableOpacity className="h-10 w-10 bg-[#E5F4FD] rounded-full flex-row justify-center items-center">
-                <Image
-                  source={require("@/assets/images/messages-fill.svg")}
-                  contentFit="contain"
-                  style={{ height: 22, width: 22 }}
-                />
-              </TouchableOpacity>
+              <Pressable
+                onPress={handleMessageClick}
+                disabled={isCreatingChat}
+                className="h-10 w-10 bg-[#E5F4FD] rounded-full flex-row justify-center items-center"
+              >
+                {isCreatingChat ? (
+                  <ActivityIndicator size="small" color="#4FB2F3" />
+                ) : (
+                  <Image
+                    source={require("@/assets/images/messages-fill.svg")}
+                    contentFit="contain"
+                    style={{ height: 22, width: 22 }}
+                  />
+                )}
+              </Pressable>
               <TouchableOpacity
                 onPress={() => handleButton("success")}
                 className="h-10 w-10 bg-[#292D32] rounded-full flex-row justify-center items-center"

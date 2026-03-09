@@ -5,10 +5,19 @@ import { Text, View } from "react-native";
 
 type NoJobsAvailableCardProps = {
     className?: string;
+    title?: string;
+    description?: string;
 };
 
-const NoJobsAvailableCard = ({ className }: NoJobsAvailableCardProps) => {
+const NoJobsAvailableCard = ({
+    className,
+    title,
+    description,
+}: NoJobsAvailableCardProps) => {
     const { t } = useTranslation();
+
+    const displayTitle = title || t("common.noJobsAvailable");
+    const displayDescription = description || t("common.noJobsAvailableDescription");
 
     return (
         <View
@@ -21,10 +30,10 @@ const NoJobsAvailableCard = ({ className }: NoJobsAvailableCardProps) => {
             />
 
             <Text className="mt-1 text-center font-proximanova-semibold text-[30px] text-[#1F1F1F]">
-                {t("common.noJobsAvailable")}
+                {displayTitle}
             </Text>
             <Text className="mt-2 text-center font-proximanova-regular text-[15px] text-[#8C8C8C]">
-                {t("common.noJobsAvailableDescription")}
+                {displayDescription}
             </Text>
         </View>
     );
