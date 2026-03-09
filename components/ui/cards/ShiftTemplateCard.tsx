@@ -1,10 +1,8 @@
 import RoleChip, { DEFAULT_ROLE_CHIPS } from "@/components/ui/badges/RoleChip";
 import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
-import { Animated, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const ShiftTemplateCard = ({
   className,
@@ -23,7 +21,6 @@ const ShiftTemplateCard = ({
   assignmentStatusText,
   isAssignmentComplete,
 }: any) => {
-  const scrollX = new Animated.Value(0);
   const roleChips =
     Array.isArray(roles) && roles.length > 0 ? roles : DEFAULT_ROLE_CHIPS;
 
@@ -114,20 +111,21 @@ const ShiftTemplateCard = ({
 
             {/* Scrollable Role Chips with fade edge */}
             <View className="flex-1 ml-2">
-              <Animated.FlatList
-                data={roleChips}
+              <ScrollView
                 horizontal
-                keyExtractor={(item, index) =>
-                  `${item?.businessRoleName || item?.roleName || item?.name || item?.role?.name || item?.roleId || "role"}-${item?.roleId || index}`
-                }
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 10, paddingRight: 20 }}
-                onScroll={Animated.event(
-                  [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                  { useNativeDriver: true }
-                )}
-                renderItem={({ item }) => (
+              >
+                {roleChips.map((item: any, index: number) => (
                   <RoleChip
+                    key={`${
+                      item?.businessRoleName ||
+                      item?.roleName ||
+                      item?.name ||
+                      item?.role?.name ||
+                      item?.roleId ||
+                      "role"
+                    }-${item?.roleId || index}`}
                     name={
                       item?.businessRoleName ||
                       item?.roleName ||
@@ -140,21 +138,8 @@ const ShiftTemplateCard = ({
                     bg={item?.bg}
                     color={item?.color}
                   />
-                )}
-              />
-
-              <LinearGradient
-                colors={["rgba(255,255,255,0.9)", "rgba(255,255,255,0)"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 50,
-                }}
-              />
+                ))}
+              </ScrollView>
             </View>
           </View>
 
@@ -178,7 +163,6 @@ const ShiftTemplateCard = ({
           {/* line  */}
           <Image
             source={require("@/assets/images/dotted-line.svg")}
-            contentFit="contain"
             style={{ width: "100%", height: 2, marginTop: 15 }}
           />
 
@@ -190,7 +174,6 @@ const ShiftTemplateCard = ({
                   ? { uri: businessLogo }
                   : require("@/assets/images/adaptive-icon.png")
               }
-              contentFit="contain"
               style={{ width: 30, height: 30, borderRadius: 999 }}
             />
             <Text className="font-proximanova-regular  text-secondary dark:text-dark-secondary">

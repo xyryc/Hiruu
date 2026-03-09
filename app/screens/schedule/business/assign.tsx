@@ -8,7 +8,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -162,8 +161,14 @@ const Assign = () => {
     }
     setWeeklyRoleAssignment(assignmentKey, selectedEmployeesByRole);
     toast.success("Assignments saved.");
-    router.back();
+    setTimeout(() => {
+      router.back();
+    }, 150);
   };
+
+  const selectedRoleMemberIds = selectedRoleId
+    ? selectedEmployeesByRole[selectedRoleId] || []
+    : [];
 
   return (
     <KeyboardAvoidingView
@@ -190,10 +195,14 @@ const Assign = () => {
           />
 
           <View className="mx-4">
-            <FlatList
-              data={tabs}
-              renderItem={({ item }) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 12 }}
+            >
+              {tabs.map((item) => (
                 <TouchableOpacity
+                  key={item.id}
                   onPress={() => setSelectedRoleId(item.id)}
                   className="mx-1.5"
                 >
@@ -203,11 +212,8 @@ const Assign = () => {
                     {`${item.label} (${item.selectedCount}/${item.requiredCount})`}
                   </Text>
                 </TouchableOpacity>
-              )}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            />
+              ))}
+            </ScrollView>
           </View>
         </View>
 
@@ -234,6 +240,7 @@ const Assign = () => {
         <ScrollView
           className="mx-5 flex-1"
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           {isLoading ? (
@@ -256,7 +263,11 @@ const Assign = () => {
             members.map((item: any) => (
               <TouchableOpacity
                 key={item?.employmentId}
-                onPress={() => handleToggleEmployee(selectedRoleId, item?.employmentId)}
+                onPress={() =>
+                  selectedRoleId
+                    ? handleToggleEmployee(selectedRoleId, item?.employmentId)
+                    : undefined
+                }
                 className="flex-row items-center p-4 mt-4 rounded-xl border border-[#eeeeee]"
               >
                 <Image
@@ -281,17 +292,13 @@ const Assign = () => {
                 </View>
                 <Ionicons
                   name={
-                    selectedEmployeesByRole[selectedRoleId]?.includes(
-                      item?.employmentId
-                    )
+                    selectedRoleMemberIds.includes(item?.employmentId)
                       ? "checkmark-circle"
                       : "radio-button-off"
                   }
                   size={24}
                   color={
-                    selectedEmployeesByRole[selectedRoleId]?.includes(
-                      item?.employmentId
-                    )
+                    selectedRoleMemberIds.includes(item?.employmentId)
                       ? "#11293A"
                       : "#7A7A7A"
                   }

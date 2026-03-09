@@ -8,10 +8,10 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -129,62 +129,62 @@ const ListofShifts = () => {
           iconColor={isDark ? "#fff" : "#111"}
         />
 
-        <ScrollView
+        <FlatList
           className="mx-5 flex-1"
+          data={templates}
+          keyExtractor={(item) => String(item?.id)}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
-        >
-          {isLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" />
-            </View>
-          ) : templates.length === 0 ? (
-            <View className="py-10 items-center">
-              <Text className="text-sm text-secondary dark:text-dark-secondary">
-                {businessId
-                  ? "No shifts found for selected business."
-                  : "Select a business first."}
-              </Text>
-            </View>
-          ) : (
-            <View className="mt-4">
-              {templates.map((item) => (
-                <TouchableOpacity
-                  key={item?.id}
-                  onPress={() => handleShiftPress(item?.id)}
-                  className="flex-row items-center p-4 mt-4 rounded-xl border border-[#eeeeee]"
-                >
-                  <Image
-                    source={
-                      item?.business?.logo
-                        ? { uri: item.business.logo }
-                        : require("@/assets/images/placeholder.png")
-                    }
-                    className="w-12 h-12 rounded-full mr-3"
-                  />
-                  <View className="flex-1">
-                    <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
-                      {item?.name || "Shift"}
-                    </Text>
-                    <Text className="text-sm text-secondary dark:text-dark-secondary font-proximanova-regular">
-                      {`${to12Hour(item?.startTime)} to ${to12Hour(item?.endTime)}`}
-                    </Text>
-                  </View>
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => handleShiftPress(item?.id)}
+              className="flex-row items-center p-4 mt-4 rounded-xl border border-[#eeeeee]"
+            >
+              <Image
+                source={
+                  item?.business?.logo
+                    ? { uri: item.business.logo }
+                    : require("@/assets/images/placeholder.png")
+                }
+                className="w-12 h-12 rounded-full mr-3"
+              />
+              <View className="flex-1">
+                <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {item?.name || "Shift"}
+                </Text>
+                <Text className="text-sm text-secondary dark:text-dark-secondary font-proximanova-regular">
+                  {`${to12Hour(item?.startTime)} to ${to12Hour(item?.endTime)}`}
+                </Text>
+              </View>
 
-                  <Ionicons
-                    name={
-                      selectedShiftIds.includes(item?.id)
-                        ? "checkmark-circle"
-                        : "radio-button-off"
-                    }
-                    size={24}
-                    color={selectedShiftIds.includes(item?.id) ? "#11293A" : "#C7C7CC"}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
+              <Ionicons
+                name={
+                  selectedShiftIds.includes(item?.id)
+                    ? "checkmark-circle"
+                    : "radio-button-off"
+                }
+                size={24}
+                color={selectedShiftIds.includes(item?.id) ? "#11293A" : "#C7C7CC"}
+              />
+            </TouchableOpacity>
           )}
-        </ScrollView>
+          ListEmptyComponent={
+            isLoading ? (
+              <View className="py-10 items-center">
+                <ActivityIndicator size="large" />
+              </View>
+            ) : (
+              <View className="py-10 items-center">
+                <Text className="text-sm text-secondary dark:text-dark-secondary">
+                  {businessId
+                    ? "No shifts found for selected business."
+                    : "Select a business first."}
+                </Text>
+              </View>
+            )
+          }
+        />
 
         {/* button  */}
         <View className='absolute bottom-10 w-full'>
