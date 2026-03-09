@@ -192,7 +192,8 @@ type StatusType =
   | "rejected"
   | "accepted"
   | "submitted"
-  | "available";
+  | "available"
+  | "unavailable";
 
 export interface StatusBadgeProps {
   label?: string;
@@ -333,5 +334,6 @@ export interface BusinessJobCardProps {
   status?: string;
   candidate?: boolean;
   received?: boolean;
+  profile?: any;
 }
 

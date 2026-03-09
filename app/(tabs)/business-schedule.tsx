@@ -1,3 +1,4 @@
+import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import ShiftCard from "@/components/ui/cards/ShiftCard";
 import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
@@ -5,6 +6,7 @@ import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModa
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
+import { utcTimeToLocal } from "@/utils/timezone";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { RelativePathString, useRouter } from "expo-router";
@@ -213,7 +215,9 @@ const BusinessScheduleScreen = () => {
 
   const to12Hour = (value?: string) => {
     if (!value) return "--:--";
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
+    // Convert UTC time to local time first
+    const localTime = utcTimeToLocal(value);
+    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
@@ -639,9 +643,7 @@ const BusinessScheduleScreen = () => {
         ) : visibleShifts.length > 0 ? (
           visibleShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
         ) : (
-          <Text className="text-sm font-proximanova-regular text-secondary">
-            No shifts found.
-          </Text>
+          <NoShiftsAvailableCard className="mt-4" />
         )}
         {isFetchingMore ? (
           <View className="py-4 items-center">

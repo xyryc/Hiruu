@@ -6,6 +6,7 @@ import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import type { RecruitmentShiftType } from "@/types";
+import { localDateToUTCTime } from "@/utils/timezone";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
@@ -150,9 +151,8 @@ const PostJob = () => {
   );
 
   const formatTime24 = (date: Date) => {
-    const hour = `${date.getHours()}`.padStart(2, "0");
-    const minute = `${date.getMinutes()}`.padStart(2, "0");
-    return `${hour}:${minute}`;
+    // Convert local time to UTC before sending to backend
+    return localDateToUTCTime(date);
   };
 
   const handlePostJob = async () => {

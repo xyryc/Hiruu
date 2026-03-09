@@ -58,13 +58,30 @@ export const getDeviceTimezone = (): string => {
     return getCalendars()[0]?.timeZone || "UTC";
 };
 
+/**
+ * Get user's preferred timezone from preferences store
+ * Falls back to device timezone if not available
+ */
+export const getUserTimezone = (): string => {
+    try {
+        const { usePreferencesStore } = require("@/stores/preferencesStore");
+        const timezone = usePreferencesStore.getState().timezone;
+        return timezone || getDeviceTimezone();
+    } catch {
+        return getDeviceTimezone();
+    }
+};
+
 export const formatInTimezone = (
     value?: string | Date | null,
-    timezone = "UTC",
+    timezone?: string,
     format = "dd LLL yyyy, hh:mm a",
     fallback = "-"
 ): string => {
     if (!value) return fallback;
+
+    // Use user's preferred timezone if not specified
+    const tz = timezone || getUserTimezone();
 
     const dateTime =
         typeof value === "string"
@@ -73,12 +90,12 @@ export const formatInTimezone = (
 
     if (!dateTime.isValid) return fallback;
 
-    return dateTime.setZone(timezone).toFormat(format);
+    return dateTime.setZone(tz).toFormat(format);
 };
 
 export const formatTimeInTimezone = (
     value?: string | Date | null,
-    timezone = "UTC",
+    timezone?: string,
     fallback = "-"
 ): string => {
     return formatInTimezone(value, timezone, "hh:mm a", fallback);

@@ -1,6 +1,8 @@
-import type { JobCardProps } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
+import type { JobCardProps } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
+import { utcTimeToLocal } from "@/utils/timezone";
 import { Entypo, Fontisto, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -18,7 +20,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import SimpleStatusBadge from "../badges/SimpleStatusBadge";
 import PrimaryButton from "../buttons/PrimaryButton";
 import SmallButton from "../buttons/SmallButton";
-import { translateApiMessage } from "@/utils/apiMessages";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -60,7 +61,7 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
     : "-";
   const shiftLabel =
     job?.shiftStartTime && job?.shiftEndTime
-      ? `${job.shiftStartTime} - ${job.shiftEndTime}`
+      ? `${utcTimeToLocal(job.shiftStartTime)} - ${utcTimeToLocal(job.shiftEndTime)}`
       : job?.shiftType || "-";
   const distanceLabel =
     typeof job?.distanceKm === "number" ? `${job.distanceKm}km away` : null;

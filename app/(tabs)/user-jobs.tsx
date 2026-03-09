@@ -1,6 +1,8 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
+import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import useUnreadApplications from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -25,6 +27,11 @@ const UserJobs = () => {
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedJobs, setSuggestedJobs] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+
+  const { unreadCount } = useUnreadApplications({
+    autoRefresh: true,
+    refreshInterval: 30000,
+  });
 
   const loadFeaturedJobs = useCallback(async () => {
     try {
@@ -91,9 +98,11 @@ const UserJobs = () => {
               className="w-10 h-10 justify-center items-center bg-[#f5f5f5] border-[0.5px] border-[#b2b1b169] rounded-full"
             >
               <Ionicons name="newspaper-outline" size={20} color="#4b5563" />
-              <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-                <Text className="text-[10px] text-white">1</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
+                  <Text className="text-[10px] text-white">{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* right */}
@@ -142,7 +151,17 @@ const UserJobs = () => {
           </TouchableOpacity>
         </View>
 
-        {/* featured job */}
+        {/* Show no jobs available card when both categories are empty and not loading */}
+        {!isLoadingFeatured &&
+          !isLoadingSuggested &&
+          featuredJobs.length === 0 &&
+          suggestedJobs.length === 0 && (
+            <View className="mt-7 px-5">
+              <NoJobsAvailableCard />
+            </View>
+          )}
+
+        {/* featured job - only show if there are jobs or loading */}
         {(isLoadingFeatured || featuredJobs.length > 0) && (
           <View className="mt-7">
             <View className="flex-row justify-between items-center mb-4 px-5">
@@ -188,39 +207,38 @@ const UserJobs = () => {
           </View>
         )}
 
-        <View className="mt-7 px-5">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-              Suggested Job
-            </Text>
-
-            <TouchableOpacity
-              onPress={() => router.push("/screens/jobs/user/all-jobs")}
-            >
-              <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                See All
+        {/* suggested job - only show if there are jobs or loading */}
+        {(isLoadingSuggested || suggestedJobs.length > 0) && (
+          <View className="mt-7 px-5">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
+                Suggested Job
               </Text>
-            </TouchableOpacity>
-          </View>
 
-          {isLoadingSuggested ? (
-            <View className="py-6 items-center">
-              <ActivityIndicator />
+              <TouchableOpacity
+                onPress={() => router.push("/screens/jobs/user/all-jobs")}
+              >
+                <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                  See All
+                </Text>
+              </TouchableOpacity>
             </View>
-          ) : suggestedJobs.length === 0 ? (
-            <Text className="text-sm font-proximanova-regular text-secondary">
-              No suggested jobs found.
-            </Text>
-          ) : (
-            suggestedJobs.slice(0, 4).map((item: any) => (
-              <JobCard
-                key={`suggested-${item?.id}`}
-                job={item}
-                className="bg-white border border-[#EEEEEE] mb-4"
-              />
-            ))
-          )}
-        </View>
+
+            {isLoadingSuggested ? (
+              <View className="py-6 items-center">
+                <ActivityIndicator />
+              </View>
+            ) : (
+              suggestedJobs.slice(0, 4).map((item: any) => (
+                <JobCard
+                  key={`suggested-${item?.id}`}
+                  job={item}
+                  className="bg-white border border-[#EEEEEE] mb-4"
+                />
+              ))
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

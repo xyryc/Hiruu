@@ -37,7 +37,7 @@ type ShiftStoreState = {
   clearBusinessAssignmentsError: () => void;
 };
 
-export const useShiftStore = create<ShiftStoreState>((set) => ({
+export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   myShifts: [],
   myShiftsLoading: false,
   myShiftsError: null,
@@ -95,7 +95,7 @@ export const useShiftStore = create<ShiftStoreState>((set) => ({
         if (!successOk) {
           throw new Error(payload?.message || "Failed to load home shifts");
         }
-        merged = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+        merged = Array.isArray(payload?.data) ? payload.data : [];
       } else {
         const responses = await Promise.allSettled(
           uniqueIds.map((businessId) =>
@@ -116,7 +116,7 @@ export const useShiftStore = create<ShiftStoreState>((set) => ({
               return;
             }
 
-            const data = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+            const data = Array.isArray(payload?.data) ? payload.data : [];
             merged.push(...data);
             return;
           }

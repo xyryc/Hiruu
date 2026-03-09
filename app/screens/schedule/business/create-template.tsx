@@ -5,6 +5,7 @@ import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
+import { localDateToUTCTime } from "@/utils/timezone";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -133,9 +134,8 @@ const CreateTemplate = () => {
   );
 
   const formatTime24 = (date: Date) => {
-    const h = `${date.getHours()}`.padStart(2, "0");
-    const m = `${date.getMinutes()}`.padStart(2, "0");
-    return `${h}:${m}`;
+    // Convert local time to UTC before sending to backend
+    return localDateToUTCTime(date);
   };
 
   const formatTime12 = (date: Date) => {

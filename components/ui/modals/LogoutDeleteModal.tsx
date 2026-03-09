@@ -17,8 +17,10 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
       return;
     }
 
-    await logout()
-    router.replace("/welcome")
+    await logout();
+    onClose();
+    // Navigate to login after logout
+    router.replace("/(auth)/login");
   }
 
   const handleDone = () => {

@@ -1,10 +1,12 @@
 import ShiftHeader from "@/components/header/ShiftHeader";
 import ShiftItem from "@/components/layout/ShiftItem";
+import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useShiftStore } from "@/stores/shiftStore";
 import { formatCountdownFromSeconds } from "@/utils/date";
+import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -75,7 +77,9 @@ const ShiftSchedule = () => {
 
   const to12Hour = useCallback((value?: string) => {
     if (!value) return "--:--";
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
+    // Convert UTC time to local time first
+    const localTime = utcTimeToLocal(value);
+    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
@@ -105,11 +109,7 @@ const ShiftSchedule = () => {
               weekday: "short",
               day: "numeric",
               month: "long",
-            })} - ${nextShiftDate.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}`
+            })} - ${formatUTCToLocalTime(shift.nextShiftStartDate!)}`
             : "No upcoming shifts";
 
         return {
@@ -325,7 +325,7 @@ const ShiftSchedule = () => {
             />
           ))
         ) : (
-          <Text className="text-center text-secondary py-8">No shifts found.</Text>
+          <NoShiftsAvailableCard className="mt-4" />
         )}
       </ScrollView>
 
