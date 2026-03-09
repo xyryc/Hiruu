@@ -84,10 +84,10 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
   }, [getMyBusinesses]);
 
   useEffect(() => {
-    fetchHomeShifts(selectedBusinesses).catch(() => {
-      // ignore
+    fetchHomeShifts(selectedBusinesses).catch((error) => {
+      console.error("[TodaysShift] fetchHomeShifts error:", error);
     });
-  }, [fetchHomeShifts, selectedBusinesses]);
+  }, [selectedBusinesses]);
 
   const handleLogin = () => {
     console.log("Login pressed");
@@ -153,6 +153,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
 
   const cards = useMemo<ShiftCardData[]>(() => {
     const source = Array.isArray(homeShifts) ? (homeShifts as ApiShift[]) : [];
+
     const filtered =
       selectedBusinesses.length === 0
         ? source
@@ -160,51 +161,35 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
           selectedBusinesses.includes(shift?.business?.id || "")
         );
 
-    return filtered
-      .filter(
-        (shift) =>
-          shift?.itemType !== "empty_day" &&
-          shift?.status !== "no_shift" &&
-          shift?.shiftTemplate
-      )
-      .map((shift) => {
-        const business = shift?.business;
-        const addressPayload = business?.address;
-        const address =
-          typeof addressPayload === "string"
-            ? addressPayload
-            : addressPayload?.line1 ||
-            addressPayload?.address ||
-            "Address unavailable";
-        const city =
-          typeof addressPayload === "string"
-            ? "Location unavailable"
-            : [addressPayload?.city, addressPayload?.state]
-              .filter(Boolean)
-              .join(", ") ||
-            addressPayload?.country ||
-            "Location unavailable";
+    const afterItemTypeFilter = filtered.filter(
+      (shift) =>
+        shift?.itemType !== "empty_day" &&
+        shift?.status !== "no_shift" &&
+        shift?.shiftTemplate
+    );
 
-        return {
-          id: shift.id || `${business?.id || "business"}-${shift?.date || "date"}`,
-          shiftTitle: shift?.shiftTemplate?.name || business?.name || "Shift",
-          startTime: to12Hour(shift?.shiftTemplate?.startTime || shift?.startsAt),
-          endTime: to12Hour(shift?.shiftTemplate?.endTime || shift?.endsAt),
-          startsAt: shift?.startsAt,
-          endsAt: shift?.endsAt,
-          startDateTime: shift?.startsAt,
-          endDateTime: shift?.endsAt,
-          shiftImage: business?.logo || require("@/assets/images/placeholder.png"),
-          teamMembers: Array.isArray(shift?.colleagueAvatars)
-            ? shift.colleagueAvatars.map((_, index) => `Member ${index + 1}`)
-            : [],
-          totalMembers:
-            typeof shift?.totalMembers === "number" ? shift.totalMembers : 0,
-          address,
-          city,
-          status: getShiftStatus(shift),
-        };
-      });
+    return afterItemTypeFilter.map((shift) => {
+      const business = shift?.business;
+      const addressPayload = business?.address;
+      const address = typeof addressPayload === "string" ? addressPayload : addressPayload?.address || addressPayload?.line1 || "Address unavailable";
+      const city = typeof addressPayload === "string" ? "" : addressPayload?.city || "";
+      return {
+        id: shift.id || `${business?.id || "business"}-${shift?.date || "date"}`,
+        shiftTitle: shift?.shiftTemplate?.name || business?.name || "Shift",
+        startTime: to12Hour(shift?.shiftTemplate?.startTime || shift?.startsAt),
+        endTime: to12Hour(shift?.shiftTemplate?.endTime || shift?.endsAt),
+        startsAt: shift?.startsAt,
+        endsAt: shift?.endsAt,
+        startDateTime: shift?.startsAt,
+        endDateTime: shift?.endsAt,
+        shiftImage: business?.logo || require("@/assets/images/placeholder.png"),
+        teamMembers: Array.isArray(shift?.colleagueAvatars) ? shift.colleagueAvatars.map((_, index) => `Member ${index + 1}`) : [],
+        totalMembers: typeof shift?.totalMembers === "number" ? shift.totalMembers : 0,
+        address,
+        city,
+        status: getShiftStatus(shift),
+      };
+    });
   }, [getShiftStatus, homeShifts, selectedBusinesses, to12Hour]);
 
   // Get display content for header button
@@ -303,3 +288,4 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
 };
 
 export default TodaysShift;
+
