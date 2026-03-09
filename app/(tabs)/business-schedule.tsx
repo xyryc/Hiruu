@@ -1,8 +1,8 @@
 import ShiftCard from "@/components/ui/cards/ShiftCard";
 import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
-import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
+import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,9 +11,10 @@ import { RelativePathString, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
-  NativeSyntheticEvent,
   NativeScrollEvent,
+  NativeSyntheticEvent,
+  RefreshControl,
+  ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -45,6 +46,7 @@ const BusinessScheduleScreen = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<number | null>(null);
   const [selectedShiftTemplateId, setSelectedShiftTemplateId] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -148,6 +150,51 @@ const BusinessScheduleScreen = () => {
         setShiftTemplateOptions([]);
       });
   }, [getShiftTemplates, selectedBusinesses]);
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      await getMyBusinesses();
+
+      const businessId = selectedBusinesses?.[0];
+      if (!businessId) return;
+
+      setCurrentPage(1);
+
+      await Promise.all([
+        fetchBusinessAssignments(businessId, {
+          page: 1,
+          limit: pageSize,
+          date: selectedCalendarDate,
+          shiftTemplateId:
+            selectedShiftTemplateId !== "all" ? selectedShiftTemplateId : undefined,
+          append: false,
+        }),
+        getMyBusinessRoles(businessId).then((data: any[]) => {
+          const normalized = (Array.isArray(data) ? data : [])
+            .map((item: any) => ({
+              id: item?.id || item?.roleId || "",
+              label: item?.role?.name || item?.name || "",
+            }))
+            .filter((item: any) => item.id && item.label);
+          setRoleOptions(normalized);
+        }),
+        getShiftTemplates(businessId).then((data: any[]) => {
+          const templates = (Array.isArray(data) ? data : [])
+            .map((item: any) => ({
+              id: item?.id || "",
+              name: item?.name || "",
+            }))
+            .filter((item: any) => item.id && item.name);
+          setShiftTemplateOptions(templates);
+        }),
+      ]);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Failed to refresh");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Get display content for header button
   const getDisplayContent = () => {
@@ -448,15 +495,21 @@ const BusinessScheduleScreen = () => {
         </View>
 
         {/* Shift Type Selector */}
-        <View className="flex-row items-center gap-2.5 mb-5 pl-5">
+        <View className="mb-5 flex-row items-center">
           {/* business selection */}
-          <BusinessSelectionTrigger
-            displayContent={displayContent as any}
-            onPress={() => setShowModal(true)}
-          />
+          <View className="pl-5">
+            <BusinessSelectionTrigger
+              displayContent={displayContent as any}
+              onPress={() => setShowModal(true)}
+            />
+          </View>
 
           {/* shift selection */}
-          <View className="flex-row items-center gap-1">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 10, alignItems: "center" }}
+          >
             <TouchableOpacity
               onPress={() => setSelectedShiftTemplateId("all")}
               className="px-2.5 py-1"
@@ -494,7 +547,7 @@ const BusinessScheduleScreen = () => {
                 ) : null}
               </React.Fragment>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* time selector */}
@@ -566,6 +619,9 @@ const BusinessScheduleScreen = () => {
         contentContainerStyle={{ paddingBottom: 40 }}
         onScroll={handleListScroll}
         scrollEventThrottle={100}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-lg font-proximanova-semibold text-primary">
