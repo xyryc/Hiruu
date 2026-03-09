@@ -8,6 +8,30 @@ export interface ChatUploadMedia {
 }
 
 class ChatService {
+  private extractRoomId(payload: any): string {
+    return (
+      payload?.id ||
+      payload?.chatRoomId ||
+      payload?.roomId ||
+      payload?.chatRoom?.id ||
+      ""
+    );
+  }
+
+  private extractChatRooms(result: any): any[] {
+    const directListCandidates = [
+      result?.data?.data,
+      result?.data?.rooms,
+      result?.data?.items,
+      result?.data,
+      result?.rooms,
+      result?.items,
+    ];
+
+    const firstArray = directListCandidates.find((item) => Array.isArray(item));
+    return Array.isArray(firstArray) ? firstArray : [];
+  }
+
   private isApiSuccess(result: any): boolean {
     if (typeof result?.success === "boolean") {
       return result.success;
@@ -197,6 +221,45 @@ class ChatService {
       return result;
     } catch (error: any) {
       throw new Error(error?.message || "Failed to create chat");
+    }
+  }
+
+  async createSupportChat(): Promise<{ roomId: string; room?: any }> {
+    try {
+      const existingRoomsResult = await this.getChatRooms();
+      const existingSupportRoom = this.extractChatRooms(existingRoomsResult).find(
+        (room) =>
+          String(room?.type || "").toLowerCase() === "support" &&
+          room?.isActive !== false &&
+          this.extractRoomId(room)
+      );
+
+      if (existingSupportRoom) {
+        return {
+          roomId: this.extractRoomId(existingSupportRoom),
+          room: existingSupportRoom,
+        };
+      }
+
+      const response = await axiosInstance.post("/chat/rooms", {
+        type: "support",
+      });
+      const result = response.data;
+
+      if (!this.isApiSuccess(result)) {
+        throw new Error(result?.message || "Failed to open support chat");
+      }
+
+      const room = result?.data ?? null;
+      const roomId = this.extractRoomId(room) || this.extractRoomId(result);
+
+      if (!roomId) {
+        throw new Error("Support chat room id not found");
+      }
+
+      return { roomId, room };
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to open support chat");
     }
   }
 }

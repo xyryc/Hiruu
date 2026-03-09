@@ -1,74 +1,150 @@
+import ScreenHeader from "@/components/header/ScreenHeader";
+import NoMessages from "@/components/ui/cards/NoMessages";
+import RenderMessage from "@/components/ui/cards/RenderMessage";
+import ChatInput from "@/components/ui/inputs/ChatInput";
+import TypingIndicator from "@/components/ui/inputs/TypingIndicator";
+import { useChat } from "@/hooks/useChat";
+import { useAuthStore } from "@/stores/authStore";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
+import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
+  ActivityIndicator,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
+  View,
 } from "react-native";
-import React, { useState } from "react";
-import ScreenHeader from "@/components/header/ScreenHeader";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
-import RenderMessage from "@/components/ui/cards/RenderMessage";
-import TypingIndicator from "@/components/ui/inputs/TypingIndicator";
-import NoMessages from "@/components/ui/cards/NoMessages";
-import ChatInput from "@/components/ui/inputs/ChatInput";
+import { toast } from "sonner-native";
+
+const formatMessageTime = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+const resolveAvatar = (avatar?: string | null) => {
+  if (!avatar) {
+    return "https://ui-avatars.com/api/?name=Support&background=E5F4FD&color=11293A";
+  }
+
+  if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+    return avatar;
+  }
+
+  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+  return `${base}${avatar.startsWith("/") ? avatar : `/${avatar}`}`;
+};
 
 const HelpChat = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const router = useRouter();
-  const [message, setMessage] = useState("");
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ roomId?: string; chatRoomName?: string }>();
+  const roomId = typeof params.roomId === "string" ? params.roomId : "";
+  const chatRoomName =
+    typeof params.chatRoomName === "string" && params.chatRoomName.trim().length > 0
+      ? params.chatRoomName
+      : "Support Chat";
+  const { user } = useAuthStore();
+  const [message, setMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [androidKeyboardOffset, setAndroidKeyboardOffset] = useState(0);
 
-  const messages = [
-    {
-      id: 1,
-      text: "Hi, I just applied for the bartender position",
-      time: "1:44 PM",
-      isSent: true,
-      isRead: true,
-      avatar:
-        "https://i0.wp.com/www.splento.com/blog/wp-content/uploads/2024/10/confident-young-african-american-business-woman-in-2024-04-26-18-20-12-utc-scaled.jpg?ssl=1",
+  const {
+    messages,
+    loading,
+    sending,
+    isTyping,
+    typingUser,
+    sendMessage,
+    retryFailedMessage,
+    startTyping,
+    stopTyping,
+    refreshMessages,
+  } = useChat({
+    roomId,
+    onError: (error) => {
+      toast.error(error?.message || "Chat error");
     },
-    {
-      id: 2,
-      text: "Yes, we're still hiring",
-      time: "1:44 PM",
-      isSent: false,
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    },
-    {
-      id: 3,
-      text: "I've worked 2 years at The Lounge Bar",
-      time: "1:44 PM",
-      isSent: true,
-      isRead: true,
-      avatar:
-        "https://i0.wp.com/www.splento.com/blog/wp-content/uploads/2024/10/confident-young-african-american-business-woman-in-2024-04-26-18-20-12-utc-scaled.jpg?ssl=1",
-    },
-    {
-      id: 4,
-      text: "Thank You andrew",
-      time: "1:44 PM",
-      isSent: false,
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
-    },
-    {
-      id: 5,
-      text: "Wow that's great, andrew",
-      time: "1:44 PM",
-      isSent: false,
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    },
-  ];
+  });
+
+  const mappedMessages = useMemo(
+    () =>
+      messages.map((item: any) => ({
+        id: item.id,
+        text: item.content || "",
+        time: formatMessageTime(item.createdAt),
+        isSent: item.senderId === user?.id || item.sender?.id === user?.id,
+        status: item.status,
+        avatar: resolveAvatar(item.sender?.avatar),
+        media: Array.isArray(item.attachments)
+          ? item.attachments
+              .map((attachment: any, index: number) => {
+                const uri = attachment?.url || attachment?.uri;
+                if (!uri) return null;
+                return {
+                  id: `${item.id}-${index}`,
+                  uri,
+                  previewType:
+                    String(attachment?.type || "").toLowerCase() === "video"
+                      ? "video"
+                      : "image",
+                  name: attachment?.fileName,
+                  thumbnailUrl: attachment?.thumbnailUrl,
+                };
+              })
+              .filter(Boolean)
+          : [],
+        uploadState: item.uploadState,
+      })),
+    [messages, user?.id]
+  );
+
+  const handleRefresh = async () => {
+    if (!roomId) return;
+    try {
+      setRefreshing(true);
+      await refreshMessages();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleSend = async () => {
+    const ok = await sendMessage({ content: message });
+    if (ok) {
+      setMessage("");
+    }
+  };
+
+  React.useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const showSub = Keyboard.addListener("keyboardDidShow", (event) => {
+      setAndroidKeyboardOffset(event.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setAndroidKeyboardOffset(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   return (
     <SafeAreaView
@@ -79,44 +155,60 @@ const HelpChat = () => {
         style={{ paddingTop: insets.top + 10 }}
         className="pb-6 bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         onPressBack={() => router.back()}
-        title="Help and Chat"
+        title={chatRoomName}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
-      <Text className="text-sm font-proximanova-semibold bg-[#11293A] text-white px-5 py-2.5">
-        Please wait.! You're <Text className="text-[#4FB2F3]">#7</Text> in line
-      </Text>
 
-      {/* chat */}
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
       >
-        {/* message content */}
         <View className="bg-white flex-1">
-          {/* Messages */}
-          <FlatList
-            data={messages}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            showsVerticalScrollIndicator={false}
-            inverted={true}
-            renderItem={({ item: msg }) => <RenderMessage msg={msg} />}
-            ListHeaderComponent={<TypingIndicator />}
-            ListEmptyComponent={<NoMessages />}
-            ListFooterComponent={
-              <View className="flex-row items-center justify-center pb-10">
-                <View className="h-[1px] w-36 bg-[#111111]"></View>
-                <Text className="font-proximanova-regular text-xs text-primary">
-                  Today
-                </Text>
-                <View className="h-[1px] w-36 bg-[#111111]"></View>
-              </View>
-            }
-          />
+          {loading && !mappedMessages.length ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator color={isDark ? "#fff" : "#111"} />
+            </View>
+          ) : !mappedMessages.length ? (
+            <View className="flex-1">
+              <NoMessages />
+            </View>
+          ) : (
+            <FlatList
+              data={mappedMessages}
+              keyExtractor={(item) => String(item.id)}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+              showsVerticalScrollIndicator={false}
+              inverted
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+              }
+              renderItem={({ item }) => (
+                <RenderMessage
+                  msg={item}
+                  onRetryMediaUpload={(messageId) => {
+                    retryFailedMessage(String(messageId)).catch(() => null);
+                  }}
+                />
+              )}
+              ListHeaderComponent={
+                <TypingIndicator isTyping={isTyping} userName={typingUser || undefined} />
+              }
+            />
+          )}
 
-          {/* Input Bar */}
-          <ChatInput message={message} setMessage={setMessage} />
+          <View style={{ marginBottom: Platform.OS === "android" ? androidKeyboardOffset : 0 }}>
+            <ChatInput
+              message={message}
+              setMessage={setMessage}
+              onSend={handleSend}
+              onTyping={startTyping}
+              onStopTyping={stopTyping}
+              isSending={sending}
+              disabled={!roomId}
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
