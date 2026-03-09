@@ -1,0 +1,280 @@
+import ScreenHeader from "@/components/header/ScreenHeader";
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
+import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
+import {
+  JobProfileData,
+  useSettingsStore,
+  WeeklyAvailabilityItem,
+} from "@/stores/settingsStore";
+import { useFocusEffect } from "@react-navigation/native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useColorScheme } from "nativewind";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, Text, TextInput, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
+  availability.every((item) => {
+    if (!item.isOpen) return true;
+    if (!item.startTime || !item.endTime) return false;
+    return item.startTime < item.endTime;
+  });
+
+const buildFormState = (profile: JobProfileData | null) => ({
+  jobType:
+    typeof profile?.preferredSalaryType === "string"
+      ? profile.preferredSalaryType.trim()
+      : "",
+  expectedSalaryMin:
+    typeof profile?.expectedSalaryMin === "number" ||
+    typeof profile?.expectedSalaryMin === "string"
+      ? `${profile.expectedSalaryMin}`
+      : "",
+  expectedSalaryMax:
+    typeof profile?.expectedSalaryMax === "number" ||
+    typeof profile?.expectedSalaryMax === "string"
+      ? `${profile.expectedSalaryMax}`
+      : "",
+  weeklyAvailability: profile?.weeklyAvailability || [],
+});
+
+const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
+  <View className="flex-row justify-between items-center mx-5 mt-8">
+    <View className="flex-row gap-2.5 items-center">
+      <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+        {icon}
+      </View>
+      <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+        {title}
+      </Text>
+    </View>
+  </View>
+);
+
+const Field = ({
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType,
+}: {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+  keyboardType?: "default" | "numeric";
+}) => (
+  <TextInput
+    value={value}
+    onChangeText={onChangeText}
+    placeholder={placeholder}
+    placeholderTextColor="#7A7A7A"
+    keyboardType={keyboardType || "default"}
+    className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
+  />
+);
+
+const JobProfileEdit = () => {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
+  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
+  const updateMyJobProfile = useSettingsStore((state) => state.updateMyJobProfile);
+  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const isLoadingJobProfile = useSettingsStore((state) => state.isLoadingJobProfile);
+
+  const [jobType, setJobType] = useState("");
+  const [expectedSalaryMin, setExpectedSalaryMin] = useState("");
+  const [expectedSalaryMax, setExpectedSalaryMax] = useState("");
+  const [weeklyAvailability, setWeeklyAvailability] = useState<WeeklyAvailabilityItem[]>([]);
+  const [availabilityTouched, setAvailabilityTouched] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jobTypeOptions = useMemo(
+    () => [
+      { label: "Hourly", value: "hourly" },
+      { label: "Monthly", value: "monthly" },
+    ],
+    []
+  );
+
+  const applyProfileState = useCallback((profile: JobProfileData | null) => {
+    const nextState = buildFormState(profile);
+    setJobType(nextState.jobType);
+    setExpectedSalaryMin(nextState.expectedSalaryMin);
+    setExpectedSalaryMax(nextState.expectedSalaryMax);
+    setWeeklyAvailability(nextState.weeklyAvailability);
+    setAvailabilityTouched(false);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadProfile = async () => {
+        try {
+          const data = await getMyJobProfile();
+          applyProfileState(data);
+        } catch (error: any) {
+          toast.error(error?.message || "Failed to load job profile");
+        }
+      };
+
+      loadProfile();
+      return () => {};
+    }, [applyProfileState, getMyJobProfile])
+  );
+
+  useEffect(() => {
+    if (!jobProfile) return;
+    applyProfileState(jobProfile);
+  }, [applyProfileState, jobProfile]);
+
+  useEffect(() => {
+    if (!availabilityTouched) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        if (!isValidWeeklyAvailability(weeklyAvailability)) {
+          console.log(
+            "job profile weekly availability autosave skipped:",
+            weeklyAvailability
+          );
+          return;
+        }
+
+        await updateMyJobProfile({ weeklyAvailability });
+        console.log("job profile weekly availability autosaved:", weeklyAvailability);
+      } catch (error) {
+        console.log("job profile weekly availability autosave error:", error);
+      }
+    }, 700);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [availabilityTouched, updateMyJobProfile, weeklyAvailability]);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      await updateMyJobProfile({
+        preferredSalaryType: jobType.trim() || null,
+        expectedSalaryMin: expectedSalaryMin.trim()
+          ? Number(expectedSalaryMin)
+          : null,
+        expectedSalaryMax: expectedSalaryMax.trim()
+          ? Number(expectedSalaryMax)
+          : null,
+      });
+
+      toast.success("Job profile updated");
+      router.replace("/screens/profile/user/job-profile");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to update job profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={["left", "right", "bottom"]}
+    >
+      <ScreenHeader
+        style={{
+          paddingTop: insets.top + 10,
+        }}
+        className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-6 mb-6"
+        onPressBack={() => router.back()}
+        title="Edit Job Profile"
+        titleClass="text-primary dark:text-dark-primary"
+        iconColor={isDark ? "#fff" : "#111"}
+      />
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <View className="mx-5 rounded-2xl border border-[#0000000D] bg-[#F9FBFC] p-4">
+          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+            Job Preferences
+          </Text>
+          <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
+            Update your job type, expected salary range, and working days.
+          </Text>
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="briefcase-outline" size={16} color="black" />}
+          title="Job Type"
+        />
+        <View className="mx-5 mt-4">
+          <SelectDropdown
+            placeholder="Select job type"
+            options={jobTypeOptions}
+            value={jobType}
+            listMaxHeight={220}
+            onSelect={(value: string) => setJobType(value)}
+          />
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="cash-multiple" size={16} color="black" />}
+          title="Expected Salary"
+        />
+        <View className="mx-5 mt-4 flex-row gap-3">
+          <View className="flex-1">
+            <Text className="mb-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+              Minimum
+            </Text>
+            <Field
+              value={expectedSalaryMin}
+              onChangeText={setExpectedSalaryMin}
+              placeholder="0"
+              keyboardType="numeric"
+            />
+          </View>
+          <View className="flex-1">
+            <Text className="mb-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+              Maximum
+            </Text>
+            <Field
+              value={expectedSalaryMax}
+              onChangeText={setExpectedSalaryMax}
+              placeholder="0"
+              keyboardType="numeric"
+            />
+          </View>
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="calendar-multiselect-outline" size={16} color="black" />}
+          title="Weekly Availability"
+        />
+        <View className="mx-5 mt-4">
+          <WeeklySchedule
+            availability={weeklyAvailability}
+            onChange={(nextAvailability) => {
+              setWeeklyAvailability(nextAvailability);
+              setAvailabilityTouched(true);
+            }}
+          />
+        </View>
+
+        <PrimaryButton
+          title="Save Changes"
+          onPress={handleSave}
+          loading={isSaving || isLoadingJobProfile}
+          className="mx-5 my-10"
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default JobProfileEdit;

@@ -1,0 +1,220 @@
+import ScreenHeader from "@/components/header/ScreenHeader";
+import { JobProfileData, useSettingsStore } from "@/stores/settingsStore";
+import { useFocusEffect } from "@react-navigation/native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useColorScheme } from "nativewind";
+import React, { useCallback } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const dayOrder = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
+
+const dayLabelMap: Record<string, string> = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
+  sunday: "Sunday",
+};
+
+const formatTimeToDisplay = (value?: string) => {
+  if (!value) return "";
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return value;
+
+  const hour24 = Number(match[1]);
+  const minute = match[2];
+  const meridiem = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+  return `${hour12}:${minute} ${meridiem}`;
+};
+
+const formatSalaryValue = (value?: number | string | null) =>
+  typeof value === "number" || typeof value === "string"
+    ? `${value}`.trim() || "Not added yet"
+    : "Not added yet";
+
+const getJobType = (profile: JobProfileData | null) => {
+  const value = profile?.preferredSalaryType;
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim().charAt(0).toUpperCase() + value.trim().slice(1)
+    : "Not added yet";
+};
+
+const buildAvailabilityRows = (profile: JobProfileData | null) => {
+  const byDay = new Map(
+    (profile?.weeklyAvailability || []).map((item) => [item.day.toLowerCase(), item])
+  );
+
+  return dayOrder.map((day) => {
+    const item = byDay.get(day);
+    if (!item || !item.isOpen) {
+      return { day, value: "Closed" };
+    }
+
+    const start = formatTimeToDisplay(item.startTime);
+    const end = formatTimeToDisplay(item.endTime);
+    return {
+      day,
+      value: start && end ? `${start} - ${end}` : "Closed",
+    };
+  });
+};
+
+const SectionTitle = ({
+  title,
+  icon,
+  action,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
+  <View className="mx-5 mt-8 flex-row items-center justify-between">
+    <View className="flex-row items-center gap-2.5">
+      <View className="h-8 w-8 rounded-full bg-[#E5F4FD] items-center justify-center">
+        {icon}
+      </View>
+      <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+        {title}
+      </Text>
+    </View>
+    {action}
+  </View>
+);
+
+const ValueCard = ({ value }: { value: string }) => (
+  <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
+    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+      {value}
+    </Text>
+  </View>
+);
+
+const JobProfile = () => {
+  const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
+  const jobProfile = useSettingsStore((state) => state.jobProfile);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadProfile = async () => {
+        try {
+          const data = await getMyJobProfile();
+          console.log("job profile data:", data);
+        } catch (error: any) {
+          toast.error(error?.message || "Failed to load job profile");
+        }
+      };
+
+      loadProfile();
+      return () => {};
+    }, [getMyJobProfile])
+  );
+
+  const availabilityRows = buildAvailabilityRows(jobProfile);
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={["left", "right", "bottom"]}>
+      <ScreenHeader
+        style={{ paddingTop: insets.top + 10 }}
+        className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-6 mb-6"
+        onPressBack={() => router.back()}
+        onPress={() => router.push("/screens/profile/user/job-profile-edit")}
+        buttonTitle="Edit"
+        title="Job Profile"
+        titleClass="text-primary dark:text-dark-primary"
+        iconColor={isDark ? "#fff" : "#111"}
+      />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <View className="mx-5 rounded-2xl border border-[#0000000D] bg-[#F9FBFC] p-4">
+          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+            Job Preferences
+          </Text>
+          <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
+            Manage your preferred job type, expected salary range, and weekly availability.
+          </Text>
+        </View>
+
+        <SectionTitle
+          title="Job Type"
+          icon={<MaterialCommunityIcons name="briefcase-outline" size={16} color="black" />}
+          action={
+            <TouchableOpacity onPress={() => router.push("/screens/profile/user/job-profile-edit")}>
+              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
+                Edit
+              </Text>
+            </TouchableOpacity>
+          }
+        />
+        <ValueCard value={getJobType(jobProfile)} />
+
+        <SectionTitle
+          title="Expected Salary"
+          icon={<MaterialCommunityIcons name="cash-multiple" size={16} color="black" />}
+        />
+        <View className="mx-5 mt-4 flex-row gap-3">
+          <View className="flex-1 rounded-xl border border-[#0000000D] p-4">
+            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+              Minimum
+            </Text>
+            <Text className="mt-2 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              {formatSalaryValue(jobProfile?.expectedSalaryMin)}
+            </Text>
+          </View>
+          <View className="flex-1 rounded-xl border border-[#0000000D] p-4">
+            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+              Maximum
+            </Text>
+            <Text className="mt-2 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              {formatSalaryValue(jobProfile?.expectedSalaryMax)}
+            </Text>
+          </View>
+        </View>
+
+        <SectionTitle
+          title="Weekly Availability"
+          icon={<MaterialCommunityIcons name="calendar-multiselect-outline" size={16} color="black" />}
+        />
+        <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
+          {availabilityRows.map((item) => (
+            <View
+              key={item.day}
+              className="flex-row items-center justify-between border-b border-[#0000000D] py-3 last:border-b-0"
+            >
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                {dayLabelMap[item.day]}
+              </Text>
+              <Text
+                className={`font-proximanova-regular text-sm ${
+                  item.value === "Closed"
+                    ? "text-[#F34F4F]"
+                    : "text-secondary dark:text-dark-secondary"
+                }`}
+              >
+                {item.value}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default JobProfile;

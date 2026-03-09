@@ -12,6 +12,7 @@ import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
 import { profileService } from "@/services/profileService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import {
   FontAwesome6,
   Ionicons,
@@ -26,7 +27,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const profile = () => {
+const Profile = () => {
   const [showText, setShowText] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState("");
   const [profileData, setProfileData] = useState<any>(null);
@@ -41,6 +42,8 @@ const profile = () => {
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const { setSelectedBusinesses } = useBusinessStore();
   const { updateProfile } = useProfileStore();
+  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
+  const jobProfile = useSettingsStore((state) => state.jobProfile);
   const { refreshAt } = useLocalSearchParams<{ refreshAt?: string }>();
   const insets = useSafeAreaInsets();
 
@@ -73,6 +76,13 @@ const profile = () => {
     }, [loadProfile])
   );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      getMyJobProfile().catch(() => null);
+      return () => {};
+    }, [getMyJobProfile])
+  );
+
   const handleColorSelect = (color: string | string[]) => {
     if (Array.isArray(color)) {
       // Handle gradient
@@ -97,6 +107,10 @@ const profile = () => {
   const experiences = Array.isArray(profileData?.experiences)
     ? profileData.experiences
     : [];
+  const jobProfilePreview = [
+    typeof jobProfile?.headline === "string" ? jobProfile.headline.trim() : "",
+    typeof jobProfile?.about === "string" ? jobProfile.about.trim() : "",
+  ].find((value) => value.length > 0);
 
   const handleSocialLinksChange = async (nextSocial: Record<string, string>) => {
     const previousSocial = profileData?.social || {};
@@ -407,6 +421,41 @@ const profile = () => {
           />
         </View>
 
+        <View className="mx-5 mt-7 flex-row gap-2.5">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
+            <MaterialCommunityIcons
+              name="briefcase-outline"
+              size={16}
+              color="black"
+            />
+          </DynamicBackground>
+          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+            Job Profile
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => router.push("/screens/profile/user/job-profile")}
+          className="mx-5 mt-4 rounded-xl border border-[#0000000D] px-4 py-3"
+        >
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
+                {jobProfile?.headline?.trim() || "Set up your job profile"}
+              </Text>
+              <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                {jobProfilePreview || "Add your role preferences, salary expectation, skills, and weekly availability."}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#7A7A7A" />
+          </View>
+        </TouchableOpacity>
+
         <View className="mx-5 mt-6 flex-row justify-between items-center">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
             Options for export
@@ -452,5 +501,5 @@ const profile = () => {
   );
 };
 
-export default profile;
+export default Profile;
 

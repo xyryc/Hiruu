@@ -36,8 +36,8 @@ export type JobProfileData = {
   preferredRoleIds?: string[];
   highlightedExperience?: string | null;
   preferredSalaryType?: string | null;
-  expectedSalaryMin?: number | null;
-  expectedSalaryMax?: number | null;
+  expectedSalaryMin?: number | string | null;
+  expectedSalaryMax?: number | string | null;
   weeklyAvailability?: WeeklyAvailabilityItem[];
   skills?: string[];
   metadata?: Record<string, unknown> | null;
@@ -66,7 +66,7 @@ interface SettingsState {
   getFaq: () => Promise<FaqItem[]>;
   getMyJobProfile: () => Promise<JobProfileData | null>;
   updateMyJobProfile: (
-    payload: Partial<Pick<JobProfileData, "weeklyAvailability">>
+    payload: Partial<JobProfileData>
   ) => Promise<JobProfileData | null>;
   clearError: () => void;
 }
