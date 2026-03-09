@@ -1,4 +1,7 @@
 import RoleChip, { DEFAULT_ROLE_CHIPS } from "@/components/ui/badges/RoleChip";
+import { getTimezoneLabel } from "@/constants/timezones";
+import { usePreferencesStore } from "@/stores/preferencesStore";
+import { utcTimeToLocal } from "@/utils/timezone";
 import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -10,6 +13,9 @@ const ShiftTemplateCard = ({
   weekly,
   timeRange,
   breakTimeRange,
+  startTime,
+  endTime,
+  breakDurations,
   location,
   roles,
   businessName,
@@ -21,8 +27,52 @@ const ShiftTemplateCard = ({
   assignmentStatusText,
   isAssignmentComplete,
 }: any) => {
+  const timezone = usePreferencesStore((state) => state.timezone);
   const roleChips =
     Array.isArray(roles) && roles.length > 0 ? roles : DEFAULT_ROLE_CHIPS;
+  const timezoneLabel = getTimezoneLabel(timezone);
+
+  const to12Hour = (value?: string) => {
+    if (!value) return "";
+    const [rawHour = "0", rawMinute = "0"] = value.split(":");
+    const hour = Number(rawHour);
+    const minute = Number(rawMinute);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
+
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+  };
+
+  const resolvedTimeRange = startTime && endTime
+    ? `${to12Hour(utcTimeToLocal(startTime, timezone))} - ${to12Hour(
+        utcTimeToLocal(endTime, timezone)
+      )} (${timezoneLabel})`
+    : timeRange
+      ? `${timeRange} (${timezoneLabel})`
+      : `7:00 AM - 3:00 PM (${timezoneLabel})`;
+
+  const resolvedBreakTimeRange =
+    Array.isArray(breakDurations) && breakDurations.length > 0
+      ? `${breakDurations
+          .map((item: any) => {
+            const start = item?.startTime
+              ? to12Hour(utcTimeToLocal(item.startTime, timezone))
+              : "";
+            const end = item?.endTime
+              ? to12Hour(utcTimeToLocal(item.endTime, timezone))
+              : "";
+
+            if (!start && !end) return "";
+            if (!start) return end;
+            if (!end) return start;
+            return `${start} - ${end}`;
+          })
+          .filter(Boolean)
+          .join(", ")} (${timezoneLabel})`
+      : breakTimeRange
+        ? `${breakTimeRange} (${timezoneLabel})`
+        : `10:00 AM - 11:00 PM (${timezoneLabel})`;
 
   return (
     <View className={`${className}`}>
@@ -75,8 +125,8 @@ const ShiftTemplateCard = ({
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               Time:
             </Text>
-            <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary ">
-              {timeRange || "7:00 AM - 3:00 PM"}
+            <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary text-right max-w-[60%]">
+              {resolvedTimeRange}
             </Text>
           </View>
 
@@ -84,8 +134,8 @@ const ShiftTemplateCard = ({
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               Break Time:
             </Text>
-            <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary ">
-              {breakTimeRange || "10:00 AM - 11:00 PM"}
+            <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary text-right max-w-[60%]">
+              {resolvedBreakTimeRange}
             </Text>
           </View>
 

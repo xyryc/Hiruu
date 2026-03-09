@@ -179,17 +179,6 @@ const SavedShiftTemplate = () => {
     [weeklyShiftSelections]
   );
 
-  const to12Hour = (value?: string) => {
-    if (!value) return "--:--";
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
-    const hour = Number(rawHour);
-    const minute = Number(rawMinute);
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
-    const period = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
-  };
-
   const buildSlotsPayload = () =>
     daysData.flatMap((day) => {
       const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
@@ -390,18 +379,9 @@ const SavedShiftTemplate = () => {
                           key={`${day.label}-${template?.id}`}
                           className="mt-3"
                           title={template?.name || `${day.label} Shift`}
-                          timeRange={`${to12Hour(template?.startTime)} - ${to12Hour(template?.endTime)}`}
-                          breakTimeRange={
-                            Array.isArray(template?.breakDuration) &&
-                            template.breakDuration.length > 0
-                              ? template.breakDuration
-                                  .map(
-                                    (item: any) =>
-                                      `${to12Hour(item?.startTime)} - ${to12Hour(item?.endTime)}`
-                                  )
-                                  .join(", ")
-                              : "No break"
-                          }
+                          startTime={template?.startTime}
+                          endTime={template?.endTime}
+                          breakDurations={template?.breakDuration}
                           location={template?.business?.name || "Location not defined"}
                           roles={template?.roleRequirements || []}
                           businessName={template?.business?.name}

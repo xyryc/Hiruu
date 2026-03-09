@@ -57,18 +57,6 @@ const SavedShiftTemplate = () => {
     }, [loadTemplates])
   );
 
-  const to12Hour = (value?: string) => {
-    if (!value) return "";
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
-    const hour = Number(rawHour);
-    const minute = Number(rawMinute);
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
-
-    const period = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
-  };
-
   const handleDeleteTemplate = async (templateId?: string) => {
     if (!businessId || !templateId || deletingId) return;
 
@@ -120,8 +108,6 @@ const SavedShiftTemplate = () => {
             </View>
           ) : templates.length > 0 ? (
             templates.map((template, index) => {
-              const firstBreak = template?.breakDuration?.[0];
-
               return (
                 <ShiftTemplateCard
                   key={template?.id || index}
@@ -129,16 +115,9 @@ const SavedShiftTemplate = () => {
                   templateId={template?.id}
                   businessId={businessId}
                   title={template?.name || "Shift Template"}
-                  timeRange={`${to12Hour(template?.startTime)} - ${to12Hour(
-                    template?.endTime
-                  )}`}
-                  breakTimeRange={
-                    firstBreak
-                      ? `${to12Hour(firstBreak?.startTime)} - ${to12Hour(
-                        firstBreak?.endTime
-                      )}`
-                      : "No break"
-                  }
+                  startTime={template?.startTime}
+                  endTime={template?.endTime}
+                  breakDurations={template?.breakDuration}
                   location={template?.business?.address?.address || "Business address"}
                   businessName={template?.business?.name || "Business"}
                   businessLogo={template?.business?.logo}
