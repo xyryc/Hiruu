@@ -1,6 +1,7 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { TodaysShiftProps } from "@/types";
+import { utcTimeToLocal } from "@/utils/timezone";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
@@ -31,14 +32,14 @@ type ApiShift = {
     name?: string;
     logo?: string | null;
     address?:
-      | string
-      | {
-          line1?: string;
-          address?: string;
-          city?: string;
-          state?: string;
-          country?: string;
-        };
+    | string
+    | {
+      line1?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+    };
   };
 };
 
@@ -96,14 +97,16 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     if (!value) return null;
 
     if (value.includes("T")) {
+      // ISO timestamp - convert from UTC to local time
       const date = new Date(value);
       if (!Number.isNaN(date.getTime())) {
-        // API sends ISO with UTC suffix (Z); use UTC clock to preserve shift time.
-        return { hour: date.getUTCHours(), minute: date.getUTCMinutes() };
+        return { hour: date.getHours(), minute: date.getMinutes() };
       }
     }
 
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
+    // HH:mm format - convert from UTC to local
+    const localTime = utcTimeToLocal(value);
+    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
@@ -154,8 +157,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       selectedBusinesses.length === 0
         ? source
         : source.filter((shift) =>
-            selectedBusinesses.includes(shift?.business?.id || "")
-          );
+          selectedBusinesses.includes(shift?.business?.id || "")
+        );
 
     return filtered
       .filter(
@@ -171,16 +174,16 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
           typeof addressPayload === "string"
             ? addressPayload
             : addressPayload?.line1 ||
-              addressPayload?.address ||
-              "Address unavailable";
+            addressPayload?.address ||
+            "Address unavailable";
         const city =
           typeof addressPayload === "string"
             ? "Location unavailable"
             : [addressPayload?.city, addressPayload?.state]
-                .filter(Boolean)
-                .join(", ") ||
-              addressPayload?.country ||
-              "Location unavailable";
+              .filter(Boolean)
+              .join(", ") ||
+            addressPayload?.country ||
+            "Location unavailable";
 
         return {
           id: shift.id || `${business?.id || "business"}-${shift?.date || "date"}`,

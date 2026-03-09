@@ -187,20 +187,19 @@ const JobRequest = () => {
       salaryMax:
         typeof recruitment?.salaryMax === "number" ? recruitment.salaryMax : 0,
       salaryType: recruitment?.salaryType || "monthly",
+      distanceKm:
+        typeof recruitment?.distanceKm === "number" ? recruitment.distanceKm : undefined,
       shiftType: recruitment?.shiftType || "",
       jobType: recruitment?.jobType || "",
       business: {
         id: business?.id || "",
         name: business?.name || "-",
         logo: business?.logo,
-        // Keep address.address contract for shared cards/modals
-        address: {
-          address:
-            business?.address?.address ||
-            business?.address?.city ||
-            business?.address?.area ||
-            "Unknown Location",
-        },
+        address:
+          business?.address?.address ||
+          business?.address?.city ||
+          business?.address?.area ||
+          "Unknown Location",
       },
       _count: {
         recruitmentApplications:

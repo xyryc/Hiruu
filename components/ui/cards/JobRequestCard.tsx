@@ -96,12 +96,28 @@ const JobRequestCard = ({ className, status, job }: JobRequestCardProps) => {
             style={{ width: 1, height: 18 }}
           />
 
-            <View className="flex-row gap-1 items-center">
-              <SimpleLineIcons name="share-alt" size={14} color="#7A7A7A" />
-              <Text className="text-sm font-proximanova-regular text-secondary">
-                {job?.shareCount ?? 0}
-              </Text>
-            </View>
+          <View className="flex-row gap-1 items-center">
+            <SimpleLineIcons name="share-alt" size={14} color="#7A7A7A" />
+            <Text className="text-sm font-proximanova-regular text-secondary">
+              {job?.shareCount ?? 0}
+            </Text>
+          </View>
+
+          {typeof job?.distanceKm === "number" && (
+            <>
+              <Image
+                source={require("@/assets/images/line-small.svg")}
+                style={{ width: 1, height: 18 }}
+              />
+
+              <View className="flex-row gap-1 items-center">
+                <Ionicons name="location-outline" size={16} color="#7A7A7A" />
+                <Text className="text-sm font-proximanova-regular text-secondary">
+                  {job.distanceKm}km
+                </Text>
+              </View>
+            </>
+          )}
 
           <Image
             source={require("@/assets/images/line-small.svg")}

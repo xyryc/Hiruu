@@ -3,6 +3,7 @@ import ShiftItem from "@/components/layout/ShiftItem";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useShiftStore } from "@/stores/shiftStore";
 import { formatCountdownFromSeconds } from "@/utils/date";
+import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -75,7 +76,9 @@ const ShiftSchedule = () => {
 
   const to12Hour = useCallback((value?: string) => {
     if (!value) return "--:--";
-    const [rawHour = "0", rawMinute = "0"] = value.split(":");
+    // Convert UTC time to local time first
+    const localTime = utcTimeToLocal(value);
+    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
@@ -105,11 +108,7 @@ const ShiftSchedule = () => {
               weekday: "short",
               day: "numeric",
               month: "long",
-            })} - ${nextShiftDate.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}`
+            })} - ${formatUTCToLocalTime(shift.nextShiftStartDate!)}`
             : "No upcoming shifts";
 
         return {

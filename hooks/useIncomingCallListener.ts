@@ -1,5 +1,4 @@
 import { callService } from "@/services/callService";
-import { chatService } from "@/services/chatService";
 import { socketService } from "@/services/socketService";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "expo-router";
@@ -18,7 +17,6 @@ export const useIncomingCallListener = (enabled: boolean) => {
   const { user } = useAuthStore();
   const lastHandledCallIdRef = useRef<string | null>(null);
   const resolvingCallIdRef = useRef<string | null>(null);
-  const pollingActiveCallsRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -26,7 +24,6 @@ export const useIncomingCallListener = (enabled: boolean) => {
 
     let incomingHandler: ((payload: any) => void) | null = null;
     let participantsHandler: ((payload: any) => void) | null = null;
-    let pollingInterval: ReturnType<typeof setInterval> | null = null;
 
     const openIncomingCall = (callId: string, roomId = "", callType: "audio" | "video" = "audio") => {
       if (!callId) return;
@@ -123,49 +120,10 @@ export const useIncomingCallListener = (enabled: boolean) => {
       }
     };
 
-    const pollActiveCallsFallback = async () => {
-      if (!enabled || !user?.id || pollingActiveCallsRef.current) return;
-      pollingActiveCallsRef.current = true;
-      try {
-        const roomsResponse = await chatService.getChatRooms();
-        const rooms = Array.isArray(roomsResponse?.data)
-          ? roomsResponse.data
-          : [];
-
-        for (const room of rooms) {
-          const roomId = room?.id;
-          if (!roomId) continue;
-          try {
-            const active = await callService.getActiveCall(roomId);
-            const call = active?.data;
-            const callId = call?.id;
-            if (!callId) continue;
-            const callStatus = String(call?.status || "").toLowerCase();
-            if (!ACTIVE_CALL_STATUSES.has(callStatus)) continue;
-            console.log("[CALL_DEBUG][INCOMING] poll:active-call", {
-              roomId,
-              callId,
-              callStatus,
-            });
-            await resolveAndOpenIfReceiver(callId, roomId);
-          } catch {
-            // no active call for room
-          }
-        }
-      } finally {
-        pollingActiveCallsRef.current = false;
-      }
-    };
-
     setup();
-    void pollActiveCallsFallback();
-    pollingInterval = setInterval(() => {
-      void pollActiveCallsFallback();
-    }, 3500);
 
     return () => {
       console.log("[CALL_DEBUG][INCOMING] listener:cleanup");
-      if (pollingInterval) clearInterval(pollingInterval);
       if (incomingHandler) socketService.offIncomingCall(incomingHandler);
       if (participantsHandler) socketService.offCallParticipants(participantsHandler);
     };

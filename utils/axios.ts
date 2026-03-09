@@ -1,7 +1,6 @@
 import { useServerStatusStore } from '@/stores/serverStatusStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { router } from 'expo-router';
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'auth_access_token',
@@ -190,10 +189,8 @@ axiosInstance.interceptors.response.use(
           console.error('Failed to clear store state:', e);
         }
 
-        // Redirect to login page
-        router.replace('/(auth)/login');
-
-        // You can emit an event here or use a navigation service to redirect to login
+        // Don't redirect here - let app/index.tsx handle navigation
+        // Setting user to null will trigger automatic redirect
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
