@@ -1,3 +1,4 @@
+import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import ShiftCard from "@/components/ui/cards/ShiftCard";
 import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
@@ -586,9 +587,7 @@ const BusinessScheduleScreen = () => {
         ) : visibleShifts.length > 0 ? (
           visibleShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
         ) : (
-          <Text className="text-sm font-proximanova-regular text-secondary">
-            No shifts found.
-          </Text>
+          <NoShiftsAvailableCard className="mt-4" />
         )}
         {isFetchingMore ? (
           <View className="py-4 items-center">

@@ -52,7 +52,11 @@
     }
   },
   "common": {
-    "error": "Error"
+    "error": "Error",
+    "noJobsAvailable": "No Jobs Available",
+    "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
+    "noShiftsAvailable": "No Shifts Available",
+    "noShiftsAvailableDescription": "There are no shifts scheduled for this date. Check another date or create a new shift."
   },
   "api": {
     "auth_phone_registration_success": "Phone registration successful.",

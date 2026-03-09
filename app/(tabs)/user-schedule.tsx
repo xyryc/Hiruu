@@ -1,11 +1,12 @@
 import ShiftHeader from "@/components/header/ShiftHeader";
 import ShiftItem from "@/components/layout/ShiftItem";
+import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useShiftStore } from "@/stores/shiftStore";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -324,7 +325,7 @@ const ShiftSchedule = () => {
             />
           ))
         ) : (
-          <Text className="text-center text-secondary py-8">No shifts found.</Text>
+          <NoShiftsAvailableCard className="mt-4" />
         )}
       </ScrollView>
 

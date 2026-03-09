@@ -26,5 +26,6 @@
   "typescript.preferences.quoteStyle": "single",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "amazonQ.telemetry": false
+  "amazonQ.telemetry": false,
+  "typescript.autoClosingTags": false
 }
