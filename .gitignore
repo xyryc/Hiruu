@@ -62,3 +62,5 @@ google-services.json
 
 # remove docs folder
 docs
+
+REACT_NATIVE_SUPPORT_INTEGRATION.md

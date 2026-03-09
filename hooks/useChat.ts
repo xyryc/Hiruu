@@ -12,13 +12,13 @@ interface Message {
     status: 'sent' | 'delivered' | 'read' | 'failed';
     createdAt: string;
     type?: string;
-    attachments?: Array<{
+    attachments?: {
         url?: string;
         uri?: string;
         type?: string;
         fileName?: string;
         mimeType?: string;
-    }>;
+    }[];
     sender?: {
         id: string;
         name: string;
@@ -49,10 +49,28 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
     const isMounted = useRef(true);
     const messagesRef = useRef<Message[]>([]);
     const typingResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const currentUserDisplayName = [user?.firstName, user?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || user?.email || 'You';
 
     const extractCallBody = useCallback((payload: any) => {
         if (!payload) return null;
         return payload.call || payload.callData || payload.callMeta || payload.metadata?.call || null;
+    }, []);
+
+    const extractMessagesFromResult = useCallback((result: any): any[] => {
+        const candidates = [
+            result?.data?.data,
+            result?.data?.messages,
+            result?.data?.items,
+            result?.data,
+            result?.messages,
+            result?.items,
+        ];
+
+        const firstArray = candidates.find((item) => Array.isArray(item));
+        return Array.isArray(firstArray) ? firstArray : [];
     }, []);
 
     // Load initial messages
@@ -62,7 +80,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         try {
             setLoading(true);
             const result = await chatService.getRoomMessages(roomId);
-            const data = result?.data?.data || [];
+            const data = extractMessagesFromResult(result);
 
             // console.log('[CHAT_DEBUG] load-messages:body', data);
             const callBodies = Array.isArray(data)
@@ -87,7 +105,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 setLoading(false);
             }
         }
-    }, [roomId, onError]);
+    }, [roomId, onError, extractMessagesFromResult, extractCallBody]);
 
     const clearTypingState = useCallback(() => {
         setIsTyping(false);
@@ -160,7 +178,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 createdAt: new Date().toISOString(),
                 sender: {
                     id: user?.id || '',
-                    name: user?.name || 'You',
+                    name: currentUserDisplayName,
                     avatar: user?.avatar,
                 },
                 uploadState: 'uploading',
@@ -170,7 +188,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 },
             };
         },
-        [roomId, user?.avatar, user?.id, user?.name]
+        [roomId, user?.avatar, user?.id, currentUserDisplayName]
     );
 
     // Send message
@@ -323,17 +341,18 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 // Listen for new messages
                 const handleNewMessage = (data: any) => {
                     console.log('[CHAT_DEBUG] socket:new-message:body', data?.message || data);
-                    const callBody = extractCallBody(data?.message || data);
+                    const incomingMessage = data?.message || data;
+                    const callBody = extractCallBody(incomingMessage);
                     if (callBody) {
                         console.log('[CHAT_DEBUG] socket:new-message:call-body', callBody);
                     }
 
-                    if (data.message && data.message.chatRoomId === roomId) {
+                    if (incomingMessage?.chatRoomId === roomId) {
                         clearTypingState();
                         setMessages((prev) => {
                             // Add new message if not already present
-                            if (!prev.some((msg) => msg.id === data.message.id)) {
-                                return [data.message, ...prev];
+                            if (!prev.some((msg) => msg.id === incomingMessage.id)) {
+                                return [incomingMessage, ...prev];
                             }
                             return prev;
                         });
