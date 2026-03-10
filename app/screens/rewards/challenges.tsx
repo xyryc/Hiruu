@@ -3,6 +3,7 @@ import AutoHideTooltip from "@/components/ui/dropdown/AutoHideTooltip";
 import CoinProgressSlider from "@/components/ui/inputs/CoinProgressSlider";
 import {
   AchievementItem,
+  AchievementType,
   useAchievementStore,
 } from "@/stores/achievementStore";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
@@ -22,6 +23,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const tabs = ["One-Time", "Repeatable"];
+const achievementTypeByTab: Record<(typeof tabs)[number], AchievementType> = {
+  "One-Time": "onetime",
+  Repeatable: "repeat",
+};
 
 const challengeIllustrations: Record<string, any> = {
   coins: require("@/assets/images/reward/giftbox.svg"),
@@ -51,18 +56,24 @@ const challenges = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isActive, setIsActive] = useState("One-Time");
-  const { achievements, isLoadingAchievements, getAchievements } =
-    useAchievementStore();
+  const currentType = achievementTypeByTab[isActive];
+  const {
+    achievements,
+    isLoadingAchievements,
+    claimingAchievementId,
+    getAchievements,
+    claimAchievement,
+  } = useAchievementStore();
 
   useFocusEffect(
     useCallback(() => {
-      getAchievements().catch((error: any) => {
+      getAchievements(currentType).catch((error: any) => {
         toast.error(error?.message || "Failed to load challenges");
       });
-    }, [getAchievements])
+    }, [currentType, getAchievements])
   );
 
-  const oneTimeChallenges = useMemo(
+  const activeChallenges = useMemo(
     () =>
       (Array.isArray(achievements) ? achievements : [])
         .filter((item) => item?.isActive !== false && item?.isHidden !== true)
@@ -70,8 +81,20 @@ const challenges = () => {
     [achievements]
   );
 
-  const activeChallenges =
-    isActive === "One-Time" ? oneTimeChallenges : ([] as AchievementItem[]);
+  const handleClaim = useCallback(
+    async (achievement: AchievementItem) => {
+      if (!achievement?.id || !achievement?.userProgress?.canClaim) return;
+
+      try {
+        const result = await claimAchievement(achievement.id);
+        toast.success(result?.message || "Achievement claimed successfully");
+        await getAchievements(currentType);
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to claim achievement");
+      }
+    },
+    [claimAchievement, currentType, getAchievements]
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
@@ -160,6 +183,8 @@ const challenges = () => {
             const rewardCoins = Number(achievement?.rewardCoins || 0);
             const actionLabel = getChallengeActionLabel(achievement);
             const isClaimed = Boolean(achievement?.userProgress?.isClaimed);
+            const canClaim = Boolean(achievement?.userProgress?.canClaim);
+            const isClaiming = claimingAchievementId === achievement.id;
 
             return (
               <View key={achievement.id}>
@@ -178,11 +203,16 @@ const challenges = () => {
                         {achievement.title}
                       </Text>
 
-                      <View className="bg-[#11293A] top-4 rounded-full">
+                      <TouchableOpacity
+                        activeOpacity={canClaim ? 0.85 : 1}
+                        disabled={!canClaim || isClaiming}
+                        onPress={() => handleClaim(achievement)}
+                        className={`top-4 rounded-full ${canClaim && !isClaiming ? "bg-[#11293A]" : "bg-[#8FA7B8]"}`}
+                      >
                         <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                          {actionLabel}
+                          {isClaiming ? "Claiming..." : actionLabel}
                         </Text>
-                      </View>
+                      </TouchableOpacity>
                     </View>
 
                     {/* <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
@@ -247,7 +277,7 @@ const challenges = () => {
             <Text className="text-center text-sm text-secondary dark:text-dark-secondary">
               {isActive === "One-Time"
                 ? "No one-time challenges found."
-                : "Repeatable challenges are not available yet."}
+                : "No repeatable challenges found."}
             </Text>
           </View>
         )}
