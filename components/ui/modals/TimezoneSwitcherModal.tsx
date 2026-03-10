@@ -1,4 +1,8 @@
-import { TIMEZONE_OPTIONS, getTimezoneLabel } from "@/constants/timezones";
+import {
+  TIMEZONE_OPTIONS,
+  getTimezoneLabel,
+  getTimezoneOffsetLabel,
+} from "@/constants/timezones";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { getDeviceTimezone } from "@/utils/date";
 import { Entypo, Ionicons } from "@expo/vector-icons";
@@ -65,7 +69,7 @@ const TimezoneSwitcherModal = ({
                   Use device timezone
                 </Text>
                 <Text className="text-sm text-secondary mt-1">
-                  {getTimezoneLabel(deviceTimezone)} ({deviceTimezone})
+                  {getTimezoneLabel(deviceTimezone)} ({getTimezoneOffsetLabel(deviceTimezone)})
                 </Text>
               </View>
 
@@ -74,7 +78,10 @@ const TimezoneSwitcherModal = ({
               )}
             </TouchableOpacity>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 80 }}
+            >
               {TIMEZONE_OPTIONS.map((option) => {
                 const selected = option.value === timezone;
 
@@ -82,17 +89,15 @@ const TimezoneSwitcherModal = ({
                   <TouchableOpacity
                     key={option.value}
                     onPress={() => handleSelect(option.value)}
-                    className={`flex-row items-center justify-between px-4 py-4 rounded-xl mb-3 ${
-                      selected ? "bg-[#E5F4FD]" : "bg-gray-50"
-                    }`}
+                    className={`flex-row items-center justify-between px-4 py-4 rounded-xl mb-3 ${selected ? "bg-[#E5F4FD]" : "bg-gray-50"
+                      }`}
                   >
                     <View className="flex-1 pr-3">
                       <Text
-                        className={`font-proximanova-semibold ${
-                          selected ? "text-[#4FB2F3]" : "text-primary"
-                        }`}
+                        className={`font-proximanova-semibold ${selected ? "text-[#4FB2F3]" : "text-primary"
+                          }`}
                       >
-                        {option.label}
+                        {option.label} ({getTimezoneOffsetLabel(option.value)})
                       </Text>
                       <Text className="text-xs text-secondary mt-1">
                         {option.value}
