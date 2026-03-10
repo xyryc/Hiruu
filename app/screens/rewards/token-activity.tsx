@@ -1,9 +1,11 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import MonthPicker from "@/components/ui/inputs/MonthPicker";
+import { walletService } from "@/services/walletService";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -13,6 +15,29 @@ const TokenActivity = () => {
   const topTabs = ["all", "earned", "spent"];
   const [isTabs, setIsTabs] = useState("all");
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
+  const [walletCoins, setWalletCoins] = useState(0);
+
+  const loadWallet = useCallback(async () => {
+    try {
+      const result = await walletService.getWallet();
+      const nextCoins = Number(result?.data?.coins ?? result?.data?.wallet?.coins);
+      setWalletCoins(Number.isFinite(nextCoins) ? nextCoins : 0);
+    } catch {
+      setWalletCoins(0);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadWallet();
+    }, [loadWallet])
+  );
+
+  const walletCoinsLabel = useMemo(
+    () => new Intl.NumberFormat("en-US").format(walletCoins),
+    [walletCoins]
+  );
+
   const handleReportMonthChange = (date: Date) => {
     setReportMonth(date);
     console.log("Report month selected:", date.toLocaleDateString());
@@ -40,7 +65,9 @@ const TokenActivity = () => {
               contentFit="contain"
             />
             <View className="px-4 py-2 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-              <Text className="text-sm font-proximanova-semibold">540</Text>
+              <Text className="text-sm font-proximanova-semibold">
+                {walletCoinsLabel}
+              </Text>
             </View>
           </View>
         }
