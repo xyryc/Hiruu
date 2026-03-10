@@ -169,8 +169,19 @@ export const localDateToUTCTime = (
     timezone?: string
 ): string => {
     const tz = timezone || getUserTimezone();
-    const localDateTime = DateTime.fromJSDate(localDate, { zone: tz });
-    return localDateTime.toUTC().toFormat("HH:mm");
+    const hours = localDate.getHours();
+    const minutes = localDate.getMinutes();
+
+    const zonedDateTime = DateTime.now()
+        .setZone(tz)
+        .set({
+            hour: hours,
+            minute: minutes,
+            second: 0,
+            millisecond: 0,
+        });
+
+    return zonedDateTime.toUTC().toFormat("HH:mm");
 };
 
 /**
@@ -185,15 +196,10 @@ export const utcTimeToLocalDate = (
     utcTime: string,
     timezone?: string
 ): Date => {
-    const tz = timezone || getUserTimezone();
-    const [hours, minutes] = utcTime.split(":").map(Number);
+    const localTime = utcTimeToLocal(utcTime, timezone);
+    const [hours, minutes] = localTime.split(":").map(Number);
+    const value = new Date();
 
-    const utcDateTime = DateTime.utc().set({
-        hour: hours,
-        minute: minutes,
-        second: 0,
-        millisecond: 0,
-    });
-
-    return utcDateTime.setZone(tz).toJSDate();
+    value.setHours(hours, minutes, 0, 0);
+    return value;
 };
