@@ -8,7 +8,8 @@ import ProfileProgress from "@/components/layout/ProfileProgress";
 import TodaysShift from '@/components/layout/TodaysShift';
 import Widgets from "@/components/layout/Widgets";
 import { profileService } from "@/services/profileService";
-import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -21,24 +22,27 @@ const UserHome = () => {
     setProfileData(result.data);
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
 
-    const hydrateProfile = async () => {
-      try {
-        const result = await profileService.getProfile();
-        if (!isMounted) return;
-        setProfileData(result.data);
-      } catch {
-        // Silent fail to keep home fast/stable.
-      }
-    };
+      const hydrateProfile = async () => {
+        try {
+          const result = await profileService.getProfile();
+          if (!isMounted) return;
+          setProfileData(result.data);
+        } catch {
+          // Silent fail to keep home fast/stable.
+        }
+      };
 
-    hydrateProfile();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+      hydrateProfile();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
 
   const handleRefresh = useCallback(async () => {
     try {
