@@ -8,33 +8,48 @@ import ProfileProgress from "@/components/layout/ProfileProgress";
 import TodaysShift from '@/components/layout/TodaysShift';
 import Widgets from "@/components/layout/Widgets";
 import { profileService } from "@/services/profileService";
-import React, { useEffect, useState } from "react";
-import { ScrollView, StatusBar } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserHome = () => {
   const [profileData, setProfileData] = useState<any>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const loadProfile = useCallback(async () => {
+    const result = await profileService.getProfile();
+    setProfileData(result.data);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadProfile = async () => {
+    const hydrateProfile = async () => {
       try {
         const result = await profileService.getProfile();
-        if (isMounted) {
-          setProfileData(result.data);
-        }
+        if (!isMounted) return;
+        setProfileData(result.data);
       } catch {
         // Silent fail to keep home fast/stable.
       }
     };
 
-    loadProfile();
+    hydrateProfile();
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      await loadProfile();
+    } catch {
+      // Silent fail to keep home stable on refresh too.
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadProfile]);
 
 
   return (
@@ -57,6 +72,9 @@ const UserHome = () => {
       {/* main content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* profile progress */}
         {!(profileData?.onboarding >= 5) && (

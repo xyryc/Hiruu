@@ -66,6 +66,7 @@ export interface ProfileImagePickerProps {
 export interface Company {
   id: string;
   name: string;
+  logo?: string;
 }
 
 export interface Companies {

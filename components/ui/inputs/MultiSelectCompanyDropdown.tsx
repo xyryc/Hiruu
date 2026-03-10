@@ -28,6 +28,7 @@ const MultiSelectCompanyDropdown = ({
   const { fetchBusinesses, createCompanyManual } = useBusinessStore();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+  const [isAddingCompany, setIsAddingCompany] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -146,16 +147,17 @@ const MultiSelectCompanyDropdown = ({
     }
 
     try {
+      setIsAddingCompany(true);
       const apiResponse = await createCompanyManual({
         companyName: manualCompanyName.trim(),
         logo: manualCompanyLogo,
       });
 
-      // Use the company ID returned from API
+      // The store returns the created company object directly.
       const newCompany: Company = {
-        id: apiResponse.company?.id || `manual_${Date.now()}`,
-        name: manualCompanyName.trim(),
-        logo: apiResponse.company?.logo || manualCompanyLogo?.uri,
+        id: apiResponse?.id || `manual_${Date.now()}`,
+        name: apiResponse?.name || manualCompanyName.trim(),
+        logo: apiResponse?.logo || manualCompanyLogo?.uri,
       };
 
       setCompanies([...companies, newCompany]);
@@ -182,6 +184,8 @@ const MultiSelectCompanyDropdown = ({
     } catch (error) {
       console.error("Error creating company:", error);
       toast.error(error.message || "Failed to add company. Please try again.");
+    } finally {
+      setIsAddingCompany(false);
     }
   };
 
@@ -217,6 +221,16 @@ const MultiSelectCompanyDropdown = ({
       .slice(0, 2);
   };
 
+  const getCompanyLogoSource = (logo?: string | null) => {
+    if (!logo || typeof logo !== "string") return null;
+    if (logo.startsWith("http") || logo.startsWith("file://")) {
+      return { uri: logo };
+    }
+    return {
+      uri: `${process.env.EXPO_PUBLIC_API_URL}${logo.startsWith("/") ? logo : `/${logo}`}`,
+    };
+  };
+
   return (
     <View>
       {/* Dropdown Trigger */}
@@ -250,9 +264,30 @@ const MultiSelectCompanyDropdown = ({
               >
                 {/* Company Header */}
                 <View className="flex-row justify-between items-center mb-4">
-                  <Text className="text-base font-proximanova-semibold text-gray-900">
-                    {company.name}
-                  </Text>
+                  <View className="flex-row items-center flex-1 mr-3">
+                    {getCompanyLogoSource(company.logo) ? (
+                      <Image
+                        source={getCompanyLogoSource(company.logo)!}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 999,
+                          marginRight: 12,
+                        }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View className="w-10 h-10 bg-gray-800 rounded-full mr-3 justify-center items-center">
+                        <Text className="text-white text-sm font-proximanova-medium">
+                          {getCompanyInitials(company.name)}
+                        </Text>
+                      </View>
+                    )}
+
+                    <Text className="text-base font-proximanova-semibold text-gray-900 flex-1">
+                      {company.name}
+                    </Text>
+                  </View>
                   <TouchableOpacity
                     onPress={() => removeCompany(company.id)}
                     className="w-6 h-6 bg-black rounded-full justify-center items-center"
@@ -327,9 +362,9 @@ const MultiSelectCompanyDropdown = ({
       >
         <SafeAreaView className="flex-1 bg-white">
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            behavior={Platform.OS === "ios" ? "padding" : "padding"}
             className="flex-1"
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
           >
             {/* Header */}
             <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
@@ -355,12 +390,13 @@ const MultiSelectCompanyDropdown = ({
               </View>
             </View>
 
-            {/* Company List */}
             <ScrollView
               className="flex-1"
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ flexGrow: 1 }}
+              keyboardDismissMode="interactive"
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
             >
+              {/* Company List */}
               {filteredCompanies.map((company) => (
                 <TouchableOpacity
                   key={company.id}
@@ -411,61 +447,63 @@ const MultiSelectCompanyDropdown = ({
                   </View>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
 
-            {/* Add Company Manually */}
-            <View className="p-6 border-t border-gray-200">
-              <TouchableOpacity
-                className="flex-row items-center mb-4"
-                onPress={pickCompanyLogo}
-              >
-                <View className="w-10 h-10 bg-[#11293A] rounded-full mr-4 justify-center items-center">
-                  {manualCompanyLogo ? (
-                    <Image
-                      source={{ uri: manualCompanyLogo.uri }}
-                      style={{ width: 40, height: 40, borderRadius: 20 }}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <Ionicons name="camera-outline" size={20} color="white" />
-                  )}
-                </View>
-
-                <Text className="text-base text-gray-900 font-proximanova-medium flex-1">
-                  {manualCompanyLogo
-                    ? "Change Company Logo"
-                    : "Add Company Logo *"}
-                </Text>
-              </TouchableOpacity>
-
-              <Text className="text-sm text-gray-900 font-proximanova-semibold mb-3">
-                Company Name
-              </Text>
-
-              <View className="flex-row items-center space-x-3">
-                <View className="flex-1">
-                  <TextInput
-                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm"
-                    placeholder="Type Here..."
-                    value={manualCompanyName}
-                    onChangeText={setManualCompanyName}
-                  />
-                </View>
-
+              {/* Add Company Manually */}
+              <View className="p-6 border-t border-gray-200 mt-4">
                 <TouchableOpacity
-                  onPress={addManualCompany}
-                  disabled={!manualCompanyName.trim() || !manualCompanyLogo}
-                  className={`px-6 py-3 rounded-xl ${manualCompanyName.trim() && manualCompanyLogo
-                    ? "bg-blue-500"
-                    : "bg-gray-300"
-                    }`}
+                  className="flex-row items-center mb-4"
+                  onPress={pickCompanyLogo}
                 >
-                  <Text className="text-white font-proximanova-medium">
-                    Add
+                  <View className="w-10 h-10 bg-[#11293A] rounded-full mr-4 justify-center items-center">
+                    {manualCompanyLogo ? (
+                      <Image
+                        source={{ uri: manualCompanyLogo.uri }}
+                        style={{ width: 40, height: 40, borderRadius: 20 }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Ionicons name="camera-outline" size={20} color="white" />
+                    )}
+                  </View>
+
+                  <Text className="text-base text-gray-900 font-proximanova-medium flex-1">
+                    {manualCompanyLogo
+                      ? "Change Company Logo"
+                      : "Add Company Logo *"}
                   </Text>
                 </TouchableOpacity>
+
+                <Text className="text-sm text-gray-900 font-proximanova-semibold mb-3">
+                  Company Name
+                </Text>
+
+                <View className="flex-row items-center space-x-3">
+                  <View className="flex-1">
+                    <TextInput
+                      className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm"
+                      placeholder="Type Here..."
+                      value={manualCompanyName}
+                      onChangeText={setManualCompanyName}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={addManualCompany}
+                    disabled={
+                      isAddingCompany || !manualCompanyName.trim() || !manualCompanyLogo
+                    }
+                    className={`px-6 py-3 rounded-xl ${manualCompanyName.trim() && manualCompanyLogo && !isAddingCompany
+                      ? "bg-[#11293A]"
+                      : "bg-gray-300"
+                      }`}
+                  >
+                    <Text className="text-white font-proximanova-medium">
+                      {isAddingCompany ? "Adding..." : "Add"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>

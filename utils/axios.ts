@@ -14,6 +14,19 @@ const isHealthCheckRequest = (url?: string) => {
   return url.includes(HEALTH_CHECK_PATH);
 };
 
+const AUTH_ENDPOINTS_REQUIRING_TOKEN = [
+  '/auth/add-contact',
+  '/auth/req-verify-account',
+];
+
+const shouldAttachAuthToken = (url?: string) => {
+  if (!url) return false;
+  if (AUTH_ENDPOINTS_REQUIRING_TOKEN.some((path) => url.includes(path))) {
+    return true;
+  }
+  return !url.includes('/auth/');
+};
+
 let healthCheckInFlight: Promise<boolean> | null = null;
 
 const runHealthCheckOnce = async () => {
@@ -51,10 +64,7 @@ axiosInstance.interceptors.request.use(
         );
       }
 
-      // Don't add auth token for auth endpoints
-      const isAuthEndpoint = config.url?.includes('/auth/');
-
-      if (!isAuthEndpoint) {
+      if (shouldAttachAuthToken(config.url)) {
         const accessToken = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
         if (accessToken && config.headers) {
@@ -110,7 +120,7 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    const isAuthEndpoint = originalRequest?.url?.includes('/auth/');
+    const isAuthEndpoint = !shouldAttachAuthToken(originalRequest?.url);
 
     // Handle 401 Unauthorized - Token refresh logic
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
