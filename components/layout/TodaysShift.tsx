@@ -1,7 +1,9 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { TodaysShiftProps } from "@/types";
 import { utcTimeToLocal } from "@/utils/timezone";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
@@ -63,6 +65,7 @@ type ShiftCardData = {
 const TodaysShift = ({ className }: TodaysShiftProps) => {
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
+  const isFocused = useIsFocused();
   const {
     myBusinesses,
     selectedBusinesses,
@@ -70,6 +73,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     getMyBusinesses,
   } = useBusinessStore();
   const { homeShifts, homeShiftsLoading, fetchHomeShifts } = useShiftStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
     const loadBusinesses = async () => {
@@ -83,11 +87,15 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     loadBusinesses();
   }, [getMyBusinesses]);
 
-  useEffect(() => {
-    fetchHomeShifts(selectedBusinesses).catch((error) => {
-      console.error("[TodaysShift] fetchHomeShifts error:", error);
-    });
-  }, [selectedBusinesses]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!accessToken || !isFocused) return;
+
+      fetchHomeShifts(selectedBusinesses).catch((error) => {
+        console.error("[TodaysShift] fetchHomeShifts error:", error);
+      });
+    }, [accessToken, fetchHomeShifts, isFocused, selectedBusinesses])
+  );
 
   const handleLogin = () => {
     console.log("Login pressed");
