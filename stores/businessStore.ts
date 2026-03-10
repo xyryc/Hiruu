@@ -709,8 +709,16 @@ export const useBusinessStore = create<BusinessState>()(
 
       return result.data;
     } catch (error) {
-      console.error("Delete shift template error:", error);
-      throw error;
+      const axiosError = error as AxiosError<any>;
+      const messageKey =
+        (Array.isArray(axiosError.response?.data?.data) &&
+          axiosError.response?.data?.data[0]) ||
+        axiosError.response?.data?.message ||
+        "Failed to delete shift template";
+      const message = translateApiMessage(messageKey);
+      const finalError = new Error(message);
+      console.error("Delete shift template error:", finalError);
+      throw finalError;
     }
   },
 
