@@ -1,24 +1,80 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import AutoHideTooltip from "@/components/ui/dropdown/AutoHideTooltip";
 import CoinProgressSlider from "@/components/ui/inputs/CoinProgressSlider";
+import {
+  AchievementItem,
+  useAchievementStore,
+} from "@/stores/achievementStore";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const tabs = ["One-Time", "Repeatable"];
+
+const challengeIllustrations: Record<string, any> = {
+  coins: require("@/assets/images/reward/giftbox.svg"),
+  shifts: require("@/assets/images/reward/accept.svg"),
+  rating: require("@/assets/images/reward/reted.svg"),
+  referral: require("@/assets/images/reward/refer-friend.svg"),
+  attendance: require("@/assets/images/reward/timer.svg"),
+  onboarding: require("@/assets/images/reward/complate-profile.svg"),
+};
+
+const getChallengeImage = (achievement: AchievementItem) => {
+  const conditionType = achievement?.conditions?.type || "";
+  return (
+    challengeIllustrations[conditionType] ||
+    require("@/assets/images/reward/giftbox.svg")
+  );
+};
+
+const getChallengeActionLabel = (achievement: AchievementItem) => {
+  if (achievement?.userProgress?.isClaimed) return "Collected";
+  if (achievement?.userProgress?.canClaim) return "Claim";
+  if (achievement?.userProgress?.completedAt) return "Complete";
+  return "In Progress";
+};
 
 const challenges = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const tabs = ["One-Time", "Repeatable"];
   const [isActive, setIsActive] = useState("One-Time");
-  const [isVisible, setIsVisible] = useState(false);
+  const { achievements, isLoadingAchievements, getAchievements } =
+    useAchievementStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      getAchievements().catch((error: any) => {
+        toast.error(error?.message || "Failed to load challenges");
+      });
+    }, [getAchievements])
+  );
+
+  const oneTimeChallenges = useMemo(
+    () =>
+      (Array.isArray(achievements) ? achievements : [])
+        .filter((item) => item?.isActive !== false && item?.isHidden !== true)
+        .sort((a, b) => (a?.displayOrder || 0) - (b?.displayOrder || 0)),
+    [achievements]
+  );
+
+  const activeChallenges =
+    isActive === "One-Time" ? oneTimeChallenges : ([] as AchievementItem[]);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
-      {/* Header */}
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-5 pb-6 rounded-b-3xl overflow-hidden"
@@ -27,7 +83,6 @@ const challenges = () => {
         iconColor={isDark ? "#fff" : "#111111"}
       />
 
-      {/* banner token */}
       <TouchableOpacity
         onPress={() => router.push("/screens/rewards/redeem-tokens")}
       >
@@ -69,16 +124,19 @@ const challenges = () => {
         </View>
       </TouchableOpacity>
 
-      {/* tabs */}
       <View className="mt-5 flex-row mx-5">
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            className={`w-1/2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
+            className={`w-1/2 border-b pb-2 ${isActive === tab && "border-[#11293A] border-b-2"
+              }`}
             onPress={() => setIsActive(tab)}
           >
             <Text
-              className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+              className={`text-center ${isActive === tab
+                ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary"
+                : "font-proximanova-regular text-secondary dark:text-dark-secondary"
+                } `}
             >
               {tab}
             </Text>
@@ -86,346 +144,113 @@ const challenges = () => {
         ))}
       </View>
 
-      {/* challenges list */}
       <ScrollView
         className="mx-5"
-        contentContainerStyle={{
-          paddingBottom: 40,
-        }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1 */}
-        <View className="flex-row gap-4 mt-4">
-          <View>
-            <Image
-              source={require("@/assets/images/reward/complate-profile.svg")}
-              contentFit="contain"
-              style={{ height: 87, width: 63 }}
-            />
+        {isLoadingAchievements ? (
+          <View className="py-10 items-center">
+            <ActivityIndicator size="small" color="#4FB2F3" />
           </View>
+        ) : activeChallenges.length > 0 ? (
+          activeChallenges.map((achievement, index) => {
+            const progress = Number(achievement?.userProgress?.progress || 0);
+            const target = Number(achievement?.conditions?.target || 0);
+            const rewardCoins = Number(achievement?.rewardCoins || 0);
+            const actionLabel = getChallengeActionLabel(achievement);
+            const isClaimed = Boolean(achievement?.userProgress?.isClaimed);
 
-          <View className="flex-1">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2">
-                Complete 100% profile
-              </Text>
-              <View className=" bg-[#11293A] top-4 rounded-full">
-                <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                  Complete
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center ">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">10</Text>
-              </View>
+            return (
+              <View key={achievement.id}>
+                <View className={`flex-row gap-4 ${index === 0 ? "mt-4" : "mt-5"} ${isClaimed ? "opacity-50" : ""}`}>
+                  <View>
+                    <Image
+                      source={getChallengeImage(achievement)}
+                      contentFit="contain"
+                      style={{ height: 87, width: 63 }}
+                    />
+                  </View>
 
-              <AutoHideTooltip
-                message="This challenge only can be done in premium business"
-                duration={3000}
-              >
-                <MaterialCommunityIcons
-                  name="crown"
-                  className="ml-2"
-                  size={20}
-                  color="#4FB2F3"
-                />
-              </AutoHideTooltip>
-            </View>
-            <View className="mt-3.5 flex-1 flex-row items-center gap-3">
-              <View className="flex-1">
-                <CoinProgressSlider achieved={4} max={6} />
+                  <View className="flex-1">
+                    <View className="flex-row justify-between items-center">
+                      <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2 flex-1 pr-3">
+                        {achievement.title}
+                      </Text>
+
+                      <View className="bg-[#11293A] top-4 rounded-full">
+                        <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
+                          {actionLabel}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
+                      {achievement.description}
+                    </Text> */}
+
+                    <View className="flex-row items-center mt-2">
+                      <Image
+                        source={require("@/assets/images/hiruu-coin.svg")}
+                        style={{ width: 22, height: 22 }}
+                        contentFit="contain"
+                      />
+                      <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
+                        <Text className="text-xs font-proximanova-semibold">
+                          {rewardCoins}
+                        </Text>
+                      </View>
+
+                      {achievement?.rewardCosmetic ? (
+                        <AutoHideTooltip
+                          message={achievement.rewardCosmetic?.name || "Cosmetic reward"}
+                          duration={3000}
+                        >
+                          <MaterialCommunityIcons
+                            name="palette-outline"
+                            className="ml-2"
+                            size={20}
+                            color="#4FB2F3"
+                          />
+                        </AutoHideTooltip>
+                      ) : null}
+                    </View>
+
+                    <View className="px-4 mt-3.5 flex-1 flex-row items-center gap-3">
+                      <View className="flex-1">
+                        <CoinProgressSlider achieved={progress} max={target || 1} />
+                      </View>
+                      <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
+                        <Text className="text-[#4FB2F3]">{progress}</Text>/{target}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {index !== activeChallenges.length - 1 ? (
+                  <Image
+                    source={require("@/assets/images/dotted-line.svg")}
+                    contentFit="contain"
+                    style={{
+                      width: "100%",
+                      height: 2,
+                      marginHorizontal: "auto",
+                      marginTop: 20,
+                    }}
+                  />
+                ) : null}
               </View>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="text-[#4FB2F3]">4</Text>/6
-              </Text>
-            </View>
+            );
+          })
+        ) : (
+          <View className="py-10">
+            <Text className="text-center text-sm text-secondary dark:text-dark-secondary">
+              {isActive === "One-Time"
+                ? "No one-time challenges found."
+                : "Repeatable challenges are not available yet."}
+            </Text>
           </View>
-        </View>
-
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          contentFit="contain"
-          style={{
-            width: "100%",
-            height: 2,
-            marginHorizontal: "auto",
-            marginTop: 20,
-          }}
-        />
-
-        {/* 2 */}
-        <View className="flex-row gap-4 mt-5">
-          <View>
-            <Image
-              source={require("@/assets/images/reward/seven-day.svg")}
-              contentFit="contain"
-              style={{ height: 87, width: 63 }}
-            />
-          </View>
-
-          <View className="flex-1">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2">
-                Log In Daily for 7 Days
-              </Text>
-              <View className=" bg-[#11293A] top-4 rounded-full">
-                <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                  Upload
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center ">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">20</Text>
-              </View>
-
-              <AutoHideTooltip
-                message="This challenge only can be done in premium business"
-                duration={3000}
-              >
-                <MaterialCommunityIcons
-                  name="crown"
-                  className="ml-2"
-                  size={20}
-                  color="#4FB2F3"
-                />
-              </AutoHideTooltip>
-            </View>
-            <View className="mt-3.5 flex-1 flex-row items-center gap-3">
-              <View className="flex-1">
-                <CoinProgressSlider achieved={7} max={7} />
-              </View>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="text-[#4FB2F3]">7</Text>/7
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          contentFit="contain"
-          style={{
-            width: 320,
-            height: 2,
-            marginHorizontal: "auto",
-            marginTop: 20,
-          }}
-        />
-
-        {/* 3 */}
-        <View className="flex-row gap-4 mt-5">
-          <View>
-            <Image
-              source={require("@/assets/images/reward/upload.svg")}
-              contentFit="contain"
-              style={{ height: 87, width: 63 }}
-            />
-          </View>
-
-          <View className="flex-1">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2">
-                Upload Profile Picture
-              </Text>
-              <View className=" bg-[#11293A] top-4 rounded-full">
-                <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                  Buy Now
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center ">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">20</Text>
-              </View>
-
-              <AutoHideTooltip
-                message="This challenge only can be done in premium business"
-                duration={3000}
-              >
-                <MaterialCommunityIcons
-                  name="crown"
-                  className="ml-2"
-                  size={20}
-                  color="#4FB2F3"
-                />
-              </AutoHideTooltip>
-            </View>
-
-            {/*  rank bord line --  */}
-
-            <View className="mt-3.5 flex-1 flex-row items-center gap-3">
-              <View className="flex-1">
-                <CoinProgressSlider achieved={3} max={6} />
-              </View>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="text-[#4FB2F3]">3</Text>/6
-              </Text>
-            </View>
-
-            {/* rank bord line --  */}
-          </View>
-        </View>
-
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          contentFit="contain"
-          style={{
-            width: 320,
-            height: 2,
-            marginHorizontal: "auto",
-            marginTop: 20,
-          }}
-        />
-
-        {/* 4 */}
-        <View className="flex-row gap-4 mt-5">
-          <View>
-            <Image
-              source={require("@/assets/images/reward/accept.svg")}
-              contentFit="contain"
-              style={{ height: 87, width: 63 }}
-            />
-          </View>
-
-          <View className="flex-1">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2">
-                Accept First Shift
-              </Text>
-              <View className=" bg-[#11293A] top-4 rounded-full">
-                <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                  Accept
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center ">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">20</Text>
-              </View>
-
-              <AutoHideTooltip
-                message="This challenge only can be done in premium business"
-                duration={3000}
-              >
-                <MaterialCommunityIcons
-                  name="crown"
-                  className="ml-2"
-                  size={20}
-                  color="#4FB2F3"
-                />
-              </AutoHideTooltip>
-            </View>
-            {/*  rank bord line --  */}
-
-            <View className="mt-3.5 flex-1 flex-row items-center gap-3">
-              <View className="flex-1">
-                <CoinProgressSlider achieved={4} max={6} />
-              </View>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="text-[#4FB2F3]">4</Text>/6
-              </Text>
-            </View>
-
-            {/* rank bord line --  */}
-          </View>
-        </View>
-
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          contentFit="contain"
-          style={{ width: 320, height: 2, marginHorizontal: "auto" }}
-        />
-
-        {/* 5 */}
-        <View className="flex-row gap-4 mt-5 opacity-50">
-          <View>
-            <Image
-              source={require("@/assets/images/reward/reted.svg")}
-              contentFit="contain"
-              style={{ height: 87, width: 63 }}
-            />
-          </View>
-
-          <View className="flex-1">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2">
-                Get Rated 3 Times
-              </Text>
-              <View className=" bg-[#11293A] top-4 rounded-full">
-                <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
-                  Collected
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center ">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">20</Text>
-              </View>
-
-              <AutoHideTooltip
-                message="This challenge only can be done in premium business"
-                duration={3000}
-              >
-                <MaterialCommunityIcons
-                  name="crown"
-                  className="ml-2"
-                  size={20}
-                  color="#4FB2F3"
-                />
-              </AutoHideTooltip>
-            </View>
-            <View className="mt-3.5 flex-1 flex-row items-center gap-3">
-              <View className="flex-1">
-                <CoinProgressSlider achieved={1} max={1} />
-              </View>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="text-[#4FB2F3]">1</Text>/1
-              </Text>
-            </View>
-          </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
