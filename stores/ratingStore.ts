@@ -4,8 +4,10 @@ import { AxiosError } from "axios";
 import { create } from "zustand";
 
 interface GetRatingsParams {
-  businessId: string;
+  businessId?: string;
   userId?: string;
+  direction?: "business_to_user" | "user_to_business";
+  ratingType?: "onTime" | "trustWorthy" | "communication";
   page?: number;
   limit?: number;
 }
@@ -14,7 +16,7 @@ interface RatingState {
   ratingsResponse: any | null;
   isLoadingRatings: boolean;
   error: Error | null;
-  getBusinessRatings: (params: GetRatingsParams) => Promise<any>;
+  getRatings: (params: GetRatingsParams) => Promise<any>;
   clearError: () => void;
 }
 
@@ -23,18 +25,23 @@ export const useRatingStore = create<RatingState>((set) => ({
   isLoadingRatings: false,
   error: null,
 
-  getBusinessRatings: async ({
+  getRatings: async ({
     businessId,
     userId,
+    direction,
+    ratingType,
     page = 1,
     limit = 10,
   }: GetRatingsParams) => {
     set({ isLoadingRatings: true, error: null });
 
     try {
-      const response = await axiosInstance.get(`/businesses/${businessId}/ratings`, {
+      const response = await axiosInstance.get("/ratings", {
         params: {
-          ...(userId ? { rateeUserId: userId } : {}),
+          ...(businessId ? { businessId } : {}),
+          ...(userId ? { userId } : {}),
+          ...(direction ? { direction } : {}),
+          ...(ratingType ? { ratingType } : {}),
           page,
           limit,
         },
@@ -60,4 +67,3 @@ export const useRatingStore = create<RatingState>((set) => ({
 
   clearError: () => set({ error: null }),
 }));
-

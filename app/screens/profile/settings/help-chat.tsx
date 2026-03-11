@@ -4,7 +4,10 @@ import RenderMessage from "@/components/ui/cards/RenderMessage";
 import ChatInput from "@/components/ui/inputs/ChatInput";
 import TypingIndicator from "@/components/ui/inputs/TypingIndicator";
 import { useChat } from "@/hooks/useChat";
+import type { ChatUploadMedia } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
+import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -21,6 +24,10 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+type SelectedMedia = ChatUploadMedia & {
+  previewType: "image" | "video";
+};
 
 const formatMessageTime = (value?: string) => {
   if (!value) return "";
@@ -51,14 +58,31 @@ const HelpChat = () => {
   const isDark = colorScheme === "dark";
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ roomId?: string; chatRoomName?: string }>();
-  const roomId = typeof params.roomId === "string" ? params.roomId : "";
-  const chatRoomName =
-    typeof params.chatRoomName === "string" && params.chatRoomName.trim().length > 0
-      ? params.chatRoomName
-      : "Support Chat";
+  const params = useLocalSearchParams<{
+    roomId?: string | string[];
+    chatRoomName?: string | string[];
+  }>();
+  const roomId = useMemo(() => {
+    const candidate = params.roomId;
+    if (typeof candidate === "string") return candidate.trim();
+    if (Array.isArray(candidate) && typeof candidate[0] === "string") {
+      return candidate[0].trim();
+    }
+    return "";
+  }, [params.roomId]);
+  const chatRoomName = useMemo(() => {
+    const candidate = params.chatRoomName;
+    if (typeof candidate === "string" && candidate.trim().length > 0) {
+      return candidate;
+    }
+    if (Array.isArray(candidate) && typeof candidate[0] === "string") {
+      return candidate[0].trim() || "Support Chat";
+    }
+    return "Support Chat";
+  }, [params.chatRoomName]);
   const { user } = useAuthStore();
   const [message, setMessage] = useState("");
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [androidKeyboardOffset, setAndroidKeyboardOffset] = useState(0);
   const listRef = useRef<FlatList<any> | null>(null);
   const previousMessageCountRef = useRef(0);
@@ -68,6 +92,7 @@ const HelpChat = () => {
   const {
     messages,
     loading,
+    connected,
     sending,
     isTyping,
     typingUser,
@@ -75,12 +100,21 @@ const HelpChat = () => {
     retryFailedMessage,
     startTyping,
     stopTyping,
+    refreshMessages,
   } = useChat({
     roomId,
     onError: (error) => {
       toast.error(error?.message || "Chat error");
     },
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!roomId) return () => {};
+      refreshMessages().catch(() => null);
+      return () => {};
+    }, [roomId, refreshMessages])
+  );
 
   const mappedMessages = useMemo(() => {
     const sortedMessages = [...messages].sort((a: any, b: any) => {
@@ -117,6 +151,10 @@ const HelpChat = () => {
         uploadState: item.uploadState,
       }));
   }, [messages, user?.id]);
+
+  React.useEffect(() => {
+    console.log("support chat data:", messages);
+  }, [messages]);
 
   const scrollToBottom = useCallback((animated: boolean) => {
     const list = listRef.current;
@@ -178,12 +216,80 @@ const HelpChat = () => {
     };
   }, [loading, mappedMessages.length, scrollToBottom]);
 
-  const handleSend = async () => {
-    const ok = await sendMessage({ content: message });
-    if (ok) {
-      setMessage("");
+  const handlePickMedia = useCallback(async () => {
+    if (sending) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== "granted") {
+      toast.error("Permission to access media library is required.");
+      return;
     }
-  };
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: true,
+      quality: 1,
+      selectionLimit: 10,
+    });
+
+    if (result.canceled) return;
+
+    const pickedMedia: SelectedMedia[] = result.assets
+      .map((asset, index) => {
+        const previewType =
+          asset.type === "video" ? "video" : asset.type === "image" ? "image" : null;
+
+        if (!previewType) return null;
+
+        const extension = previewType === "video" ? "mp4" : "jpg";
+        const fallbackName = `upload-${Date.now()}-${index}.${extension}`;
+
+        return {
+          uri: asset.uri,
+          type: asset.mimeType || (previewType === "video" ? "video/mp4" : "image/jpeg"),
+          name: asset.fileName || fallbackName,
+          previewType,
+        };
+      })
+      .filter((item): item is SelectedMedia => Boolean(item));
+
+    if (!pickedMedia.length) {
+      toast.error("Only images and videos are supported right now.");
+      return;
+    }
+
+    setSelectedMedia((prev) => {
+      const existingUris = new Set(prev.map((item) => item.uri));
+      const uniqueNew = pickedMedia.filter((item) => !existingUris.has(item.uri));
+      return [...prev, ...uniqueNew];
+    });
+  }, [sending]);
+
+  const handleRemoveSelectedMedia = useCallback((uri: string) => {
+    setSelectedMedia((prev) => prev.filter((item) => item.uri !== uri));
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    if (sending) return;
+
+    const content = message.trim();
+    const media = selectedMedia.map(({ previewType, ...file }) => file);
+
+    if (!content && media.length === 0) return;
+
+    setMessage("");
+    setSelectedMedia([]);
+
+    const success = await sendMessage({
+      content: content || undefined,
+      media,
+    });
+
+    if (!success) {
+      setMessage(content);
+      setSelectedMedia((prev) => (prev.length ? prev : selectedMedia));
+    }
+  }, [message, selectedMedia, sending, sendMessage]);
 
   React.useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -262,10 +368,13 @@ const HelpChat = () => {
               message={message}
               setMessage={setMessage}
               onSend={handleSend}
+              attachments={selectedMedia}
+              onPickMedia={handlePickMedia}
+              onRemoveMedia={handleRemoveSelectedMedia}
               onTyping={startTyping}
               onStopTyping={stopTyping}
               isSending={sending}
-              disabled={!roomId}
+              disabled={!roomId || (!connected && loading)}
             />
           </View>
         </View>
