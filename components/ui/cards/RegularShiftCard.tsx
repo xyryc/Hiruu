@@ -14,8 +14,8 @@ const RegularShiftCard = ({ shift }) => {
         <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
           Time:
         </Text>
-        <Text className="text-sm font-proximanova-regular text-primary dark:text-dark-primary">
-          {shift.workTime}
+        <Text className="text-sm font-proximanova-regular text-primary dark:text-dark-primary uppercase">
+          {shift.workTime}{" "}
         </Text>
       </View>
 

@@ -81,7 +81,7 @@ const TaskCard = ({
   const getStatusColor = () => {
     switch (status) {
       case "ongoing":
-        return "#4FB2F3";
+        return "#3EBF5A";
       case "upcoming":
         return "#4FB2F3";
       case "completed":
@@ -133,7 +133,7 @@ const TaskCard = ({
                 <MaterialCommunityIcons
                   name="timer-sand"
                   size={16}
-                  color="#4FB2F3"
+                  color={getStatusColor()}
                 />
 
                 <Text

@@ -65,6 +65,7 @@ type UiShift = {
 const ShiftSchedule = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
+  const [nowTimestamp, setNowTimestamp] = useState(() => Date.now());
   const [selectedDate, setSelectedDate] = useState(() => {
     const value = new Date();
     const year = value.getFullYear();
@@ -133,7 +134,7 @@ const ShiftSchedule = () => {
       const start = shift?.shiftTemplate?.startTime || "00:00";
       const end = shift?.shiftTemplate?.endTime || "00:00";
       const shiftDate = new Date(shift?.date || Date.now());
-      const now = new Date();
+      const now = new Date(nowTimestamp);
 
       const shiftStart = new Date(shiftDate);
       if (startAt && !Number.isNaN(startAt.getTime())) {
@@ -228,7 +229,7 @@ const ShiftSchedule = () => {
         message,
       };
     },
-    [timeToMinutes, to12Hour]
+    [nowTimestamp, timeToMinutes, to12Hour]
   );
 
   const loadShifts = useCallback(async () => {
@@ -242,6 +243,57 @@ const ShiftSchedule = () => {
   useEffect(() => {
     loadShifts();
   }, [loadShifts]);
+
+  useEffect(() => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${`${now.getMonth() + 1}`.padStart(2, "0")}-${`${now.getDate()}`.padStart(2, "0")}`;
+    const shouldTrackLiveTime =
+      selectedDate === today &&
+      (Array.isArray(myShifts) ? myShifts : []).some(
+        (shift) => shift?.itemType === "assigned_shift"
+      );
+
+    if (!shouldTrackLiveTime) return;
+
+    const interval = setInterval(() => {
+      setNowTimestamp(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [myShifts, selectedDate]);
+
+  useEffect(() => {
+    const shifts = Array.isArray(myShifts) ? myShifts : [];
+    if (shifts.length === 0) return;
+
+    const currentDate = new Date();
+    const today = `${currentDate.getFullYear()}-${`${currentDate.getMonth() + 1}`.padStart(2, "0")}-${`${currentDate.getDate()}`.padStart(2, "0")}`;
+    if (selectedDate !== today) return;
+
+    const now = currentDate.getTime();
+    const nextBoundary = shifts.reduce<number | null>((closest, shift: ApiShift) => {
+      if (shift?.itemType !== "assigned_shift") return closest;
+
+      const candidates = [shift?.startsAt, shift?.endsAt]
+        .map((value) => (value ? new Date(value).getTime() : Number.NaN))
+        .filter((value) => Number.isFinite(value) && value > now);
+
+      if (candidates.length === 0) return closest;
+
+      const nearestForShift = Math.min(...candidates);
+      if (closest === null) return nearestForShift;
+      return Math.min(closest, nearestForShift);
+    }, null);
+
+    if (!nextBoundary) return;
+
+    const timeout = setTimeout(() => {
+      setNowTimestamp(Date.now());
+      loadShifts();
+    }, Math.max(nextBoundary - now + 1000, 1000));
+
+    return () => clearTimeout(timeout);
+  }, [loadShifts, myShifts, selectedDate]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
