@@ -5,7 +5,7 @@ import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
-import { localDateToUTCTime } from "@/utils/timezone";
+import { usePreferencesStore } from "@/stores/preferencesStore";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -36,6 +36,7 @@ const CreateTemplate = () => {
     getMyBusinessRoles,
     createShiftTemplate,
   } = useBusinessStore();
+  const timezone = usePreferencesStore((state) => state.timezone);
   const [templateName, setTemplateName] = useState("");
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -134,8 +135,9 @@ const CreateTemplate = () => {
   );
 
   const formatTime24 = (date: Date) => {
-    // Convert local time to UTC before sending to backend
-    return localDateToUTCTime(date);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
   };
 
   const formatTime12 = (date: Date) => {
@@ -170,6 +172,7 @@ const CreateTemplate = () => {
     return {
       name: templateName.trim(),
       startTime: formatTime24(shiftStartTime),
+      timezone,
       endTime: formatTime24(shiftEndTime),
       breakDuration: [
         {
