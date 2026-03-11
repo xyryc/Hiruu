@@ -6,7 +6,6 @@ import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModa
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
-import { utcTimeToLocal } from "@/utils/timezone";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { RelativePathString, useRouter } from "expo-router";
@@ -215,9 +214,7 @@ const BusinessScheduleScreen = () => {
 
   const to12Hour = (value?: string) => {
     if (!value) return "--:--";
-    // Convert UTC time to local time first
-    const localTime = utcTimeToLocal(value);
-    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
+    const [rawHour = "0", rawMinute = "0"] = value.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
