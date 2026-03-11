@@ -7,7 +7,7 @@ import JoinColleague from "@/components/layout/JoinColleague";
 import ProfileProgress from "@/components/layout/ProfileProgress";
 import TodaysShift from '@/components/layout/TodaysShift';
 import Widgets from "@/components/layout/Widgets";
-import { profileService } from "@/services/profileService";
+import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
@@ -16,11 +16,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const UserHome = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const getProfile = useProfileStore((state) => state.getProfile);
 
   const loadProfile = useCallback(async () => {
-    const result = await profileService.getProfile();
+    const result = await getProfile();
     setProfileData(result.data);
-  }, []);
+  }, [getProfile]);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,7 +29,7 @@ const UserHome = () => {
 
       const hydrateProfile = async () => {
         try {
-          const result = await profileService.getProfile();
+          const result = await getProfile();
           if (!isMounted) return;
           setProfileData(result.data);
         } catch {
@@ -41,7 +42,7 @@ const UserHome = () => {
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, [getProfile])
   );
 
   const handleRefresh = useCallback(async () => {

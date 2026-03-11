@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LogoutDeleteModal from "@/components/ui/modals/LogoutDeleteModal";
-import { profileService } from "@/services/profileService";
+import { useProfileStore } from "@/stores/profileStore";
 import {
   Entypo,
   FontAwesome,
@@ -24,6 +24,7 @@ const Settings = () => {
   const logOutImg = require("@/assets/images/Logout.svg");
   const [isModal, setIsModal] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const getProfile = useProfileStore((state) => state.getProfile);
   const [data, setData] = useState<{
     img: any;
     title: string;
@@ -61,12 +62,12 @@ const Settings = () => {
 
   const loadProfile = useCallback(async () => {
     try {
-      const result = await profileService.getProfile();
+      const result = await getProfile();
       setProfileData(result?.data || null);
     } catch {
       setProfileData(null);
     }
-  }, []);
+  }, [getProfile]);
 
   useFocusEffect(
     useCallback(() => {
