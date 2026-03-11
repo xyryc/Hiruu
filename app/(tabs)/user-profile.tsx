@@ -9,10 +9,9 @@ import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
-import { profileService } from "@/services/profileService";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useSettingsStore } from "@/stores/settingsStore";
 import {
   FontAwesome6,
   Ionicons,
@@ -41,9 +40,9 @@ const Profile = () => {
   const [isOn, setIsOn] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const { setSelectedBusinesses } = useBusinessStore();
-  const { updateProfile } = useProfileStore();
-  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
-  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const { updateProfile, getProfile } = useProfileStore();
+  const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
   const { refreshAt } = useLocalSearchParams<{ refreshAt?: string }>();
   const insets = useSafeAreaInsets();
 
@@ -58,12 +57,12 @@ const Profile = () => {
 
   const loadProfile = React.useCallback(async () => {
     try {
-      const result = await profileService.getProfile();
+      const result = await getProfile();
       setProfileData(result.data);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load profile");
     }
-  }, []);
+  }, [getProfile]);
 
   useEffect(() => {
     loadProfile();

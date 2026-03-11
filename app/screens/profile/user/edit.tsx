@@ -7,7 +7,7 @@ import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
 import EditBadgeModal from "@/components/ui/modals/EditBadgeModal";
 import InterestModal from "@/components/ui/modals/InterestModal";
-import { profileService } from "@/services/profileService";
+import { useProfileStore } from "@/stores/profileStore";
 import { Companies, Company } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import {
@@ -47,6 +47,9 @@ const Edit = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
   const [socialLinks, setSocialLinks] = useState<any>({});
+  const updateProfile = useProfileStore((state) => state.updateProfile);
+  const getProfile = useProfileStore((state) => state.getProfile);
+  const syncExperiences = useProfileStore((state) => state.syncExperiences);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -56,7 +59,7 @@ const Edit = () => {
 
     const loadProfile = async () => {
       try {
-        const result = await profileService.getProfile();
+        const result = await getProfile();
         if (isMounted) {
           setProfileData(result.data);
           setShortIntro(result.data?.bio || "");
@@ -103,7 +106,7 @@ const Edit = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [getProfile]);
 
   const handleSaveProfile = async () => {
     try {
@@ -123,12 +126,12 @@ const Edit = () => {
         social: socialLinks,
       };
 
-      const result = await profileService.updateProfile(payload);
-      await profileService.syncExperiences(
+      const result = await updateProfile(payload);
+      await syncExperiences(
         Array.from(uniqueExperienceDrafts.values()),
         Array.isArray(profileData?.experiences) ? profileData.experiences : []
       );
-      await profileService.getProfile();
+      await getProfile(true);
 
       const messageKey = result?.message || "profile_updated_successfully";
       toast.success(translateApiMessage(messageKey));

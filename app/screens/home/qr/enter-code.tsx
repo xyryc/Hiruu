@@ -11,7 +11,7 @@ import { toast } from "sonner-native";
 const CODE_LENGTH = 6;
 
 const EnterJoinCode = () => {
-  const { joinBusiness, loading } = useBusinessStore();
+  const { joinBusiness, isJoiningBusiness } = useBusinessStore();
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -52,7 +52,7 @@ const EnterJoinCode = () => {
   const isCodeComplete = invitationCode.length === CODE_LENGTH;
 
   const handleJoin = async () => {
-    if (!isCodeComplete || loading) return;
+    if (!isCodeComplete || isJoiningBusiness) return;
 
     try {
       await joinBusiness(undefined, invitationCode);
@@ -107,10 +107,10 @@ const EnterJoinCode = () => {
 
         <PrimaryButton
           className="mt-8"
-          title={loading ? "Joining..." : "Join Business"}
+          title={isJoiningBusiness ? "Joining..." : "Join Business"}
           onPress={handleJoin}
-          disabled={!isCodeComplete || loading}
-          loading={loading}
+          disabled={!isCodeComplete || isJoiningBusiness}
+          loading={isJoiningBusiness}
         />
 
         <TouchableOpacity

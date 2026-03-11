@@ -1,5 +1,5 @@
-import { profileService } from "@/services/profileService";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useProfileStore } from "@/stores/profileStore";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -28,6 +28,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 }) => {
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const getProfile = useProfileStore((state) => state.getProfile);
   const {
     myBusinesses,
     myBusinessesLoading,
@@ -43,7 +44,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
     const loadData = async () => {
       try {
         setProfileLoading(true);
-        const result = await profileService.getProfile();
+        const result = await getProfile();
         if (isMounted) {
           setProfile(result.data);
         }
@@ -62,7 +63,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [visible, getMyBusinesses]);
+  }, [visible, getMyBusinesses, getProfile]);
 
   return (
     <Modal

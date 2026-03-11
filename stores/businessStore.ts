@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
 
 interface BusinessState {
   isLoading: boolean;
-  loading: boolean;
+  isJoiningBusiness: boolean;
   error: Error | null;
   userBusiness?: any;
   myBusinesses: any[];
@@ -167,7 +167,7 @@ export const useBusinessStore = create<BusinessState>()(
   persist(
     (set, get) => ({
       isLoading: false,
-      loading: false,
+      isJoiningBusiness: false,
       error: null,
       userBusiness: null,
       myBusinesses: [],
@@ -1006,13 +1006,13 @@ export const useBusinessStore = create<BusinessState>()(
 
   generateBusinessCode: async (businessId) => {
     try {
-      set({ loading: true, error: null });
+      set({ isJoiningBusiness: true, error: null });
       const response = await axiosInstance.post(
         `/employment/businesses/${businessId}/invitations`
       );
 
       const result = response.data;
-      set({ loading: false });
+      set({ isJoiningBusiness: false });
 
       return result.data;
     } catch (err: any) {
@@ -1023,7 +1023,7 @@ export const useBusinessStore = create<BusinessState>()(
         "Something went wrong";
 
       set({
-        loading: false,
+        isJoiningBusiness: false,
         error: new Error(errorMessage),
       });
       throw new Error(errorMessage);
@@ -1032,7 +1032,7 @@ export const useBusinessStore = create<BusinessState>()(
 
   joinBusiness: async (businessId, invitationCode) => {
     try {
-      set({ loading: true, error: null });
+      set({ isJoiningBusiness: true, error: null });
       const payload: Record<string, string> = { invitationCode };
       if (businessId && businessId.trim().length > 0) {
         payload.businessId = businessId;
@@ -1041,7 +1041,7 @@ export const useBusinessStore = create<BusinessState>()(
 
       const result = response.data;
 
-      set({ loading: false });
+      set({ isJoiningBusiness: false });
 
       return result.data;
     } catch (err: any) {
@@ -1052,7 +1052,7 @@ export const useBusinessStore = create<BusinessState>()(
         "Something went wrong";
 
       set({
-        loading: false,
+        isJoiningBusiness: false,
         error: new Error(errorMessage),
       });
       throw new Error(errorMessage);
@@ -1110,7 +1110,7 @@ export const useBusinessStore = create<BusinessState>()(
       myBusinesses: [],
       selectedBusinesses: [],
       myBusinessesLoading: false,
-      loading: false,
+      isJoiningBusiness: false,
       error: null,
       weeklyShiftSelections: {},
       weeklyRoleAssignments: {},

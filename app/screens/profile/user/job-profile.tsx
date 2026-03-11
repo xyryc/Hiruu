@@ -1,5 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import { JobProfileData, useSettingsStore } from "@/stores/settingsStore";
+import { JobProfileData, useJobStore } from "@/stores/jobStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
@@ -110,8 +110,8 @@ const JobProfile = () => {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
-  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
 
   useFocusEffect(
     useCallback(() => {

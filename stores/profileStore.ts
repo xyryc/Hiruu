@@ -16,13 +16,14 @@ interface ProfileState {
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
-  getProfile: () => Promise<any>;
+  getProfile: (forceRefresh?: boolean) => Promise<any>;
+  syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
   clearError: () => void;
 }
 
-export const useProfileStore = create<ProfileState>((set, get) => ({
+export const useProfileStore = create<ProfileState>((set) => ({
   isLoading: false,
   error: null,
   isProfileComplete: false,
@@ -81,11 +82,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  getProfile: async () => {
+  getProfile: async (forceRefresh = false) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await profileService.getProfile();
+      const response = await profileService.getProfile({ forceRefresh });
       const updatedUser = response.data;
 
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
@@ -98,6 +99,19 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       return response;
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Failed to fetch profile");
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  syncExperiences: async (experiences, existingExperiences = []) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      await profileService.syncExperiences(experiences, existingExperiences);
+      set({ isLoading: false });
+    } catch (error) {
+      const finalError = error instanceof Error ? error : new Error("Failed to sync experiences");
       set({ isLoading: false, error: finalError });
       throw finalError;
     }

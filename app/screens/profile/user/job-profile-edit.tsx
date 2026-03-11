@@ -5,9 +5,9 @@ import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import {
   JobProfileData,
-  useSettingsStore,
+  useJobStore,
   WeeklyAvailabilityItem,
-} from "@/stores/settingsStore";
+} from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -81,10 +81,10 @@ const JobProfileEdit = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
-  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
-  const updateMyJobProfile = useSettingsStore((state) => state.updateMyJobProfile);
-  const jobProfile = useSettingsStore((state) => state.jobProfile);
-  const isLoadingJobProfile = useSettingsStore((state) => state.isLoadingJobProfile);
+  const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const updateMyJobProfile = useJobStore((state) => state.updateMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
+  const isLoadingJobProfile = useJobStore((state) => state.isLoadingJobProfile);
 
   const [jobType, setJobType] = useState("");
   const [isOpenToWork, setIsOpenToWork] = useState(false);

@@ -3,7 +3,6 @@ import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingCard from "@/components/ui/cards/RatingCard";
 import RatingBar from "@/components/ui/inputs/RatingBar";
 import RatingStarModal from "@/components/ui/modals/RatingStarModal";
-import { useRatings } from "@/hooks/useRatings";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
@@ -17,7 +16,6 @@ const Rating = () => {
     { label: "Communication", value: 4.5, max: 5 },
   ]);
   const [isVisible, setIsVisible] = useState(false);
-  useRatings();
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
