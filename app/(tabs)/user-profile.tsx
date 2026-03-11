@@ -10,8 +10,8 @@ import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useSettingsStore } from "@/stores/settingsStore";
 import {
   FontAwesome6,
   Ionicons,
@@ -41,8 +41,8 @@ const Profile = () => {
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const { setSelectedBusinesses } = useBusinessStore();
   const { updateProfile, getProfile } = useProfileStore();
-  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
-  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
   const { refreshAt } = useLocalSearchParams<{ refreshAt?: string }>();
   const insets = useSafeAreaInsets();
 

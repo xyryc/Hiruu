@@ -7,12 +7,9 @@ import LanguageSwitcherModal from "@/components/ui/modals/LanguageSwitcherModal"
 import TimezoneSwitcherModal from "@/components/ui/modals/TimezoneSwitcherModal";
 import { getTimezoneLabel } from "@/constants/timezones";
 import { useAuthStore } from "@/stores/authStore";
+import { useJobStore, WeeklyAvailabilityItem } from "@/stores/jobStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { useProfileStore } from "@/stores/profileStore";
-import {
-  useSettingsStore,
-  WeeklyAvailabilityItem,
-} from "@/stores/settingsStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import {
   AntDesign,
@@ -65,9 +62,9 @@ const Preferences = () => {
   const resetTimezoneToDevice = usePreferencesStore(
     (state) => state.resetTimezoneToDevice
   );
-  const getMyJobProfile = useSettingsStore((state) => state.getMyJobProfile);
-  const updateMyJobProfile = useSettingsStore((state) => state.updateMyJobProfile);
-  const jobProfile = useSettingsStore((state) => state.jobProfile);
+  const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const updateMyJobProfile = useJobStore((state) => state.updateMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
   const [pendingAvailability, setPendingAvailability] = useState<
     WeeklyAvailabilityItem[] | null
   >(null);

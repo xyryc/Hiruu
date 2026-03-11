@@ -20,54 +20,17 @@ export type FaqItem = {
   updatedAt: string;
 };
 
-export type WeeklyAvailabilityItem = {
-  day: string;
-  isOpen: boolean;
-  startTime?: string;
-  endTime?: string;
-};
-
-export type JobProfileData = {
-  id: string;
-  userId: string;
-  headline?: string | null;
-  about?: string | null;
-  isOpenToWork?: boolean;
-  preferredRoleIds?: string[];
-  highlightedExperience?: string | null;
-  preferredSalaryType?: string | null;
-  expectedSalaryMin?: number | string | null;
-  expectedSalaryMax?: number | string | null;
-  weeklyAvailability?: WeeklyAvailabilityItem[];
-  skills?: string[];
-  metadata?: Record<string, unknown> | null;
-  createdAt?: string;
-  updatedAt?: string;
-  user?: {
-    id: string;
-    name?: string | null;
-    avatar?: string | null;
-    isOnline?: boolean;
-  } | null;
-};
-
 interface SettingsState {
   termsAndConditions: SettingsContentData | null;
   privacyPolicy: SettingsContentData | null;
   faqItems: FaqItem[];
-  jobProfile: JobProfileData | null;
   isLoadingTermsAndConditions: boolean;
   isLoadingPrivacyPolicy: boolean;
   isLoadingFaq: boolean;
-  isLoadingJobProfile: boolean;
   error: Error | null;
   getTermsAndConditions: () => Promise<SettingsContentData | null>;
   getPrivacyPolicy: () => Promise<SettingsContentData | null>;
   getFaq: () => Promise<FaqItem[]>;
-  getMyJobProfile: () => Promise<JobProfileData | null>;
-  updateMyJobProfile: (
-    payload: Partial<JobProfileData>
-  ) => Promise<JobProfileData | null>;
   clearError: () => void;
 }
 
@@ -75,11 +38,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   termsAndConditions: null,
   privacyPolicy: null,
   faqItems: [],
-  jobProfile: null,
   isLoadingTermsAndConditions: false,
   isLoadingPrivacyPolicy: false,
   isLoadingFaq: false,
-  isLoadingJobProfile: false,
   error: null,
 
   getTermsAndConditions: async () => {
@@ -175,78 +136,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         "Failed to load FAQ";
       const finalError = new Error(message);
       set({ isLoadingFaq: false, error: finalError });
-      throw finalError;
-    }
-  },
-
-  getMyJobProfile: async () => {
-    set({ isLoadingJobProfile: true, error: null });
-
-    try {
-      const response = await axiosInstance.get("/job-profile/me");
-      const result = response.data;
-
-      if (
-        result?.success === false ||
-        (typeof result?.statusCode === "number" && result.statusCode >= 400)
-      ) {
-        const message =
-          translateApiMessage(result?.message) || "Failed to load job profile";
-        throw new Error(message);
-      }
-
-      const data = (result?.data ?? null) as JobProfileData | null;
-      set({
-        jobProfile: data,
-        isLoadingJobProfile: false,
-      });
-      return data;
-    } catch (error) {
-      const axiosError = error as AxiosError<any>;
-      const message =
-        translateApiMessage(axiosError.response?.data?.message) ||
-        axiosError.message ||
-        "Failed to load job profile";
-      const finalError = new Error(message);
-      set({ isLoadingJobProfile: false, error: finalError });
-      throw finalError;
-    }
-  },
-
-  updateMyJobProfile: async (payload) => {
-    set({ isLoadingJobProfile: true, error: null });
-
-    try {
-      const response = await axiosInstance.patch("/job-profile/me", payload);
-      const result = response.data;
-
-      if (
-        result?.success === false ||
-        (typeof result?.statusCode === "number" && result.statusCode >= 400)
-      ) {
-        const message =
-          translateApiMessage(result?.message) || "Failed to update job profile";
-        throw new Error(message);
-      }
-
-      const data = (result?.data ?? null) as JobProfileData | null;
-      set((state) => ({
-        jobProfile: data
-          ? data
-          : state.jobProfile
-            ? { ...state.jobProfile, ...payload }
-            : null,
-        isLoadingJobProfile: false,
-      }));
-      return data;
-    } catch (error) {
-      const axiosError = error as AxiosError<any>;
-      const message =
-        translateApiMessage(axiosError.response?.data?.message) ||
-        axiosError.message ||
-        "Failed to update job profile";
-      const finalError = new Error(message);
-      set({ isLoadingJobProfile: false, error: finalError });
       throw finalError;
     }
   },
