@@ -7,7 +7,6 @@ import DeleteConfirmModal from "@/components/ui/modals/DeleteConfirmModal";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
-import { utcTimeToLocalDate } from "@/utils/timezone";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -115,9 +114,18 @@ const EditTemplate = () => {
           setCurrentRoleSlotsTotal(totalRequired);
 
           const parseTimeToDate = (value?: string) => {
-            // Convert UTC time from backend to local time for display
             if (!value) return new Date();
-            return utcTimeToLocalDate(value);
+            const [rawHour = "0", rawMinute = "0"] = value.split(":");
+            const hours = Number(rawHour);
+            const minutes = Number(rawMinute);
+            const nextDate = new Date();
+
+            if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+              return nextDate;
+            }
+
+            nextDate.setHours(hours, minutes, 0, 0);
+            return nextDate;
           };
 
           setShiftStartTime(parseTimeToDate(data?.startTime));
