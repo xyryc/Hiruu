@@ -11,13 +11,13 @@ import {
   useSettingsStore,
   WeeklyAvailabilityItem,
 } from "@/stores/settingsStore";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   AntDesign,
   Entypo,
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -67,10 +67,10 @@ const Preferences = () => {
       const loadJobProfile = async () => {
         try {
           const data = await getMyJobProfile();
-          console.log(
-            "weekly schedule integration check:",
-            data?.weeklyAvailability ?? null
-          );
+          // console.log(
+          //   "weekly schedule integration check:",
+          //   data?.weeklyAvailability ?? null
+          // );
         } catch (error) {
           console.log("weekly schedule integration error:", error);
         }
