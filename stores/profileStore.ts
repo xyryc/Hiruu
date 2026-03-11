@@ -1,5 +1,5 @@
 import { profileService } from "@/services/profileService";
-import { UpdateProfileData } from "@/types";
+import { UpdatePreferencesData, UpdateProfileData } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { useAuthStore } from "./authStore";
@@ -15,6 +15,7 @@ interface ProfileState {
   isProfileComplete: boolean;
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
+  updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: () => Promise<any>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
@@ -48,6 +49,33 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       return response;
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Profile update failed");
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  updatePreferences: async (payload: UpdatePreferencesData) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await profileService.updatePreferences(payload);
+
+      const currentUser = useAuthStore.getState().user;
+      const updatedUser = {
+        ...currentUser,
+        ...response.data,
+      };
+
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+      useAuthStore.getState().setUser(updatedUser as any);
+
+      set({
+        isLoading: false,
+      });
+
+      return response;
+    } catch (error) {
+      const finalError = error instanceof Error ? error : new Error("Failed to update preferences");
       set({ isLoading: false, error: finalError });
       throw finalError;
     }

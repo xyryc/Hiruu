@@ -51,12 +51,30 @@ export interface UpdateProfileData {
   lastName?: string;
 }
 
+export interface UpdatePreferencesData {
+  smartAlert: boolean;
+  smartAlertTime: number;
+}
+
+export interface AppSettingsData {
+  id?: string;
+  userId?: string;
+  language?: string;
+  timeZone?: string;
+  theme?: string;
+  smartAlert?: boolean;
+  smartAlertTime?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ProfileResponse {
   success: boolean;
   message: string;
   statusCode: number;
   data: {
     id: string;
+    name?: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -74,5 +92,8 @@ export interface ProfileResponse {
     lastLoginAt: string;
     createdAt: string;
     updatedAt: string;
+    appSettings?: AppSettingsData;
   } | null;
 }
+
+export interface UpdatePreferencesResponse extends ProfileResponse {}

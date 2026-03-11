@@ -2,7 +2,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { TodaysShiftProps } from "@/types";
-import { utcTimeToLocal } from "@/utils/timezone";
+import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -105,10 +105,21 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     if (!value) return null;
 
     if (value.includes("T")) {
-      // ISO timestamp - convert from UTC to local time
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) {
-        return { hour: date.getHours(), minute: date.getMinutes() };
+      // ISO timestamp - convert from UTC using selected app timezone.
+      const localTime = formatUTCToLocalTime(value);
+      if (localTime && localTime !== "-") {
+        const [timePart = "00:00", periodPart = "AM"] = localTime.split(" ");
+        const [rawHour = "0", rawMinute = "0"] = timePart.split(":");
+        const baseHour = Number(rawHour);
+        const minute = Number(rawMinute);
+        if (!Number.isNaN(baseHour) && !Number.isNaN(minute)) {
+          const normalizedHour = periodPart === "PM" && baseHour !== 12
+            ? baseHour + 12
+            : periodPart === "AM" && baseHour === 12
+              ? 0
+              : baseHour;
+          return { hour: normalizedHour, minute };
+        }
       }
     }
 
@@ -133,6 +144,20 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
 
   const getShiftStatus = useCallback(
     (shift: ApiShift): ShiftCardData["status"] => {
+      const startIso = shift?.startsAt;
+      const endIso = shift?.endsAt;
+      const now = new Date();
+      const shiftStart = new Date(startIso || shift?.date || Date.now());
+      const shiftEnd = new Date(endIso || shift?.date || Date.now());
+
+      if (!Number.isNaN(shiftStart.getTime()) && !Number.isNaN(shiftEnd.getTime())) {
+        if (now < shiftStart) return "upcoming";
+        if (now <= shiftEnd) return "ongoing";
+
+        if (shift?.status === "missed") return "missed";
+        return "completed";
+      }
+
       if (
         shift?.status === "ongoing" ||
         shift?.status === "upcoming" ||
@@ -142,19 +167,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         return shift.status;
       }
 
-      const startIso = shift?.startsAt;
-      const endIso = shift?.endsAt;
-      const now = new Date();
-      const shiftStart = new Date(startIso || shift?.date || Date.now());
-      const shiftEnd = new Date(endIso || shift?.date || Date.now());
-
-      if (Number.isNaN(shiftStart.getTime()) || Number.isNaN(shiftEnd.getTime())) {
-        return "upcoming";
-      }
-
-      if (now >= shiftStart && now <= shiftEnd) return "ongoing";
-      if (now < shiftStart) return "upcoming";
-      return "completed";
+      return "upcoming";
     },
     []
   );
@@ -184,8 +197,12 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       return {
         id: shift.id || `${business?.id || "business"}-${shift?.date || "date"}`,
         shiftTitle: shift?.shiftTemplate?.name || business?.name || "Shift",
-        startTime: to12Hour(shift?.shiftTemplate?.startTime || shift?.startsAt),
-        endTime: to12Hour(shift?.shiftTemplate?.endTime || shift?.endsAt),
+        startTime: shift?.startsAt
+          ? formatUTCToLocalTime(shift.startsAt)
+          : to12Hour(shift?.shiftTemplate?.startTime),
+        endTime: shift?.endsAt
+          ? formatUTCToLocalTime(shift.endsAt)
+          : to12Hour(shift?.shiftTemplate?.endTime),
         startsAt: shift?.startsAt,
         endsAt: shift?.endsAt,
         startDateTime: shift?.startsAt,

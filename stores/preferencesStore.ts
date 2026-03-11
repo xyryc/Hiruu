@@ -1,5 +1,5 @@
-import { getCalendars } from "expo-localization";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCalendars } from "expo-localization";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 

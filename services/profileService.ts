@@ -1,4 +1,9 @@
-import { ProfileResponse, UpdateProfileData } from '@/types';
+import {
+    ProfileResponse,
+    UpdatePreferencesData,
+    UpdatePreferencesResponse,
+    UpdateProfileData
+} from '@/types';
 import axiosInstance from '@/utils/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -189,6 +194,22 @@ class ProfileService {
             // Check if update was successful
             if (!result.success) {
                 throw new Error(result.message || 'Profile update failed');
+            }
+
+            await this.writeProfileCache(result.data);
+            return result;
+        } catch (error: any) {
+            throw this.handleError(error);
+        }
+    }
+
+    async updatePreferences(data: UpdatePreferencesData): Promise<UpdatePreferencesResponse> {
+        try {
+            const response = await axiosInstance.patch('/users/preferences', data);
+            const result = response.data;
+
+            if (!result?.success) {
+                throw new Error(result?.message || 'Failed to update preferences');
             }
 
             await this.writeProfileCache(result.data);
