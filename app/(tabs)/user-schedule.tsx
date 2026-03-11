@@ -243,6 +243,32 @@ const ShiftSchedule = () => {
     loadShifts();
   }, [loadShifts]);
 
+  useEffect(() => {
+    const currentDate = new Date();
+    const today = `${currentDate.getFullYear()}-${`${currentDate.getMonth() + 1}`.padStart(2, "0")}-${`${currentDate.getDate()}`.padStart(2, "0")}`;
+    if (selectedDate !== today) return;
+
+    const shifts = Array.isArray(myShifts) ? myShifts : [];
+    const now = currentDate.getTime();
+    const nextShiftStartAt = shifts.reduce<number | null>((closest, shift: ApiShift) => {
+      if (shift?.itemType !== "assigned_shift" || !shift?.startsAt) return closest;
+
+      const startAt = new Date(shift.startsAt).getTime();
+      if (!Number.isFinite(startAt) || startAt <= now) return closest;
+
+      if (closest === null) return startAt;
+      return Math.min(closest, startAt);
+    }, null);
+
+    if (!nextShiftStartAt) return;
+
+    const timeout = setTimeout(() => {
+      loadShifts();
+    }, Math.max(nextShiftStartAt - now + 1000, 1000));
+
+    return () => clearTimeout(timeout);
+  }, [loadShifts, myShifts, selectedDate]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadShifts();

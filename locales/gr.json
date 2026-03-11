@@ -73,6 +73,7 @@
     "business_member_already_exists": "Αυτός ο χρήστης είναι ήδη μέλος της επιχείρησης.",
     "company_not_found": "Η εταιρεία δεν βρέθηκε.",
     "company_duplicate_name": "Υπάρχει ήδη εταιρεία με αυτό το όνομα.",
+    "shift_template_name_exists": "Υπάρχει ήδη πρότυπο βάρδιας με αυτό το όνομα.",
     "otp_expired": "Ο κωδικός OTP έχει λήξει. Παρακαλώ ζητήστε νέο.",
     "otp_invalid_code": "Μη έγκυρος κωδικός OTP. Παρακαλώ δοκιμάστε ξανά.",
     "employment_created_successfully": "Η απασχόληση δημιουργήθηκε με επιτυχία.",
@@ -100,6 +101,7 @@
     "weekly_block_duplicate_slot": "Το εβδομαδιαίο μπλοκ περιέχει διπλότυπες βάρδιες.",
     "weekly_block_duplicate_assignments": "Το εβδομαδιαίο μπλοκ περιέχει διπλότυπες αναθέσεις.",
     "weekly_block_manage_from_manage_screen": "Αυτή η εβδομάδα έχει ήδη προγραμματιστεί. Χρησιμοποίησε το Manage Weekly Schedules για επεξεργασία ή διαγραφή.",
+    "break_end_time_must_be_after_start_time": "Η ώρα λήξης του διαλείμματος πρέπει να είναι μετά την ώρα έναρξης.",
     "experiences.0.startDate must be a valid ISO 8601 date string": "Η ημερομηνία έναρξης εμπειρίας πρέπει να είναι έγκυρη μορφή ISO 8601.",
     "already_employed": "Είσαι ήδη εργαζόμενος και δεν μπορείς να κάνεις αίτηση για αυτή τη θέση."
   },

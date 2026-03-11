@@ -73,6 +73,7 @@
     "business_member_already_exists": "This user is already a member of the business.",
     "company_not_found": "Company not found.",
     "company_duplicate_name": "A company with this name already exists.",
+    "shift_template_name_exists": "A shift template with this name already exists.",
     "otp_expired": "OTP has expired. Please request a new one.",
     "otp_invalid_code": "Invalid OTP code. Please try again.",
     "employment_created_successfully": "Employment created successfully.",
@@ -99,6 +100,7 @@
     "weekly_block_duplicate_slot": "Weekly block contains duplicate slots.",
     "weekly_block_duplicate_assignments": "Weekly block contains duplicate assignments.",
     "weekly_block_manage_from_manage_screen": "This week is already scheduled. Use Manage Weekly Schedules to edit or delete it.",
+    "break_end_time_must_be_after_start_time": "Break end time must be after start time.",
     "experiences.0.startDate must be a valid ISO 8601 date string": "Experience start date must be a valid ISO 8601 date string.",
     "UNKNOWN_ERROR": "An unexpected error occurred",
     "already_employed": "You are already employed with this business and cannot apply to this job."

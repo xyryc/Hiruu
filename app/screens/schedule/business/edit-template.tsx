@@ -6,7 +6,7 @@ import TimePicker from "@/components/ui/inputs/TimePicker";
 import DeleteConfirmModal from "@/components/ui/modals/DeleteConfirmModal";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
-import { localDateToUTCTime, utcTimeToLocalDate } from "@/utils/timezone";
+import { usePreferencesStore } from "@/stores/preferencesStore";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -46,6 +46,7 @@ const EditTemplate = () => {
     deleteShiftTemplate,
     updateShiftTemplate,
   } = useBusinessStore();
+  const timezone = usePreferencesStore((state) => state.timezone);
 
   const fallbackBusinessId = selectedBusinesses[0];
   const templateBusinessId = (businessIdParam || fallbackBusinessId || "").toString();
@@ -113,9 +114,18 @@ const EditTemplate = () => {
           setCurrentRoleSlotsTotal(totalRequired);
 
           const parseTimeToDate = (value?: string) => {
-            // Convert UTC time from backend to local time for display
             if (!value) return new Date();
-            return utcTimeToLocalDate(value);
+            const [rawHour = "0", rawMinute = "0"] = value.split(":");
+            const hours = Number(rawHour);
+            const minutes = Number(rawMinute);
+            const nextDate = new Date();
+
+            if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+              return nextDate;
+            }
+
+            nextDate.setHours(hours, minutes, 0, 0);
+            return nextDate;
           };
 
           setShiftStartTime(parseTimeToDate(data?.startTime));
@@ -193,8 +203,9 @@ const EditTemplate = () => {
   );
 
   const formatTime24 = (date: Date) => {
-    // Convert local time to UTC before sending to backend
-    return localDateToUTCTime(date);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
   };
 
   const formatTime12 = (date: Date) => {
@@ -261,6 +272,7 @@ const EditTemplate = () => {
       name: templateName.trim(),
       description: templateDescription?.trim() || null,
       startTime: formatTime24(shiftStartTime),
+      timezone,
       endTime: formatTime24(shiftEndTime),
       breakDuration: [
         {

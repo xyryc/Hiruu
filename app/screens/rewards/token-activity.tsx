@@ -1,22 +1,203 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import MonthPicker from "@/components/ui/inputs/MonthPicker";
+import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
+import { walletService } from "@/services/walletService";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+type TransactionType = "earned" | "spent";
+
+type CoinTransaction = {
+  id: string;
+  amount: number;
+  description?: string | null;
+  createdAt: string;
+  type?: TransactionType;
+  user?: {
+    avatar?: string | null;
+  } | null;
+};
+
+const formatYmd = (value: Date) => {
+  const year = value.getFullYear();
+  const month = `${value.getMonth() + 1}`.padStart(2, "0");
+  const day = `${value.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const TokenActivity = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const topTabs = ["all", "earned", "spent"];
-  const [isTabs, setIsTabs] = useState("all");
+  const topTabs: Array<"all" | TransactionType> = ["all", "earned", "spent"];
+  const [isTabs, setIsTabs] = useState<"all" | TransactionType>("all");
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
-  const handleReportMonthChange = (date: Date) => {
-    setReportMonth(date);
-    console.log("Report month selected:", date.toLocaleDateString());
+  const [isCalendarModalVisible, setCalendarModalVisible] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
+    const current = new Date();
+    const y = current.getFullYear();
+    const m = `${current.getMonth() + 1}`.padStart(2, "0");
+    const d = `${current.getDate()}`.padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  });
+  const [walletCoins, setWalletCoins] = useState(0);
+  const [transactions, setTransactions] = useState<CoinTransaction[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+
+  const loadWallet = useCallback(async () => {
+    try {
+      const result = await walletService.getWallet();
+      const nextCoins = Number(result?.data?.coins ?? result?.data?.wallet?.coins);
+      setWalletCoins(Number.isFinite(nextCoins) ? nextCoins : 0);
+    } catch {
+      setWalletCoins(0);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadWallet();
+    }, [loadWallet])
+  );
+
+  const walletCoinsLabel = useMemo(
+    () => new Intl.NumberFormat("en-US").format(walletCoins),
+    [walletCoins]
+  );
+
+  const loadTransactions = useCallback(
+    async (tab: "all" | TransactionType) => {
+      setIsLoadingTransactions(true);
+      try {
+        const activeMonth = reportMonth || new Date();
+        const monthStartDate = new Date(
+          activeMonth.getFullYear(),
+          activeMonth.getMonth(),
+          1
+        );
+        const monthEndDate = new Date(
+          activeMonth.getFullYear(),
+          activeMonth.getMonth() + 1,
+          0
+        );
+        const dateRange = {
+          startDate: formatYmd(monthStartDate),
+          endDate: formatYmd(monthEndDate),
+        };
+
+        if (tab === "all") {
+          const [earnedResult, spentResult] = await Promise.all([
+            walletService.getCoinTransactions({
+              type: "earned",
+              ...dateRange,
+            }),
+            walletService.getCoinTransactions({
+              type: "spent",
+              ...dateRange,
+            }),
+          ]);
+          const merged = [
+            ...(Array.isArray(earnedResult?.data) ? earnedResult.data : []),
+            ...(Array.isArray(spentResult?.data) ? spentResult.data : []),
+          ] as CoinTransaction[];
+          merged.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setTransactions(merged);
+          return;
+        }
+
+        const result = await walletService.getCoinTransactions({
+          type: tab,
+          ...dateRange,
+        });
+        const rows = Array.isArray(result?.data)
+          ? (result.data as CoinTransaction[])
+          : [];
+        rows.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setTransactions(rows);
+      } catch {
+        setTransactions([]);
+      } finally {
+        setIsLoadingTransactions(false);
+      }
+    },
+    [reportMonth]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTransactions(isTabs);
+    }, [isTabs, loadTransactions, reportMonth])
+  );
+
+  const filteredTransactions = useMemo(() => {
+    if (!reportMonth) return transactions;
+
+    const selectedMonth = reportMonth.getMonth();
+    const selectedYear = reportMonth.getFullYear();
+
+    return transactions.filter((item) => {
+      const d = new Date(item.createdAt);
+      return (
+        d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
+      );
+    });
+  }, [reportMonth, transactions]);
+
+  const groupedTransactions = useMemo(() => {
+    const groups = new Map<string, CoinTransaction[]>();
+
+    filteredTransactions.forEach((item) => {
+      const d = new Date(item.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const existing = groups.get(key) || [];
+      existing.push(item);
+      groups.set(key, existing);
+    });
+
+    return Array.from(groups.entries())
+      .map(([key, items]) => ({ key, items }))
+      .sort((a, b) => {
+        const [aYear, aMonth] = a.key.split("-").map(Number);
+        const [bYear, bMonth] = b.key.split("-").map(Number);
+        if (aYear !== bYear) return bYear - aYear;
+        return bMonth - aMonth;
+      });
+  }, [filteredTransactions]);
+
+  const getTransactionDateLabel = (createdAt: string) => {
+    const d = new Date(createdAt);
+    return d.toLocaleDateString("en-US", { day: "numeric", month: "long" });
   };
+
+  const getGroupLabel = (key: string) => {
+    const [year, month] = key.split("-").map(Number);
+    return new Date(year, month, 1).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const handleSelectDate = useCallback((dateString: string) => {
+    const selectedDate = new Date(`${dateString}T00:00:00`);
+    setSelectedCalendarDate(dateString);
+    setReportMonth(selectedDate);
+  }, []);
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -40,7 +221,9 @@ const TokenActivity = () => {
               contentFit="contain"
             />
             <View className="px-4 py-2 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-              <Text className="text-sm font-proximanova-semibold">540</Text>
+              <Text className="text-sm font-proximanova-semibold">
+                {walletCoinsLabel}
+              </Text>
             </View>
           </View>
         }
@@ -64,344 +247,105 @@ const TokenActivity = () => {
           ))}
         </View>
 
-        <MonthPicker
-          value={reportMonth}
-          onDateChange={handleReportMonthChange}
-        />
+        <TouchableOpacity
+          onPress={() => setCalendarModalVisible(true)}
+          className="px-3 py-2 rounded-full bg-[#EEEEEE]"
+        >
+          <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
+            {reportMonth
+              ? reportMonth.toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
+                })
+              : "Select"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* january 2 */}
-        <View className="mx-5">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-4">
-            January, 2025
-          </Text>
-
-          <View className="flex-row justify-between mt-3">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Complete 100% profile
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  2 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#3EBF5A]">
-                +80
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
+        {isLoadingTransactions ? (
+          <View className="py-8 items-center">
+            <ActivityIndicator color="#4FB2F3" />
           </View>
-
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Featured Listing Fee
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -800
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
+        ) : groupedTransactions.length === 0 ? (
+          <View className="py-8 items-center">
+            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              No transactions found.
+            </Text>
           </View>
+        ) : (
+          groupedTransactions.map((group, groupIndex) => (
+            <View key={group.key}>
+              <View className="mx-5">
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-4">
+                  {getGroupLabel(group.key)}
+                </Text>
 
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Gift 1 Month Premium to john
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -300
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-        </View>
+                {group.items.map((item, index) => {
+                  const isEarned = item.type === "earned" || item.amount >= 0;
+                  const amount = Math.abs(Number(item.amount || 0));
+                  return (
+                    <View
+                      key={item.id}
+                      className={`flex-row justify-between ${index === 0 ? "mt-3" : "mt-5"}`}
+                    >
+                      <View className="flex-row gap-2.5 items-center flex-1 pr-4">
+                        <Image
+                          source={
+                            item?.user?.avatar ||
+                            require("@/assets/images/reward/profile.svg")
+                          }
+                          contentFit="cover"
+                          style={{ width: 40, height: 40, borderRadius: 20 }}
+                        />
+                        <View className="flex-1">
+                          <Text
+                            numberOfLines={1}
+                            className="font-proximanova-semibold text-primary dark:text-dark-primary"
+                          >
+                            {item.description || "Token transaction"}
+                          </Text>
+                          <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                            {getTransactionDateLabel(item.createdAt)}
+                          </Text>
+                        </View>
+                      </View>
 
-        <View className="mt-5 border-b-4 border-[#F5F5F5]" />
-        {/*  December, 2024 */}
-        <View className="mx-5">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-4">
-            December, 2024
-          </Text>
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Featured Listing Fee
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
+                      <View className="flex-row gap-1.5 items-center">
+                        <Text
+                          className={`font-proximanova-semibold text-lg ${isEarned ? "text-[#3EBF5A]" : "text-[#F34F4F]"}`}
+                        >
+                          {isEarned ? "+" : "-"}
+                          {amount}
+                        </Text>
+                        <Image
+                          source={require("@/assets/images/hiruu-coin.svg")}
+                          style={{
+                            width: 22,
+                            height: 22,
+                          }}
+                          contentFit="contain"
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -800
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
 
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Gift 1 Month Premium to john
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
+              {groupIndex !== groupedTransactions.length - 1 ? (
+                <View className="mt-5 border-b-4 border-[#F5F5F5]" />
+              ) : null}
             </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -300
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-        </View>
-
-        <View className="mt-5 border-b-4 border-[#F5F5F5]" />
-        {/*  November, 2024 */}
-        <View className="mx-5">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-4">
-            November, 2024
-          </Text>
-          <View className="flex-row justify-between mt-3">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Complete 100% profile
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  2 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -800
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Featured Listing Fee
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -800
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Gift 1 Month Premium to john
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -300
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Featured Listing Fee
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -800
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-
-          <View className="flex-row justify-between mt-5">
-            <View className="flex-row gap-2.5 items-center">
-              <Image
-                source={require("@/assets/images/reward/profile.svg")}
-                contentFit="contain"
-                style={{ width: 40, height: 40 }}
-              />
-              <View>
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Gift 1 Month Premium to john
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  3 January
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row gap-1.5 items-center">
-              <Text className="font-proximanova-semibold text-lg text-[#F34F4F]">
-                -300
-              </Text>
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
-        </View>
+          ))
+        )}
       </ScrollView>
+
+      <UserCalendarScheduleModal
+        visible={isCalendarModalVisible}
+        onClose={() => setCalendarModalVisible(false)}
+        selectedDate={selectedCalendarDate}
+        onSelectDate={handleSelectDate}
+      />
     </SafeAreaView>
   );
 };
