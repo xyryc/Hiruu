@@ -7,14 +7,13 @@ import { useChat } from "@/hooks/useChat";
 import { useAuthStore } from "@/stores/authStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  RefreshControl,
   View,
 } from "react-native";
 import {
@@ -60,8 +59,11 @@ const HelpChat = () => {
       : "Support Chat";
   const { user } = useAuthStore();
   const [message, setMessage] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
   const [androidKeyboardOffset, setAndroidKeyboardOffset] = useState(0);
+  const listRef = useRef<FlatList<any> | null>(null);
+  const previousMessageCountRef = useRef(0);
+  const didInitialScrollRef = useRef(false);
+  const initialAutoScrollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const {
     messages,
@@ -73,7 +75,6 @@ const HelpChat = () => {
     retryFailedMessage,
     startTyping,
     stopTyping,
-    refreshMessages,
   } = useChat({
     roomId,
     onError: (error) => {
@@ -81,9 +82,14 @@ const HelpChat = () => {
     },
   });
 
-  const mappedMessages = useMemo(
-    () =>
-      messages.map((item: any) => ({
+  const mappedMessages = useMemo(() => {
+    const sortedMessages = [...messages].sort((a: any, b: any) => {
+      const aTime = new Date(a?.createdAt || 0).getTime();
+      const bTime = new Date(b?.createdAt || 0).getTime();
+      return aTime - bTime;
+    });
+
+    return sortedMessages.map((item: any) => ({
         id: item.id,
         text: item.content || "",
         time: formatMessageTime(item.createdAt),
@@ -92,36 +98,85 @@ const HelpChat = () => {
         avatar: resolveAvatar(item.sender?.avatar),
         media: Array.isArray(item.attachments)
           ? item.attachments
-              .map((attachment: any, index: number) => {
-                const uri = attachment?.url || attachment?.uri;
-                if (!uri) return null;
-                return {
-                  id: `${item.id}-${index}`,
-                  uri,
-                  previewType:
-                    String(attachment?.type || "").toLowerCase() === "video"
-                      ? "video"
-                      : "image",
-                  name: attachment?.fileName,
-                  thumbnailUrl: attachment?.thumbnailUrl,
-                };
-              })
-              .filter(Boolean)
+            .map((attachment: any, index: number) => {
+              const uri = attachment?.url || attachment?.uri;
+              if (!uri) return null;
+              return {
+                id: `${item.id}-${index}`,
+                uri,
+                previewType:
+                  String(attachment?.type || "").toLowerCase() === "video"
+                    ? "video"
+                    : "image",
+                name: attachment?.fileName,
+                thumbnailUrl: attachment?.thumbnailUrl,
+              };
+            })
+            .filter(Boolean)
           : [],
         uploadState: item.uploadState,
-      })),
-    [messages, user?.id]
-  );
+      }));
+  }, [messages, user?.id]);
 
-  const handleRefresh = async () => {
-    if (!roomId) return;
-    try {
-      setRefreshing(true);
-      await refreshMessages();
-    } finally {
-      setRefreshing(false);
+  const scrollToBottom = useCallback((animated: boolean) => {
+    const list = listRef.current;
+    if (!list) return;
+    requestAnimationFrame(() => {
+      try {
+        list.scrollToEnd({ animated });
+      } catch {
+        // Ignore transient layout timing errors.
+      }
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (!mappedMessages.length) {
+      previousMessageCountRef.current = 0;
+      didInitialScrollRef.current = false;
+      if (initialAutoScrollTimerRef.current) {
+        clearInterval(initialAutoScrollTimerRef.current);
+        initialAutoScrollTimerRef.current = null;
+      }
+      return;
     }
-  };
+
+    const hasNewMessage = mappedMessages.length > previousMessageCountRef.current;
+    if (hasNewMessage) {
+      scrollToBottom(previousMessageCountRef.current > 0);
+    }
+
+    previousMessageCountRef.current = mappedMessages.length;
+  }, [mappedMessages.length, scrollToBottom]);
+
+  React.useEffect(() => {
+    if (loading || !mappedMessages.length || didInitialScrollRef.current) return;
+
+    let attempts = 0;
+    if (initialAutoScrollTimerRef.current) {
+      clearInterval(initialAutoScrollTimerRef.current);
+      initialAutoScrollTimerRef.current = null;
+    }
+
+    initialAutoScrollTimerRef.current = setInterval(() => {
+      scrollToBottom(false);
+      attempts += 1;
+      if (attempts >= 8) {
+        if (initialAutoScrollTimerRef.current) {
+          clearInterval(initialAutoScrollTimerRef.current);
+          initialAutoScrollTimerRef.current = null;
+        }
+        didInitialScrollRef.current = true;
+      }
+    }, 120);
+
+    return () => {
+      if (initialAutoScrollTimerRef.current) {
+        clearInterval(initialAutoScrollTimerRef.current);
+        initialAutoScrollTimerRef.current = null;
+      }
+    };
+  }, [loading, mappedMessages.length, scrollToBottom]);
 
   const handleSend = async () => {
     const ok = await sendMessage({ content: message });
@@ -176,14 +231,19 @@ const HelpChat = () => {
             </View>
           ) : (
             <FlatList
+              ref={listRef}
               data={mappedMessages}
               keyExtractor={(item) => String(item.id)}
-              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}
               showsVerticalScrollIndicator={false}
-              inverted
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-              }
+              onContentSizeChange={() => {
+                if (!mappedMessages.length || didInitialScrollRef.current) return;
+                scrollToBottom(false);
+              }}
+              onLayout={() => {
+                if (!mappedMessages.length || didInitialScrollRef.current) return;
+                scrollToBottom(false);
+              }}
               renderItem={({ item }) => (
                 <RenderMessage
                   msg={item}
@@ -192,13 +252,12 @@ const HelpChat = () => {
                   }}
                 />
               )}
-              ListHeaderComponent={
-                <TypingIndicator isTyping={isTyping} userName={typingUser || undefined} />
-              }
+              keyboardShouldPersistTaps="handled"
             />
           )}
 
           <View style={{ marginBottom: Platform.OS === "android" ? androidKeyboardOffset : 0 }}>
+            <TypingIndicator isTyping={isTyping} userName={typingUser || undefined} />
             <ChatInput
               message={message}
               setMessage={setMessage}

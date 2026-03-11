@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import {
@@ -24,6 +25,7 @@ const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
   });
 
 const buildFormState = (profile: JobProfileData | null) => ({
+  isOpenToWork: Boolean(profile?.isOpenToWork),
   jobType:
     typeof profile?.preferredSalaryType === "string"
       ? profile.preferredSalaryType.trim()
@@ -85,6 +87,7 @@ const JobProfileEdit = () => {
   const isLoadingJobProfile = useSettingsStore((state) => state.isLoadingJobProfile);
 
   const [jobType, setJobType] = useState("");
+  const [isOpenToWork, setIsOpenToWork] = useState(false);
   const [expectedSalaryMin, setExpectedSalaryMin] = useState("");
   const [expectedSalaryMax, setExpectedSalaryMax] = useState("");
   const [weeklyAvailability, setWeeklyAvailability] = useState<WeeklyAvailabilityItem[]>([]);
@@ -101,6 +104,7 @@ const JobProfileEdit = () => {
 
   const applyProfileState = useCallback((profile: JobProfileData | null) => {
     const nextState = buildFormState(profile);
+    setIsOpenToWork(nextState.isOpenToWork);
     setJobType(nextState.jobType);
     setExpectedSalaryMin(nextState.expectedSalaryMin);
     setExpectedSalaryMax(nextState.expectedSalaryMax);
@@ -165,6 +169,7 @@ const JobProfileEdit = () => {
       setIsSaving(true);
 
       await updateMyJobProfile({
+        isOpenToWork,
         preferredSalaryType: jobType.trim() || null,
         expectedSalaryMin: expectedSalaryMin.trim()
           ? Number(expectedSalaryMin)
@@ -207,6 +212,19 @@ const JobProfileEdit = () => {
           <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
             Update your job type, expected salary range, and working days.
           </Text>
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="account-check-outline" size={16} color="black" />}
+          title="Open to Work"
+        />
+        <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] px-4 py-3">
+          <ToggleButton
+            title="Available for new opportunities"
+            isOn={isOpenToWork}
+            setIsOn={setIsOpenToWork}
+            className="mb-0 justify-between"
+          />
         </View>
 
         <SectionHeader

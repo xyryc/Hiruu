@@ -1,11 +1,11 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import { JobProfileData, useSettingsStore } from "@/stores/settingsStore";
-import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -52,6 +52,9 @@ const getJobType = (profile: JobProfileData | null) => {
     ? value.trim().charAt(0).toUpperCase() + value.trim().slice(1)
     : "Not added yet";
 };
+
+const getOpenToWorkLabel = (profile: JobProfileData | null) =>
+  profile?.isOpenToWork ? "Yes" : "No";
 
 const buildAvailabilityRows = (profile: JobProfileData | null) => {
   const byDay = new Map(
@@ -122,7 +125,7 @@ const JobProfile = () => {
       };
 
       loadProfile();
-      return () => {};
+      return () => { };
     }, [getMyJobProfile])
   );
 
@@ -152,15 +155,21 @@ const JobProfile = () => {
         </View>
 
         <SectionTitle
+          title="Open to Work"
+          icon={<MaterialCommunityIcons name="account-check-outline" size={16} color="black" />}
+        />
+        <ValueCard value={getOpenToWorkLabel(jobProfile)} />
+
+        <SectionTitle
           title="Job Type"
           icon={<MaterialCommunityIcons name="briefcase-outline" size={16} color="black" />}
-          action={
-            <TouchableOpacity onPress={() => router.push("/screens/profile/user/job-profile-edit")}>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
-                Edit
-              </Text>
-            </TouchableOpacity>
-          }
+        // action={
+        //   <TouchableOpacity onPress={() => router.push("/screens/profile/user/job-profile-edit")}>
+        //     <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
+        //       Edit
+        //     </Text>
+        //   </TouchableOpacity>
+        // }
         />
         <ValueCard value={getJobType(jobProfile)} />
 
@@ -201,11 +210,10 @@ const JobProfile = () => {
                 {dayLabelMap[item.day]}
               </Text>
               <Text
-                className={`font-proximanova-regular text-sm ${
-                  item.value === "Closed"
+                className={`font-proximanova-regular text-sm ${item.value === "Closed"
                     ? "text-[#F34F4F]"
                     : "text-secondary dark:text-dark-secondary"
-                }`}
+                  }`}
               >
                 {item.value}
               </Text>
