@@ -208,14 +208,20 @@ const Preferences = () => {
       <ScrollView showsVerticalScrollIndicator={false} className="px-5">
         {/* settings card */}
         <SettingsCard
-          click={() => setShowModal(true)}
+          fullTouchable={false}
           subtitle={currentLanguage.toUpperCase()}
           //   click={() => router.push("/(user)/profile/settings/preferences")}
           icon={<Ionicons name="language-outline" size={24} color="#11293A" />}
           className="mt-8"
           text={t("user.profile.language")}
           arrowIcon={
-            <Entypo name="chevron-thin-down" size={20} color="black" />
+            <TouchableOpacity
+              className="h-9 w-9 items-center justify-center"
+              activeOpacity={0.8}
+              onPress={() => setShowModal(true)}
+            >
+              <Entypo name="chevron-thin-down" size={20} color="black" />
+            </TouchableOpacity>
           }
         />
         <LanguageSwitcherModal
@@ -224,6 +230,7 @@ const Preferences = () => {
         />
 
         <SettingsCard
+          fullTouchable={false}
           subtitle={t("user.profile.smartAlertTimeSubtitle", {
             minutes: smartAlertTime,
           })}
@@ -237,6 +244,7 @@ const Preferences = () => {
         />
 
         <SettingsCard
+          fullTouchable={false}
           icon={<Ionicons name="time-outline" size={24} color="black" />}
           className="mt-4"
           text={t("user.profile.smartAlertTime")}
@@ -303,13 +311,19 @@ const Preferences = () => {
         />
 
         <SettingsCard
-          click={() => setShowTimezoneModal(true)}
+          fullTouchable={false}
           subtitle={`${getTimezoneLabel(timezone)} (${timezone})`}
           icon={<AntDesign name="global" size={24} color="black" />}
           className="mt-4"
           text={t("user.profile.timeZone")}
           arrowIcon={
-            <Entypo name="chevron-thin-down" size={20} color="black" />
+            <TouchableOpacity
+              className="h-9 w-9 items-center justify-center"
+              activeOpacity={0.8}
+              onPress={() => setShowTimezoneModal(true)}
+            >
+              <Entypo name="chevron-thin-down" size={20} color="black" />
+            </TouchableOpacity>
           }
         />
         <TimezoneSwitcherModal
@@ -318,6 +332,7 @@ const Preferences = () => {
         />
 
         <SettingsCard
+          fullTouchable={false}
           //   click={() => router.push("/(user)/profile/settings/preferences")}
           icon={<Ionicons name="volume-high-outline" size={24} color="black" />}
           className="mt-4"
@@ -331,6 +346,7 @@ const Preferences = () => {
         />
 
         <SettingsCard
+          fullTouchable={false}
           //   click={() => router.push("/(user)/profile/settings/preferences")}
           icon={
             <MaterialCommunityIcons
@@ -346,7 +362,7 @@ const Preferences = () => {
         />
 
         <SettingsCard
-          click={() => setSchedule(!schedule)}
+          fullTouchable={false}
           icon={
             <MaterialCommunityIcons
               name="calendar-multiselect-outline"
@@ -357,11 +373,17 @@ const Preferences = () => {
           className="mt-4 pb-4"
           text={t("user.profile.availableWorkingDays")}
           arrowIcon={
-            <Entypo
-              name={schedule ? "chevron-thin-up" : "chevron-thin-down"}
-              size={16}
-              color="black"
-            />
+            <TouchableOpacity
+              className="h-9 w-9 items-center justify-center"
+              activeOpacity={0.8}
+              onPress={() => setSchedule(!schedule)}
+            >
+              <Entypo
+                name={schedule ? "chevron-thin-up" : "chevron-thin-down"}
+                size={16}
+                color="black"
+              />
+            </TouchableOpacity>
           }
           border={true}
         />
