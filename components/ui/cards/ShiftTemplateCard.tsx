@@ -1,7 +1,6 @@
 import RoleChip, { DEFAULT_ROLE_CHIPS } from "@/components/ui/badges/RoleChip";
 import { getTimezoneLabel } from "@/constants/timezones";
 import { usePreferencesStore } from "@/stores/preferencesStore";
-import { utcTimeToLocal } from "@/utils/timezone";
 import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -45,9 +44,7 @@ const ShiftTemplateCard = ({
   };
 
   const resolvedTimeRange = startTime && endTime
-    ? `${to12Hour(utcTimeToLocal(startTime, timezone))} - ${to12Hour(
-        utcTimeToLocal(endTime, timezone)
-      )} (${timezoneLabel})`
+    ? `${to12Hour(startTime)} - ${to12Hour(endTime)} (${timezoneLabel})`
     : timeRange
       ? `${timeRange} (${timezoneLabel})`
       : `7:00 AM - 3:00 PM (${timezoneLabel})`;
@@ -56,12 +53,8 @@ const ShiftTemplateCard = ({
     Array.isArray(breakDurations) && breakDurations.length > 0
       ? `${breakDurations
           .map((item: any) => {
-            const start = item?.startTime
-              ? to12Hour(utcTimeToLocal(item.startTime, timezone))
-              : "";
-            const end = item?.endTime
-              ? to12Hour(utcTimeToLocal(item.endTime, timezone))
-              : "";
+            const start = item?.startTime ? to12Hour(item.startTime) : "";
+            const end = item?.endTime ? to12Hour(item.endTime) : "";
 
             if (!start && !end) return "";
             if (!start) return end;
