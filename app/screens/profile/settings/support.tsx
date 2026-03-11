@@ -23,8 +23,7 @@ const HelpSupport = () => {
     useCallback(() => {
       const loadFaq = async () => {
         try {
-          const data = await getFaq();
-          console.log("support faq data:", data);
+          await getFaq();
         } catch (error) {
           console.log("support faq error:", error);
         }
