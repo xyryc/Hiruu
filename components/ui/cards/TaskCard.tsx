@@ -27,8 +27,37 @@ const TaskCard = ({
   status = "ongoing",
   requestLog = false,
 }: WorkShiftCardProps) => {
-  const hasLiveTimer = status === "ongoing" || status === "upcoming";
-  const isStaticStatus = status === "completed" || status === "missed";
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const startRaw = startsAt || startDateTime;
+  const endRaw = endsAt || endDateTime;
+  const shiftStartMs = startRaw ? new Date(startRaw).getTime() : NaN;
+  const shiftEndMs = endRaw ? new Date(endRaw).getTime() : NaN;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const liveStatus = useMemo(() => {
+    const hasValidRange =
+      !Number.isNaN(shiftStartMs) &&
+      !Number.isNaN(shiftEndMs) &&
+      shiftEndMs >= shiftStartMs;
+
+    if (!hasValidRange) {
+      return status;
+    }
+
+    if (nowMs < shiftStartMs) return "upcoming";
+    if (nowMs <= shiftEndMs) return "ongoing";
+    if (status === "missed") return "missed";
+    return "completed";
+  }, [nowMs, shiftEndMs, shiftStartMs, status]);
+
+  const hasLiveTimer = liveStatus === "ongoing" || liveStatus === "upcoming";
+  const isStaticStatus = liveStatus === "completed" || liveStatus === "missed";
 
   const formatDuration = useCallback((totalSeconds: number) => {
     const safe = Math.max(0, Math.floor(totalSeconds));
@@ -38,68 +67,45 @@ const TaskCard = ({
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   }, []);
 
-  const getCountdown = useCallback(() => {
+  const elapsedTime = useMemo(() => {
     if (!hasLiveTimer) {
       return "00:00:00";
     }
 
-    const now = Date.now();
     const targetRaw =
-      status === "upcoming"
+      liveStatus === "upcoming"
         ? startsAt || startDateTime
         : endsAt || endDateTime;
     const target = targetRaw ? new Date(targetRaw).getTime() : NaN;
     if (Number.isNaN(target)) {
       return "00:00:00";
     }
-    return formatDuration((target - now) / 1000);
+    return formatDuration((target - nowMs) / 1000);
   }, [
     endDateTime,
     endsAt,
     formatDuration,
     hasLiveTimer,
+    liveStatus,
+    nowMs,
     startDateTime,
     startsAt,
-    status,
   ]);
 
-  const [elapsedTime, setElapsedTime] = useState(() => getCountdown());
-
   const isUpcomingLoginWindow = useMemo(() => {
-    if (status !== "upcoming") return false;
-    const startRaw = startsAt || startDateTime;
-    const startAt = startRaw ? new Date(startRaw).getTime() : NaN;
-    if (Number.isNaN(startAt)) return false;
-    const now = Date.now();
-    const preLoginWindowStart = startAt - 15 * 60 * 1000;
-    return now >= preLoginWindowStart && now < startAt;
-  }, [startDateTime, startsAt, status]);
+    if (liveStatus !== "upcoming" || Number.isNaN(shiftStartMs)) return false;
+    const preLoginWindowStart = shiftStartMs - 15 * 60 * 1000;
+    return nowMs >= preLoginWindowStart && nowMs < shiftStartMs;
+  }, [liveStatus, nowMs, shiftStartMs]);
 
   const isOngoingLoginWindow = useMemo(() => {
-    if (status !== "ongoing") return false;
-    const startRaw = startsAt || startDateTime;
-    const startAt = startRaw ? new Date(startRaw).getTime() : NaN;
-    if (Number.isNaN(startAt)) return false;
-    const now = Date.now();
-    const postStartLoginWindowEnd = startAt + 15 * 60 * 1000;
-    return now <= postStartLoginWindowEnd;
-  }, [startDateTime, startsAt, status]);
-
-  // Live countdown for upcoming/ongoing shifts.
-  useEffect(() => {
-    setElapsedTime(getCountdown());
-
-    if (hasLiveTimer) {
-      const interval = setInterval(() => {
-        setElapsedTime(getCountdown());
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [getCountdown, hasLiveTimer]);
+    if (liveStatus !== "ongoing" || Number.isNaN(shiftStartMs)) return false;
+    const postStartLoginWindowEnd = shiftStartMs + 15 * 60 * 1000;
+    return nowMs <= postStartLoginWindowEnd;
+  }, [liveStatus, nowMs, shiftStartMs]);
 
   const getStatusColor = () => {
-    switch (status) {
+    switch (liveStatus) {
       case "ongoing":
         return "#3EBF5A";
       case "upcoming":
@@ -114,7 +120,7 @@ const TaskCard = ({
   };
 
   const getStatusText = () => {
-    switch (status) {
+    switch (liveStatus) {
       case "ongoing":
         return "Ongoing:";
       case "upcoming":
@@ -291,21 +297,21 @@ const TaskCard = ({
           <SmallButton title="Request Log" onPress={onLoginPress} />
         ) : (
           <>
-            {status === "upcoming" &&
+            {liveStatus === "upcoming" &&
               (isUpcomingLoginWindow ? (
                 <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
               ) : (
-                <StatusBadge status={status} />
+                <StatusBadge status={liveStatus} />
               ))}
-            {status === "ongoing" && (
+            {liveStatus === "ongoing" && (
               isOngoingLoginWindow ? (
                 <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
               ) : (
                 <SmallButton title="Request Log" onPress={onLoginPress} />
               )
             )}
-            {status === "completed" && <StatusBadge status={status} />}
-            {status === "missed" && <StatusBadge status={status} />}
+            {liveStatus === "completed" && <StatusBadge status={liveStatus} />}
+            {liveStatus === "missed" && <StatusBadge status={liveStatus} />}
           </>
         )}
       </View>
