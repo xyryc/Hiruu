@@ -13,6 +13,7 @@ import ActionCard from "../ui/cards/ActionCard";
 import NoTaskCard from "../ui/cards/NoTaskCard";
 import TaskCard from "../ui/cards/TaskCard";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
+import LogoutDeleteModal from "../ui/modals/LogoutDeleteModal";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
 type ApiShift = {
@@ -67,7 +68,12 @@ type ShiftCardData = {
 };
 
 const TodaysShift = ({ className }: TodaysShiftProps) => {
+  const shiftLogoutImg = require("@/assets/images/Logout.svg");
   const [showModal, setShowModal] = useState(false);
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const [pendingLogoutShiftId, setPendingLogoutShiftId] = useState<string | null>(
+    null
+  );
   const router = useRouter();
   const isFocused = useIsFocused();
   const {
@@ -109,7 +115,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       }
 
       if (card.presentStatus === "logged_in") {
-        toast.info("Logout API will be integrated next.");
+        setPendingLogoutShiftId(card.id);
+        setIsLogoutModalVisible(true);
         return;
       }
 
@@ -129,6 +136,23 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     },
     [clockIn]
   );
+
+  const handleConfirmLogout = useCallback(async () => {
+    if (!pendingLogoutShiftId) {
+      setIsLogoutModalVisible(false);
+      return;
+    }
+
+    // TODO: integrate logout API and update presentStatus to logged_out.
+    toast.info("Logout API will be integrated next.");
+    setIsLogoutModalVisible(false);
+    setPendingLogoutShiftId(null);
+  }, [pendingLogoutShiftId]);
+
+  const handleCloseLogoutModal = useCallback(() => {
+    setIsLogoutModalVisible(false);
+    setPendingLogoutShiftId(null);
+  }, []);
 
   const extractHourMinute = useCallback((value?: string) => {
     if (!value) return null;
@@ -339,6 +363,20 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         imageWidth={144}
         imageHeight={95}
         background={require("@/assets/images/chessboard-bg.svg")}
+      />
+
+      <LogoutDeleteModal
+        visible={isLogoutModalVisible}
+        onClose={handleCloseLogoutModal}
+        data={{
+          img: shiftLogoutImg,
+          title: "Log out from this shift?",
+          subtitle:
+            "You can log back in anytime during your active shift window.",
+          buttonName: "Logout",
+          buttonColor: "#EF4444",
+        }}
+        onConfirm={handleConfirmLogout}
       />
     </View>
   );

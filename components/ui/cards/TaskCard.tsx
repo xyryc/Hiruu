@@ -305,7 +305,7 @@ const TaskCard = ({
               (isUpcomingLoginWindow ? (
                 <SmallButton
                   title={isLoggedIn ? "Logout" : "Login"}
-                  className="px-8"
+                  className={isLoggedIn ? "px-8 bg-[#EF4444]" : "px-8"}
                   onPress={isLoggedIn ? onLogoutPress || onLoginPress : onLoginPress}
                 />
               ) : (
@@ -315,7 +315,7 @@ const TaskCard = ({
               isLoggedIn ? (
                 <SmallButton
                   title="Logout"
-                  className="px-8"
+                  className="px-8 bg-[#EF4444]"
                   onPress={onLogoutPress || onLoginPress}
                 />
               ) : isOngoingLoginWindow ? (
