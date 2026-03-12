@@ -4,6 +4,7 @@ import axiosInstance from "@/utils/axios";
 import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
 import { AxiosError } from "axios";
 import { create } from "zustand";
+import { useAuthStore } from "./authStore";
 
 type CreateRecruitmentPayload = {
   roleId: string;
@@ -96,6 +97,11 @@ type GetUnreadCountQuery = {
 type UnreadCountResponse = {
   user_applied?: number;
   business_invited?: number;
+};
+
+const EMPTY_UNREAD_COUNTS: UnreadCountResponse = {
+  user_applied: 0,
+  business_invited: 0,
 };
 
 type MarkAsReadQuery = {
@@ -484,6 +490,11 @@ export const useJobStore = create<JobState>((set) => ({
   },
 
   getUnreadCount: async (query = {}) => {
+    const { accessToken, user } = useAuthStore.getState();
+    if (!accessToken || !user?.id) {
+      return EMPTY_UNREAD_COUNTS;
+    }
+
     try {
       const params: Record<string, string> = {};
 
@@ -510,8 +521,13 @@ export const useJobStore = create<JobState>((set) => ({
         throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
       }
 
-      return result?.data || { user_applied: 0, business_invited: 0 };
+      return result?.data || EMPTY_UNREAD_COUNTS;
     } catch (error) {
+      const { accessToken: latestAccessToken } = useAuthStore.getState();
+      if (!latestAccessToken) {
+        return EMPTY_UNREAD_COUNTS;
+      }
+
       const axiosError = error as AxiosError<any>;
       const message =
         translateApiMessage(axiosError.response?.data?.message) ||
