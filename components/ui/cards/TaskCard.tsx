@@ -75,6 +75,16 @@ const TaskCard = ({
     return now >= preLoginWindowStart && now < startAt;
   }, [startDateTime, startsAt, status]);
 
+  const isOngoingLoginWindow = useMemo(() => {
+    if (status !== "ongoing") return false;
+    const startRaw = startsAt || startDateTime;
+    const startAt = startRaw ? new Date(startRaw).getTime() : NaN;
+    if (Number.isNaN(startAt)) return false;
+    const now = Date.now();
+    const postStartLoginWindowEnd = startAt + 15 * 60 * 1000;
+    return now <= postStartLoginWindowEnd;
+  }, [startDateTime, startsAt, status]);
+
   // Live countdown for upcoming/ongoing shifts.
   useEffect(() => {
     setElapsedTime(getCountdown());
@@ -288,7 +298,11 @@ const TaskCard = ({
                 <StatusBadge status={status} />
               ))}
             {status === "ongoing" && (
-              <SmallButton title="Login" className="px-8" />
+              isOngoingLoginWindow ? (
+                <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
+              ) : (
+                <SmallButton title="Request Log" onPress={onLoginPress} />
+              )
             )}
             {status === "completed" && <StatusBadge status={status} />}
             {status === "missed" && <StatusBadge status={status} />}
