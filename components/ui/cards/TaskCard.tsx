@@ -5,7 +5,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 import SmallButton from "../buttons/SmallButton";
@@ -64,6 +64,16 @@ const TaskCard = ({
   ]);
 
   const [elapsedTime, setElapsedTime] = useState(() => getCountdown());
+
+  const isUpcomingLoginWindow = useMemo(() => {
+    if (status !== "upcoming") return false;
+    const startRaw = startsAt || startDateTime;
+    const startAt = startRaw ? new Date(startRaw).getTime() : NaN;
+    if (Number.isNaN(startAt)) return false;
+    const now = Date.now();
+    const preLoginWindowStart = startAt - 15 * 60 * 1000;
+    return now >= preLoginWindowStart && now < startAt;
+  }, [startDateTime, startsAt, status]);
 
   // Live countdown for upcoming/ongoing shifts.
   useEffect(() => {
@@ -271,7 +281,12 @@ const TaskCard = ({
           <SmallButton title="Request Log" onPress={onLoginPress} />
         ) : (
           <>
-            {status === "upcoming" && <StatusBadge status={status} />}
+            {status === "upcoming" &&
+              (isUpcomingLoginWindow ? (
+                <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
+              ) : (
+                <StatusBadge status={status} />
+              ))}
             {status === "ongoing" && (
               <SmallButton title="Login" className="px-8" />
             )}
