@@ -1,6 +1,8 @@
 import { profileService } from "@/services/profileService";
+import axiosInstance from "@/utils/axios";
 import { UpdatePreferencesData, UpdateProfileData } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AxiosError } from "axios";
 import { create } from "zustand";
 import { useAuthStore } from "./authStore";
 
@@ -13,10 +15,12 @@ interface ProfileState {
   isLoading: boolean;
   error: Error | null;
   isProfileComplete: boolean;
+  ratingsResponse: any | null;
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
+  getMyRatings: () => Promise<any>;
   syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
@@ -27,6 +31,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
   isLoading: false,
   error: null,
   isProfileComplete: false,
+  ratingsResponse: null,
 
   updateProfile: async (profileData: UpdateProfileData) => {
     set({ isLoading: true, error: null });
@@ -99,6 +104,29 @@ export const useProfileStore = create<ProfileState>((set) => ({
       return response;
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Failed to fetch profile");
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  getMyRatings: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.get("/ratings/users/me");
+      const result = response.data;
+      set({
+        ratingsResponse: result,
+        isLoading: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load my ratings"
+      );
       set({ isLoading: false, error: finalError });
       throw finalError;
     }
