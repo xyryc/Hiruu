@@ -1,8 +1,8 @@
 import { WorkShiftCardProps } from "@/types";
 import {
   AntDesign,
-  FontAwesome5,
-  MaterialCommunityIcons,
+  Feather,
+  MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -24,6 +24,8 @@ const TaskCard = ({
   address,
   city,
   onLoginPress,
+  onLogoutPress,
+  presentStatus = "logged_out",
   status = "ongoing",
   requestLog = false,
 }: WorkShiftCardProps) => {
@@ -103,6 +105,8 @@ const TaskCard = ({
     const postStartLoginWindowEnd = shiftStartMs + 15 * 60 * 1000;
     return nowMs <= postStartLoginWindowEnd;
   }, [liveStatus, nowMs, shiftStartMs]);
+
+  const isLoggedIn = presentStatus === "logged_in";
 
   const getStatusColor = () => {
     switch (liveStatus) {
@@ -241,8 +245,8 @@ const TaskCard = ({
 
             {/* Member Count */}
             <View className="flex-row items-center gap-1">
-              <FontAwesome5 name="user" size={14} color="#7A7A7A" />
-              <Text className="text-sm font-proximanova-regular">
+              <Feather name="user" size={12} color="#7A7A7A" />
+              <Text className="text-sm font-proximanova-regular text-secondary">
                 {teamMembers.length}/{totalMembers}
               </Text>
             </View>
@@ -299,12 +303,22 @@ const TaskCard = ({
           <>
             {liveStatus === "upcoming" &&
               (isUpcomingLoginWindow ? (
-                <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
+                <SmallButton
+                  title={isLoggedIn ? "Logout" : "Login"}
+                  className="px-8"
+                  onPress={isLoggedIn ? onLogoutPress || onLoginPress : onLoginPress}
+                />
               ) : (
                 <StatusBadge status={liveStatus} />
               ))}
             {liveStatus === "ongoing" && (
-              isOngoingLoginWindow ? (
+              isLoggedIn ? (
+                <SmallButton
+                  title="Logout"
+                  className="px-8"
+                  onPress={onLogoutPress || onLoginPress}
+                />
+              ) : isOngoingLoginWindow ? (
                 <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
               ) : (
                 <SmallButton title="Request Log" onPress={onLoginPress} />

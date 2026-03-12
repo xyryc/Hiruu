@@ -244,6 +244,8 @@ export interface WorkShiftCardProps {
   address: string;
   city: string;
   onLoginPress: () => void;
+  onLogoutPress?: () => void;
+  presentStatus?: "logged_in" | "logged_out" | string;
   requestLog?: boolean;
   status?:
   | "ongoing"

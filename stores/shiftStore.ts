@@ -32,6 +32,7 @@ type ShiftStoreState = {
       append?: boolean;
     }
   ) => Promise<any[]>;
+  clockIn: (shiftAssignmentId: string) => Promise<any>;
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
@@ -211,6 +212,43 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         businessAssignmentsPagination: null,
       });
       throw error;
+    }
+  },
+
+  clockIn: async (shiftAssignmentId) => {
+    try {
+      const response = await axiosInstance.post("/attendance/clock-in", {
+        shiftAssignmentId,
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "attendance_shift_assignment_not_found_or_access_denied"
+        );
+      }
+
+      const updatePresentStatus = (shift: any) =>
+        shift?.id === shiftAssignmentId
+          ? { ...shift, presentStatus: "logged_in" }
+          : shift;
+
+      set((state) => ({
+        homeShifts: Array.isArray(state.homeShifts)
+          ? state.homeShifts.map(updatePresentStatus)
+          : state.homeShifts,
+        myShifts: Array.isArray(state.myShifts)
+          ? state.myShifts.map(updatePresentStatus)
+          : state.myShifts,
+      }));
+
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to clock in";
+      throw new Error(message);
     }
   },
 

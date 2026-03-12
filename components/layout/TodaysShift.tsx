@@ -2,11 +2,13 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { TodaysShiftProps } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { toast } from "sonner-native";
 import ActionCard from "../ui/cards/ActionCard";
 import NoTaskCard from "../ui/cards/NoTaskCard";
 import TaskCard from "../ui/cards/TaskCard";
@@ -18,6 +20,7 @@ type ApiShift = {
   id?: string;
   date?: string;
   status?: string;
+  presentStatus?: "logged_in" | "logged_out" | string;
   startsAt?: string;
   endsAt?: string;
   hasNextShift?: boolean;
@@ -60,6 +63,7 @@ type ShiftCardData = {
   address: string;
   city: string;
   status: "ongoing" | "upcoming" | "completed" | "missed";
+  presentStatus?: "logged_in" | "logged_out" | string;
 };
 
 const TodaysShift = ({ className }: TodaysShiftProps) => {
@@ -72,7 +76,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     setSelectedBusinesses,
     getMyBusinesses,
   } = useBusinessStore();
-  const { homeShifts, homeShiftsLoading, fetchHomeShifts } = useShiftStore();
+  const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn } = useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
@@ -97,9 +101,34 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     }, [accessToken, fetchHomeShifts, isFocused, selectedBusinesses])
   );
 
-  const handleLogin = () => {
-    console.log("Login pressed");
-  };
+  const handleShiftAction = useCallback(
+    async (card: ShiftCardData) => {
+      if (!card.id) {
+        toast.error("Shift assignment not found");
+        return;
+      }
+
+      if (card.presentStatus === "logged_in") {
+        toast.info("Logout API will be integrated next.");
+        return;
+      }
+
+      try {
+        const result = await clockIn(card.id);
+        toast.success(
+          translateApiMessage(result?.message || "successfully_clocked_in")
+        );
+      } catch (error: any) {
+        toast.error(
+          translateApiMessage(
+            error?.message ||
+              "attendance_shift_assignment_not_found_or_access_denied"
+          )
+        );
+      }
+    },
+    [clockIn]
+  );
 
   const extractHourMinute = useCallback((value?: string) => {
     if (!value) return null;
@@ -213,6 +242,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         address,
         city,
         status: getShiftStatus(shift),
+        presentStatus: shift?.presentStatus || "logged_out",
       };
     });
   }, [getShiftStatus, homeShifts, selectedBusinesses, to12Hour]);
@@ -287,7 +317,9 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
                 totalMembers={card.totalMembers}
                 address={card.address}
                 city={card.city}
-                onLoginPress={handleLogin}
+                presentStatus={card.presentStatus}
+                onLoginPress={() => handleShiftAction(card)}
+                onLogoutPress={() => handleShiftAction(card)}
                 status={card.status}
               />
             ))
