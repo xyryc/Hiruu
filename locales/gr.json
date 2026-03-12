@@ -85,6 +85,7 @@
     "bad_request": "Παρακαλώ ελέγξτε τα στοιχεία και δοκιμάστε ξανά.",
     "experience_invalid_date_range": "Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης.",
     "business_created_successfully": "Î— ÎµÏ€Î¹Ï‡ÎµÎ¯ÏÎ·ÏƒÎ· Î´Î·Î¼Î¹Î¿Ï…ÏÎ³Î®Î¸Î·ÎºÎµ Î¼Îµ ÎµÏ€Î¹Ï„Ï…Ï‡Î¯Î±.",
+    "shift_template_created_successfully": "Το πρότυπο βάρδιας δημιουργήθηκε με επιτυχία.",
     "UNKNOWN_ERROR": "Î Î±ÏÎ¿Ï…ÏƒÎ¹Î¬ÏƒÏ„Î·ÎºÎµ Î±Ï€ÏÎ¿ÏƒÎ´ÏŒÎºÎ·Ï„Î¿ ÏƒÏ†Î¬Î»Î¼Î±",
     "business_updated_successfully": "Προφίλ ενημερώθηκε με επιτυχία.",
     "shift_template_updated_successfully": "Το πρότυπο βάρδιας ενημερώθηκε με επιτυχία.",
@@ -96,6 +97,7 @@
     "subscription_cancelled_successfully": "Η συνδρομή ακυρώθηκε με επιτυχία.",
     "holiday_created_successfully": "Η αργία δημιουργήθηκε με επιτυχία.",
     "holiday_deleted_successfully": "Η αργία διαγράφηκε με επιτυχία.",
+    "claimed_successfully": "Η εξαργύρωση ολοκληρώθηκε με επιτυχία.",
     "weekly_block_created_successfully": "Το εβδομαδιαίο μπλοκ δημιουργήθηκε με επιτυχία.",
     "weekly_block_updated_successfully": "Το εβδομαδιαίο μπλοκ ενημερώθηκε με επιτυχία.",
     "weekly_block_deleted_successfully": "Το εβδομαδιαίο μπλοκ διαγράφηκε με επιτυχία.",
@@ -104,6 +106,7 @@
     "weekly_block_duplicate_slot": "Το εβδομαδιαίο μπλοκ περιέχει διπλότυπες βάρδιες.",
     "weekly_block_duplicate_assignments": "Το εβδομαδιαίο μπλοκ περιέχει διπλότυπες αναθέσεις.",
     "weekly_block_manage_from_manage_screen": "Αυτή η εβδομάδα έχει ήδη προγραμματιστεί. Χρησιμοποίησε το Manage Weekly Schedules για επεξεργασία ή διαγραφή.",
+    "weekly_block_edit_locked_due_to_operational_history": "Αυτό το εβδομαδιαίο μπλοκ δεν μπορεί πλέον να επεξεργαστεί λόγω λειτουργικού ιστορικού.",
     "break_end_time_must_be_after_start_time": "Η ώρα λήξης του διαλείμματος πρέπει να είναι μετά την ώρα έναρξης.",
     "experiences.0.startDate must be a valid ISO 8601 date string": "Η ημερομηνία έναρξης εμπειρίας πρέπει να είναι έγκυρη μορφή ISO 8601.",
     "already_employed": "Είσαι ήδη εργαζόμενος και δεν μπορείς να κάνεις αίτηση για αυτή τη θέση."
