@@ -3,7 +3,6 @@ import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import ActionCard from "@/components/ui/cards/ActionCard";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
-import TimePicker from "@/components/ui/inputs/TimePicker";
 import LeaveRequestModal from "@/components/ui/modals/LeaveRequestModal";
 import SelectLeaveType, {
   LEAVE_TYPE_OPTIONS,
@@ -35,6 +34,8 @@ const RequestLeave = () => {
   const isDark = colorScheme === "dark";
   const [isOn, setIsOn] = useState(false);
   const [leaveText, setLeaveText] = useState("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
   const insets = useSafeAreaInsets();
 
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
@@ -127,6 +128,17 @@ const RequestLeave = () => {
     selectedLeaveTypeLabel,
   ]);
 
+  const durationDays = useMemo(() => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diff = end.getTime() - start.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    return days > 0 ? days : 1;
+  }, [startDate, endDate]);
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -151,37 +163,30 @@ const RequestLeave = () => {
         {/* Duration + toggle */}
         <View className="mx-5 mt-[10px] flex-row justify-between items-center">
           <Text className="text-sm font-normal text-[#4FB2F3]">
-            Duration: {isOn ? "1" : "3"} Days
+            Duration: {durationDays} {durationDays > 1 ? "Days" : "Day"}
           </Text>
-          <ToggleButton isOn={isOn} setIsOn={setIsOn} />
+
+          <View className='flex-row items-center'>
+            <Text className='text-sm font-proximanova-regular text-secondary'>Half Day</Text>
+            <ToggleButton isOn={isOn} setIsOn={setIsOn} />
+          </View>
         </View>
 
-        {/* Half Day Start */}
-        <View className="mx-5 mt-[10px]">{isOn ? <DatePicker /> : ""}</View>
-        <View
-          className={`flex-row justify-between gap-3 mx-5 ${isOn && "mt-[15px]"}`}
-        >
-          {isOn ? (
-            <>
-              <TimePicker title="Start Time" />
-              <TimePicker title="End Time" />
-            </>
-          ) : null}
+        <View className="flex-row justify-between gap-3 mx-5 mt-[10px]">
+          <DatePicker
+            className="flex-1"
+            title="Start Day"
+            value={startDate}
+            onChange={setStartDate}
+          />
+          <DatePicker
+            className="flex-1"
+            title="End Day"
+            value={endDate}
+            onChange={setEndDate}
+          />
         </View>
-        {/* Half day end */}
 
-        {/* 3 Day Leav Start */}
-        <View className="flex-row justify-between gap-3 mx-5">
-          {isOn ? (
-            ""
-          ) : (
-            <>
-              <DatePicker className="flex-1" title="Start Day" />
-              <DatePicker className="flex-1" title="End Day" />
-            </>
-          )}
-        </View>
-        {/* 3 Day Leav End */}
 
         {/* Select Leave Type start */}
         <View className="mx-5  mt-7">
