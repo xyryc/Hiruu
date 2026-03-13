@@ -96,6 +96,13 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
               </Text>
             </View>
           )}
+          {shift.type === "early_leave" && (
+            <View className="py-2">
+              <Text className="text-sm font-proximanova-regular text-[#D97706]">
+                {shift.message}
+              </Text>
+            </View>
+          )}
           {shift.type === "empty_day" && (
             <View className="py-2">
               <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
@@ -157,6 +164,15 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
             />
           )}
           {shift.type === "missed" && (
+            <Image
+              source={require("@/assets/images/shift-missed-bg.svg")}
+              style={{
+                width: 244,
+                height: 34,
+              }}
+            />
+          )}
+          {shift.type === "early_leave" && (
             <Image
               source={require("@/assets/images/shift-missed-bg.svg")}
               style={{
