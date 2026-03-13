@@ -57,3 +57,47 @@ export type ShiftCardData = {
   status: ShiftCardStatus;
   presentStatus?: ShiftPresentStatus;
 };
+
+export type UserScheduleApiShift = {
+  itemType: "assigned_shift" | "empty_day";
+  id?: string;
+  date: string;
+  startsAt?: string;
+  endsAt?: string;
+  status?: string;
+  hasNextShift?: boolean;
+  nextShiftStartDate?: string | null;
+  shiftTemplate?: {
+    name?: string;
+    startTime?: string;
+    endTime?: string;
+    breakDuration?: { startTime?: string; endTime?: string }[];
+  };
+  business?: {
+    id?: string;
+    name?: string;
+    logo?: string;
+    address?: {
+      address?: string;
+    };
+  };
+};
+
+export type UserScheduleUiShift = {
+  id: string;
+  businessId: string;
+  type: "ongoing" | "upcoming" | "completed" | "missed" | "empty_day";
+  time: string;
+  title: string;
+  subtitle?: string;
+  nextShiftText?: string;
+  workTime: string;
+  breakTime?: string;
+  location?: string;
+  company: string;
+  companyLogo?: string;
+  status: "ongoing" | "upcoming" | "completed" | "missed" | "no_shift";
+  countdown?: string;
+  countdownTargetAt?: number;
+  message?: string;
+};
