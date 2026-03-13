@@ -10,13 +10,14 @@ import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const RequestLeave = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isOn, setIsOn] = useState(false);
   const [leaveText, setLeaveText] = useState("");
+  const insets = useSafeAreaInsets()
 
   // Sample data
   const businessData = [
@@ -55,7 +56,8 @@ const RequestLeave = () => {
     >
       {/* Header */}
       <ScreenHeader
-        className="mx-4"
+        className='mx-5'
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
         onPressBack={() => router.back()}
         title="Request Leave"
         titleClass="text-primary dark:text-dark-primary"
@@ -64,7 +66,7 @@ const RequestLeave = () => {
 
       <ScrollView>
         {/* Section title */}
-        <Text className="mx-5 mt-[30px] font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+        <Text className="mx-5 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
           Select Dates
         </Text>
 

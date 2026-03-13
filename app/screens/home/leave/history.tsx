@@ -99,7 +99,7 @@ const LeaveHistory = () => {
     >
       {/* Header */}
       <ScreenHeader
-        className="mx-5"
+        className="mx-5 pt-4"
         onPressBack={() => router.back()}
         title="Leave"
         titleClass="text-primary dark:text-dark-primary"

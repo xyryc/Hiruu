@@ -5,7 +5,10 @@ import EngagementPerks from "@/components/layout/EngagementPerks";
 import FindNewJob from "@/components/layout/FindNewJob";
 import JoinColleague from "@/components/layout/JoinColleague";
 import ProfileProgress from "@/components/layout/ProfileProgress";
+import QuickActionBusiness from '@/components/layout/QuickActionBusiness';
+import QuickActionUser from '@/components/layout/QuickActionUser';
 import TodaysShift from '@/components/layout/TodaysShift';
+import TopPerformer from '@/components/layout/TopPerformer';
 import Widgets from "@/components/layout/Widgets";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -76,6 +79,9 @@ const UserHome = () => {
 
       {/* main content */}
       <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 40
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
@@ -101,7 +107,10 @@ const UserHome = () => {
         <TodaysShift className="mt-7" />
 
         {/* quick actions */}
-        {/* <QuickAction className="mt-7" /> */}
+        <QuickActionUser className='mt-7' />
+
+        {/* quick actions */}
+        {/* <QuickActionUser className="mt-7" /> */}
 
         {/* work insights */}
         {/* <WorkInsights className="mt-7" /> */}
@@ -143,7 +152,9 @@ const UserHome = () => {
         {/* <PerformanceTrend className="mt-7" /> */}
 
         {/* quick actions */}
-        {/* <QuickAction className="mt-7" /> */}
+        {(profileData?.ownedBusinesses?.length) >= 0 && (
+          <QuickActionBusiness className='mt-7' />
+        )}
 
         {/* Team Insights */}
         {/* <WorkInsights title="Team Insights" className="mt-7" /> */}
@@ -152,7 +163,7 @@ const UserHome = () => {
         {/* <FindNewJob business={true} className="mt-7" /> */}
 
         {/* Top performers */}
-        {/* <TopPerformer className="mt-7" /> */}
+        <TopPerformer className="mt-7" />
       </ScrollView>
     </SafeAreaView>
   );
