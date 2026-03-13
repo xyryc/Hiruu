@@ -499,7 +499,7 @@ const BusinessScheduleScreen = () => {
 
             {/* notification */}
             <TouchableOpacity
-              onPress={() => router.push("/shared/notification")}
+              onPress={() => router.push("/screens/notifications/list")}
               className="w-10 h-10 items-center justify-center bg-[#F5F5F5] rounded-full"
             >
               <Image

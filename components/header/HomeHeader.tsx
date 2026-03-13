@@ -38,7 +38,7 @@ const HomeHeader = ({ className }: HomeHeaderProps) => {
 
         {/* notification */}
         <TouchableOpacity
-          onPress={() => router.push("/shared/notification")}
+          onPress={() => router.push("/screens/notifications/list")}
           className="h-10 w-10 bg-[#F5F5F5] border-[0.5px] border-[#b2b1b185] rounded-full items-center justify-center"
         >
           <Image
