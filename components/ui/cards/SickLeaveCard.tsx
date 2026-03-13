@@ -47,13 +47,13 @@ const SickLeaveCard = ({
   };
 
   return (
-    <View className="p-4 mx-5 mb-3 border border-gray-200 rounded-xl bg-gray-50">
+    <View className="p-3.5 mx-5 mb-7 border border-gray-200 rounded-xl">
       <View className="flex-row justify-between items-center">
         <View className="flex-row gap-2 items-center">
           <Image
             source={item.img}
             contentFit="contain"
-            style={{ width: 30, height: 30 }}
+            style={{ width: 30, height: 30, borderRadius: 999 }}
           />
           <Text className="text-[#7A7A7A]">{item.name}</Text>
         </View>
@@ -81,21 +81,31 @@ const SickLeaveCard = ({
         )}
       </View>
 
-      <View className="border-b-2 border-dashed border-gray-300/30 mt-4" />
+      <Image
+        source={require("@/assets/images/dotted-line.svg")}
+        style={{
+          width: "100%",
+          height: 1,
+          marginVertical: 14
+        }}
+        contentFit='contain'
+      />
 
-      <View className="flex-row justify-between items-center mt-3">
+      <View className="flex-row justify-between items-center">
         <View>
-          <Text className="font-bold">{item.date}</Text>
+          <Text className="font-proximanova-semibold text-sm">{item.date}</Text>
           {item.duration && (
-            <Text className="font-bold text-sm">{item.duration}</Text>
+            <Text className="font-proximanova-semibold text-sm">{item.duration}</Text>
           )}
         </View>
-        <Text className="px-3 py-1 bg-[#E5F4FD] rounded-3xl text-black">
+
+        <Text className="px-4 py-1 bg-[#E5F4FD] font-proximanova-regular text-sm rounded-3xl text-black">
           {item.coses}
         </Text>
       </View>
 
-      <Text className="mt-3 text-[#7A7A7A] leading-5">{item.details}</Text>
+      <Text className="mt-3 text-secondary font-proximanova-regular">{item.details}</Text>
+
       {item.status === "rejected" && (
         <View className="flex-row gap-1 mt-2.5">
           <RejectionReasonModal />

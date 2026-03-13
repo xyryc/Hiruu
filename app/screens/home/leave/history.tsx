@@ -105,10 +105,10 @@ const LeaveHistory = () => {
         return {
           id: item?.id || Math.random().toString(),
           img:
-            item?.employment?.user?.avatar ||
+            item?.business?.logo ||
             require("@/assets/images/location.png"),
           userId: item?.employment?.user?.id || undefined,
-          name: item?.employment?.user?.name || "Employee",
+          name: item?.business?.name || "Business",
           status,
           date: toDisplayDate(item?.startDate, item?.endDate),
           coses: toLeaveTypeTitle(item?.leaveType),
