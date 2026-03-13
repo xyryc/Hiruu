@@ -1,4 +1,5 @@
 import type { RecruitmentFilterQuery, RecruitmentShiftType } from "@/types";
+import type { MyEmploymentItem } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
@@ -172,6 +173,9 @@ interface JobState {
   isLoading: boolean;
   jobProfile: JobProfileData | null;
   isLoadingJobProfile: boolean;
+  myEmployments: MyEmploymentItem[];
+  myEmploymentsLoading: boolean;
+  myEmploymentsError: string | null;
   error: Error | null;
   allJobsFilters: AllJobsFilters;
   setAllJobsFilters: (filters: Partial<AllJobsFilters>) => void;
@@ -211,6 +215,8 @@ interface JobState {
     businessId: string,
     query?: RecruitmentApplicationFilterQuery
   ) => Promise<RecruitmentApplicationListResponse>;
+  getMyEmployments: () => Promise<MyEmploymentItem[]>;
+  clearMyEmploymentsError: () => void;
   clearError: () => void;
 }
 
@@ -218,6 +224,9 @@ export const useJobStore = create<JobState>((set) => ({
   isLoading: false,
   jobProfile: null,
   isLoadingJobProfile: false,
+  myEmployments: [],
+  myEmploymentsLoading: false,
+  myEmploymentsError: null,
   error: null,
   allJobsFilters: {},
   setAllJobsFilters: (filters) =>
@@ -766,6 +775,42 @@ export const useJobStore = create<JobState>((set) => ({
       throw new Error(message);
     }
   },
+
+  getMyEmployments: async () => {
+    try {
+      set({ myEmploymentsLoading: true, myEmploymentsError: null });
+      const response = await axiosInstance.get("/employment/my-employments");
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      const employments = Array.isArray(result?.data) ? result.data : [];
+      set({
+        myEmployments: employments,
+        myEmploymentsLoading: false,
+      });
+      return employments;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to load businesses";
+      set({
+        myEmployments: [],
+        myEmploymentsLoading: false,
+        myEmploymentsError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  clearMyEmploymentsError: () => set({ myEmploymentsError: null }),
 
   clearError: () => set({ error: null }),
 }));

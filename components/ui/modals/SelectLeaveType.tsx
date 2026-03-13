@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-const LeaveData = [
+export type LeaveTypeValue =
+  | "sick"
+  | "personal"
+  | "workFromHome"
+  | "emergency"
+  | "casual"
+  | "unpaid"
+  | "other";
+
+export const LEAVE_TYPE_OPTIONS: { label: string; value: LeaveTypeValue }[] = [
   { label: "Sick", value: "sick" },
   { label: "Personal", value: "personal" },
   { label: "Work From Home", value: "workFromHome" },
@@ -11,8 +20,23 @@ const LeaveData = [
   { label: "Other", value: "other" },
 ];
 
-const SelectLeaveType = () => {
-  const [selected, setSelected] = useState<string>(LeaveData[0]?.value);
+interface SelectLeaveTypeProps {
+  value?: LeaveTypeValue;
+  onChange?: (value: LeaveTypeValue) => void;
+}
+
+const SelectLeaveType = ({ value, onChange }: SelectLeaveTypeProps) => {
+  const [internalSelected, setInternalSelected] = useState<LeaveTypeValue>(
+    LEAVE_TYPE_OPTIONS[0]?.value
+  );
+  const selected = value ?? internalSelected;
+
+  const handleSelect = (nextValue: LeaveTypeValue) => {
+    if (value === undefined) {
+      setInternalSelected(nextValue);
+    }
+    onChange?.(nextValue);
+  };
 
   return (
     <View className="">
@@ -21,12 +45,12 @@ const SelectLeaveType = () => {
       </Text>
 
       <View className="flex-wrap flex-row gap-2.5">
-        {LeaveData.map((item) => {
+        {LEAVE_TYPE_OPTIONS.map((item) => {
           const isSelected = selected === item.value;
           return (
             <TouchableOpacity
               key={item.value}
-              onPress={() => setSelected(item.value)}
+              onPress={() => handleSelect(item.value)}
               className={`px-2.5 py-1 rounded-3xl ${isSelected ? "bg-[#4FB2F3]" : "bg-[#F5F5F5]"
                 }`}
             >

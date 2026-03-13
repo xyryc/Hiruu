@@ -1,5 +1,6 @@
 import axiosInstance from "@/utils/axios";
 import { create } from "zustand";
+import type { LeaveCreditItem } from "@/types";
 
 type ShiftStoreState = {
   myShifts: any[];
@@ -19,6 +20,9 @@ type ShiftStoreState = {
     hasNext: boolean;
     hasPrev: boolean;
   } | null;
+  leaveCreditsByBusiness: Record<string, LeaveCreditItem | null>;
+  leaveCreditsLoading: boolean;
+  leaveCreditsError: string | null;
   fetchMyShifts: (date?: string) => Promise<any[]>;
   fetchHomeShifts: (businessIds?: string[]) => Promise<any[]>;
   fetchBusinessAssignments: (
@@ -34,9 +38,11 @@ type ShiftStoreState = {
   ) => Promise<any[]>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
+  getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
+  clearLeaveCreditsError: () => void;
 };
 
 export const useShiftStore = create<ShiftStoreState>((set, get) => ({
@@ -50,6 +56,9 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   businessAssignmentsLoading: false,
   businessAssignmentsError: null,
   businessAssignmentsPagination: null,
+  leaveCreditsByBusiness: {},
+  leaveCreditsLoading: false,
+  leaveCreditsError: null,
 
   fetchMyShifts: async (date) => {
     try {
@@ -288,5 +297,44 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  getMyLeaveCredits: async (businessId) => {
+    try {
+      if (!businessId) {
+        return null;
+      }
+
+      set({ leaveCreditsLoading: true, leaveCreditsError: null });
+      const response = await axiosInstance.get("/leave/my-credits", {
+        params: { businessId },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to fetch leave credits");
+      }
+
+      const leaveCredit = Array.isArray(result?.data) ? result.data[0] || null : null;
+      set((state) => ({
+        leaveCreditsByBusiness: {
+          ...state.leaveCreditsByBusiness,
+          [businessId]: leaveCredit,
+        },
+        leaveCreditsLoading: false,
+      }));
+      return leaveCredit;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch leave credits";
+      set({
+        leaveCreditsLoading: false,
+        leaveCreditsError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
+  clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
 }));
