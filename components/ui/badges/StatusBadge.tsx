@@ -80,6 +80,20 @@ const StatusBadge = ({
           dotClasses: "bg-[#F34F4F]",
           label: "Rejected",
         };
+      case "cancelled":
+        return {
+          containerClasses: "bg-gray-100 border-gray-300",
+          textClasses: "text-gray-600",
+          dotClasses: "bg-gray-600",
+          label: label || "Cancelled",
+        };
+      case "expired":
+        return {
+          containerClasses: "bg-[#FFF4E5] border-[#F59E0B4D]",
+          textClasses: "text-[#B45309]",
+          dotClasses: "bg-[#B45309]",
+          label: label || "Expired",
+        };
 
       case "available":
         return {

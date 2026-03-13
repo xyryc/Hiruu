@@ -20,6 +20,17 @@ type ShiftStoreState = {
     hasNext: boolean;
     hasPrev: boolean;
   } | null;
+  shiftRequests: any[];
+  shiftRequestsLoading: boolean;
+  shiftRequestsError: string | null;
+  shiftRequestsPagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
   leaveCreditsByBusiness: Record<string, LeaveCreditItem | null>;
   leaveCreditsLoading: boolean;
   leaveCreditsError: string | null;
@@ -38,6 +49,14 @@ type ShiftStoreState = {
       append?: boolean;
     }
   ) => Promise<any[]>;
+  getShiftRequests: (params?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    type?: string;
+  }) => Promise<any[]>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
@@ -53,6 +72,7 @@ type ShiftStoreState = {
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
+  clearShiftRequestsError: () => void;
   clearLeaveCreditsError: () => void;
   clearCreateShiftRequestError: () => void;
 };
@@ -68,6 +88,10 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   businessAssignmentsLoading: false,
   businessAssignmentsError: null,
   businessAssignmentsPagination: null,
+  shiftRequests: [],
+  shiftRequestsLoading: false,
+  shiftRequestsError: null,
+  shiftRequestsPagination: null,
   leaveCreditsByBusiness: {},
   leaveCreditsLoading: false,
   leaveCreditsError: null,
@@ -239,6 +263,47 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  getShiftRequests: async (params) => {
+    try {
+      set({ shiftRequestsLoading: true, shiftRequestsError: null });
+      const response = await axiosInstance.get("/shift-requests", {
+        params: {
+          page: params?.page,
+          limit: params?.limit,
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          status: params?.status,
+          type: params?.type,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to fetch shift requests");
+      }
+
+      const requests = Array.isArray(result?.data) ? result.data : [];
+      set({
+        shiftRequests: requests,
+        shiftRequestsLoading: false,
+        shiftRequestsPagination: result?.pagination || null,
+      });
+      return requests;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch shift requests";
+      set({
+        shiftRequests: [],
+        shiftRequestsLoading: false,
+        shiftRequestsError: message,
+        shiftRequestsPagination: null,
+      });
+      throw new Error(message);
+    }
+  },
+
   clockIn: async (shiftAssignmentId) => {
     try {
       const response = await axiosInstance.post("/attendance/clock-in", {
@@ -375,6 +440,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   },
 
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
+  clearShiftRequestsError: () => set({ shiftRequestsError: null }),
   clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
   clearCreateShiftRequestError: () => set({ createShiftRequestError: null }),
 }));

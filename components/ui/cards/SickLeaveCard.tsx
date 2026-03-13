@@ -1,9 +1,11 @@
 import { LeaveItem } from "@/app/screens/home/leave/history";
 import RejectionReasonModal from "@/components/ui/modals/RejectionReasonModal";
-import { Feather } from "@expo/vector-icons";
+import { chatService } from "@/services/chatService";
 import { Image } from "expo-image";
-import React from "react";
-import { Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
 import StatusBadge from "../badges/StatusBadge";
 
 // Render badge group dynamically
@@ -15,6 +17,35 @@ const SickLeaveCard = ({
   item: LeaveItem;
   selectedCategory: any;
 }) => {
+  const router = useRouter();
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  const handleMessagePress = async () => {
+    if (!item?.userId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      setIsCreatingChat(true);
+      const result = await chatService.createDirectChat(item.userId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    } finally {
+      setIsCreatingChat(false);
+    }
+  };
+
   return (
     <View className="p-4 mx-5 mb-3 border border-gray-200 rounded-xl bg-gray-50">
       <View className="flex-row justify-between items-center">
@@ -29,9 +60,21 @@ const SickLeaveCard = ({
         {selectedCategory === "all" && (
           <View className="flex-row gap-3 items-center">
             {["pending", "rejected"].includes(item.status) && (
-              <View className="h-[30px] w-[30px] rounded-full bg-[#add5f0] justify-center items-center">
-                <Feather name="message-circle" size={20} color="#4FB2F3" />
-              </View>
+              <TouchableOpacity
+                onPress={handleMessagePress}
+                disabled={!item?.userId || isCreatingChat}
+                className={`p-2 rounded-full ${item?.userId ? "bg-[#E5F4FD]" : "bg-[#F5F5F5]"}`}
+              >
+                {isCreatingChat ? (
+                  <ActivityIndicator size="small" color="#4FB2F3" />
+                ) : (
+                  <Image
+                    source={require("@/assets/images/messages-fill.svg")}
+                    contentFit="contain"
+                    style={{ height: 22, width: 22 }}
+                  />
+                )}
+              </TouchableOpacity>
             )}
             <StatusBadge status={item.status} />
           </View>

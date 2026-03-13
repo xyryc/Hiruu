@@ -192,6 +192,8 @@ type StatusType =
   | "pending"
   | "approved"
   | "rejected"
+  | "cancelled"
+  | "expired"
   | "accepted"
   | "submitted"
   | "available"
