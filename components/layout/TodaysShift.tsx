@@ -1,7 +1,7 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useShiftStore } from "@/stores/shiftStore";
-import { TodaysShiftProps } from "@/types";
+import { ApiShift, ShiftCardData, TodaysShiftProps } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
@@ -15,57 +15,6 @@ import TaskCard from "../ui/cards/TaskCard";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
 import LogoutDeleteModal from "../ui/modals/LogoutDeleteModal";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
-
-type ApiShift = {
-  itemType?: "assigned_shift" | "empty_day";
-  id?: string;
-  date?: string;
-  status?: string;
-  presentStatus?: "logged_in" | "logged_out" | string;
-  startsAt?: string;
-  endsAt?: string;
-  hasNextShift?: boolean;
-  nextShiftStartDate?: string;
-  totalMembers?: number;
-  colleagueAvatars?: string[];
-  shiftTemplate?: {
-    name?: string;
-    startTime?: string;
-    endTime?: string;
-  };
-  business?: {
-    id?: string;
-    name?: string;
-    logo?: string | null;
-    address?:
-    | string
-    | {
-      line1?: string;
-      address?: string;
-      city?: string;
-      state?: string;
-      country?: string;
-    };
-  };
-};
-
-type ShiftCardData = {
-  id: string;
-  shiftTitle: string;
-  startTime: string;
-  endTime: string;
-  startsAt?: string;
-  endsAt?: string;
-  startDateTime?: string;
-  endDateTime?: string;
-  shiftImage: any;
-  teamMembers: string[];
-  totalMembers: number;
-  address: string;
-  city: string;
-  status: "ongoing" | "upcoming" | "completed" | "missed";
-  presentStatus?: "logged_in" | "logged_out" | string;
-};
 
 const TodaysShift = ({ className }: TodaysShiftProps) => {
   const shiftLogoutImg = require("@/assets/images/Logout.svg");
@@ -82,7 +31,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     setSelectedBusinesses,
     getMyBusinesses,
   } = useBusinessStore();
-  const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn } = useShiftStore();
+  const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn, clockOut } =
+    useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
@@ -143,11 +93,22 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       return;
     }
 
-    // TODO: integrate logout API and update presentStatus to logged_out.
-    toast.info("Logout API will be integrated next.");
-    setIsLogoutModalVisible(false);
-    setPendingLogoutShiftId(null);
-  }, [pendingLogoutShiftId]);
+    try {
+      const result = await clockOut(pendingLogoutShiftId);
+      toast.success(
+        translateApiMessage(result?.message || "successfully_clocked_out")
+      );
+      setIsLogoutModalVisible(false);
+      setPendingLogoutShiftId(null);
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.message ||
+            "attendance_shift_assignment_not_found_or_access_denied"
+        )
+      );
+    }
+  }, [clockOut, pendingLogoutShiftId]);
 
   const handleCloseLogoutModal = useCallback(() => {
     setIsLogoutModalVisible(false);
