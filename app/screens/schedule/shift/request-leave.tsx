@@ -81,8 +81,8 @@ const RequestLeave = () => {
             </>
           ) : null}
         </View>
-
         {/* Half day end */}
+
         {/* 3 Day Leav Start */}
         <View className="flex-row justify-between gap-3 mx-5">
           {isOn ? (
@@ -94,8 +94,8 @@ const RequestLeave = () => {
             </>
           )}
         </View>
-
         {/* 3 Day Leav End */}
+
         {/* Select Leave Type start */}
         <View className="mx-5  mt-7">
           <SelectLeaveType />

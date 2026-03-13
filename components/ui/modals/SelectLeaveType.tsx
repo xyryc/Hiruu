@@ -3,8 +3,10 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 const LeaveData = [
   { label: "Sick", value: "sick" },
-  { label: "Vacation", value: "vacation" },
   { label: "Personal", value: "personal" },
+  { label: "Work From Home", value: "workFromHome" },
+  { label: "Emergency", value: "emergency" },
+  { label: "Casual", value: "casual" },
   { label: "Unpaid", value: "unpaid" },
   { label: "Other", value: "other" },
 ];

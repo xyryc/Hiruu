@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -50,6 +51,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
     setFilteredOptions(
@@ -64,6 +66,25 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
       setIsVisible(true);
     }
   }, [openTrigger]);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSelect = (item: Option) => {
     onSelect(item.value);
@@ -126,10 +147,14 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1, justifyContent: "flex-end" }}
           >
             <View
               className="bg-white dark:bg-dark-surface rounded-t-3xl"
-              style={{ maxHeight: listMaxHeight ?? height * 0.7 }}
+              style={{
+                maxHeight: listMaxHeight ?? height * 0.7,
+                marginBottom: Platform.OS === "android" ? keyboardHeight : 0,
+              }}
             >
               <View className="px-5 py-4 border-b border-gray-200 dark:border-dark-border">
                 <Text className="text-lg font-semibold text-primary dark:text-dark-primary text-center">
