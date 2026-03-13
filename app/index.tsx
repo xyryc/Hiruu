@@ -30,7 +30,7 @@ export default function Index() {
       return (
         <Redirect
           href={{
-            pathname: "/screens/jobs/chatscreen",
+            pathname: "/screens/inbox/chat-screen",
             params: {
               roomId: pendingChat.chatRoomId,
               ...(pendingChat.messageId

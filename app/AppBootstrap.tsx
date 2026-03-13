@@ -67,7 +67,7 @@ const AppBootstrap = () => {
     }
 
     router.push({
-      pathname: "/screens/jobs/chatscreen",
+      pathname: "/screens/inbox/chat-screen",
       params: {
         roomId: payload.chatRoomId,
         ...(payload.messageId ? { messageId: payload.messageId } : {}),

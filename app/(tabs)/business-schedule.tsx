@@ -288,7 +288,7 @@ const BusinessScheduleScreen = () => {
       }
 
       router.push({
-        pathname: "/screens/jobs/chatscreen",
+        pathname: "/screens/inbox/chat-screen",
         params: { roomId },
       });
     } catch (error: any) {

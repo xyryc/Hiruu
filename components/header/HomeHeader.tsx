@@ -23,7 +23,7 @@ const HomeHeader = ({ className }: HomeHeaderProps) => {
       <View className="flex-row items-center gap-1.5">
         {/* messages */}
         <TouchableOpacity
-          onPress={() => router.push("/screens/jobs/chatlist")}
+          onPress={() => router.push("/screens/inbox/chat-list")}
           className="h-10 w-10 bg-[#F5F5F5] border-[0.5px] border-[#b2b1b185] rounded-full items-center justify-center"
         >
           <Image

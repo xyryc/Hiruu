@@ -600,7 +600,7 @@ const ChatScreen = () => {
     const getTypeForCall = (call: any) =>
       String(call?.type || "").toLowerCase() === "video" ? "video" : "audio";
     const getCallPath = (type: "audio" | "video") =>
-      type === "video" ? "/screens/jobs/video-call" : "/screens/jobs/audio-call";
+      type === "video" ? "/screens/inbox/video-call" : "/screens/inbox/audio-call";
     const setStarting = (value: boolean) => {
       if (callType === "video") {
         setStartingVideoCall(value);
