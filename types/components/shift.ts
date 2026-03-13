@@ -86,7 +86,13 @@ export type UserScheduleApiShift = {
 export type UserScheduleUiShift = {
   id: string;
   businessId: string;
-  type: "ongoing" | "upcoming" | "completed" | "missed" | "empty_day";
+  type:
+    | "ongoing"
+    | "upcoming"
+    | "completed"
+    | "missed"
+    | "early_leave"
+    | "empty_day";
   time: string;
   title: string;
   subtitle?: string;
@@ -96,7 +102,13 @@ export type UserScheduleUiShift = {
   location?: string;
   company: string;
   companyLogo?: string;
-  status: "ongoing" | "upcoming" | "completed" | "missed" | "no_shift";
+  status:
+    | "ongoing"
+    | "upcoming"
+    | "completed"
+    | "missed"
+    | "early_leave"
+    | "no_shift";
   countdown?: string;
   countdownTargetAt?: number;
   message?: string;

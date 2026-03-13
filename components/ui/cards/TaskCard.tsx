@@ -43,6 +43,10 @@ const TaskCard = ({
   }, []);
 
   const liveStatus = useMemo(() => {
+    if (status === "early_leave") {
+      return "early_leave";
+    }
+
     const hasValidRange =
       !Number.isNaN(shiftStartMs) &&
       !Number.isNaN(shiftEndMs) &&
@@ -326,6 +330,7 @@ const TaskCard = ({
             )}
             {liveStatus === "completed" && <StatusBadge status={liveStatus} />}
             {liveStatus === "missed" && <StatusBadge status={liveStatus} />}
+            {liveStatus === "early_leave" && <StatusBadge status={liveStatus} />}
           </>
         )}
       </View>

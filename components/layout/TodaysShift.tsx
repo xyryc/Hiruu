@@ -169,6 +169,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         if (now <= shiftEnd) return "ongoing";
 
         if (shift?.status === "missed") return "missed";
+        if (shift?.status === "early_leave") return "early_leave";
         return "completed";
       }
 

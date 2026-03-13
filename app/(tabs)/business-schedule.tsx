@@ -4,6 +4,7 @@ import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
+import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -252,6 +253,7 @@ const BusinessScheduleScreen = () => {
 
         return {
           id: item?.id,
+          userId: item?.employment?.userId || item?.employment?.user?.id || "",
           name: displayName,
           roleId: item?.employment?.roleId || "",
           role: roleName,
@@ -266,9 +268,33 @@ const BusinessScheduleScreen = () => {
         };
       });
 
-    console.log("[BusinessSchedule] shifts:", mappedShifts);
+    // console.log("[BusinessSchedule] shifts:", mappedShifts);
     return mappedShifts;
   }, [businessAssignments]);
+
+  const handleOpenShiftChat = async (shift: any) => {
+    const participantId = shift?.userId;
+    if (!participantId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      const result = await chatService.createDirectChat(participantId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/jobs/chatscreen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    }
+  };
 
   useEffect(() => {
     if (selectedShiftTemplateId === "all") return;
@@ -634,7 +660,13 @@ const BusinessScheduleScreen = () => {
             <ActivityIndicator size="small" color="#4FB2F3" />
           </View>
         ) : visibleShifts.length > 0 ? (
-          visibleShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+          visibleShifts.map((shift) => (
+            <ShiftCard
+              key={shift.id}
+              shift={shift}
+              onMessagePress={() => handleOpenShiftChat(shift)}
+            />
+          ))
         ) : (
           <NoShiftsAvailableCard className="mt-4" />
         )}

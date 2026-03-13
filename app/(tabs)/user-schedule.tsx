@@ -117,6 +117,10 @@ const ShiftSchedule = () => {
         type = "missed";
         status = "missed";
         message = "You missed this shift.";
+      } else if (apiStatus === "early_leave") {
+        type = "early_leave";
+        status = "early_leave";
+        message = "You left this shift early.";
       } else if (now >= shiftStart && now <= shiftEnd) {
         type = "ongoing";
         status = "ongoing";

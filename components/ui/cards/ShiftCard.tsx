@@ -4,7 +4,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 
-const ShiftCard = ({ shift }) => {
+const ShiftCard = ({ shift, onMessagePress }: any) => {
   const avatarSource =
     typeof shift?.avatar === "string" && shift.avatar.trim().length > 0
       ? { uri: shift.avatar }
@@ -38,13 +38,19 @@ const ShiftCard = ({ shift }) => {
 
         {/* icons */}
         <View className="flex-row items-center gap-1.5">
-          <View className="bg-[#E5F4FD] p-2 rounded-full">
+          <TouchableOpacity
+            onPress={onMessagePress}
+            disabled={!onMessagePress}
+            className={`p-2 rounded-full ${
+              onMessagePress ? "bg-[#E5F4FD]" : "bg-[#F5F5F5]"
+            }`}
+          >
             <Image
               source={require("@/assets/images/messages-fill.svg")}
               contentFit="contain"
               style={{ height: 22, width: 22 }}
             />
-          </View>
+          </TouchableOpacity>
 
           <SimpleLineIcons name="options-vertical" size={14} color="black" />
         </View>
