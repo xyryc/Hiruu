@@ -107,7 +107,12 @@ const LeaveHistory = () => {
           img:
             item?.business?.logo ||
             require("@/assets/images/location.png"),
-          userId: item?.employment?.user?.id || undefined,
+          userId:
+            item?.business?.ownerId ||
+            item?.business?.owner?.id ||
+            item?.employment?.addedByEmploymentId ||
+            item?.employment?.user?.id ||
+            undefined,
           name: item?.business?.name || "Business",
           status,
           date: toDisplayDate(item?.startDate, item?.endDate),

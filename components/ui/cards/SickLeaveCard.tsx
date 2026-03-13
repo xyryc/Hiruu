@@ -57,6 +57,7 @@ const SickLeaveCard = ({
           />
           <Text className="text-[#7A7A7A]">{item.name}</Text>
         </View>
+
         {selectedCategory === "all" && (
           <View className="flex-row gap-3 items-center">
             {["pending", "rejected"].includes(item.status) && (
