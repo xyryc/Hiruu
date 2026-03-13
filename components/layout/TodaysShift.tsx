@@ -176,6 +176,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         shift?.status === "ongoing" ||
         shift?.status === "upcoming" ||
         shift?.status === "completed" ||
+        shift?.status === "early_leave" ||
         shift?.status === "missed"
       ) {
         return shift.status;

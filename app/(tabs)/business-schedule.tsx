@@ -24,14 +24,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const resolveMediaUrl = (value?: string | null) => {
-  if (!value || typeof value !== "string") return undefined;
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
-  if (!base) return undefined;
-  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
-};
-
 const toYmd = (value: Date) => {
   const year = value.getFullYear();
   const month = `${value.getMonth() + 1}`.padStart(2, "0");
@@ -231,7 +223,7 @@ const BusinessScheduleScreen = () => {
 
   const shifts = useMemo(() => {
     const items = Array.isArray(businessAssignments) ? businessAssignments : [];
-    return items
+    const mappedShifts = items
       .filter((item: any) => item?.itemType === "assigned_shift")
       .map((item: any) => {
         const startTime = item?.shiftTemplate?.startTime;
@@ -263,7 +255,7 @@ const BusinessScheduleScreen = () => {
           name: displayName,
           roleId: item?.employment?.roleId || "",
           role: roleName,
-          avatar: resolveMediaUrl(item?.employment?.avatar),
+          avatar: item?.employment?.avatar,
           shiftDateYmd: isValidStartDate ? toYmd(startsAtDate) : null,
           startHour,
           shiftTemplateId,
@@ -273,6 +265,9 @@ const BusinessScheduleScreen = () => {
           status: item?.status || "upcoming",
         };
       });
+
+    console.log("[BusinessSchedule] shifts:", mappedShifts);
+    return mappedShifts;
   }, [businessAssignments]);
 
   useEffect(() => {
@@ -438,6 +433,7 @@ const BusinessScheduleScreen = () => {
   ];
 
   const router = useRouter();
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" />

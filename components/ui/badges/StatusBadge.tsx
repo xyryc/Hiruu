@@ -38,6 +38,13 @@ const StatusBadge = ({
           dotClasses: "bg-red-600",
           label: "Missed",
         };
+      case "early_leave":
+        return {
+          containerClasses: "bg-[#FFF7E8] border-[#F59E0B4D]",
+          textClasses: "text-[#D97706]",
+          dotClasses: "bg-[#D97706]",
+          label: "Early Leave",
+        };
       case "ongoing":
         return {
           containerClasses: "bg-orange-100 border-[#F3934F4D]",

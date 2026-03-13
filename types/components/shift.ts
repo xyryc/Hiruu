@@ -33,7 +33,12 @@ export type ApiShift = {
   };
 };
 
-export type ShiftCardStatus = "ongoing" | "upcoming" | "completed" | "missed";
+export type ShiftCardStatus =
+  | "ongoing"
+  | "upcoming"
+  | "completed"
+  | "missed"
+  | "early_leave";
 
 export type ShiftCardData = {
   id: string;

@@ -186,6 +186,7 @@ export interface StatCardSecondaryProps {
 type StatusType =
   | "upcoming"
   | "completed"
+  | "early_leave"
   | "missed"
   | "ongoing"
   | "pending"
@@ -251,6 +252,7 @@ export interface WorkShiftCardProps {
   | "ongoing"
   | "upcoming"
   | "completed"
+  | "early_leave"
   | "missed"
   | "pending"
   | "approved"

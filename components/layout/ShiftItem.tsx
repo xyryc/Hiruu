@@ -57,7 +57,7 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
       {/* Time Column */}
       <View className="mr-5 relative">
         <Text
-          className={`font-proximanova-regular w-10 text-center
+          className={`font-proximanova-regular w-10 text-center uppercase
         ${shift.type === "ongoing" ? "text-[#F3934F] font-proximanova-semibold" : " text-secondary dark:text-dark-secondary"}
         `}
         >
