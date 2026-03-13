@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -11,8 +12,30 @@ import {
 } from "react-native";
 import PrimaryButton from "../buttons/PrimaryButton";
 
-const LeaveRequestModal = () => {
+interface LeaveRequestModalProps {
+  onSubmit?: () => Promise<void> | void;
+  loading?: boolean;
+  disabled?: boolean;
+}
+
+const LeaveRequestModal = ({
+  onSubmit,
+  loading = false,
+  disabled = false,
+}: LeaveRequestModalProps) => {
   const [isVisible, setIsVisible] = useState(false);
+
+  const handleSubmit = async () => {
+    if (loading || disabled) return;
+    if (!onSubmit) return;
+
+    try {
+      await onSubmit();
+      setIsVisible(true);
+    } catch {
+      // Error state/toast is handled by parent screen.
+    }
+  };
 
   return (
     <View>
@@ -20,9 +43,11 @@ const LeaveRequestModal = () => {
       <TouchableOpacity className="flex-row items-center justify-between rounded-full  bg-white dark:bg-dark-surface">
         <View className="flex-row items-center">
           <PrimaryButton
-            onPress={() => setIsVisible(true)}
+            onPress={handleSubmit}
             title="Submit Request"
             className="my-10"
+            loading={loading}
+            disabled={disabled}
           />
         </View>
       </TouchableOpacity>
@@ -66,7 +91,10 @@ const LeaveRequestModal = () => {
                 </Text>
                 <View className="flex-row items-center mt-5">
                   <PrimaryButton
-                    onPress={() => setIsVisible(false)}
+                    onPress={() => {
+                      setIsVisible(false);
+                      router.back();
+                    }}
                     title="Done"
                     className=" dark:bg-dark-border"
                   />

@@ -23,6 +23,8 @@ type ShiftStoreState = {
   leaveCreditsByBusiness: Record<string, LeaveCreditItem | null>;
   leaveCreditsLoading: boolean;
   leaveCreditsError: string | null;
+  createShiftRequestLoading: boolean;
+  createShiftRequestError: string | null;
   fetchMyShifts: (date?: string) => Promise<any[]>;
   fetchHomeShifts: (businessIds?: string[]) => Promise<any[]>;
   fetchBusinessAssignments: (
@@ -39,10 +41,20 @@ type ShiftStoreState = {
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
+  createShiftRequest: (payload: {
+    employmentId: string;
+    type: "leave_request";
+    isHalfDay: boolean;
+    startDate: string;
+    endDate: string;
+    leaveType: string;
+    reason: string;
+  }) => Promise<any>;
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
   clearLeaveCreditsError: () => void;
+  clearCreateShiftRequestError: () => void;
 };
 
 export const useShiftStore = create<ShiftStoreState>((set, get) => ({
@@ -59,6 +71,8 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   leaveCreditsByBusiness: {},
   leaveCreditsLoading: false,
   leaveCreditsError: null,
+  createShiftRequestLoading: false,
+  createShiftRequestError: null,
 
   fetchMyShifts: async (date) => {
     try {
@@ -335,6 +349,32 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  createShiftRequest: async (payload) => {
+    try {
+      set({ createShiftRequestLoading: true, createShiftRequestError: null });
+      const response = await axiosInstance.post("/shift-requests", payload);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to submit leave request");
+      }
+
+      set({ createShiftRequestLoading: false });
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to submit leave request";
+      set({
+        createShiftRequestLoading: false,
+        createShiftRequestError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
   clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
+  clearCreateShiftRequestError: () => set({ createShiftRequestError: null }),
 }));

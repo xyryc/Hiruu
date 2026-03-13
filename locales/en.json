@@ -97,6 +97,7 @@
     "holiday_created_successfully": "Holiday created successfully.",
     "holiday_deleted_successfully": "Holiday deleted successfully.",
     "claimed_successfully": "Claimed successfully.",
+    "shift_request_created": "Shift request created successfully.",
     "successfully_clocked_in": "Successfully clocked in.",
     "successfully_clocked_out": "Successfully clocked out.",
     "attendance_you_cannot_login_twice": "You cannot login twice.",

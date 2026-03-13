@@ -45,6 +45,10 @@ const RequestLeave = () => {
   const myEmploymentsLoading = useJobStore((state) => state.myEmploymentsLoading);
   const getMyEmployments = useJobStore((state) => state.getMyEmployments);
   const getMyLeaveCredits = useShiftStore((state) => state.getMyLeaveCredits);
+  const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
+  const createShiftRequestLoading = useShiftStore(
+    (state) => state.createShiftRequestLoading
+  );
   const leaveCreditsLoading = useShiftStore((state) => state.leaveCreditsLoading);
   const leaveCredits = useShiftStore((state) =>
     selectedBusiness ? state.leaveCreditsByBusiness[selectedBusiness] || null : null
@@ -111,6 +115,14 @@ const RequestLeave = () => {
     return typeof value === "number" ? value : Number(value || 0);
   }, [leaveCredits, selectedLeaveType]);
 
+  const selectedEmployment = useMemo(
+    () =>
+      (myEmployments || []).find(
+        (employment) => employment?.businessId === selectedBusiness
+      ) || null,
+    [myEmployments, selectedBusiness]
+  );
+
   const leaveBalanceTitle = useMemo(() => {
     if (!selectedBusiness) {
       return "Select a business to see leave balance";
@@ -138,6 +150,55 @@ const RequestLeave = () => {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
     return days > 0 ? days : 1;
   }, [startDate, endDate]);
+
+  const formatYmd = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleSubmitLeaveRequest = async () => {
+    if (!selectedBusiness) {
+      toast.error("Please select a business");
+      throw new Error("missing_business");
+    }
+
+    if (!selectedEmployment?.id) {
+      toast.error("Employment not found for selected business");
+      throw new Error("missing_employment");
+    }
+
+    const normalizedStart = new Date(startDate);
+    const normalizedEnd = new Date(endDate);
+    normalizedStart.setHours(0, 0, 0, 0);
+    normalizedEnd.setHours(0, 0, 0, 0);
+
+    if (normalizedEnd.getTime() < normalizedStart.getTime()) {
+      toast.error("End day must be after or equal to start day");
+      throw new Error("invalid_date_range");
+    }
+
+    if (!leaveText.trim()) {
+      toast.error("Please enter a reason");
+      throw new Error("missing_reason");
+    }
+
+    const payload = {
+      employmentId: selectedEmployment.id,
+      type: "leave_request" as const,
+      isHalfDay: isOn,
+      startDate: formatYmd(normalizedStart),
+      endDate: formatYmd(normalizedEnd),
+      leaveType: selectedLeaveType,
+      reason: leaveText.trim(),
+    };
+
+    const result = await createShiftRequest(payload);
+    toast.success(
+      translateApiMessage(result?.message || "shift_request_created")
+    );
+  };
 
   return (
     <SafeAreaView
@@ -247,7 +308,11 @@ const RequestLeave = () => {
         </View>
         {/* Remaining shick leave start */}
         <View className="mx-5 mt-5">
-          <LeaveRequestModal />
+          <LeaveRequestModal
+            onSubmit={handleSubmitLeaveRequest}
+            loading={createShiftRequestLoading}
+            disabled={createShiftRequestLoading}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
