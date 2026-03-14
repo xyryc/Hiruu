@@ -1,5 +1,4 @@
-import type { RecruitmentFilterQuery, RecruitmentShiftType } from "@/types";
-import type { MyEmploymentItem } from "@/types";
+import type { MyEmploymentItem, RecruitmentFilterQuery, RecruitmentShiftType } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
@@ -662,7 +661,7 @@ export const useJobStore = create<JobState>((set) => ({
       if (query.limit) params.limit = query.limit;
       if (query.search) params.search = query.search;
       if (query.skills) params.skills = query.skills;
-      if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
+      // if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
       if (query.isPremium !== undefined) params.isPremium = query.isPremium;
 
       console.log("[JobStore] getJobProfiles called with params:", params);

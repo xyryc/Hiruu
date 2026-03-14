@@ -8,7 +8,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -24,14 +24,21 @@ const BusinessJobs = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getJobProfiles = useJobStore((s) => s.getJobProfiles);
-  const { selectedBusinesses } = useBusinessStore();
+  const { getMyBusinessRoles, selectedBusinesses } = useBusinessStore();
   const [featuredProfiles, setFeaturedProfiles] = useState<any[]>([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+  const [selectedPreferredRoleId, setSelectedPreferredRoleId] = useState<string | null>(null);
 
   // Get current business ID
   const currentBusinessId = selectedBusinesses?.[0] || null;
+
+  useEffect(() => {
+    console.log("[BusinessJobs] selectedBusinesses:", selectedBusinesses);
+    console.log("[BusinessJobs] currentBusinessId:", currentBusinessId);
+    console.log("[BusinessJobs] selectedPreferredRoleId:", selectedPreferredRoleId);
+  }, [currentBusinessId, selectedBusinesses, selectedPreferredRoleId]);
 
   // Helper function to check if user is already employed by current business
   const isAlreadyEmployed = useCallback((profile: any) => {
@@ -59,7 +66,61 @@ const BusinessJobs = () => {
     return suggestedProfiles.filter(profile => !isAlreadyEmployed(profile));
   }, [suggestedProfiles, isAlreadyEmployed]);
 
-  const loadFeaturedProfiles = useCallback(async () => {
+  useEffect(() => {
+    console.log("[BusinessJobs] featured raw count:", featuredProfiles.length);
+    console.log(
+      "[BusinessJobs] featured filtered count:",
+      filteredFeaturedProfiles.length
+    );
+    console.log(
+      "[BusinessJobs] featured filtered ids:",
+      filteredFeaturedProfiles.map((profile) => profile?.id)
+    );
+  }, [featuredProfiles, filteredFeaturedProfiles]);
+
+  useEffect(() => {
+    console.log("[BusinessJobs] suggested raw count:", suggestedProfiles.length);
+    console.log(
+      "[BusinessJobs] suggested filtered count:",
+      filteredSuggestedProfiles.length
+    );
+    console.log(
+      "[BusinessJobs] suggested filtered ids:",
+      filteredSuggestedProfiles.map((profile) => profile?.id)
+    );
+  }, [suggestedProfiles, filteredSuggestedProfiles]);
+
+  const loadBusinessRoleId = useCallback(async () => {
+    if (!currentBusinessId) {
+      console.log("[BusinessJobs] No currentBusinessId, skipping role load");
+      setSelectedPreferredRoleId(null);
+      return null;
+    }
+
+    try {
+      const roles = await getMyBusinessRoles(currentBusinessId);
+      const normalizedRoles = (Array.isArray(roles) ? roles : [])
+        .map((item: any) => ({
+          id: item?.id || item?.roleId || "",
+          name: item?.role?.name || item?.name || "",
+        }))
+        .filter((item: any) => item?.id);
+
+      const firstRoleId = normalizedRoles[0]?.id || null;
+
+      console.log("[BusinessJobs] business roles:", normalizedRoles);
+      console.log("[BusinessJobs] resolved preferredRoleId:", firstRoleId);
+
+      setSelectedPreferredRoleId(firstRoleId);
+      return firstRoleId;
+    } catch (error) {
+      console.error("[BusinessJobs] Failed to load business roles:", error);
+      setSelectedPreferredRoleId(null);
+      return null;
+    }
+  }, [currentBusinessId, getMyBusinessRoles]);
+
+  const loadFeaturedProfiles = useCallback(async (preferredRoleId?: string | null) => {
     try {
       setIsLoadingFeatured(true);
       console.log("[BusinessJobs] Loading featured profiles (isPremium: true)...");
@@ -67,6 +128,7 @@ const BusinessJobs = () => {
         page: 1,
         limit: 10,
         isPremium: true,
+        ...(preferredRoleId ? { preferredRoleId } : {}),
       });
       console.log("[BusinessJobs] Featured profiles loaded:", result.data.length, "profiles");
       console.log("[BusinessJobs] Featured profiles data:", JSON.stringify(result.data, null, 2));
@@ -84,9 +146,9 @@ const BusinessJobs = () => {
     } finally {
       setIsLoadingFeatured(false);
     }
-  }, [getJobProfiles]);
+  }, [getJobProfiles, isAlreadyEmployed]);
 
-  const loadSuggestedProfiles = useCallback(async () => {
+  const loadSuggestedProfiles = useCallback(async (preferredRoleId?: string | null) => {
     try {
       setIsLoadingSuggested(true);
       console.log("[BusinessJobs] Loading suggested profiles (isPremium: false)...");
@@ -94,6 +156,7 @@ const BusinessJobs = () => {
         page: 1,
         limit: 10,
         isPremium: false,
+        ...(preferredRoleId ? { preferredRoleId } : {}),
       });
       console.log("[BusinessJobs] Suggested profiles loaded:", result.data.length, "profiles");
       console.log("[BusinessJobs] Suggested profiles data:", JSON.stringify(result.data, null, 2));
@@ -111,13 +174,27 @@ const BusinessJobs = () => {
     } finally {
       setIsLoadingSuggested(false);
     }
-  }, [getJobProfiles]);
+  }, [getJobProfiles, isAlreadyEmployed]);
 
   useFocusEffect(
     useCallback(() => {
-      loadFeaturedProfiles();
-      loadSuggestedProfiles();
-    }, [loadFeaturedProfiles, loadSuggestedProfiles])
+      let isActive = true;
+
+      const loadScreenData = async () => {
+        console.log("[BusinessJobs] screen focused, loading profiles...");
+        const preferredRoleId = await loadBusinessRoleId();
+        if (!isActive) return;
+
+        loadFeaturedProfiles(preferredRoleId);
+        loadSuggestedProfiles(preferredRoleId);
+      };
+
+      loadScreenData();
+
+      return () => {
+        isActive = false;
+      };
+    }, [loadBusinessRoleId, loadFeaturedProfiles, loadSuggestedProfiles])
   );
 
   return (
