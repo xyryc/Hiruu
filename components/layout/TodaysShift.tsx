@@ -1,5 +1,6 @@
-import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { ApiShift, ShiftCardData, TodaysShiftProps } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -26,11 +27,10 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
   const router = useRouter();
   const isFocused = useIsFocused();
   const {
-    myBusinesses,
     selectedBusinesses,
     setSelectedBusinesses,
-    getMyBusinesses,
   } = useBusinessStore();
+  const { myEmployments, getMyEmployments } = useJobStore();
   const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn, clockOut } =
     useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -38,16 +38,37 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
   useEffect(() => {
     if (!accessToken) return;
 
-    const loadBusinesses = async () => {
+    const loadEmployments = async () => {
       try {
-        await getMyBusinesses();
+        await getMyEmployments();
       } catch {
         // ignore
       }
     };
 
-    loadBusinesses();
-  }, [accessToken, getMyBusinesses]);
+    loadEmployments();
+  }, [accessToken, getMyEmployments]);
+
+  const employmentBusinesses = useMemo(
+    () => {
+      const seen = new Set<string>();
+      return (Array.isArray(myEmployments) ? myEmployments : [])
+        .map((employment) => {
+          const business = employment?.business;
+          if (!business?.id || seen.has(business.id)) return null;
+          seen.add(business.id);
+          return {
+            id: business.id,
+            name: business.name || "Business",
+            address: "",
+            imageUrl: business.logo || "",
+            logo: business.logo || "",
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => Boolean(item));
+    },
+    [myEmployments]
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -243,7 +264,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     if (selectedBusinesses.length === 0) {
       return { type: "all", content: "All" };
     } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = myBusinesses.find(
+      const selectedBusiness = employmentBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
@@ -270,13 +291,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={myBusinesses.map((b) => ({
-          id: b.id,
-          name: b.name,
-          address: b.address,
-          imageUrl: b.logo,
-          logo: b.logo,
-        }))}
+        businesses={employmentBusinesses}
+        disableStoreFallback
         selectedBusinesses={selectedBusinesses}
         onSelectionChange={setSelectedBusinesses}
       />

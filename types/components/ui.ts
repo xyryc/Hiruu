@@ -144,6 +144,7 @@ export interface BusinessSelectionModalProps {
   visible: boolean;
   onClose: () => void;
   businesses: Business[];
+  disableStoreFallback?: boolean;
   selectedBusinesses: string[];
   onSelectionChange: (selectedIds: string[]) => void;
 }

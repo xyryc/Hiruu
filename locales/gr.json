@@ -102,6 +102,7 @@
     "successfully_clocked_in": "Η καταχώριση παρουσίας ολοκληρώθηκε με επιτυχία.",
     "successfully_clocked_out": "Η αποχώρηση από τη βάρδια καταχωρίστηκε με επιτυχία.",
     "attendance_you_cannot_login_twice": "Δεν μπορείτε να κάνετε δεύτερη καταχώριση παρουσίας.",
+    "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Οι ιδιοκτήτες επιχειρήσεων δεν μπορούν να συμμετάσχουν στη δική τους επιχείρηση με κωδικό πρόσκλησης.",
     "attendance_shift_assignment_not_found_or_access_denied": "Η ανάθεση βάρδιας δεν βρέθηκε ή δεν έχετε πρόσβαση.",
     "weekly_block_created_successfully": "Το εβδομαδιαίο μπλοκ δημιουργήθηκε με επιτυχία.",
     "weekly_block_updated_successfully": "Το εβδομαδιαίο μπλοκ ενημερώθηκε με επιτυχία.",

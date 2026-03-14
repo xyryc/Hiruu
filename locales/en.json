@@ -101,6 +101,7 @@
     "successfully_clocked_in": "Successfully clocked in.",
     "successfully_clocked_out": "Successfully clocked out.",
     "attendance_you_cannot_login_twice": "You cannot login twice.",
+    "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Business owners cannot join their own business using an invitation code.",
     "attendance_shift_assignment_not_found_or_access_denied": "Shift assignment not found or access denied.",
     "weekly_block_created_successfully": "Weekly block created successfully.",
     "weekly_block_updated_successfully": "Weekly block updated successfully.",
