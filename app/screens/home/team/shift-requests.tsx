@@ -17,6 +17,7 @@ const ShiftRequest = () => {
   const [selectedTab, setSelectedTab] = useState("Pending Requests");
   const insets = useSafeAreaInsets();
   const [isModalSettings, setIsModalSettings] = useState(false);
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"

@@ -1,7 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessShiftPending from "@/components/ui/cards/BusinessShiftPending";
 import SuccessRejectModal from "@/components/ui/modals/SuccessRejectModal";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
@@ -31,17 +30,8 @@ const LeaveRequest = () => {
           title="Leave Requests"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
-          components={
-            <TouchableOpacity
-              onPress={() =>
-                router.push("/screens/schedule/shift/request-leave")
-              }
-              className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center"
-            >
-              <Ionicons name="share-outline" size={22} color="black" />
-            </TouchableOpacity>
-          }
         />
+
         {/* Tabs */}
         <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
           {["New Request", "Approved"].map((tab) => (
@@ -66,6 +56,7 @@ const LeaveRequest = () => {
           ))}
         </View>
       </View>
+
       <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
         {/* pending screen */}
         {selectedTab === "Approved" && (

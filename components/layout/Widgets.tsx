@@ -11,7 +11,6 @@ const Widgets = ({ className }: WidgetsProps) => {
 
       {/* widget card */}
       <ScrollView
-        className="mb-7"
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       >
