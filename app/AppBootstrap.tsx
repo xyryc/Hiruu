@@ -6,9 +6,12 @@ import { registerForFcmToken } from "@/services/notificationService";
 import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useServerStatusStore } from "@/stores/serverStatusStore";
+import {
+  setPendingChatNavigation,
+} from "@/utils/notificationNavigation";
 import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { getApp } from "@react-native-firebase/app";
 import {
@@ -18,12 +21,13 @@ import {
   onNotificationOpenedApp,
 } from "@react-native-firebase/messaging";
 import { Platform } from "react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SplashScreen from "./splash";
 
 
 const AppBootstrap = () => {
   const messaging = getMessaging(getApp());
+  const router = useRouter();
 
   const [fontsLoaded] = useFonts({
     "ProximaNova-Thin": require("../assets/fonts/ProximaNova-Thin.ttf"),
@@ -39,6 +43,37 @@ const AppBootstrap = () => {
   const { initializeAuth, user } = useAuthStore();
   const netInfo = useNetInfo();
   const { isServerDown, message, checkHealthNow } = useServerStatusStore();
+
+  const extractChatNotificationPayload = useCallback((rawData: any) => {
+    if (!rawData || typeof rawData !== "object") return null;
+
+    const type = typeof rawData.type === "string" ? rawData.type : "";
+    const chatRoomId =
+      typeof rawData.chatRoomId === "string" ? rawData.chatRoomId : "";
+    const messageId =
+      typeof rawData.messageId === "string" ? rawData.messageId : undefined;
+
+    if (type !== "chat_message" || !chatRoomId) {
+      return null;
+    }
+
+    return { chatRoomId, messageId };
+  }, []);
+
+  const navigateToChatRoom = useCallback((payload: { chatRoomId: string; messageId?: string }) => {
+    if (!appIsReady || !user) {
+      setPendingChatNavigation(payload);
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/inbox/chat-screen",
+      params: {
+        roomId: payload.chatRoomId,
+        ...(payload.messageId ? { messageId: payload.messageId } : {}),
+      },
+    });
+  }, [appIsReady, router, user]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -109,7 +144,6 @@ const AppBootstrap = () => {
           body: remoteMessage.notification?.body || "You have a new message",
           sound: "default",
           data: remoteMessage.data,
-          channelId: "default",
         },
         trigger: null,
       });
@@ -117,21 +151,46 @@ const AppBootstrap = () => {
 
     const unsubscribeOnOpen = onNotificationOpenedApp(messaging, (remoteMessage) => {
       console.log("FCM opened from background =>", remoteMessage);
+      const payload = extractChatNotificationPayload(remoteMessage?.data);
+      if (payload) {
+        navigateToChatRoom(payload);
+      }
     });
 
     getInitialNotification(messaging)
       .then((remoteMessage) => {
         if (remoteMessage) {
           console.log("FCM opened from quit =>", remoteMessage);
+          const payload = extractChatNotificationPayload(remoteMessage?.data);
+          if (payload) {
+            navigateToChatRoom(payload);
+          }
         }
       })
       .catch(() => undefined);
 
+    const notificationResponseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const payload = extractChatNotificationPayload(
+          response.notification.request.content.data
+        );
+        if (payload) {
+          navigateToChatRoom(payload);
+        }
+      });
+
     return () => {
       unsubscribeOnMessage();
       unsubscribeOnOpen();
+      notificationResponseSubscription.remove();
     };
-  }, [messaging]);
+  }, [
+    appIsReady,
+    extractChatNotificationPayload,
+    messaging,
+    navigateToChatRoom,
+    user,
+  ]);
 
 
 

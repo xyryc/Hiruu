@@ -186,11 +186,14 @@ export interface StatCardSecondaryProps {
 type StatusType =
   | "upcoming"
   | "completed"
+  | "early_leave"
   | "missed"
   | "ongoing"
   | "pending"
   | "approved"
   | "rejected"
+  | "cancelled"
+  | "expired"
   | "accepted"
   | "submitted"
   | "available"
@@ -244,11 +247,14 @@ export interface WorkShiftCardProps {
   address: string;
   city: string;
   onLoginPress: () => void;
+  onLogoutPress?: () => void;
+  presentStatus?: "logged_in" | "logged_out" | string;
   requestLog?: boolean;
   status?:
   | "ongoing"
   | "upcoming"
   | "completed"
+  | "early_leave"
   | "missed"
   | "pending"
   | "approved"

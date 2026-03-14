@@ -3,7 +3,13 @@ import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { toast } from "sonner-native";
 import ShiftRequestModal from "../modals/ShiftRequestModal";
 
@@ -38,7 +44,7 @@ const BusinessShiftPending = ({
       }
 
       router.push({
-        pathname: "/screens/jobs/chatscreen",
+        pathname: "/screens/inbox/chat-screen",
         params: { roomId },
       });
     } catch (error: any) {

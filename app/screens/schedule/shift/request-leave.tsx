@@ -3,50 +3,202 @@ import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import ActionCard from "@/components/ui/cards/ActionCard";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
-import TimePicker from "@/components/ui/inputs/TimePicker";
 import LeaveRequestModal from "@/components/ui/modals/LeaveRequestModal";
-import SelectLeaveType from "@/components/ui/modals/SelectLeaveType";
+import SelectLeaveType, {
+  LEAVE_TYPE_OPTIONS,
+  LeaveTypeValue,
+} from "@/components/ui/modals/SelectLeaveType";
+import { useJobStore } from "@/stores/jobStore";
+import { useShiftStore } from "@/stores/shiftStore";
+import { LeaveCreditItem, MyEmploymentItem } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const LEAVE_TYPE_TO_CREDIT_KEY: Record<LeaveTypeValue, keyof LeaveCreditItem> = {
+  sick: "sick_leave",
+  personal: "personal_leave",
+  workFromHome: "work_from_home",
+  emergency: "emergency_leave",
+  casual: "casual_leave",
+  unpaid: "unpaid_leave",
+  other: "other_leave",
+};
 
 const RequestLeave = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isOn, setIsOn] = useState(false);
   const [leaveText, setLeaveText] = useState("");
-
-  // Sample data
-  const businessData = [
-    {
-      label: "Sick Leave",
-      value: "sick",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Personal Leave",
-      value: "personal",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Work From Home",
-      value: "wfh",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Emergency Leave",
-      value: "emergency",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-  ];
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const insets = useSafeAreaInsets();
 
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
+  const [selectedLeaveType, setSelectedLeaveType] =
+    useState<LeaveTypeValue>("sick");
+  const myEmployments = useJobStore((state) => state.myEmployments);
+  const myEmploymentsLoading = useJobStore((state) => state.myEmploymentsLoading);
+  const getMyEmployments = useJobStore((state) => state.getMyEmployments);
+  const getMyLeaveCredits = useShiftStore((state) => state.getMyLeaveCredits);
+  const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
+  const createShiftRequestLoading = useShiftStore(
+    (state) => state.createShiftRequestLoading
+  );
+  const leaveCreditsLoading = useShiftStore((state) => state.leaveCreditsLoading);
+  const leaveCredits = useShiftStore((state) =>
+    selectedBusiness ? state.leaveCreditsByBusiness[selectedBusiness] || null : null
+  );
+
+  useEffect(() => {
+    getMyEmployments().catch((error: any) => {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to load businesses")
+      );
+    });
+  }, [getMyEmployments]);
+
+  const businessOptions = useMemo(
+    () => {
+      const uniqueByBusinessId = new Map<string, MyEmploymentItem>();
+      (myEmployments || []).forEach((employment) => {
+        if (employment?.businessId && !uniqueByBusinessId.has(employment.businessId)) {
+          uniqueByBusinessId.set(employment.businessId, employment);
+        }
+      });
+
+      return Array.from(uniqueByBusinessId.values()).map((employment) => ({
+        label: employment?.business?.name || "Business",
+        value: employment?.businessId || "",
+        avatar: employment?.business?.logo || undefined,
+      }));
+    },
+    [myEmployments]
+  );
+
+  useEffect(() => {
+    const fetchLeaveCredits = async () => {
+      if (!selectedBusiness) {
+        return;
+      }
+
+      try {
+        const credits = await getMyLeaveCredits(selectedBusiness);
+        // console.log("[RequestLeave] leave credits:", credits);
+      } catch (error: any) {
+        toast.error(
+          translateApiMessage(
+            error?.message || "Failed to fetch leave credits"
+          )
+        );
+      }
+    };
+
+    fetchLeaveCredits();
+  }, [getMyLeaveCredits, selectedBusiness]);
+
+  const selectedLeaveTypeLabel = useMemo(
+    () =>
+      LEAVE_TYPE_OPTIONS.find((item) => item.value === selectedLeaveType)
+        ?.label || "Leave",
+    [selectedLeaveType]
+  );
+
+  const selectedLeaveBalance = useMemo(() => {
+    if (!leaveCredits) return null;
+    const key = LEAVE_TYPE_TO_CREDIT_KEY[selectedLeaveType];
+    const value = leaveCredits[key];
+    return typeof value === "number" ? value : Number(value || 0);
+  }, [leaveCredits, selectedLeaveType]);
+
+  const selectedEmployment = useMemo(
+    () =>
+      (myEmployments || []).find(
+        (employment) => employment?.businessId === selectedBusiness
+      ) || null,
+    [myEmployments, selectedBusiness]
+  );
+
+  const leaveBalanceTitle = useMemo(() => {
+    if (!selectedBusiness) {
+      return "Select a business to see leave balance";
+    }
+
+    if (leaveCreditsLoading) {
+      return "Loading leave balance...";
+    }
+
+    return `You have ${selectedLeaveBalance ?? 0} ${selectedLeaveTypeLabel} leave remaining this month`;
+  }, [
+    leaveCreditsLoading,
+    selectedBusiness,
+    selectedLeaveBalance,
+    selectedLeaveTypeLabel,
+  ]);
+
+  const durationDays = useMemo(() => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diff = end.getTime() - start.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    return days > 0 ? days : 1;
+  }, [startDate, endDate]);
+
+  const formatYmd = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleSubmitLeaveRequest = async () => {
+    if (!selectedBusiness) {
+      toast.error("Please select a business");
+      throw new Error("missing_business");
+    }
+
+    if (!selectedEmployment?.id) {
+      toast.error("Employment not found for selected business");
+      throw new Error("missing_employment");
+    }
+
+    const normalizedStart = new Date(startDate);
+    const normalizedEnd = new Date(endDate);
+    normalizedStart.setHours(0, 0, 0, 0);
+    normalizedEnd.setHours(0, 0, 0, 0);
+
+    if (normalizedEnd.getTime() < normalizedStart.getTime()) {
+      toast.error("End day must be after or equal to start day");
+      throw new Error("invalid_date_range");
+    }
+
+    if (!leaveText.trim()) {
+      toast.error("Please enter a reason");
+      throw new Error("missing_reason");
+    }
+
+    const payload = {
+      employmentId: selectedEmployment.id,
+      type: "leave_request" as const,
+      isHalfDay: isOn,
+      startDate: formatYmd(normalizedStart),
+      endDate: formatYmd(normalizedEnd),
+      leaveType: selectedLeaveType,
+      reason: leaveText.trim(),
+    };
+
+    const result = await createShiftRequest(payload);
+    toast.success(
+      translateApiMessage(result?.message || "shift_request_created")
+    );
+  };
 
   return (
     <SafeAreaView
@@ -55,7 +207,8 @@ const RequestLeave = () => {
     >
       {/* Header */}
       <ScreenHeader
-        className="mx-4"
+        className='mx-5'
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
         onPressBack={() => router.back()}
         title="Request Leave"
         titleClass="text-primary dark:text-dark-primary"
@@ -64,49 +217,47 @@ const RequestLeave = () => {
 
       <ScrollView>
         {/* Section title */}
-        <Text className="mx-5 mt-[30px] font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+        <Text className="mx-5 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
           Select Dates
         </Text>
 
         {/* Duration + toggle */}
         <View className="mx-5 mt-[10px] flex-row justify-between items-center">
           <Text className="text-sm font-normal text-[#4FB2F3]">
-            Duration: {isOn ? "1" : "3"} Days
+            Duration: {durationDays} {durationDays > 1 ? "Days" : "Day"}
           </Text>
-          <ToggleButton isOn={isOn} setIsOn={setIsOn} />
+
+          <View className='flex-row items-center'>
+            <Text className='text-sm font-proximanova-regular text-secondary'>Half Day</Text>
+            <ToggleButton isOn={isOn} setIsOn={setIsOn} />
+          </View>
         </View>
 
-        {/* Half Day Start */}
-        <View className="mx-5 mt-[10px]">{isOn ? <DatePicker /> : ""}</View>
-        <View
-          className={`flex-row justify-between gap-3 mx-5 ${isOn && "mt-[15px]"}`}
-        >
-          {isOn ? (
-            <>
-              <TimePicker title="Start Time" />
-              <TimePicker title="End Time" />
-            </>
-          ) : null}
+        <View className="flex-row justify-between gap-3 mx-5 mt-[10px]">
+          <DatePicker
+            className="flex-1"
+            title="Start Day"
+            value={startDate}
+            onChange={setStartDate}
+          />
+          <DatePicker
+            className="flex-1"
+            title="End Day"
+            value={endDate}
+            onChange={setEndDate}
+          />
         </View>
 
-        {/* Half day end */}
-        {/* 3 Day Leav Start */}
-        <View className="flex-row justify-between gap-3 mx-5">
-          {isOn ? (
-            ""
-          ) : (
-            <>
-              <DatePicker className="flex-1" title="Start Day" />
-              <DatePicker className="flex-1" title="End Day" />
-            </>
-          )}
-        </View>
-        {/* 3 Day Leav End */}
+
         {/* Select Leave Type start */}
         <View className="mx-5  mt-7">
-          <SelectLeaveType />
+          <SelectLeaveType
+            value={selectedLeaveType}
+            onChange={setSelectedLeaveType}
+          />
         </View>
         {/* Select Leave Type end */}
+
         {/* Reason start */}
         <View className="mx-5 py-2 mt-2">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
@@ -118,30 +269,37 @@ const RequestLeave = () => {
             placeholder="Mention any reason or notes for manager....."
             multiline
             textAlignVertical="top"
-            className="border border-[#EEEEEE] mt-2.5 h-[100px] rounded-xl px-4 py-3 bg-white text-gray-700"
+            className="font-proximanova-regular text-secondary border border-[#EEEEEE] mt-2.5 h-[100px] rounded-xl px-4 py-3 bg-white"
             keyboardType="default"
             autoCapitalize="none"
           />
         </View>
         {/* Reason End */}
+
         {/* Select business start */}
         <View className="mx-5 py-2 mt-2">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mb-2">
             Select Business
           </Text>
-          <SelectDropdown
-            placeholder="Choose Business"
-            options={businessData}
-            value={selectedBusiness}
-            onSelect={(value: any) => setSelectedBusiness(value)}
-          />
+          {myEmploymentsLoading ? (
+            <View className="mt-2 py-4 items-center border border-[#EEEEEE] rounded-[10px]">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : (
+            <SelectDropdown
+              placeholder="Choose Business"
+              options={businessOptions}
+              value={selectedBusiness}
+              onSelect={(value: string) => setSelectedBusiness(value)}
+            />
+          )}
         </View>
         {/* Select business end */}
 
         {/* Remaining shick leave start */}
         <View className="mx-5  mt-8">
           <ActionCard
-            title="You have only 1 Sick Leave remaining this month"
+            title={leaveBalanceTitle}
             rightImage={require("@/assets/images/remaining-sick.png")}
             imageWidth={82}
             imageHeight={55}
@@ -150,7 +308,11 @@ const RequestLeave = () => {
         </View>
         {/* Remaining shick leave start */}
         <View className="mx-5 mt-5">
-          <LeaveRequestModal />
+          <LeaveRequestModal
+            onSubmit={handleSubmitLeaveRequest}
+            loading={createShiftRequestLoading}
+            disabled={createShiftRequestLoading}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -4,6 +4,7 @@ import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
+import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,14 +24,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-
-const resolveMediaUrl = (value?: string | null) => {
-  if (!value || typeof value !== "string") return undefined;
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
-  if (!base) return undefined;
-  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
-};
 
 const toYmd = (value: Date) => {
   const year = value.getFullYear();
@@ -231,7 +224,7 @@ const BusinessScheduleScreen = () => {
 
   const shifts = useMemo(() => {
     const items = Array.isArray(businessAssignments) ? businessAssignments : [];
-    return items
+    const mappedShifts = items
       .filter((item: any) => item?.itemType === "assigned_shift")
       .map((item: any) => {
         const startTime = item?.shiftTemplate?.startTime;
@@ -260,10 +253,11 @@ const BusinessScheduleScreen = () => {
 
         return {
           id: item?.id,
+          userId: item?.employment?.userId || item?.employment?.user?.id || "",
           name: displayName,
           roleId: item?.employment?.roleId || "",
           role: roleName,
-          avatar: resolveMediaUrl(item?.employment?.avatar),
+          avatar: item?.employment?.avatar,
           shiftDateYmd: isValidStartDate ? toYmd(startsAtDate) : null,
           startHour,
           shiftTemplateId,
@@ -273,7 +267,34 @@ const BusinessScheduleScreen = () => {
           status: item?.status || "upcoming",
         };
       });
+
+    // console.log("[BusinessSchedule] shifts:", mappedShifts);
+    return mappedShifts;
   }, [businessAssignments]);
+
+  const handleOpenShiftChat = async (shift: any) => {
+    const participantId = shift?.userId;
+    if (!participantId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      const result = await chatService.createDirectChat(participantId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    }
+  };
 
   useEffect(() => {
     if (selectedShiftTemplateId === "all") return;
@@ -438,6 +459,7 @@ const BusinessScheduleScreen = () => {
   ];
 
   const router = useRouter();
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" />
@@ -477,7 +499,7 @@ const BusinessScheduleScreen = () => {
 
             {/* notification */}
             <TouchableOpacity
-              onPress={() => router.push("/shared/notification")}
+              onPress={() => router.push("/screens/notifications/list")}
               className="w-10 h-10 items-center justify-center bg-[#F5F5F5] rounded-full"
             >
               <Image
@@ -638,7 +660,13 @@ const BusinessScheduleScreen = () => {
             <ActivityIndicator size="small" color="#4FB2F3" />
           </View>
         ) : visibleShifts.length > 0 ? (
-          visibleShifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+          visibleShifts.map((shift) => (
+            <ShiftCard
+              key={shift.id}
+              shift={shift}
+              onMessagePress={() => handleOpenShiftChat(shift)}
+            />
+          ))
         ) : (
           <NoShiftsAvailableCard className="mt-4" />
         )}

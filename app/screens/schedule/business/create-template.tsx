@@ -6,6 +6,7 @@ import TimePicker from "@/components/ui/inputs/TimePicker";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -195,12 +196,22 @@ const CreateTemplate = () => {
     try {
       setIsSubmitting(true);
       console.log("createShiftTemplate payload:", payload);
-      await createShiftTemplate(selectedBusiness, payload);
-      toast.success("Shift template created successfully.");
+      const result = await createShiftTemplate(selectedBusiness, payload);
+      toast.success(
+        translateApiMessage(
+          result?.message || "shift_template_created_successfully"
+        )
+      );
       setIsPreviewOpen(false);
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to create shift template");
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to create shift template"
+        )
+      );
     } finally {
       setIsSubmitting(false);
     }

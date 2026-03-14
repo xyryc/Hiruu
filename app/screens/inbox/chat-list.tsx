@@ -129,7 +129,7 @@ const ChatList = () => {
                 key={room.id}
                 onPress={() =>
                   router.push({
-                    pathname: "/screens/jobs/chatscreen",
+                    pathname: "/screens/inbox/chat-screen",
                     params: { roomId: room.id },
                   })
                 }

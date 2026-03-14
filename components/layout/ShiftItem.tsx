@@ -57,7 +57,7 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
       {/* Time Column */}
       <View className="mr-5 relative">
         <Text
-          className={`font-proximanova-regular w-10 text-center
+          className={`font-proximanova-regular w-10 text-center uppercase
         ${shift.type === "ongoing" ? "text-[#F3934F] font-proximanova-semibold" : " text-secondary dark:text-dark-secondary"}
         `}
         >
@@ -92,6 +92,13 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
           {shift.type === "missed" && (
             <View className="py-2">
               <Text className="text-sm font-proximanova-regular text-[#F34F4F]">
+                {shift.message}
+              </Text>
+            </View>
+          )}
+          {shift.type === "early_leave" && (
+            <View className="py-2">
+              <Text className="text-sm font-proximanova-regular text-[#D97706]">
                 {shift.message}
               </Text>
             </View>
@@ -157,6 +164,15 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
             />
           )}
           {shift.type === "missed" && (
+            <Image
+              source={require("@/assets/images/shift-missed-bg.svg")}
+              style={{
+                width: 244,
+                height: 34,
+              }}
+            />
+          )}
+          {shift.type === "early_leave" && (
             <Image
               source={require("@/assets/images/shift-missed-bg.svg")}
               style={{

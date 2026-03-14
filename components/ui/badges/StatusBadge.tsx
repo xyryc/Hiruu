@@ -38,6 +38,13 @@ const StatusBadge = ({
           dotClasses: "bg-red-600",
           label: "Missed",
         };
+      case "early_leave":
+        return {
+          containerClasses: "bg-[#FFF7E8] border-[#F59E0B4D]",
+          textClasses: "text-[#D97706]",
+          dotClasses: "bg-[#D97706]",
+          label: "Early Leave",
+        };
       case "ongoing":
         return {
           containerClasses: "bg-orange-100 border-[#F3934F4D]",
@@ -72,6 +79,20 @@ const StatusBadge = ({
           textClasses: "text-[#F34F4F]",
           dotClasses: "bg-[#F34F4F]",
           label: "Rejected",
+        };
+      case "cancelled":
+        return {
+          containerClasses: "bg-gray-100 border-gray-300",
+          textClasses: "text-gray-600",
+          dotClasses: "bg-gray-600",
+          label: label || "Cancelled",
+        };
+      case "expired":
+        return {
+          containerClasses: "bg-[#FFF4E5] border-[#F59E0B4D]",
+          textClasses: "text-[#B45309]",
+          dotClasses: "bg-[#B45309]",
+          label: label || "Expired",
         };
 
       case "available":

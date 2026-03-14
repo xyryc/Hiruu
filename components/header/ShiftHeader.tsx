@@ -71,7 +71,7 @@ const ShiftHeader = ({
 
           {/* notification */}
           <TouchableOpacity
-            onPress={() => router.push("/shared/notification")}
+            onPress={() => router.push("/screens/notifications/list")}
             className="bg-[#f5f5f5] border-[0.5px] border-[#FFFFFF00] rounded-full w-10 h-10 items-center justify-center"
           >
             <Image

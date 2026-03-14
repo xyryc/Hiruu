@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/authStore";
+import { consumePendingChatNavigation } from "@/utils/notificationNavigation";
 import { Redirect } from "expo-router";
 
 export default function Index() {
@@ -18,6 +19,23 @@ export default function Index() {
             params: {
               email: user.email,
               source: "login",
+            },
+          }}
+        />
+      );
+    }
+
+    const pendingChat = consumePendingChatNavigation();
+    if (pendingChat?.chatRoomId) {
+      return (
+        <Redirect
+          href={{
+            pathname: "/screens/inbox/chat-screen",
+            params: {
+              roomId: pendingChat.chatRoomId,
+              ...(pendingChat.messageId
+                ? { messageId: pendingChat.messageId }
+                : {}),
             },
           }}
         />

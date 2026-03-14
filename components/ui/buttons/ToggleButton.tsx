@@ -23,7 +23,7 @@ export const ToggleButton = ({ isOn, setIsOn, title, className }: any) => {
   });
 
   return (
-    <View className={`flex-row items-center gap-4 mb-2 ${className} `}>
+    <View className={`flex-row items-center gap-4 ${className}`}>
       <Text className="text-sm text-[#7A7A7A]">{title ? title : ""}</Text>
       <TouchableOpacity
         activeOpacity={0.8}

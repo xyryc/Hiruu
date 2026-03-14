@@ -3,64 +3,13 @@ import ShiftItem from "@/components/layout/ShiftItem";
 import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useShiftStore } from "@/stores/shiftStore";
+import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-
-const resolveMediaUrl = (value?: string | null) => {
-  if (!value || typeof value !== "string") return undefined;
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
-  if (!base) return value;
-  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
-};
-
-type ApiShift = {
-  itemType: "assigned_shift" | "empty_day";
-  id?: string;
-  date: string;
-  startsAt?: string;
-  endsAt?: string;
-  status?: string;
-  hasNextShift?: boolean;
-  nextShiftStartDate?: string | null;
-  shiftTemplate?: {
-    name?: string;
-    startTime?: string;
-    endTime?: string;
-    breakDuration?: { startTime?: string; endTime?: string }[];
-  };
-  business?: {
-    id?: string;
-    name?: string;
-    logo?: string;
-    address?: {
-      address?: string;
-    };
-  };
-};
-
-type UiShift = {
-  id: string;
-  businessId: string;
-  type: "ongoing" | "upcoming" | "completed" | "missed" | "empty_day";
-  time: string;
-  title: string;
-  subtitle?: string;
-  nextShiftText?: string;
-  workTime: string;
-  breakTime?: string;
-  location?: string;
-  company: string;
-  companyLogo?: string;
-  status: "ongoing" | "upcoming" | "completed" | "missed" | "no_shift";
-  countdown?: string;
-  countdownTargetAt?: number;
-  message?: string;
-};
 
 const ShiftSchedule = () => {
   const [showModal, setShowModal] = useState(false);
@@ -95,7 +44,7 @@ const ShiftSchedule = () => {
   }, []);
 
   const toUiShift = useCallback(
-    (shift: ApiShift): UiShift => {
+    (shift: UserScheduleApiShift): UserScheduleUiShift => {
       const business = shift?.business;
 
       if (shift?.itemType === "empty_day") {
@@ -122,7 +71,7 @@ const ShiftSchedule = () => {
           nextShiftText,
           workTime: "--",
           company: business?.name || "Business",
-          companyLogo: resolveMediaUrl(business?.logo),
+          companyLogo: business?.logo,
           location: business?.address?.address,
           status: "no_shift",
         };
@@ -157,8 +106,8 @@ const ShiftSchedule = () => {
         shiftEnd.setDate(shiftEnd.getDate() + 1);
       }
 
-      let type: UiShift["type"] = "upcoming";
-      let status: UiShift["status"] = "upcoming";
+      let type: UserScheduleUiShift["type"] = "upcoming";
+      let status: UserScheduleUiShift["status"] = "upcoming";
       let countdown: string | undefined;
       let countdownTargetAt: number | undefined;
       let message: string | undefined;
@@ -168,6 +117,10 @@ const ShiftSchedule = () => {
         type = "missed";
         status = "missed";
         message = "You missed this shift.";
+      } else if (apiStatus === "early_leave") {
+        type = "early_leave";
+        status = "early_leave";
+        message = "You left this shift early.";
       } else if (now >= shiftStart && now <= shiftEnd) {
         type = "ongoing";
         status = "ongoing";
@@ -220,7 +173,7 @@ const ShiftSchedule = () => {
             : `${to12Hour(start)} - ${to12Hour(end)}`,
         breakTime,
         company: business?.name || "Business",
-        companyLogo: resolveMediaUrl(business?.logo),
+        companyLogo: business?.logo,
         location: business?.address?.address,
         status,
         countdown,
@@ -250,7 +203,7 @@ const ShiftSchedule = () => {
 
     const shifts = Array.isArray(myShifts) ? myShifts : [];
     const now = currentDate.getTime();
-    const nextShiftStartAt = shifts.reduce<number | null>((closest, shift: ApiShift) => {
+    const nextShiftStartAt = shifts.reduce<number | null>((closest, shift: UserScheduleApiShift) => {
       if (shift?.itemType !== "assigned_shift" || !shift?.startsAt) return closest;
 
       const startAt = new Date(shift.startsAt).getTime();
@@ -279,6 +232,7 @@ const ShiftSchedule = () => {
     () => (Array.isArray(myShifts) ? myShifts : []).map(toUiShift),
     [myShifts, toUiShift]
   );
+  console.log("[UserSchedule] shifts:", uiShifts);
 
   const filteredShifts = useMemo(() => {
     if (selectedBusinesses.length === 0) return uiShifts;

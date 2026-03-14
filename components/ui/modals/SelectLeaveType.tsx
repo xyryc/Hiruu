@@ -1,18 +1,42 @@
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-const LeaveData = [
-  { label: "Sick Leave ", value: "Sick Leave" },
-  { label: "Personal Leave", value: "Personal Leave" },
-  { label: "Work From Home", value: "Work From Home" },
-  { label: "Emergency Leave ", value: "Emergency Leave" },
-  { label: "Causal Leave ", value: "Causal Leave" },
-  { label: "Unpaid Leave", value: "Unpaid Leave" },
-  { label: "Other", value: "Other" },
+export type LeaveTypeValue =
+  | "sick"
+  | "personal"
+  | "workFromHome"
+  | "emergency"
+  | "casual"
+  | "unpaid"
+  | "other";
+
+export const LEAVE_TYPE_OPTIONS: { label: string; value: LeaveTypeValue }[] = [
+  { label: "Sick", value: "sick" },
+  { label: "Personal", value: "personal" },
+  { label: "Work From Home", value: "workFromHome" },
+  { label: "Emergency", value: "emergency" },
+  { label: "Casual", value: "casual" },
+  { label: "Unpaid", value: "unpaid" },
+  { label: "Other", value: "other" },
 ];
 
-const SelectLeaveType = () => {
-  const [selected, setSelected] = useState<string>(LeaveData[0]?.value);
+interface SelectLeaveTypeProps {
+  value?: LeaveTypeValue;
+  onChange?: (value: LeaveTypeValue) => void;
+}
+
+const SelectLeaveType = ({ value, onChange }: SelectLeaveTypeProps) => {
+  const [internalSelected, setInternalSelected] = useState<LeaveTypeValue>(
+    LEAVE_TYPE_OPTIONS[0]?.value
+  );
+  const selected = value ?? internalSelected;
+
+  const handleSelect = (nextValue: LeaveTypeValue) => {
+    if (value === undefined) {
+      setInternalSelected(nextValue);
+    }
+    onChange?.(nextValue);
+  };
 
   return (
     <View className="">
@@ -21,15 +45,14 @@ const SelectLeaveType = () => {
       </Text>
 
       <View className="flex-wrap flex-row gap-2.5">
-        {LeaveData.map((item) => {
+        {LEAVE_TYPE_OPTIONS.map((item) => {
           const isSelected = selected === item.value;
           return (
             <TouchableOpacity
               key={item.value}
-              onPress={() => setSelected(item.value)}
-              className={`px-2.5 py-1 rounded-3xl ${
-                isSelected ? "bg-[#4FB2F3]" : "bg-[#F5F5F5]"
-              }`}
+              onPress={() => handleSelect(item.value)}
+              className={`px-2.5 py-1 rounded-3xl ${isSelected ? "bg-[#4FB2F3]" : "bg-[#F5F5F5]"
+                }`}
             >
               <Text
                 className={`text-center font-proximanova-regular text-sm ${isSelected ? "text-white" : "text-gray-800"}`}

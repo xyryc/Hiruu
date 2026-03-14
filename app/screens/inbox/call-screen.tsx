@@ -8,8 +8,8 @@ const CallScreen = () => {
   useEffect(() => {
     const nextPath =
       params.callType === "video"
-        ? "/screens/jobs/video-call"
-        : "/screens/jobs/audio-call";
+        ? "/screens/inbox/video-call"
+        : "/screens/inbox/audio-call";
 
     router.replace({
       pathname: nextPath,

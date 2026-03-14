@@ -1,69 +1,28 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useShiftStore } from "@/stores/shiftStore";
-import { TodaysShiftProps } from "@/types";
+import { ApiShift, ShiftCardData, TodaysShiftProps } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { toast } from "sonner-native";
 import ActionCard from "../ui/cards/ActionCard";
 import NoTaskCard from "../ui/cards/NoTaskCard";
 import TaskCard from "../ui/cards/TaskCard";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
+import LogoutDeleteModal from "../ui/modals/LogoutDeleteModal";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
-type ApiShift = {
-  itemType?: "assigned_shift" | "empty_day";
-  id?: string;
-  date?: string;
-  status?: string;
-  startsAt?: string;
-  endsAt?: string;
-  hasNextShift?: boolean;
-  nextShiftStartDate?: string;
-  totalMembers?: number;
-  colleagueAvatars?: string[];
-  shiftTemplate?: {
-    name?: string;
-    startTime?: string;
-    endTime?: string;
-  };
-  business?: {
-    id?: string;
-    name?: string;
-    logo?: string | null;
-    address?:
-    | string
-    | {
-      line1?: string;
-      address?: string;
-      city?: string;
-      state?: string;
-      country?: string;
-    };
-  };
-};
-
-type ShiftCardData = {
-  id: string;
-  shiftTitle: string;
-  startTime: string;
-  endTime: string;
-  startsAt?: string;
-  endsAt?: string;
-  startDateTime?: string;
-  endDateTime?: string;
-  shiftImage: any;
-  teamMembers: string[];
-  totalMembers: number;
-  address: string;
-  city: string;
-  status: "ongoing" | "upcoming" | "completed" | "missed";
-};
-
 const TodaysShift = ({ className }: TodaysShiftProps) => {
+  const shiftLogoutImg = require("@/assets/images/Logout.svg");
   const [showModal, setShowModal] = useState(false);
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const [pendingLogoutShiftId, setPendingLogoutShiftId] = useState<string | null>(
+    null
+  );
   const router = useRouter();
   const isFocused = useIsFocused();
   const {
@@ -72,7 +31,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     setSelectedBusinesses,
     getMyBusinesses,
   } = useBusinessStore();
-  const { homeShifts, homeShiftsLoading, fetchHomeShifts } = useShiftStore();
+  const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn, clockOut } =
+    useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
@@ -97,9 +57,63 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     }, [accessToken, fetchHomeShifts, isFocused, selectedBusinesses])
   );
 
-  const handleLogin = () => {
-    console.log("Login pressed");
-  };
+  const handleShiftAction = useCallback(
+    async (card: ShiftCardData) => {
+      if (!card.id) {
+        toast.error("Shift assignment not found");
+        return;
+      }
+
+      if (card.presentStatus === "logged_in") {
+        setPendingLogoutShiftId(card.id);
+        setIsLogoutModalVisible(true);
+        return;
+      }
+
+      try {
+        const result = await clockIn(card.id);
+        toast.success(
+          translateApiMessage(result?.message || "successfully_clocked_in")
+        );
+      } catch (error: any) {
+        toast.error(
+          translateApiMessage(
+            error?.message ||
+              "attendance_shift_assignment_not_found_or_access_denied"
+          )
+        );
+      }
+    },
+    [clockIn]
+  );
+
+  const handleConfirmLogout = useCallback(async () => {
+    if (!pendingLogoutShiftId) {
+      setIsLogoutModalVisible(false);
+      return;
+    }
+
+    try {
+      const result = await clockOut(pendingLogoutShiftId);
+      toast.success(
+        translateApiMessage(result?.message || "successfully_clocked_out")
+      );
+      setIsLogoutModalVisible(false);
+      setPendingLogoutShiftId(null);
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.message ||
+            "attendance_shift_assignment_not_found_or_access_denied"
+        )
+      );
+    }
+  }, [clockOut, pendingLogoutShiftId]);
+
+  const handleCloseLogoutModal = useCallback(() => {
+    setIsLogoutModalVisible(false);
+    setPendingLogoutShiftId(null);
+  }, []);
 
   const extractHourMinute = useCallback((value?: string) => {
     if (!value) return null;
@@ -155,6 +169,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         if (now <= shiftEnd) return "ongoing";
 
         if (shift?.status === "missed") return "missed";
+        if (shift?.status === "early_leave") return "early_leave";
         return "completed";
       }
 
@@ -162,6 +177,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         shift?.status === "ongoing" ||
         shift?.status === "upcoming" ||
         shift?.status === "completed" ||
+        shift?.status === "early_leave" ||
         shift?.status === "missed"
       ) {
         return shift.status;
@@ -208,11 +224,14 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         startDateTime: shift?.startsAt,
         endDateTime: shift?.endsAt,
         shiftImage: business?.logo || require("@/assets/images/placeholder.png"),
-        teamMembers: Array.isArray(shift?.colleagueAvatars) ? shift.colleagueAvatars.map((_, index) => `Member ${index + 1}`) : [],
+        teamMembers: Array.isArray(shift?.colleagueAvatars)
+          ? shift.colleagueAvatars.filter(Boolean)
+          : [],
         totalMembers: typeof shift?.totalMembers === "number" ? shift.totalMembers : 0,
         address,
         city,
         status: getShiftStatus(shift),
+        presentStatus: shift?.presentStatus || "logged_out",
       };
     });
   }, [getShiftStatus, homeShifts, selectedBusinesses, to12Hour]);
@@ -287,7 +306,9 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
                 totalMembers={card.totalMembers}
                 address={card.address}
                 city={card.city}
-                onLoginPress={handleLogin}
+                presentStatus={card.presentStatus}
+                onLoginPress={() => handleShiftAction(card)}
+                onLogoutPress={() => handleShiftAction(card)}
                 status={card.status}
               />
             ))
@@ -307,6 +328,20 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         imageWidth={144}
         imageHeight={95}
         background={require("@/assets/images/chessboard-bg.svg")}
+      />
+
+      <LogoutDeleteModal
+        visible={isLogoutModalVisible}
+        onClose={handleCloseLogoutModal}
+        data={{
+          img: shiftLogoutImg,
+          title: "Log out from this shift?",
+          subtitle:
+            "You can log back in anytime during your active shift window.",
+          buttonName: "Logout",
+          buttonColor: "#EF4444",
+        }}
+        onConfirm={handleConfirmLogout}
       />
     </View>
   );

@@ -151,7 +151,7 @@ const BusinessJobs = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => router.push("/screens/jobs/chatlist")}
+              onPress={() => router.push("/screens/inbox/chat-list")}
               className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
             >
               <Image

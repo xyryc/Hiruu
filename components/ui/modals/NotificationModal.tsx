@@ -11,7 +11,7 @@ const NotificationModal = ({ visible, onClose }: any) => {
   };
 
   const handlePreferences = () => {
-    router.push("/shared/notification-preferences");
+    router.push("/screens/notifications/preferences");
     onClose(); // Close the modal
   };
 

@@ -1,11 +1,11 @@
 import { WorkShiftCardProps } from "@/types";
 import {
   AntDesign,
-  FontAwesome5,
-  MaterialCommunityIcons,
+  Feather,
+  MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 import SmallButton from "../buttons/SmallButton";
@@ -24,11 +24,46 @@ const TaskCard = ({
   address,
   city,
   onLoginPress,
+  onLogoutPress,
+  presentStatus = "logged_out",
   status = "ongoing",
   requestLog = false,
 }: WorkShiftCardProps) => {
-  const hasLiveTimer = status === "ongoing" || status === "upcoming";
-  const isStaticStatus = status === "completed" || status === "missed";
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const startRaw = startsAt || startDateTime;
+  const endRaw = endsAt || endDateTime;
+  const shiftStartMs = startRaw ? new Date(startRaw).getTime() : NaN;
+  const shiftEndMs = endRaw ? new Date(endRaw).getTime() : NaN;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const liveStatus = useMemo(() => {
+    if (status === "early_leave") {
+      return "early_leave";
+    }
+
+    const hasValidRange =
+      !Number.isNaN(shiftStartMs) &&
+      !Number.isNaN(shiftEndMs) &&
+      shiftEndMs >= shiftStartMs;
+
+    if (!hasValidRange) {
+      return status;
+    }
+
+    if (nowMs < shiftStartMs) return "upcoming";
+    if (nowMs <= shiftEndMs) return "ongoing";
+    if (status === "missed") return "missed";
+    return "completed";
+  }, [nowMs, shiftEndMs, shiftStartMs, status]);
+
+  const hasLiveTimer = liveStatus === "ongoing" || liveStatus === "upcoming";
+  const isStaticStatus = liveStatus === "completed" || liveStatus === "missed";
 
   const formatDuration = useCallback((totalSeconds: number) => {
     const safe = Math.max(0, Math.floor(totalSeconds));
@@ -38,48 +73,47 @@ const TaskCard = ({
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   }, []);
 
-  const getCountdown = useCallback(() => {
+  const elapsedTime = useMemo(() => {
     if (!hasLiveTimer) {
       return "00:00:00";
     }
 
-    const now = Date.now();
     const targetRaw =
-      status === "upcoming"
+      liveStatus === "upcoming"
         ? startsAt || startDateTime
         : endsAt || endDateTime;
     const target = targetRaw ? new Date(targetRaw).getTime() : NaN;
     if (Number.isNaN(target)) {
       return "00:00:00";
     }
-    return formatDuration((target - now) / 1000);
+    return formatDuration((target - nowMs) / 1000);
   }, [
     endDateTime,
     endsAt,
     formatDuration,
     hasLiveTimer,
+    liveStatus,
+    nowMs,
     startDateTime,
     startsAt,
-    status,
   ]);
 
-  const [elapsedTime, setElapsedTime] = useState(() => getCountdown());
+  const isUpcomingLoginWindow = useMemo(() => {
+    if (liveStatus !== "upcoming" || Number.isNaN(shiftStartMs)) return false;
+    const preLoginWindowStart = shiftStartMs - 15 * 60 * 1000;
+    return nowMs >= preLoginWindowStart && nowMs < shiftStartMs;
+  }, [liveStatus, nowMs, shiftStartMs]);
 
-  // Live countdown for upcoming/ongoing shifts.
-  useEffect(() => {
-    setElapsedTime(getCountdown());
+  const isOngoingLoginWindow = useMemo(() => {
+    if (liveStatus !== "ongoing" || Number.isNaN(shiftStartMs)) return false;
+    const postStartLoginWindowEnd = shiftStartMs + 15 * 60 * 1000;
+    return nowMs <= postStartLoginWindowEnd;
+  }, [liveStatus, nowMs, shiftStartMs]);
 
-    if (hasLiveTimer) {
-      const interval = setInterval(() => {
-        setElapsedTime(getCountdown());
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [getCountdown, hasLiveTimer]);
+  const isLoggedIn = presentStatus === "logged_in";
 
   const getStatusColor = () => {
-    switch (status) {
+    switch (liveStatus) {
       case "ongoing":
         return "#3EBF5A";
       case "upcoming":
@@ -94,7 +128,7 @@ const TaskCard = ({
   };
 
   const getStatusText = () => {
-    switch (status) {
+    switch (liveStatus) {
       case "ongoing":
         return "Ongoing:";
       case "upcoming":
@@ -194,9 +228,22 @@ const TaskCard = ({
                       zIndex: 10 - index,
                     }}
                   >
-                    <Text className="text-xs font-proximanova-medium text-gray-600">
-                      {member.charAt(0).toUpperCase()}
-                    </Text>
+                    {typeof member === "string" &&
+                      (member.startsWith("http://") || member.startsWith("https://")) ? (
+                      <Image
+                        source={member}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 999,
+                        }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Text className="text-xs font-proximanova-medium text-gray-600">
+                        {String(member || "?").charAt(0).toUpperCase()}
+                      </Text>
+                    )}
                   </View>
                 ))}
 
@@ -215,8 +262,8 @@ const TaskCard = ({
 
             {/* Member Count */}
             <View className="flex-row items-center gap-1">
-              <FontAwesome5 name="user" size={14} color="#7A7A7A" />
-              <Text className="text-sm font-proximanova-regular">
+              <Feather name="user" size={12} color="#7A7A7A" />
+              <Text className="text-sm font-proximanova-regular text-secondary">
                 {teamMembers.length}/{totalMembers}
               </Text>
             </View>
@@ -271,12 +318,32 @@ const TaskCard = ({
           <SmallButton title="Request Log" onPress={onLoginPress} />
         ) : (
           <>
-            {status === "upcoming" && <StatusBadge status={status} />}
-            {status === "ongoing" && (
-              <SmallButton title="Login" className="px-8" />
+            {liveStatus === "upcoming" &&
+              (isUpcomingLoginWindow ? (
+                <SmallButton
+                  title={isLoggedIn ? "Logout" : "Login"}
+                  className={isLoggedIn ? "px-8 bg-[#EF4444]" : "px-8"}
+                  onPress={isLoggedIn ? onLogoutPress || onLoginPress : onLoginPress}
+                />
+              ) : (
+                <StatusBadge status={liveStatus} />
+              ))}
+            {liveStatus === "ongoing" && (
+              isLoggedIn ? (
+                <SmallButton
+                  title="Logout"
+                  className="px-8 bg-[#EF4444]"
+                  onPress={onLogoutPress || onLoginPress}
+                />
+              ) : isOngoingLoginWindow ? (
+                <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
+              ) : (
+                <SmallButton title="Request Log" onPress={onLoginPress} />
+              )
             )}
-            {status === "completed" && <StatusBadge status={status} />}
-            {status === "missed" && <StatusBadge status={status} />}
+            {liveStatus === "completed" && <StatusBadge status={liveStatus} />}
+            {liveStatus === "missed" && <StatusBadge status={liveStatus} />}
+            {liveStatus === "early_leave" && <StatusBadge status={liveStatus} />}
           </>
         )}
       </View>
