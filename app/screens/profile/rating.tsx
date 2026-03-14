@@ -50,7 +50,7 @@ const Rating = () => {
       };
 
       loadMyRatings();
-      return () => {};
+      return () => { };
     }, [getMyRatings])
   );
 
@@ -87,6 +87,15 @@ const Rating = () => {
     ];
   }, [ratingItems]);
 
+  const averageRating = useMemo(() => {
+    if (!ratingItems.length) return 0;
+    const total = ratingItems.reduce(
+      (sum: number, item: any) => sum + Number(item?.overallRating ?? item?.rating ?? 0),
+      0
+    );
+    return Number((total / ratingItems.length).toFixed(1));
+  }, [ratingItems]);
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -106,10 +115,8 @@ const Rating = () => {
           titleClass="text-primary "
           iconColor={isDark ? "#fff" : "#111111"}
         />
+        <RatingBanner averageRating={averageRating} />
 
-        <View>
-          <RatingBanner />
-        </View>
 
         {/* Ratings and star */}
         <View className=" mx-5 bg-[#E5F4FD] mt-8 rounded-2xl p-5 shadow-lg">

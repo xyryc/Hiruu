@@ -1,9 +1,9 @@
-import { View, Text } from "react-native";
-import React from "react";
 import { Image } from "expo-image";
+import React from "react";
+import { Text, View } from "react-native";
 import RatingStar from "./RatingStar";
 
-const RatingBanner = () => {
+const RatingBanner = ({ averageRating }: { averageRating: number }) => {
   return (
     <View>
       <View className="flex-row justify-center items-center">
@@ -17,7 +17,7 @@ const RatingBanner = () => {
             Overall Rating
           </Text>
           <Text className="text-center font-proximanova-bold text-5xl text-primary dark:text-dark-primary">
-            4.9
+            {averageRating}
           </Text>
         </View>
         <Image
