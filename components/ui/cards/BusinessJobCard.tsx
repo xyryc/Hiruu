@@ -268,7 +268,7 @@ const BusinessJobCard = ({
               <SmallButton
                 title="View Profile"
                 onPress={() =>
-                  router.replace("/screens/jobs/business/user-profile-preview")
+                  router.push("/screens/jobs/business/user-profile-preview")
                 }
               />
             </View>
