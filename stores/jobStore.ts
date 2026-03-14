@@ -174,6 +174,7 @@ interface JobState {
   jobProfile: JobProfileData | null;
   isLoadingJobProfile: boolean;
   myEmployments: MyEmploymentItem[];
+  selectedEmploymentBusinessIds: string[];
   myEmploymentsLoading: boolean;
   myEmploymentsError: string | null;
   error: Error | null;
@@ -216,6 +217,7 @@ interface JobState {
     query?: RecruitmentApplicationFilterQuery
   ) => Promise<RecruitmentApplicationListResponse>;
   getMyEmployments: () => Promise<MyEmploymentItem[]>;
+  setSelectedEmploymentBusinessIds: (ids: string[]) => void;
   clearMyEmploymentsError: () => void;
   clearError: () => void;
 }
@@ -225,6 +227,7 @@ export const useJobStore = create<JobState>((set) => ({
   jobProfile: null,
   isLoadingJobProfile: false,
   myEmployments: [],
+  selectedEmploymentBusinessIds: [],
   myEmploymentsLoading: false,
   myEmploymentsError: null,
   error: null,
@@ -790,10 +793,18 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const employments = Array.isArray(result?.data) ? result.data : [];
-      set({
+      const validBusinessIds = new Set(
+        employments
+          .map((item: MyEmploymentItem) => item?.business?.id || item?.businessId)
+          .filter(Boolean) as string[]
+      );
+      set((state) => ({
         myEmployments: employments,
+        selectedEmploymentBusinessIds: state.selectedEmploymentBusinessIds.filter((id) =>
+          validBusinessIds.has(id)
+        ),
         myEmploymentsLoading: false,
-      });
+      }));
       return employments;
     } catch (error) {
       const axiosError = error as AxiosError<any>;
@@ -809,6 +820,15 @@ export const useJobStore = create<JobState>((set) => ({
       throw new Error(message);
     }
   },
+
+  setSelectedEmploymentBusinessIds: (ids) =>
+    set(() => {
+      const unique = Array.from(new Set((Array.isArray(ids) ? ids : []).filter(Boolean)));
+      // Keep selection mode constrained to [] (all) or [single business].
+      return {
+        selectedEmploymentBusinessIds: unique.length > 1 ? [unique[0]] : unique,
+      };
+    }),
 
   clearMyEmploymentsError: () => set({ myEmploymentsError: null }),
 

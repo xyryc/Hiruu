@@ -1,5 +1,4 @@
 import { useAuthStore } from "@/stores/authStore";
-import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { ApiShift, ShiftCardData, TodaysShiftProps } from "@/types";
@@ -27,10 +26,11 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
   const router = useRouter();
   const isFocused = useIsFocused();
   const {
-    selectedBusinesses,
-    setSelectedBusinesses,
-  } = useBusinessStore();
-  const { myEmployments, getMyEmployments } = useJobStore();
+    myEmployments,
+    getMyEmployments,
+    selectedEmploymentBusinessIds,
+    setSelectedEmploymentBusinessIds,
+  } = useJobStore();
   const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn, clockOut } =
     useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -74,10 +74,10 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     useCallback(() => {
       if (!accessToken || !isFocused) return;
 
-      fetchHomeShifts(selectedBusinesses).catch((error) => {
+      fetchHomeShifts(selectedEmploymentBusinessIds).catch((error) => {
         console.error("[TodaysShift] fetchHomeShifts error:", error);
       });
-    }, [accessToken, fetchHomeShifts, isFocused, selectedBusinesses])
+    }, [accessToken, fetchHomeShifts, isFocused, selectedEmploymentBusinessIds])
   );
 
   const handleShiftAction = useCallback(
@@ -215,10 +215,10 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     const source = Array.isArray(homeShifts) ? (homeShifts as ApiShift[]) : [];
 
     const filtered =
-      selectedBusinesses.length === 0
+      selectedEmploymentBusinessIds.length === 0
         ? source
         : source.filter((shift) =>
-          selectedBusinesses.includes(shift?.business?.id || "")
+          selectedEmploymentBusinessIds.includes(shift?.business?.id || "")
         );
 
     const afterItemTypeFilter = filtered.filter(
@@ -257,19 +257,19 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         presentStatus: shift?.presentStatus || "logged_out",
       };
     });
-  }, [getShiftStatus, homeShifts, selectedBusinesses, to12Hour]);
+  }, [getShiftStatus, homeShifts, selectedEmploymentBusinessIds, to12Hour]);
 
   // Get display content for header button
   const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0) {
+    if (selectedEmploymentBusinessIds.length === 0) {
       return { type: "all", content: "All" };
-    } else if (selectedBusinesses.length === 1) {
+    } else if (selectedEmploymentBusinessIds.length === 1) {
       const selectedBusiness = employmentBusinesses.find(
-        (b) => b.id === selectedBusinesses[0]
+        (b) => b.id === selectedEmploymentBusinessIds[0]
       );
       return { type: "single", content: selectedBusiness };
     }
-    return { type: "multi", content: `${selectedBusinesses.length} Selected` };
+    return { type: "multi", content: `${selectedEmploymentBusinessIds.length} Selected` };
   };
 
   const displayContent = getDisplayContent();
@@ -293,8 +293,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         onClose={() => setShowModal(false)}
         businesses={employmentBusinesses}
         disableStoreFallback
-        selectedBusinesses={selectedBusinesses}
-        onSelectionChange={setSelectedBusinesses}
+        selectedBusinesses={selectedEmploymentBusinessIds}
+        onSelectionChange={setSelectedEmploymentBusinessIds}
       />
 
       {/* cards */}

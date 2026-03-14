@@ -2,6 +2,7 @@ import ShiftHeader from "@/components/header/ShiftHeader";
 import ShiftItem from "@/components/layout/ShiftItem";
 import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
+import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
@@ -13,7 +14,6 @@ import { toast } from "sonner-native";
 
 const ShiftSchedule = () => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const value = new Date();
     const year = value.getFullYear();
@@ -22,6 +22,12 @@ const ShiftSchedule = () => {
     return `${year}-${month}-${day}`;
   });
   const [refreshing, setRefreshing] = useState(false);
+  const {
+    myEmployments,
+    getMyEmployments,
+    selectedEmploymentBusinessIds,
+    setSelectedEmploymentBusinessIds,
+  } = useJobStore();
   const { myShifts, myShiftsLoading, fetchMyShifts } = useShiftStore();
 
   const to12Hour = useCallback((value?: string) => {
@@ -192,6 +198,10 @@ const ShiftSchedule = () => {
   }, [fetchMyShifts, selectedDate]);
 
   useEffect(() => {
+    getMyEmployments().catch(() => undefined);
+  }, [getMyEmployments]);
+
+  useEffect(() => {
     loadShifts();
   }, [loadShifts]);
 
@@ -233,14 +243,16 @@ const ShiftSchedule = () => {
   );
 
   const filteredShifts = useMemo(() => {
-    if (selectedBusinesses.length === 0) return uiShifts;
-    return uiShifts.filter((shift) => selectedBusinesses.includes(shift.businessId));
-  }, [selectedBusinesses, uiShifts]);
+    if (selectedEmploymentBusinessIds.length === 0) return uiShifts;
+    return uiShifts.filter((shift) =>
+      selectedEmploymentBusinessIds.includes(shift.businessId)
+    );
+  }, [selectedEmploymentBusinessIds, uiShifts]);
 
   const modalBusinesses = useMemo(() => {
     const map = new Map<string, { id: string; name: string; logo?: string }>();
-    (Array.isArray(myShifts) ? myShifts : []).forEach((shift) => {
-      const business = shift?.business;
+    (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment) => {
+      const business = employment?.business;
       if (!business?.id) return;
       if (map.has(business.id)) return;
       map.set(business.id, {
@@ -250,15 +262,15 @@ const ShiftSchedule = () => {
       });
     });
     return Array.from(map.values());
-  }, [myShifts]);
+  }, [myEmployments]);
 
   // Get display content for header button
   const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0 || modalBusinesses.length === 0) {
+    if (selectedEmploymentBusinessIds.length === 0 || modalBusinesses.length === 0) {
       return { type: "all", content: "All" };
-    } else if (selectedBusinesses.length === 1) {
+    } else if (selectedEmploymentBusinessIds.length === 1) {
       const selectedBusiness = modalBusinesses.find(
-        (b) => b.id === selectedBusinesses[0]
+        (b) => b.id === selectedEmploymentBusinessIds[0]
       );
       return { type: "single", content: selectedBusiness };
     }
@@ -311,8 +323,9 @@ const ShiftSchedule = () => {
         visible={showModal}
         onClose={() => setShowModal(false)}
         businesses={modalBusinesses}
-        selectedBusinesses={selectedBusinesses}
-        onSelectionChange={setSelectedBusinesses}
+        disableStoreFallback
+        selectedBusinesses={selectedEmploymentBusinessIds}
+        onSelectionChange={setSelectedEmploymentBusinessIds}
       />
     </SafeAreaView>
   );
