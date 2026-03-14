@@ -1,5 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import BusinessShiftPending from "@/components/ui/cards/BusinessShiftPending";
+import LeaveRequestCard from "@/components/ui/cards/LeaveRequestCard";
 import SuccessRejectModal from "@/components/ui/modals/SuccessRejectModal";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -68,7 +68,7 @@ const LeaveRequest = () => {
               { status: "Network Issues" },
               { status: "Hourly Leave" },
             ].map((status, i) => (
-              <BusinessShiftPending
+              <LeaveRequestCard
                 key={i}
                 approved
                 status={status.status}
@@ -88,16 +88,19 @@ const LeaveRequest = () => {
               { status: "Network Issues", modal: true },
               { status: "Hourly Leave", modal: true },
             ].map((item, i) => (
-              <BusinessShiftPending
+              <LeaveRequestCard
                 key={i}
-                {...(item.modal && {
-                  modal: () => setIssuccess(true),
-                  setReject,
-                  reject,
-                })}
-                selectedTab
                 title={item.title}
                 status={item.status}
+                showReviewActions
+                onAccept={() => {
+                  setReject(false);
+                  setIssuccess(true);
+                }}
+                onReject={() => {
+                  setReject(true);
+                  setIssuccess(true);
+                }}
               />
             ))}
           </View>

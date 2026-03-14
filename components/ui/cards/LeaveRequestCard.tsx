@@ -3,30 +3,32 @@ import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import ShiftRequestModal from "../modals/ShiftRequestModal";
 
-const BusinessShiftPending = ({
+type LeaveRequestCardProps = {
+  title?: string;
+  status?: string;
+  approved?: boolean;
+  showReviewActions?: boolean;
+  userId?: string;
+  onAccept?: () => void;
+  onReject?: () => void;
+};
+
+const LeaveRequestCard = ({
   title,
   status,
-  selectedTab,
   approved,
-  modal,
-  setReject,
-  userId, // Add userId prop to identify the user to chat with
-}: any) => {
+  showReviewActions,
+  userId,
+  onAccept,
+  onReject,
+}: LeaveRequestCardProps) => {
   const router = useRouter();
   const [isFilterModal, setIsFilterModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
-
-  console.log(approved && selectedTab);
 
   const handleMessageClick = async () => {
     if (!userId) {
@@ -54,25 +56,13 @@ const BusinessShiftPending = ({
     }
   };
 
-  const handleButton = (e: string) => {
-    if (modal) {
-      if (e === "reject") {
-        modal();
-        setReject(true);
-      } else {
-        modal();
-        setReject(false);
-      }
-    }
-  };
-
   return (
     <View>
-      {title && (
+      {title ? (
         <Text className="text-xl font-proximanova-bold text-primary dark:text-dark-primary mt-5">
           {title}
         </Text>
-      )}
+      ) : null}
       <View className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5">
         <View className="flex-row justify-between">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary ">
@@ -87,19 +77,17 @@ const BusinessShiftPending = ({
         <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-1">
           09:00 AM to 1:00 PM
         </Text>
-        {!(approved || selectedTab) && (
+        {!approved ? (
           <View className="flex-row gap-1 mt-2.5">
             <EvilIcons name="location" size={20} color="black" />
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               New York, North Bergen
             </Text>
           </View>
-        )}
+        ) : null}
         <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2.5">
-          {!(approved || selectedTab) && (
-            <Text className="text-[#4FB2F3]">Reason{" :  "}</Text>
-          )}
-          {approved || selectedTab
+          {!approved ? <Text className="text-[#4FB2F3]">Reason{" :  "}</Text> : null}
+          {approved
             ? "Fever and body ache Medical checkup and recovery at home Fever and body ache Medical  "
             : " Unable to clock in due to poor internet connectivity at location."}
         </Text>
@@ -124,7 +112,7 @@ const BusinessShiftPending = ({
               </Text>
             </View>
           </View>
-          {selectedTab ? (
+          {showReviewActions ? (
             <View className="flex-row gap-1.5">
               <Pressable
                 onPress={handleMessageClick}
@@ -142,13 +130,13 @@ const BusinessShiftPending = ({
                 )}
               </Pressable>
               <TouchableOpacity
-                onPress={() => handleButton("success")}
+                onPress={onAccept}
                 className="h-10 w-10 bg-[#292D32] rounded-full flex-row justify-center items-center"
               >
                 <Feather name="check" size={22} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => handleButton("reject")}
+                onPress={onReject}
                 className="h-10 w-10 bg-[#F34F4F] rounded-full flex-row justify-center items-center"
               >
                 <EvilIcons name="close" size={22} color="white" />
@@ -157,7 +145,7 @@ const BusinessShiftPending = ({
           ) : (
             <TouchableOpacity
               onPress={() => setIsFilterModal(true)}
-              className={`py-2.5 px-3 rounded-full ${approved || "bg-[#11293A] "}`}
+              className={`py-2.5 px-3 rounded-full ${approved ? "" : "bg-[#11293A] "}`}
             >
               <Text className="font-proximanova-semibold text-sm text-white">
                 Add Request
@@ -174,4 +162,4 @@ const BusinessShiftPending = ({
   );
 };
 
-export default BusinessShiftPending;
+export default LeaveRequestCard;

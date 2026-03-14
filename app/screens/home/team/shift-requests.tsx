@@ -1,5 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import BusinessShiftPending from "@/components/ui/cards/BusinessShiftPending";
+import TeamShiftRequestCard from "@/components/ui/cards/TeamShiftRequestCard";
 import RequestLogModal from "@/components/ui/modals/RequestLogModal";
 import { Feather, SimpleLineIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -80,22 +80,22 @@ const ShiftRequest = () => {
         {/* pending screen */}
         {selectedTab === "Pending Requests" && (
           <View>
-            <BusinessShiftPending status="Missed Clock-out" title="Pending" />
-            <BusinessShiftPending status="Late Clock-in" />
-            <BusinessShiftPending status="Missed Clock-out" />
-            <BusinessShiftPending status="Network Issues" />
-            <BusinessShiftPending status="Missed Clock-out" title="Pending" />
+            <TeamShiftRequestCard status="Missed Clock-out" title="Pending" />
+            <TeamShiftRequestCard status="Late Clock-in" />
+            <TeamShiftRequestCard status="Missed Clock-out" />
+            <TeamShiftRequestCard status="Network Issues" />
+            <TeamShiftRequestCard status="Missed Clock-out" title="Pending" />
           </View>
         )}
 
         {/* Request History */}
         {selectedTab === "Request History" && (
           <View>
-            <BusinessShiftPending selectedTab status="Missed Clock-out" />
-            <BusinessShiftPending selectedTab status="Late Clock-in" />
-            <BusinessShiftPending selectedTab status="Missed Clock-out" />
-            <BusinessShiftPending selectedTab status="Network Issues" />
-            <BusinessShiftPending selectedTab status="Missed Clock-out" />
+            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
+            <TeamShiftRequestCard isHistory status="Late Clock-in" />
+            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
+            <TeamShiftRequestCard isHistory status="Network Issues" />
+            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
           </View>
         )}
       </ScrollView>
