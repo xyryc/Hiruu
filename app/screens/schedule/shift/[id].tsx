@@ -121,7 +121,7 @@ const ShiftDetails = () => {
       {/* Custom Header */}
       <ScreenHeader
         onPressBack={() => router.back()}
-        className="px-4"
+        className="px-4 pt-4"
         title="Detail"
         components={
           <View className="flex-row items-center gap-2.5">

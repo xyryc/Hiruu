@@ -235,6 +235,7 @@ export interface ShiftHeaderProps {
 }
 
 export interface WorkShiftCardProps {
+  shiftId?: string;
   shiftTitle: string;
   startTime: string;
   endTime: string;

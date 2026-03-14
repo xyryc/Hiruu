@@ -5,12 +5,14 @@ import {
   MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 import SmallButton from "../buttons/SmallButton";
 
 const TaskCard = ({
+  shiftId,
   shiftTitle,
   startTime,
   endTime,
@@ -29,6 +31,8 @@ const TaskCard = ({
   status = "ongoing",
   requestLog = false,
 }: WorkShiftCardProps) => {
+  const router = useRouter();
+
   const [nowMs, setNowMs] = useState(() => Date.now());
   const startRaw = startsAt || startDateTime;
   const endRaw = endsAt || endDateTime;
@@ -142,7 +146,14 @@ const TaskCard = ({
   };
 
   return (
-    <View
+    <TouchableOpacity
+      onPress={() => {
+        if (!shiftId) return;
+        router.push({
+          pathname: "/screens/schedule/shift/[id]",
+          params: { id: String(shiftId) },
+        });
+      }}
       className={`flex-1 mr-4 rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"}`}
     >
       {/* Status Timer */}
@@ -347,7 +358,7 @@ const TaskCard = ({
           </>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

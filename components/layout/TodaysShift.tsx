@@ -312,6 +312,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
             cards.map((card) => (
               <TaskCard
                 key={card.id}
+                shiftId={card.id}
                 shiftTitle={card.shiftTitle}
                 startTime={card.startTime}
                 endTime={card.endTime}
