@@ -34,15 +34,6 @@ const BusinessJobCard = ({
   const [showModal, setShowModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
 
-  console.log("[BusinessJobCard] render profile:", {
-    id: profile?.id,
-    userId: profile?.userId || profile?.user?.id,
-    name: profile?.user?.name,
-    headline: profile?.headline,
-    isOpenToWork: profile?.isOpenToWork,
-    isPremium: profile?.isPremium,
-  });
-
   // Extract profile data
   const userName = profile?.user?.name || "Md Talath Un Nabi Anik";
   const userAvatar = profile?.user?.avatar || "https://images.squarespace-cdn.com/content/v1/5521b031e4b06ebe90178744/1560360135937-3XYVZ3124L1YL2FOASSQ/headshots-linkedin-photographer.jpg";

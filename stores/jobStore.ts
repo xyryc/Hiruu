@@ -667,18 +667,13 @@ export const useJobStore = create<JobState>((set) => ({
       // if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
       if (query.isPremium !== undefined) params.isPremium = query.isPremium;
 
-      console.log("[JobStore] getJobProfiles called with params:", params);
 
       const response = await axiosInstance.get("/job-profile/open-to-work", {
         params,
       });
       const result = response.data;
 
-      console.log("[JobStore] getJobProfiles response:", {
-        statusCode: result?.statusCode,
-        dataLength: Array.isArray(result?.data) ? result.data.length : 0,
-        pagination: result?.pagination,
-      });
+
 
       const hasError =
         result?.success === false ||
@@ -718,13 +713,7 @@ export const useJobStore = create<JobState>((set) => ({
       const page = query.page ?? 1;
       const limit = query.limit ?? 10;
 
-      console.log("[JobStore] getBusinessApplications called:", {
-        businessId,
-        page,
-        limit,
-        status: query.status,
-        recruitmentId: query.recruitmentId,
-      });
+
 
       const response = await axiosInstance.get(
         `/recruitment-application/business/${businessId}`,
@@ -739,11 +728,7 @@ export const useJobStore = create<JobState>((set) => ({
       );
       const result = response.data;
 
-      console.log("[JobStore] getBusinessApplications response:", {
-        statusCode: result?.statusCode,
-        dataLength: Array.isArray(result?.data) ? result.data.length : 0,
-        pagination: result?.pagination,
-      });
+
 
       const hasError =
         result?.success === false ||
