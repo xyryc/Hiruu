@@ -10,7 +10,13 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { toast } from "sonner-native";
 import StatusBadge from "../badges/StatusBadge";
 import SecondaryButton from "../buttons/SecondaryButton";
@@ -27,6 +33,15 @@ const BusinessJobCard = ({
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  console.log("[BusinessJobCard] render profile:", {
+    id: profile?.id,
+    userId: profile?.userId || profile?.user?.id,
+    name: profile?.user?.name,
+    headline: profile?.headline,
+    isOpenToWork: profile?.isOpenToWork,
+    isPremium: profile?.isPremium,
+  });
 
   // Extract profile data
   const userName = profile?.user?.name || "Md Talath Un Nabi Anik";
@@ -253,7 +268,7 @@ const BusinessJobCard = ({
               <SmallButton
                 title="View Profile"
                 onPress={() =>
-                  router.replace("/screens/jobs/business/user-profile-preview")
+                  router.push("/screens/jobs/business/user-profile-preview")
                 }
               />
             </View>
