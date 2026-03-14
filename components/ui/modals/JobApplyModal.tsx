@@ -2,7 +2,6 @@ import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
 import type { JobCardProps } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
-import { utcTimeToLocal } from "@/utils/timezone";
 import { Entypo, Fontisto, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -37,6 +36,17 @@ const resolveMediaUrl = (value?: string | null) => {
   return `${base}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
+const to12Hour = (value?: string) => {
+  if (!value) return "--:--";
+  const [rawHour = "0", rawMinute = "0"] = value.split(":");
+  const hour = Number(rawHour);
+  const minute = Number(rawMinute);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+};
+
 const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -61,10 +71,10 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
     : "-";
   const shiftLabel =
     job?.shiftStartTime && job?.shiftEndTime
-      ? `${utcTimeToLocal(job.shiftStartTime)} - ${utcTimeToLocal(job.shiftEndTime)}`
+      ? `${to12Hour(job.shiftStartTime)} - ${to12Hour(job.shiftEndTime)}`
       : job?.shiftType || "-";
   const distanceLabel =
-    typeof job?.distanceKm === "number" ? `${job.distanceKm}km away` : null;
+    typeof job?.distanceKm === "number" ? `${job.distanceKm} Km Away` : null;
 
   const isAlreadyEmployed = React.useMemo(() => {
     const employments = Array.isArray(user?.employments) ? user.employments : [];
@@ -209,7 +219,7 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
               </Text>
             </View>
 
-            <View className="flex-row flex-wrap justify-center gap-2.5 mt-2.5">
+            <View className="flex-row flex-wrap items-center justify-center gap-2.5 mt-2.5">
               <SimpleStatusBadge title={`Hiring: ${roleName}`} bgColor="#F5F5F5" />
               <SimpleStatusBadge title={`Salary: ${salaryLabel}`} bgColor="#F5F5F5" />
               <SimpleStatusBadge title={`Shift: ${shiftLabel}`} bgColor="#F5F5F5" />
