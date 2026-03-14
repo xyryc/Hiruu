@@ -5,7 +5,7 @@ import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModa
 import { useShiftStore } from "@/stores/shiftStore";
 import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
-import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
+import { formatUTCToLocalTime } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,9 +26,7 @@ const ShiftSchedule = () => {
 
   const to12Hour = useCallback((value?: string) => {
     if (!value) return "--:--";
-    // Convert UTC time to local time first
-    const localTime = utcTimeToLocal(value);
-    const [rawHour = "0", rawMinute = "0"] = localTime.split(":");
+    const [rawHour = "0", rawMinute = "0"] = value.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
@@ -106,6 +104,23 @@ const ShiftSchedule = () => {
         shiftEnd.setDate(shiftEnd.getDate() + 1);
       }
 
+      const displayStartTime =
+        startAt && !Number.isNaN(startAt.getTime())
+          ? startAt.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          : to12Hour(start);
+      const displayEndTime =
+        endAt && !Number.isNaN(endAt.getTime())
+          ? endAt.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          : to12Hour(end);
+
       let type: UserScheduleUiShift["type"] = "upcoming";
       let status: UserScheduleUiShift["status"] = "upcoming";
       let countdown: string | undefined;
@@ -134,7 +149,7 @@ const ShiftSchedule = () => {
       } else {
         type = "completed";
         status = "completed";
-        message = `You finished your ${to12Hour(start)} shift.`;
+        message = `You finished your ${displayStartTime} shift.`;
       }
 
       const breakDuration = Array.isArray(shift?.shiftTemplate?.breakDuration)
@@ -151,26 +166,9 @@ const ShiftSchedule = () => {
         id: shift.id || `${business?.id || "unknown"}-${shift?.date || Date.now()}`,
         businessId: business?.id || "",
         type,
-        time: startAt && !Number.isNaN(startAt.getTime())
-          ? startAt.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })
-          : to12Hour(start),
+        time: displayStartTime,
         title: shift?.shiftTemplate?.name || "Shift",
-        workTime:
-          startAt && endAt && !Number.isNaN(startAt.getTime()) && !Number.isNaN(endAt.getTime())
-            ? `${startAt.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })} - ${endAt.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}`
-            : `${to12Hour(start)} - ${to12Hour(end)}`,
+        workTime: `${displayStartTime} - ${displayEndTime}`,
         breakTime,
         company: business?.name || "Business",
         companyLogo: business?.logo,
@@ -186,7 +184,8 @@ const ShiftSchedule = () => {
 
   const loadShifts = useCallback(async () => {
     try {
-      await fetchMyShifts(selectedDate);
+      const response = await fetchMyShifts(selectedDate);
+      // console.log("[UserSchedule] raw api response:", response);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load shifts");
     }
@@ -232,7 +231,6 @@ const ShiftSchedule = () => {
     () => (Array.isArray(myShifts) ? myShifts : []).map(toUiShift),
     [myShifts, toUiShift]
   );
-  console.log("[UserSchedule] shifts:", uiShifts);
 
   const filteredShifts = useMemo(() => {
     if (selectedBusinesses.length === 0) return uiShifts;
