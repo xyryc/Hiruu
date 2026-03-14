@@ -224,7 +224,9 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         startDateTime: shift?.startsAt,
         endDateTime: shift?.endsAt,
         shiftImage: business?.logo || require("@/assets/images/placeholder.png"),
-        teamMembers: Array.isArray(shift?.colleagueAvatars) ? shift.colleagueAvatars.map((_, index) => `Member ${index + 1}`) : [],
+        teamMembers: Array.isArray(shift?.colleagueAvatars)
+          ? shift.colleagueAvatars.filter(Boolean)
+          : [],
         totalMembers: typeof shift?.totalMembers === "number" ? shift.totalMembers : 0,
         address,
         city,

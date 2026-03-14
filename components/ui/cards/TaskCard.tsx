@@ -228,9 +228,22 @@ const TaskCard = ({
                       zIndex: 10 - index,
                     }}
                   >
-                    <Text className="text-xs font-proximanova-medium text-gray-600">
-                      {member.charAt(0).toUpperCase()}
-                    </Text>
+                    {typeof member === "string" &&
+                      (member.startsWith("http://") || member.startsWith("https://")) ? (
+                      <Image
+                        source={member}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 999,
+                        }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Text className="text-xs font-proximanova-medium text-gray-600">
+                        {String(member || "?").charAt(0).toUpperCase()}
+                      </Text>
+                    )}
                   </View>
                 ))}
 

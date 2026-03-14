@@ -8,7 +8,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -42,6 +42,7 @@ const LeaveHistory = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORIES)[number]>("all");
   const [onCalender, setOnCalendet] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const shiftRequests = useShiftStore((state) => state.shiftRequests);
   const shiftRequestsLoading = useShiftStore((state) => state.shiftRequestsLoading);
@@ -56,6 +57,19 @@ const LeaveHistory = () => {
       }
     );
   }, [getShiftRequests]);
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await getShiftRequests({ startDate: DEFAULT_START_DATE, type: "leave_request" });
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to fetch shift requests")
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const leaveItems = useMemo<LeaveItem[]>(() => {
     const toDisplayDate = (start?: string, end?: string) => {
@@ -223,6 +237,9 @@ const LeaveHistory = () => {
               No leave requests found.
             </Text>
           ) : null
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         data={filteredData}
         keyExtractor={(item) => item.id}
