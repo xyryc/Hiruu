@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import TeamShiftRequestCard from "@/components/ui/cards/TeamShiftRequestCard";
 import RequestLogModal from "@/components/ui/modals/RequestLogModal";
-import { Feather, SimpleLineIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
@@ -39,15 +39,16 @@ const ShiftRequest = () => {
                 onPress={() => setIsModalSettings(true)}
                 className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center"
               >
-                <SimpleLineIcons name="settings" size={22} color="black" />
+                <Ionicons name="settings-outline" size={20} color="black" />
               </TouchableOpacity>
+
               <TouchableOpacity
                 onPress={() =>
                   router.push("/screens/home/shift/shift-filter")
                 }
                 className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center"
               >
-                <Feather name="filter" size={22} color="black" />
+                <Ionicons name="filter" size={20} color="black" />
               </TouchableOpacity>
             </View>
           }
@@ -57,6 +58,7 @@ const ShiftRequest = () => {
           visible={isModalSettings}
           onClose={() => setIsModalSettings(false)}
         />
+
         {/* tabs  */}
         <View className="flex-row mx-5 mt-2 dark:bg-dark-background">
           {["Pending Requests", "Request History"].map((tab) => (
@@ -76,6 +78,7 @@ const ShiftRequest = () => {
           ))}
         </View>
       </View>
+
       <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
         {/* pending screen */}
         {selectedTab === "Pending Requests" && (

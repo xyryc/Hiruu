@@ -52,6 +52,9 @@ export interface UpdateProfileData {
 }
 
 export interface UpdatePreferencesData {
+  language?: string;
+  timeZone?: string;
+  theme?: string;
   smartAlert: boolean;
   smartAlertTime: number;
 }

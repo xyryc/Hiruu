@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { toast } from "sonner-native";
+import ShiftRequestModal from "../modals/ShiftRequestModal";
 
 type TeamShiftRequestCardProps = {
   title?: string;
@@ -31,6 +32,7 @@ const TeamShiftRequestCard = ({
 }: TeamShiftRequestCardProps) => {
   const router = useRouter();
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isFilterModal, setIsFilterModal] = useState(false);
 
   const handleMessageClick = async () => {
     if (!userId) {
@@ -104,38 +106,50 @@ const TeamShiftRequestCard = ({
             </View>
           </View>
           {isHistory ? (
-            <Pressable
-              onPress={handleMessageClick}
-              disabled={isCreatingChat}
-              className="h-10 w-10 bg-[#E5F4FD] rounded-full flex-row justify-center items-center"
-            >
-              {isCreatingChat ? (
-                <ActivityIndicator size="small" color="#4FB2F3" />
-              ) : (
-                <Image
-                  source={require("@/assets/images/messages-fill.svg")}
-                  contentFit="contain"
-                  style={{ height: 22, width: 22 }}
-                />
-              )}
-            </Pressable>
-          ) : (
             <View className="flex-row gap-1.5">
-              <TouchableOpacity
-                onPress={onApprove}
-                className="h-10 w-10 bg-[#292D32] rounded-full flex-row justify-center items-center"
+              <Pressable
+                onPress={handleMessageClick}
+                disabled={isCreatingChat}
+                className="h-10 w-10 bg-[#E5F4FD] rounded-full flex-row justify-center items-center"
               >
-                <Feather name="check" size={22} color="white" />
-              </TouchableOpacity>
+                {isCreatingChat ? (
+                  <ActivityIndicator size="small" color="#4FB2F3" />
+                ) : (
+                  <Image
+                    source={require("@/assets/images/messages-fill.svg")}
+                    contentFit="contain"
+                    style={{ height: 22, width: 22 }}
+                  />
+                )}
+              </Pressable>
               <TouchableOpacity
                 onPress={onReject}
                 className="h-10 w-10 bg-[#F34F4F] rounded-full flex-row justify-center items-center"
               >
                 <EvilIcons name="close" size={22} color="white" />
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={onApprove}
+                className="h-10 w-10 bg-[#292D32] rounded-full flex-row justify-center items-center"
+              >
+                <Feather name="check" size={22} color="white" />
+              </TouchableOpacity>
             </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setIsFilterModal(true)}
+              className="py-2.5 px-3 rounded-full bg-[#11293A]"
+            >
+              <Text className="font-proximanova-semibold text-sm text-white">
+                Add Request
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
+        <ShiftRequestModal
+          onClose={() => setIsFilterModal(false)}
+          visible={isFilterModal}
+        />
       </View>
     </View>
   );
