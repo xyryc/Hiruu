@@ -90,6 +90,28 @@ const BusinessJobCard = ({
     }
   };
 
+  const handleViewProfile = () => {
+    const userId = profile?.userId || profile?.user?.id;
+
+    console.log("[BusinessJobCard] view profile clicked:", {
+      profileId: profile?.id,
+      userId,
+    });
+
+    if (!userId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId,
+        profileId: profile?.id || "",
+      },
+    });
+  };
+
   return (
     <TouchableOpacity
       onPress={() => setShowModal(true)}
@@ -258,9 +280,7 @@ const BusinessJobCard = ({
             <View onStartShouldSetResponder={() => true}>
               <SmallButton
                 title="View Profile"
-                onPress={() =>
-                  router.push("/screens/jobs/business/user-profile-preview")
-                }
+                onPress={handleViewProfile}
               />
             </View>
           )}

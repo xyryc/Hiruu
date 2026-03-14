@@ -31,6 +31,7 @@ interface ProfileState {
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
   getMyRatings: () => Promise<any>;
+  getRatingsByUserId: (userId: string) => Promise<any>;
   getUserRatingSummary: (userId: string) => Promise<any>;
   syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
@@ -139,6 +140,35 @@ export const useProfileStore = create<ProfileState>((set) => ({
         axiosError.response?.data?.message ||
           axiosError.message ||
           "Failed to load my ratings"
+      );
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  getRatingsByUserId: async (userId: string) => {
+    if (!userId) {
+      const finalError = new Error("User id is required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.get(`/ratings/users/${userId}`);
+      const result = response.data;
+      set({
+        ratingsResponse: result,
+        isLoading: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load user ratings"
       );
       set({ isLoading: false, error: finalError });
       throw finalError;

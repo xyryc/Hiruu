@@ -120,7 +120,7 @@ type JobProfileFilters = {
   search?: string;
   isPremium?: boolean;
   skills?: string;
-  preferredRoleId?: string;
+  // preferredRoleId?: string;
   page?: number;
   limit?: number;
 };
@@ -150,7 +150,7 @@ export type JobProfileData = {
   headline?: string | null;
   about?: string | null;
   isOpenToWork?: boolean;
-  preferredRoleIds?: string[];
+  // preferredRoleIds?: string[];
   highlightedExperience?: string | null;
   preferredSalaryType?: string | null;
   expectedSalaryMin?: number | string | null;
@@ -207,6 +207,7 @@ interface JobState {
     query?: MarkAsReadQuery
   ) => Promise<MarkAsReadResponse>;
   getMyJobProfile: () => Promise<JobProfileData | null>;
+  getJobProfileByUserId: (userId: string) => Promise<JobProfileData | null>;
   updateMyJobProfile: (
     payload: Partial<JobProfileData>
   ) => Promise<JobProfileData | null>;
@@ -618,6 +619,31 @@ export const useJobStore = create<JobState>((set) => ({
     }
   },
 
+  getJobProfileByUserId: async (userId) => {
+    try {
+      const response = await axiosInstance.get(`/job-profile/${userId}`);
+      const result = response.data;
+
+      if (
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400)
+      ) {
+        const message =
+          translateApiMessage(result?.message) || "Failed to load job profile";
+        throw new Error(message);
+      }
+
+      return (result?.data ?? null) as JobProfileData | null;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to load job profile";
+      throw new Error(message);
+    }
+  },
+
   updateMyJobProfile: async (payload) => {
     set({ isLoadingJobProfile: true, error: null });
 
@@ -666,14 +692,10 @@ export const useJobStore = create<JobState>((set) => ({
       if (query.skills) params.skills = query.skills;
       // if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
       if (query.isPremium !== undefined) params.isPremium = query.isPremium;
-
-
       const response = await axiosInstance.get("/job-profile/open-to-work", {
         params,
       });
       const result = response.data;
-
-
 
       const hasError =
         result?.success === false ||

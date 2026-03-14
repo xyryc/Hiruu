@@ -1,3 +1,4 @@
+import { useJobStore } from "@/stores/jobStore";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
@@ -12,9 +13,10 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Share,
@@ -23,11 +25,21 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type PreviewParams = {
+  userId?: string;
+  profileId?: string;
+};
 
 const UserProfilePreview = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<PreviewParams>();
+  const getJobProfileByUserId = useJobStore((s) => s.getJobProfileByUserId);
   const [showText, setShowText] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState("");
+  const [profile, setProfile] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const issues = [
     { label: "Missed Punch", value: "Missed Punch" },
     { label: "Late arrival", value: "Late arrival" },
@@ -37,25 +49,128 @@ const UserProfilePreview = () => {
   ];
 
   const [isOn, setIsOn] = useState(false);
+  const userId = typeof params.userId === "string" ? params.userId : "";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        toast.error("User information is unavailable");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const result = await getJobProfileByUserId(userId);
+        if (isMounted) {
+          setProfile(result);
+        }
+      } catch (error: any) {
+        if (isMounted) {
+          setProfile(null);
+        }
+        toast.error(error?.message || "Failed to load profile");
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [getJobProfileByUserId, userId]);
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/(tabs)/business-jobs");
+  };
+
+  const profileAddress = useMemo(() => {
+    const address = profile?.user?.address;
+
+    if (!address) return "Location unavailable";
+    if (typeof address === "string") return address;
+    if (typeof address === "object") {
+      return address?.address || address?.city || address?.country || "Location unavailable";
+    }
+
+    return "Location unavailable";
+  }, [profile]);
+
+  const shortIntro = useMemo(() => {
+    return (
+      profile?.about ||
+      profile?.highlightedExperience ||
+      profile?.user?.bio ||
+      "No profile summary available"
+    );
+  }, [profile]);
+
+  const openDaysCount = useMemo(() => {
+    const weeklyAvailability = Array.isArray(profile?.weeklyAvailability)
+      ? profile.weeklyAvailability
+      : [];
+
+    return weeklyAvailability.filter((item: any) => item?.isOpen).length;
+  }, [profile]);
+
+  const salaryRangeLabel = useMemo(() => {
+    const min = profile?.expectedSalaryMin;
+    const max = profile?.expectedSalaryMax;
+    const type = profile?.preferredSalaryType;
+
+    if (min == null && max == null) return "Not set";
+    if (min != null && max != null) {
+      return `${min}-${max}${type ? ` /${type}` : ""}`;
+    }
+
+    return `${min ?? max}${type ? ` /${type}` : ""}`;
+  }, [profile]);
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message:
-          "Check out Md Talath Un Nabi Anik's profile on Hiruu!\nhttps://hiruu.com/profile/mohammad-anik",
-        title: "Md Talath Un Nabi Anik's Profile",
+        message: `Check out ${profile?.user?.name || "this profile"} on Hiruu!`,
+        title: `${profile?.user?.name || "User"}'s Profile`,
       });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Could not share profile");
     }
   };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-white dark:bg-dark-background">
+        <SafeAreaView>
+          <View className="flex-row justify-between items-center mt-5 mx-5">
+            <TouchableOpacity onPress={handleBack}>
+              <Feather className="p-2" name="arrow-left" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="small" color="#4FB2F3" />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="bg-white pb-32 dark:bg-dark-background">
       <View className="bg-[#E5F4FD] rounded-b-xl">
         <SafeAreaView>
           <View className={`flex-row justify-between items-center mt-5 mx-5`}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={handleBack}>
               <Feather
                 className="p-2"
                 name="arrow-left"
@@ -83,10 +198,25 @@ const UserProfilePreview = () => {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.push("/screens/profile/rating")}
+          onPress={() =>
+            router.push({
+              pathname: "/screens/profile/rating",
+              params: {
+                userId: profile?.userId || profile?.user?.id || "",
+              },
+            })
+          }
           className="mx-5 mt-3.5"
         >
-          <NamePlateCard variant="variant4" />
+          <NamePlateCard
+            variant="variant4"
+            name={profile?.user?.name || "User"}
+            address={profileAddress}
+            profileImage={
+              profile?.user?.avatar ||
+              "https://images.squarespace-cdn.com/content/v1/5521b031e4b06ebe90178744/1560360135937-3XYVZ3124L1YL2FOASSQ/headshots-linkedin-photographer.jpg"
+            }
+          />
         </TouchableOpacity>
         {/* Badge item */}
         <View className="mx-5 flex-row justify-between mt-5 items-center">
@@ -124,17 +254,15 @@ const UserProfilePreview = () => {
         </View>
         <View className="mx-5 mt-4">
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            Join the core team at Space Hotel, a unique dining experience known
-            for its space-themed interiors and premium service
-            {showText || "........"}
-            {showText &&
-              "Join the core team at Space Hotel, a unique dining experience known for its space-themed interiors and premium service"}
+            {showText
+              ? shortIntro
+              : `${shortIntro.slice(0, 120)}${shortIntro.length > 120 ? "..." : ""}`}
             {"   "}
             <Text
               onPress={() => setShowText(!showText)}
               className="font-proximanova-semibold text-sm text-[#11293A]"
             >
-              {showText ? "See less" : "Read More"}
+              {shortIntro.length > 120 ? (showText ? "See less" : "Read More") : ""}
             </Text>
           </Text>
         </View>
@@ -148,9 +276,15 @@ const UserProfilePreview = () => {
             Experience
           </Text>
         </View>
-        <ExperienceCard focus className="mt-8 mx-5" />
-        <ExperienceCard className="mt-2.5 mx-5" />
-        <ExperienceCard className="mt-2.5 mx-5" />
+        <ExperienceCard
+          focus
+          className="mt-8 mx-5"
+          companyName={profile?.user?.name || "Profile"}
+          position={profile?.headline || "Role not specified"}
+          companyLogo={profile?.user?.avatar}
+          isVerified
+          isCurrent={Boolean(profile?.isOpenToWork)}
+        />
 
         {/* Achievement */}
         <View className=" mx-5 mt-8">
@@ -169,29 +303,29 @@ const UserProfilePreview = () => {
           </View>
           <View className="flex-row gap-3 mb-4 mt-4">
             <StatCardPrimary
-              point={"87%"}
-              title="On-Time Arrival"
-              subtitle={"This month"}
+              point={`${openDaysCount}`}
+              title="Open Days"
+              subtitle={"weekly"}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={"92%"}
-              title="Task Completion"
-              subtitle={"completed"}
+              point={`${(profile?.skills || []).length}`}
+              title="Skills"
+              subtitle={"listed"}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
           <View className="flex-row gap-3 mb-4">
             <StatCardPrimary
-              point={"80%"}
-              title="Positive Feedback"
-              subtitle={"positive"}
+              point={`${profile?.preferredRoleIds?.length || 0}`}
+              title="Preferred Roles"
+              subtitle={"selected"}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={"30%"}
-              title="Growth Score"
-              subtitle={"growth"}
+              point={profile?.isOpenToWork ? "Open" : "Closed"}
+              title="Work Status"
+              subtitle={salaryRangeLabel}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
@@ -278,15 +412,23 @@ const UserProfilePreview = () => {
               />
             </View>
             <Text className="font-proximanova-bold text-white">
-              Rohan Mehta
+              {profile?.user?.name || "User"}
             </Text>
           </View>
           <View className="h-10 w-10 bg-white rounded-full flex-row items-center justify-center">
-            <Image
-              source={require("@/assets/images/messages-fill.svg")}
-              contentFit="contain"
-              style={{ height: 22, width: 22 }}
-            />
+            {profile?.user?.avatar ? (
+              <Image
+                source={profile.user.avatar}
+                contentFit="cover"
+                style={{ height: 32, width: 32, borderRadius: 999 }}
+              />
+            ) : (
+              <Image
+                source={require("@/assets/images/messages-fill.svg")}
+                contentFit="contain"
+                style={{ height: 22, width: 22 }}
+              />
+            )}
           </View>
         </View>
 

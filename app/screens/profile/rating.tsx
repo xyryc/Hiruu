@@ -5,7 +5,7 @@ import RatingBar from "@/components/ui/inputs/RatingBar";
 import RatingStarModal from "@/components/ui/modals/RatingStarModal";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
@@ -34,24 +34,31 @@ const formatRelativeTime = (value?: string) => {
 
 const Rating = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const params = useLocalSearchParams<{ userId?: string }>();
   const isLoading = useProfileStore((state) => state.isLoading);
   const ratingsResponse = useProfileStore((state) => state.ratingsResponse);
   const getMyRatings = useProfileStore((state) => state.getMyRatings);
+  const getRatingsByUserId = useProfileStore((state) => state.getRatingsByUserId);
+  const targetUserId = typeof params.userId === "string" ? params.userId : "";
 
   useFocusEffect(
     useCallback(() => {
-      const loadMyRatings = async () => {
+      const loadRatings = async () => {
         try {
-          const result = await getMyRatings();
-          console.log("user rating screen data (/ratings/users/me):", result);
+          if (targetUserId) {
+            await getRatingsByUserId(targetUserId);
+            return;
+          }
+
+          await getMyRatings();
         } catch (error: any) {
           console.log("user rating screen api error:", error?.message || error);
         }
       };
 
-      loadMyRatings();
+      loadRatings();
       return () => { };
-    }, [getMyRatings])
+    }, [getMyRatings, getRatingsByUserId, targetUserId])
   );
 
   const { colorScheme } = useColorScheme();
