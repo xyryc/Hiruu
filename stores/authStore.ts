@@ -82,7 +82,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const authData = await authService.getStoredAuthData();
 
-      if (authData.user && authData.accessToken) {
+      // Require a full, valid auth bundle for authenticated startup.
+      // If refresh token is missing, force a clean logout state to avoid
+      // noisy protected API failures during app bootstrap.
+      if (authData.user && authData.accessToken && authData.refreshToken) {
         set({
           user: authData.user,
           accessToken: authData.accessToken,
@@ -90,11 +93,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isInitialized: true,
         });
       } else {
-        set({ isInitialized: true });
+        if (authData.user || authData.accessToken || authData.refreshToken) {
+          await authService.clearAuthData();
+          useBusinessStore.getState().resetBusinessSession();
+        }
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isInitialized: true,
+        });
       }
     } catch (error) {
       console.error("Failed to initialize auth:", error);
-      set({ isInitialized: true });
+      try {
+        await authService.clearAuthData();
+        useBusinessStore.getState().resetBusinessSession();
+      } catch {
+        // Ignore cleanup errors during auth initialization fallback.
+      }
+      set({
+        user: null,
+        accessToken: null,
+        refreshToken: null,
+        isInitialized: true,
+      });
     }
   },
 

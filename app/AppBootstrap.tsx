@@ -80,14 +80,16 @@ const AppBootstrap = () => {
 
     const init = async () => {
       await initializeAuth();
-      const { user: authUser, accessToken } = useAuthStore.getState();
+      const { user: authUser, accessToken, refreshToken } = useAuthStore.getState();
 
-      if (authUser && accessToken) {
+      if (authUser && accessToken && refreshToken) {
         void useProfileStore
           .getState()
           .getProfile()
           .catch((error) => {
-            console.error("Failed to refresh profile on app launch:", error);
+            if (!isExpectedAuthBootstrapError(error)) {
+              console.error("Failed to refresh profile on app launch:", error);
+            }
           });
       }
 
@@ -103,7 +105,7 @@ const AppBootstrap = () => {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [fontsLoaded, initializeAuth]);
+  }, [fontsLoaded, initializeAuth, isExpectedAuthBootstrapError]);
 
   useSocketLifecycle(Boolean(user && appIsReady));
   useIncomingCallListener(Boolean(user && appIsReady));
@@ -234,3 +236,11 @@ const AppBootstrap = () => {
 
 export default AppBootstrap;
 
+  const isExpectedAuthBootstrapError = useCallback((error: any) => {
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("token_revoked_or_not_found") ||
+      message.includes("no refresh token available") ||
+      message.includes("unauthorized")
+    );
+  }, []);

@@ -36,6 +36,8 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
+    if (!accessToken) return;
+
     const loadBusinesses = async () => {
       try {
         await getMyBusinesses();
@@ -45,7 +47,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     };
 
     loadBusinesses();
-  }, [getMyBusinesses]);
+  }, [accessToken, getMyBusinesses]);
 
   useFocusEffect(
     useCallback(() => {
