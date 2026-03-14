@@ -13,14 +13,25 @@ const STORAGE_KEYS = {
 
 interface ProfileState {
   isLoading: boolean;
+  isLoadingRatingSummary: boolean;
   error: Error | null;
   isProfileComplete: boolean;
   ratingsResponse: any | null;
+  ratingSummary: {
+    averageRating: number;
+    totalRatings: number;
+    ratingBreakdown: {
+      onTime?: { average: number; count: number };
+      trustWorthy?: { average: number; count: number };
+      communication?: { average: number; count: number };
+    };
+  } | null;
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
   getMyRatings: () => Promise<any>;
+  getUserRatingSummary: (userId: string) => Promise<any>;
   syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
@@ -29,9 +40,11 @@ interface ProfileState {
 
 export const useProfileStore = create<ProfileState>((set) => ({
   isLoading: false,
+  isLoadingRatingSummary: false,
   error: null,
   isProfileComplete: false,
   ratingsResponse: null,
+  ratingSummary: null,
 
   updateProfile: async (profileData: UpdateProfileData) => {
     set({ isLoading: true, error: null });
@@ -128,6 +141,35 @@ export const useProfileStore = create<ProfileState>((set) => ({
           "Failed to load my ratings"
       );
       set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  getUserRatingSummary: async (userId: string) => {
+    if (!userId) {
+      const finalError = new Error("User id is required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isLoadingRatingSummary: true, error: null });
+
+    try {
+      const response = await axiosInstance.get(`/ratings/users/${userId}/summary`);
+      const result = response.data;
+      set({
+        ratingSummary: result?.data ?? null,
+        isLoadingRatingSummary: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load user rating summary"
+      );
+      set({ isLoadingRatingSummary: false, error: finalError });
       throw finalError;
     }
   },

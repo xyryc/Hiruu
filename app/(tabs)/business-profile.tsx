@@ -1,10 +1,12 @@
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import JobCard from "@/components/ui/cards/JobCard";
-import RatingBanner from "@/components/ui/cards/RatingBanner";
+import RatingBanner from '@/components/ui/cards/RatingBanner';
 import RatingProgress from "@/components/ui/cards/RatingProgress";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
+import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useProfileStore } from "@/stores/profileStore";
 import {
   EvilIcons,
   Feather,
@@ -27,17 +29,21 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { toast } from "sonner-native";
+import { toast } from 'sonner-native';
+
 
 const BusinessProfile = () => {
   const [selectedTab, setSelectedTab] = useState("about");
   const [toggleIsOn, setToggleIsOn] = useState(false);
   const [businessData, setBusinessData] = useState<any>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [recruitingUpdateLoading, setRecruitingUpdateLoading] = useState(false);
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
+  const userId = useAuthStore((state) => state.user?.id);
+  const getUserRatingSummary = useProfileStore((state) => state.getUserRatingSummary);
+  const ratingSummary = useProfileStore((state) => state.ratingSummary);
   const {
     selectedBusinesses,
     getBusinessProfile,
@@ -64,6 +70,15 @@ const BusinessProfile = () => {
     }
   }, [businessId, getBusinessProfile]);
 
+  const loadRatingSummary = useCallback(async () => {
+    if (!userId) return;
+    try {
+      await getUserRatingSummary(userId);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load rating summary");
+    }
+  }, [getUserRatingSummary, userId]);
+
   useEffect(() => {
     loadBusiness();
   }, [loadBusiness]);
@@ -71,8 +86,9 @@ const BusinessProfile = () => {
   useFocusEffect(
     useCallback(() => {
       loadBusiness();
+      loadRatingSummary();
       return () => { };
-    }, [loadBusiness])
+    }, [loadBusiness, loadRatingSummary])
   );
 
   useEffect(() => {
@@ -81,6 +97,17 @@ const BusinessProfile = () => {
     }
   }, [businessData?.isRecruiting]);
 
+  const workEnvironmentRating = Number(
+    ratingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
+  );
+  const payOnTimeRating = Number(
+    ratingSummary?.ratingBreakdown?.onTime?.average ?? 0
+  );
+  const communicationRating = Number(
+    ratingSummary?.ratingBreakdown?.communication?.average ?? 0
+  );
+  const averageRating = Number(ratingSummary?.averageRating ?? 0);
+
   const handleShare = async () => {
     try {
       await Share.share({
@@ -88,7 +115,7 @@ const BusinessProfile = () => {
           `Check out ${businessData?.name || "this business"} on Hiruu!`,
         title: businessData?.name || "Business Profile",
       });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Could not share profile");
     }
   };
@@ -292,11 +319,11 @@ const BusinessProfile = () => {
             </View>
 
             <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
-              <RatingBanner />
+              <RatingBanner averageRating={averageRating} />
 
               <View className="flex-row justify-between mt-5">
                 <View>
-                  <RatingProgress rating={4.5} />
+                  <RatingProgress rating={workEnvironmentRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
                     Work Environment
                   </Text>
@@ -309,7 +336,7 @@ const BusinessProfile = () => {
                 />
 
                 <View>
-                  <RatingProgress rating={4.5} />
+                  <RatingProgress rating={payOnTimeRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
                     pay on time
                   </Text>
@@ -322,7 +349,7 @@ const BusinessProfile = () => {
                 />
 
                 <View>
-                  <RatingProgress rating={2.1} />
+                  <RatingProgress rating={communicationRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
                     communication
                   </Text>
