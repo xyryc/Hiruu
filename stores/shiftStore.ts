@@ -31,6 +31,9 @@ type ShiftStoreState = {
     hasNext: boolean;
     hasPrev: boolean;
   } | null;
+  shiftAssignmentDetails: any | null;
+  shiftAssignmentDetailsLoading: boolean;
+  shiftAssignmentDetailsError: string | null;
   leaveCreditsByBusiness: Record<string, LeaveCreditItem | null>;
   leaveCreditsLoading: boolean;
   leaveCreditsError: string | null;
@@ -57,6 +60,7 @@ type ShiftStoreState = {
     status?: string;
     type?: string;
   }) => Promise<any[]>;
+  getShiftAssignmentDetails: (id: string) => Promise<any | null>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
@@ -73,6 +77,7 @@ type ShiftStoreState = {
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
   clearShiftRequestsError: () => void;
+  clearShiftAssignmentDetailsError: () => void;
   clearLeaveCreditsError: () => void;
   clearCreateShiftRequestError: () => void;
 };
@@ -92,6 +97,9 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   shiftRequestsLoading: false,
   shiftRequestsError: null,
   shiftRequestsPagination: null,
+  shiftAssignmentDetails: null,
+  shiftAssignmentDetailsLoading: false,
+  shiftAssignmentDetailsError: null,
   leaveCreditsByBusiness: {},
   leaveCreditsLoading: false,
   leaveCreditsError: null,
@@ -304,6 +312,49 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  getShiftAssignmentDetails: async (id) => {
+    try {
+      if (!id) {
+        set({
+          shiftAssignmentDetails: null,
+          shiftAssignmentDetailsLoading: false,
+          shiftAssignmentDetailsError: null,
+        });
+        return null;
+      }
+
+      set({
+        shiftAssignmentDetailsLoading: true,
+        shiftAssignmentDetailsError: null,
+      });
+
+      const response = await axiosInstance.get(`/shift-assignment/details/${id}`);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load shift details");
+      }
+
+      const details = result?.data || null;
+      set({
+        shiftAssignmentDetails: details,
+        shiftAssignmentDetailsLoading: false,
+      });
+      return details;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load shift details";
+      set({
+        shiftAssignmentDetails: null,
+        shiftAssignmentDetailsLoading: false,
+        shiftAssignmentDetailsError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
   clockIn: async (shiftAssignmentId) => {
     try {
       const response = await axiosInstance.post("/attendance/clock-in", {
@@ -441,6 +492,8 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
 
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
   clearShiftRequestsError: () => set({ shiftRequestsError: null }),
+  clearShiftAssignmentDetailsError: () =>
+    set({ shiftAssignmentDetailsError: null }),
   clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
   clearCreateShiftRequestError: () => set({ createShiftRequestError: null }),
 }));

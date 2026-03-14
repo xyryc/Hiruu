@@ -1,30 +1,115 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import SimpleStatusBadge from "@/components/ui/badges/SimpleStatusBadge";
 import StatusBadge from "@/components/ui/badges/StatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ActionIconCard from "@/components/ui/cards/ActionIconCard";
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
+import { useShiftStore } from "@/stores/shiftStore";
 import {
   AntDesign,
   Entypo,
   Feather,
   FontAwesome6,
   Ionicons,
-  MaterialCommunityIcons,
+  MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ShiftDetails = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const shiftId = Array.isArray(params.id) ? params.id[0] : params.id;
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const status = "missed";
+  const {
+    shiftAssignmentDetails,
+    shiftAssignmentDetailsLoading,
+    getShiftAssignmentDetails,
+  } = useShiftStore();
+
+  useEffect(() => {
+    if (!shiftId) return;
+    getShiftAssignmentDetails(shiftId).catch(() => undefined);
+  }, [getShiftAssignmentDetails, shiftId]);
+
+  const details = shiftAssignmentDetails;
+
+  const badge = useMemo(() => {
+    const raw = String(details?.status || "").toLowerCase();
+    const label = raw ? raw.replace(/_/g, " ") : "Unknown";
+    const known = new Set([
+      "upcoming",
+      "completed",
+      "early_leave",
+      "missed",
+      "ongoing",
+      "pending",
+      "approved",
+      "rejected",
+      "cancelled",
+      "expired",
+      "accepted",
+      "submitted",
+      "available",
+      "unavailable",
+    ]);
+    if (known.has(raw)) {
+      return { status: raw as any, label };
+    }
+    if (raw === "leave_requested") {
+      return { status: "pending" as const, label };
+    }
+    return { status: "upcoming" as const, label };
+  }, [details?.status]);
+
+  const shiftTitle = details?.shiftTemplate?.name || "Shift";
+  const shiftStartIso = details?.startsAt;
+  const shiftEndIso = details?.endsAt;
+  const showCountdown = Boolean(
+    shiftStartIso && new Date(shiftStartIso).getTime() > Date.now()
+  );
+
+  const timeRange = useMemo(() => {
+    if (!shiftStartIso || !shiftEndIso) return "-";
+    const start = new Date(shiftStartIso);
+    const end = new Date(shiftEndIso);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "-";
+    const format = (value: Date) =>
+      value.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+    return `${format(start)} - ${format(end)}`;
+  }, [shiftEndIso, shiftStartIso]);
+
+  const breakTime = useMemo(() => {
+    const breaks = Array.isArray(details?.shiftTemplate?.breakDuration)
+      ? details.shiftTemplate.breakDuration
+      : [];
+    if (!breaks.length) return "-";
+
+    const to12Hour = (value?: string) => {
+      if (!value) return "--:--";
+      const [rawHour = "0", rawMinute = "0"] = value.split(":");
+      const hour = Number(rawHour);
+      const minute = Number(rawMinute);
+      if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
+      const period = hour >= 12 ? "PM" : "AM";
+      const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+      return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
+    };
+
+    return breaks
+      .map((item: any) => `${to12Hour(item?.startTime)} - ${to12Hour(item?.endTime)}`)
+      .join(", ");
+  }, [details?.shiftTemplate?.breakDuration]);
+
+  const locationText = details?.business?.address?.address || "-";
+  const assignedByName = details?.assignedBy?.name || "-";
+  const assignedByAvatar = details?.assignedBy?.avatar;
+  const noteText = details?.notes;
 
   return (
     <SafeAreaView
@@ -40,7 +125,7 @@ const ShiftDetails = () => {
         title="Detail"
         components={
           <View className="flex-row items-center gap-2.5">
-            <StatusBadge status={status} />
+            <StatusBadge status={badge.status} label={badge.label} />
 
             <TouchableOpacity
               onPress={() => router.push("/screens/home/qr/scan")}
@@ -59,20 +144,26 @@ const ShiftDetails = () => {
           paddingBottom: 80,
         }}
       >
+        {shiftAssignmentDetailsLoading ? (
+          <View className="py-8 items-center">
+            <ActivityIndicator size="small" color="#4FB2F3" />
+          </View>
+        ) : null}
+
         {/* timer */}
-        {status !== "completed" && (
+        {showCountdown && shiftStartIso && (
           <>
             <Text className="text-center text-secondary dark:text-dark-secondary font-proximanova-regular mb-2.5">
               Shift starts in
             </Text>
-            <CountdownTimer targetTime="2025-10-09T01:30:00" className="mb-8" />
+            <CountdownTimer targetTime={shiftStartIso} className="mb-8" />
           </>
         )}
 
         {/* time location */}
         <View>
           <Text className="text-lg font-proximanova-bold text-primary dark:text-dark-primary mb-4">
-            Kitchen Helper / Dishwasher
+            {shiftTitle}
           </Text>
 
           <View className="flex-row items-center gap-2.5">
@@ -89,7 +180,7 @@ const ShiftDetails = () => {
                     Time:
                   </Text>
                   <Text className="text-primary dark:text-dark-primary text-sm">
-                    8:00 AM - 2:00 PM
+                    {timeRange}
                   </Text>
                 </View>
               </View>
@@ -112,7 +203,7 @@ const ShiftDetails = () => {
                     Break:
                   </Text>
                   <Text className="text-primary dark:text-dark-primary text-sm">
-                    11:30 AM - 12:00 AM
+                    {breakTime}
                   </Text>
                 </View>
               </View>
@@ -136,7 +227,7 @@ const ShiftDetails = () => {
                   Location:
                 </Text>
                 <Text className="text-primary dark:text-dark-primary text-sm">
-                  136 Avenue Maciezine, New York, USA, 65004
+                  {locationText}
                 </Text>
               </View>
             </View>
@@ -198,9 +289,7 @@ const ShiftDetails = () => {
           <View className="flex-row justify-between bg-[#4FB2F3] p-2.5 rounded-[10px]">
             <View className="flex-row items-center gap-2.5">
               <Image
-                source={
-                  "https://upload.wikimedia.org/wikipedia/commons/7/7b/Julian_Assange_at_2025_Cannes_The_Six_Billion_Dollar_Man_Photocall_3_%28cropped%29.jpg"
-                }
+                source={assignedByAvatar || require("@/assets/images/placeholder.png")}
                 style={{
                   width: 40,
                   height: 40,
@@ -209,21 +298,12 @@ const ShiftDetails = () => {
                 contentFit="cover"
               />
               <Text className="font-proximanova-bold text-white dark:text-dark-secondary">
-                Md Talath Un Nabi Anik
+                {assignedByName}
               </Text>
             </View>
 
-            <View className="flex-row items-center gap-2">
-              <SimpleStatusBadge
-                className="border border-white"
-                textColor="white"
-                title="Manager"
-              />
-
-              {/* messages */}
-              <View className="bg-[#f5f5f5] border-[0.5px] border-[#FFFFFF00] rounded-full p-2">
-                <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
-              </View>
+            <View className="bg-[#f5f5f5] border-[0.5px] border-[#FFFFFF00] rounded-full p-2">
+              <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
             </View>
           </View>
         </View>
@@ -288,9 +368,6 @@ const ShiftDetails = () => {
           onPress={() => router.push("./summary")}
         />
       </ScrollView>
-
-
-
     </SafeAreaView>
   );
 };

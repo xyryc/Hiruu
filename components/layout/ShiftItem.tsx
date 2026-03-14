@@ -49,7 +49,10 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
     <TouchableOpacity
       onPress={() => {
         if (!canOpenDetails) return;
-        router.push("/screens/schedule/shift/[id]");
+        router.push({
+          pathname: "/screens/schedule/shift/[id]",
+          params: { id: String(shift.id) },
+        });
       }}
       disabled={!canOpenDetails}
       className="flex-row mb-4 overflow-hidden relative"

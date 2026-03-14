@@ -154,8 +154,8 @@ const StatusBadge = ({
         className={`${statusConfig.dotClasses} ${sizeConfig.dotClasses} rounded-full mr-1.5`}
       />
       {/* Status Text */}
-      <Text className={`${statusConfig.textClasses} ${sizeConfig.textClasses}`}>
-        {statusConfig.label}
+      <Text className={`capitalize ${statusConfig.textClasses} ${sizeConfig.textClasses}`}>
+        {statusConfig.label}{" "}
       </Text>
     </TouchableOpacity>
   );
