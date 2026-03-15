@@ -1,4 +1,5 @@
 import { chatService } from "@/services/chatService";
+import { formatShortDateInTimezone } from "@/utils/date";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -15,6 +16,7 @@ type LeaveRequestCardProps = {
   userId?: string;
   onAccept?: () => void;
   onReject?: () => void;
+  request?: any;
 };
 
 const LeaveRequestCard = ({
@@ -25,20 +27,39 @@ const LeaveRequestCard = ({
   userId,
   onAccept,
   onReject,
+  request,
 }: LeaveRequestCardProps) => {
   const router = useRouter();
   const [isFilterModal, setIsFilterModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
 
+  const requestUserId = request?.employment?.user?.id || userId;
+  const leaveType = request?.leaveType || status;
+  const startDate = request?.startDate
+    ? formatShortDateInTimezone(request.startDate)
+    : "Jun 09, 2025";
+  const endDate = request?.endDate
+    ? formatShortDateInTimezone(request.endDate)
+    : null;
+  const dateLabel =
+    endDate && endDate !== startDate ? `${startDate} - ${endDate}` : startDate;
+  const reason =
+    request?.reason ||
+    (approved
+      ? "Fever and body ache Medical checkup and recovery at home Fever and body ache Medical  "
+      : " Unable to clock in due to poor internet connectivity at location.");
+  const address =
+    request?.employment?.user?.address?.address || "New York, North Bergen";
+
   const handleMessageClick = async () => {
-    if (!userId) {
+    if (!requestUserId) {
       toast.error("User information is unavailable");
       return;
     }
 
     try {
       setIsCreatingChat(true);
-      const result = await chatService.createDirectChat(userId);
+      const result = await chatService.createDirectChat(requestUserId);
       const roomId = result?.data?.id;
 
       if (!roomId) {
@@ -65,31 +86,29 @@ const LeaveRequestCard = ({
       ) : null}
       <View className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5">
         <View className="flex-row justify-between">
-          <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary ">
-            June 09, 2025
+          {/* time label */}
+          <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-1">
+            {dateLabel}
           </Text>
+
           <Text
-            className={`font-proximanova-regular text-sm text-primary dark:text-dark-primary py-0.5 px-3 rounded-full ${status === "Missed Clock-out" ? "bg-[#F34F4F4D]" : "bg-[#E5F4FD]"} `}
+            className={`capitalize font-proximanova-regular text-sm text-primary dark:text-dark-primary py-0.5 px-3 rounded-full ${status === "Missed Clock-out" ? "bg-[#F34F4F4D]" : "bg-[#E5F4FD]"} `}
           >
-            {status}
+            {leaveType}{" "}
           </Text>
         </View>
-        <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-1">
-          09:00 AM to 1:00 PM
-        </Text>
+
         {!approved ? (
           <View className="flex-row gap-1 mt-2.5">
             <EvilIcons name="location" size={20} color="black" />
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              New York, North Bergen
+              {address}
             </Text>
           </View>
         ) : null}
         <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2.5">
           {!approved ? <Text className="text-[#4FB2F3]">Reason{" :  "}</Text> : null}
-          {approved
-            ? "Fever and body ache Medical checkup and recovery at home Fever and body ache Medical  "
-            : " Unable to clock in due to poor internet connectivity at location."}
+          {reason}
         </Text>
         <Image
           source={require("@/assets/images/dotted-line.svg")}

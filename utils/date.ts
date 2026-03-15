@@ -100,3 +100,11 @@ export const formatTimeInTimezone = (
 ): string => {
     return formatInTimezone(value, timezone, "hh:mm a", fallback);
 };
+
+export const formatShortDateInTimezone = (
+    value?: string | Date | null,
+    timezone?: string,
+    fallback = "-"
+): string => {
+    return formatInTimezone(value, timezone, "LLL dd, yyyy", fallback);
+};
