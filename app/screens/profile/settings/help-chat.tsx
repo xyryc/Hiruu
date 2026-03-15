@@ -6,7 +6,6 @@ import TypingIndicator from "@/components/ui/inputs/TypingIndicator";
 import { useChat } from "@/hooks/useChat";
 import type { ChatUploadMedia } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
-import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -100,21 +99,12 @@ const HelpChat = () => {
     retryFailedMessage,
     startTyping,
     stopTyping,
-    refreshMessages,
   } = useChat({
     roomId,
     onError: (error) => {
       toast.error(error?.message || "Chat error");
     },
   });
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!roomId) return () => {};
-      refreshMessages().catch(() => null);
-      return () => {};
-    }, [roomId, refreshMessages])
-  );
 
   const mappedMessages = useMemo(() => {
     const sortedMessages = [...messages].sort((a: any, b: any) => {
@@ -124,37 +114,33 @@ const HelpChat = () => {
     });
 
     return sortedMessages.map((item: any) => ({
-        id: item.id,
-        text: item.content || "",
-        time: formatMessageTime(item.createdAt),
-        isSent: item.senderId === user?.id || item.sender?.id === user?.id,
-        status: item.status,
-        avatar: resolveAvatar(item.sender?.avatar),
-        media: Array.isArray(item.attachments)
-          ? item.attachments
-            .map((attachment: any, index: number) => {
-              const uri = attachment?.url || attachment?.uri;
-              if (!uri) return null;
-              return {
-                id: `${item.id}-${index}`,
-                uri,
-                previewType:
-                  String(attachment?.type || "").toLowerCase() === "video"
-                    ? "video"
-                    : "image",
-                name: attachment?.fileName,
-                thumbnailUrl: attachment?.thumbnailUrl,
-              };
-            })
-            .filter(Boolean)
-          : [],
-        uploadState: item.uploadState,
-      }));
+      id: item.id,
+      text: item.content || "",
+      time: formatMessageTime(item.createdAt),
+      isSent: item.senderId === user?.id || item.sender?.id === user?.id,
+      status: item.status,
+      avatar: resolveAvatar(item.sender?.avatar),
+      media: Array.isArray(item.attachments)
+        ? item.attachments
+          .map((attachment: any, index: number) => {
+            const uri = attachment?.url || attachment?.uri;
+            if (!uri) return null;
+            return {
+              id: `${item.id}-${index}`,
+              uri,
+              previewType:
+                String(attachment?.type || "").toLowerCase() === "video"
+                  ? "video"
+                  : "image",
+              name: attachment?.fileName,
+              thumbnailUrl: attachment?.thumbnailUrl,
+            };
+          })
+          .filter(Boolean)
+        : [],
+      uploadState: item.uploadState,
+    }));
   }, [messages, user?.id]);
-
-  React.useEffect(() => {
-    console.log("support chat data:", messages);
-  }, [messages]);
 
   const scrollToBottom = useCallback((animated: boolean) => {
     const list = listRef.current;

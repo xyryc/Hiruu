@@ -330,29 +330,56 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         const setupSocket = async () => {
             try {
                 const socket = await socketService.connect();
-                setConnected(true);
+                const handleSocketConnect = () => {
+                    if (!isMounted.current) return;
+                    setConnected(true);
 
-                // Join chat room only once
-                if (!hasJoinedRoom) {
-                    socketService.joinChat(roomId);
-                    hasJoinedRoom = true;
+                    if (!hasJoinedRoom) {
+                        socketService.joinChat(roomId);
+                        hasJoinedRoom = true;
+                    }
+                };
+
+                const handleSocketDisconnect = () => {
+                    if (!isMounted.current) return;
+                    setConnected(false);
+                    hasJoinedRoom = false;
+                };
+
+                socket.on('connect', handleSocketConnect);
+                socket.on('disconnect', handleSocketDisconnect);
+
+                if (socket.connected) {
+                    handleSocketConnect();
+                } else if (isMounted.current) {
+                    setConnected(false);
                 }
 
                 // Listen for new messages
                 const handleNewMessage = (data: any) => {
                     console.log('[CHAT_DEBUG] socket:new-message:body', data?.message || data);
                     const incomingMessage = data?.message || data;
+                    const eventRoomId =
+                        data?.chatRoomId ||
+                        data?.roomId ||
+                        data?.chatId ||
+                        incomingMessage?.chatRoomId;
                     const callBody = extractCallBody(incomingMessage);
                     if (callBody) {
                         console.log('[CHAT_DEBUG] socket:new-message:call-body', callBody);
                     }
 
-                    if (incomingMessage?.chatRoomId === roomId) {
+                    if (eventRoomId === roomId) {
+                        const normalizedMessage =
+                            incomingMessage?.chatRoomId
+                                ? incomingMessage
+                                : { ...incomingMessage, chatRoomId: eventRoomId };
+
                         clearTypingState();
                         setMessages((prev) => {
                             // Add new message if not already present
-                            if (!prev.some((msg) => msg.id === incomingMessage.id)) {
-                                return [incomingMessage, ...prev];
+                            if (!prev.some((msg) => msg.id === normalizedMessage.id)) {
+                                return [normalizedMessage, ...prev];
                             }
                             return prev;
                         });
@@ -428,6 +455,8 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 socket.on('error', handleError);
 
                 handlers = {
+                    handleSocketConnect,
+                    handleSocketDisconnect,
                     handleNewMessage,
                     handleUserTyping,
                     handleTypingStop,
@@ -453,6 +482,8 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
             // Remove event listeners with specific handlers
             if (handlers) {
+                socketService.getSocket()?.off('connect', handlers.handleSocketConnect);
+                socketService.getSocket()?.off('disconnect', handlers.handleSocketDisconnect);
                 socketService.offNewMessage(handlers.handleNewMessage);
                 socketService.offUserTyping(handlers.handleUserTyping);
                 socketService.getSocket()?.off('typing_stop', handlers.handleTypingStop);
