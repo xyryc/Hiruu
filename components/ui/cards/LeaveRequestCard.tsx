@@ -6,7 +6,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
-import ShiftRequestModal from "../modals/ShiftRequestModal";
 
 type LeaveRequestCardProps = {
   title?: string;
@@ -30,7 +29,6 @@ const LeaveRequestCard = ({
   request,
 }: LeaveRequestCardProps) => {
   const router = useRouter();
-  const [isFilterModal, setIsFilterModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
 
   const requestUserId = request?.employment?.user?.id || userId;
@@ -118,19 +116,20 @@ const LeaveRequestCard = ({
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row gap-2 items-center">
             <Image
-              source={require("@/assets/images/adaptive-icon.png")}
+              source={request.employment.user.avatar}
               contentFit="contain"
-              style={{ height: 40, width: 40 }}
+              style={{ height: 40, width: 40, borderRadius: 999 }}
             />
             <View>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                Rohan Mehta
+                {request.employment.user.name}
               </Text>
               <Text className="font-proximanova-regular text-secondary text-sm dark:text-dark-secondary">
-                IT Support
+                {request.employment.role.role.name}
               </Text>
             </View>
           </View>
+
           {showReviewActions ? (
             <View className="flex-row gap-1.5">
               <Pressable
@@ -161,21 +160,8 @@ const LeaveRequestCard = ({
                 <EvilIcons name="close" size={22} color="white" />
               </TouchableOpacity>
             </View>
-          ) : (
-            <TouchableOpacity
-              onPress={() => setIsFilterModal(true)}
-              className={`py-2.5 px-3 rounded-full ${approved ? "" : "bg-[#11293A] "}`}
-            >
-              <Text className="font-proximanova-semibold text-sm text-white">
-                Add Request
-              </Text>
-            </TouchableOpacity>
-          )}
+          ) : null}
         </View>
-        <ShiftRequestModal
-          onClose={() => setIsFilterModal(false)}
-          visible={isFilterModal}
-        />
       </View>
     </View>
   );
