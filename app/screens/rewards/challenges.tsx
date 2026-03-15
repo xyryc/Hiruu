@@ -11,7 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -71,14 +71,6 @@ const challenges = () => {
         toast.error(error?.message || "Failed to load challenges");
       });
     }, [currentType, getAchievements])
-  );
-
-  const activeChallenges = useMemo(
-    () =>
-      (Array.isArray(achievements) ? achievements : [])
-        .filter((item) => item?.isActive !== false && item?.isHidden !== true)
-        .sort((a, b) => (a?.displayOrder || 0) - (b?.displayOrder || 0)),
-    [achievements]
   );
 
   const handleClaim = useCallback(
@@ -176,8 +168,8 @@ const challenges = () => {
           <View className="py-10 items-center">
             <ActivityIndicator size="small" color="#4FB2F3" />
           </View>
-        ) : activeChallenges.length > 0 ? (
-          activeChallenges.map((achievement, index) => {
+        ) : achievements.length > 0 ? (
+          achievements.map((achievement, index) => {
             const progress = Number(achievement?.userProgress?.progress || 0);
             const target = Number(achievement?.conditions?.target || 0);
             const rewardCoins = Number(achievement?.rewardCoins || 0);
@@ -257,7 +249,7 @@ const challenges = () => {
                   </View>
                 </View>
 
-                {index !== activeChallenges.length - 1 ? (
+                {index !== achievements.length - 1 ? (
                   <Image
                     source={require("@/assets/images/dotted-line.svg")}
                     contentFit="contain"
