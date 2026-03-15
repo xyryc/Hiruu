@@ -1,15 +1,23 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import BusinessShiftPending from "@/components/ui/cards/BusinessShiftPending";
+import LeaveRequestCard from "@/components/ui/cards/LeaveRequestCard";
 import SuccessRejectModal from "@/components/ui/modals/SuccessRejectModal";
-import { Ionicons } from "@expo/vector-icons";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const LeaveRequest = () => {
   const { colorScheme } = useColorScheme();
@@ -18,6 +26,44 @@ const LeaveRequest = () => {
   const [isSuccess, setIssuccess] = useState(false);
   const [reject, setReject] = useState(false);
   const insets = useSafeAreaInsets();
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const userBusiness = useBusinessStore((state) => state.userBusiness);
+  const businessId = selectedBusinesses?.[0] || userBusiness?.id;
+  const {
+    businessShiftRequests,
+    businessShiftRequestsLoading,
+    getBusinessShiftRequests,
+  } = useShiftStore();
+
+  const loadRequests = useCallback(async () => {
+    if (!businessId) return;
+    try {
+      const response = await getBusinessShiftRequests(businessId);
+      console.log("[LeaveRequest] business shift requests:", response);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load leave requests");
+    }
+  }, [businessId, getBusinessShiftRequests]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
+
+  const pendingRequests = useMemo(
+    () =>
+      (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
+        (item: any) => String(item?.status || "").toLowerCase() === "pending"
+      ),
+    [businessShiftRequests]
+  );
+
+  const approvedRequests = useMemo(
+    () =>
+      (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
+        (item: any) => String(item?.status || "").toLowerCase() === "approved"
+      ),
+    [businessShiftRequests]
+  );
 
   return (
     <SafeAreaView
@@ -31,17 +77,8 @@ const LeaveRequest = () => {
           title="Leave Requests"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
-          components={
-            <TouchableOpacity
-              onPress={() =>
-                router.push("/screens/schedule/shift/request-leave")
-              }
-              className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center"
-            >
-              <Ionicons name="share-outline" size={22} color="black" />
-            </TouchableOpacity>
-          }
         />
+
         {/* Tabs */}
         <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
           {["New Request", "Approved"].map((tab) => (
@@ -66,51 +103,58 @@ const LeaveRequest = () => {
           ))}
         </View>
       </View>
+
       <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
         {/* pending screen */}
         {selectedTab === "Approved" && (
           <View>
-            {[
-              { title: "Today 21", status: "Hourly Leave" },
-              { status: "Late Clock-in" },
-              { title: "20 Apr, 2025", status: "Hourly Leave" },
-              { status: "Network Issues" },
-              { status: "Hourly Leave" },
-            ].map((status, i) => (
-              <BusinessShiftPending
-                key={i}
+            {approvedRequests.map((item: any, i: number) => (
+              <LeaveRequestCard
+                key={item?.id || i}
                 approved
-                status={status.status}
-                title={status.title}
+                request={item}
               />
             ))}
+            {!businessShiftRequestsLoading && approvedRequests.length === 0 ? (
+              <Text className="text-center text-sm text-secondary mt-6">
+                No approved requests found.
+              </Text>
+            ) : null}
           </View>
         )}
 
         {/* New Request Tab */}
         {selectedTab === "New Request" && (
           <View>
-            {[
-              { title: "Today 21", status: "Hourly Leave", modal: true },
-              { status: "Late Clock-in", modal: true },
-              { title: "20 Apr, 2025", status: "Hourly Leave", modal: true },
-              { status: "Network Issues", modal: true },
-              { status: "Hourly Leave", modal: true },
-            ].map((item, i) => (
-              <BusinessShiftPending
-                key={i}
-                {...(item.modal && {
-                  modal: () => setIssuccess(true),
-                  setReject,
-                  reject,
-                })}
-                selectedTab
-                title={item.title}
-                status={item.status}
+            {pendingRequests.map((item: any, i: number) => (
+              <LeaveRequestCard
+                key={item?.id || i}
+                request={item}
+                showReviewActions
+                userId={item?.employment?.user?.id}
+                onAccept={() => {
+                  setReject(false);
+                  setIssuccess(true);
+                }}
+                onReject={() => {
+                  setReject(true);
+                  setIssuccess(true);
+                }}
               />
             ))}
+            {!businessShiftRequestsLoading && pendingRequests.length === 0 ? (
+              <Text className="text-center text-sm text-secondary mt-6">
+                No pending requests found.
+              </Text>
+            ) : null}
           </View>
         )}
+
+        {businessShiftRequestsLoading ? (
+          <View className="py-6 items-center">
+            <ActivityIndicator size="small" color="#4FB2F3" />
+          </View>
+        ) : null}
 
         <SuccessRejectModal
           visible={isSuccess}

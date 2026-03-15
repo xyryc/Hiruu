@@ -207,8 +207,8 @@ const RequestLeave = () => {
     >
       {/* Header */}
       <ScreenHeader
-        className='mx-5'
-        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+        className='mx-5 pt-4'
+        style={{ paddingBottom: insets.bottom }}
         onPressBack={() => router.back()}
         title="Request Leave"
         titleClass="text-primary dark:text-dark-primary"

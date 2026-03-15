@@ -6,6 +6,7 @@ import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LanguageSwitcherModal from "@/components/ui/modals/LanguageSwitcherModal";
 import TimezoneSwitcherModal from "@/components/ui/modals/TimezoneSwitcherModal";
 import { getTimezoneLabel } from "@/constants/timezones";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useAuthStore } from "@/stores/authStore";
 import { useJobStore, WeeklyAvailabilityItem } from "@/stores/jobStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
@@ -19,7 +20,6 @@ import {
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -53,8 +53,7 @@ const Preferences = () => {
     clampSmartAlertMinutes(Number(user?.appSettings?.smartAlertTime ?? 30))
   );
   const [isSoundOn, setIsSoundOn] = useState(false);
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { theme, isDark } = useTheme();
   const [showModal, setShowModal] = useState(false);
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [schedule, setSchedule] = useState(false);
@@ -73,6 +72,9 @@ const Preferences = () => {
     null
   );
   const lastSyncedPreferencesRef = useRef<{
+    language: string;
+    timeZone: string;
+    theme: string;
     smartAlert: boolean;
     smartAlertTime: number;
   } | null>(null);
@@ -89,6 +91,13 @@ const Preferences = () => {
 
   useEffect(() => {
     const nextPreferences = {
+      language: String(user?.appSettings?.language || currentLanguage || "en"),
+      timeZone: String(user?.appSettings?.timeZone || timezone || "UTC"),
+      theme: String(
+        theme ||
+          user?.appSettings?.theme ||
+          "light"
+      ),
       smartAlert: Boolean(user?.appSettings?.smartAlert),
       smartAlertTime: clampSmartAlertMinutes(
         Number(user?.appSettings?.smartAlertTime ?? 30)
@@ -98,7 +107,16 @@ const Preferences = () => {
     setIsOn(nextPreferences.smartAlert);
     setSmartAlertTime(nextPreferences.smartAlertTime);
     lastSyncedPreferencesRef.current = nextPreferences;
-  }, [user?.appSettings?.smartAlert, user?.appSettings?.smartAlertTime]);
+  }, [
+    currentLanguage,
+    theme,
+    timezone,
+    user?.appSettings?.language,
+    user?.appSettings?.smartAlert,
+    user?.appSettings?.smartAlertTime,
+    user?.appSettings?.theme,
+    user?.appSettings?.timeZone,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -152,13 +170,25 @@ const Preferences = () => {
   }, [pendingAvailability, updateMyJobProfile]);
 
   useEffect(() => {
+    const language = String(currentLanguage || user?.appSettings?.language || "en");
+    const timeZone = String(timezone || user?.appSettings?.timeZone || "UTC");
+    const themeValue = String(
+      theme || user?.appSettings?.theme || "light"
+    );
+
     const payload = {
+      language,
+      timeZone,
+      theme: themeValue,
       smartAlert: isOn,
       smartAlertTime,
     };
 
     if (
       lastSyncedPreferencesRef.current &&
+      lastSyncedPreferencesRef.current.language === payload.language &&
+      lastSyncedPreferencesRef.current.timeZone === payload.timeZone &&
+      lastSyncedPreferencesRef.current.theme === payload.theme &&
       lastSyncedPreferencesRef.current.smartAlert === payload.smartAlert &&
       lastSyncedPreferencesRef.current.smartAlertTime === payload.smartAlertTime
     ) {
@@ -185,7 +215,17 @@ const Preferences = () => {
         clearTimeout(preferenceSaveTimeoutRef.current);
       }
     };
-  }, [isOn, smartAlertTime, updatePreferences]);
+  }, [
+    currentLanguage,
+    isOn,
+    smartAlertTime,
+    theme,
+    timezone,
+    updatePreferences,
+    user?.appSettings?.language,
+    user?.appSettings?.theme,
+    user?.appSettings?.timeZone,
+  ]);
 
   return (
     <SafeAreaView
@@ -240,72 +280,70 @@ const Preferences = () => {
           }
         />
 
-        <SettingsCard
-          fullTouchable={false}
-          icon={<Ionicons name="time-outline" size={24} color="black" />}
-          className="mt-4"
-          text={t("user.profile.smartAlertTime")}
-          subtitle={
-            isOn
-              ? t("user.profile.smartAlertTimeSubtitle", {
-                  minutes: smartAlertTime,
-                })
-              : t("user.profile.enableSmartAlertToCustomizeTime")
-          }
-          arrowIcon={
-            <View className="flex-row items-center gap-1.5">
-              <TouchableOpacity
-                className={`h-7 w-7 rounded-full items-center justify-center border ${
-                  !isOn || smartAlertTime <= SMART_ALERT_MIN_MINUTES
-                    ? "border-[#E5E5E5] bg-[#F5F5F5]"
-                    : "border-[#D8D8D8] bg-white"
-                }`}
-                disabled={!isOn || smartAlertTime <= SMART_ALERT_MIN_MINUTES}
-                onPress={() =>
-                  setSmartAlertTime((prev) =>
-                    clampSmartAlertMinutes(prev - SMART_ALERT_STEP_MINUTES)
-                  )
-                }
-              >
-                <Entypo
-                  name="minus"
-                  size={14}
-                  color={
-                    !isOn || smartAlertTime <= SMART_ALERT_MIN_MINUTES
-                      ? "#BDBDBD"
-                      : "#111"
+        {isOn ? (
+          <SettingsCard
+            fullTouchable={false}
+            icon={<Ionicons name="time-outline" size={24} color="black" />}
+            className="mt-4"
+            text={t("user.profile.smartAlertTime")}
+            subtitle={t("user.profile.smartAlertTimeSubtitle", {
+              minutes: smartAlertTime,
+            })}
+            arrowIcon={
+              <View className="flex-row items-center gap-1.5">
+                <TouchableOpacity
+                  className={`h-7 w-7 rounded-full items-center justify-center border ${
+                    smartAlertTime <= SMART_ALERT_MIN_MINUTES
+                      ? "border-[#E5E5E5] bg-[#F5F5F5]"
+                      : "border-[#D8D8D8] bg-white"
+                  }`}
+                  disabled={smartAlertTime <= SMART_ALERT_MIN_MINUTES}
+                  onPress={() =>
+                    setSmartAlertTime((prev) =>
+                      clampSmartAlertMinutes(prev - SMART_ALERT_STEP_MINUTES)
+                    )
                   }
-                />
-              </TouchableOpacity>
-              <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-semibold min-w-[40px] text-center">
-                {smartAlertTime}m
-              </Text>
-              <TouchableOpacity
-                className={`h-7 w-7 rounded-full items-center justify-center border ${
-                  !isOn || smartAlertTime >= SMART_ALERT_MAX_MINUTES
-                    ? "border-[#E5E5E5] bg-[#F5F5F5]"
-                    : "border-[#D8D8D8] bg-white"
-                }`}
-                disabled={!isOn || smartAlertTime >= SMART_ALERT_MAX_MINUTES}
-                onPress={() =>
-                  setSmartAlertTime((prev) =>
-                    clampSmartAlertMinutes(prev + SMART_ALERT_STEP_MINUTES)
-                  )
-                }
-              >
-                <Entypo
-                  name="plus"
-                  size={14}
-                  color={
-                    !isOn || smartAlertTime >= SMART_ALERT_MAX_MINUTES
-                      ? "#BDBDBD"
-                      : "#111"
+                >
+                  <Entypo
+                    name="minus"
+                    size={14}
+                    color={
+                      smartAlertTime <= SMART_ALERT_MIN_MINUTES
+                        ? "#BDBDBD"
+                        : "#111"
+                    }
+                  />
+                </TouchableOpacity>
+                <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-semibold min-w-[40px] text-center">
+                  {smartAlertTime}m
+                </Text>
+                <TouchableOpacity
+                  className={`h-7 w-7 rounded-full items-center justify-center border ${
+                    smartAlertTime >= SMART_ALERT_MAX_MINUTES
+                      ? "border-[#E5E5E5] bg-[#F5F5F5]"
+                      : "border-[#D8D8D8] bg-white"
+                  }`}
+                  disabled={smartAlertTime >= SMART_ALERT_MAX_MINUTES}
+                  onPress={() =>
+                    setSmartAlertTime((prev) =>
+                      clampSmartAlertMinutes(prev + SMART_ALERT_STEP_MINUTES)
+                    )
                   }
-                />
-              </TouchableOpacity>
-            </View>
-          }
-        />
+                >
+                  <Entypo
+                    name="plus"
+                    size={14}
+                    color={
+                      smartAlertTime >= SMART_ALERT_MAX_MINUTES
+                        ? "#BDBDBD"
+                        : "#111"
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
+            }
+          />
+        ) : null}
 
         <SettingsCard
           fullTouchable={false}

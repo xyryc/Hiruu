@@ -31,6 +31,17 @@ type ShiftStoreState = {
     hasNext: boolean;
     hasPrev: boolean;
   } | null;
+  businessShiftRequests: any[];
+  businessShiftRequestsLoading: boolean;
+  businessShiftRequestsError: string | null;
+  businessShiftRequestsPagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
   shiftAssignmentDetails: any | null;
   shiftAssignmentDetailsLoading: boolean;
   shiftAssignmentDetailsError: string | null;
@@ -60,6 +71,15 @@ type ShiftStoreState = {
     status?: string;
     type?: string;
   }) => Promise<any[]>;
+  getBusinessShiftRequests: (
+    businessId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      type?: string;
+    }
+  ) => Promise<any[]>;
   getShiftAssignmentDetails: (id: string) => Promise<any | null>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
@@ -77,6 +97,7 @@ type ShiftStoreState = {
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
   clearShiftRequestsError: () => void;
+  clearBusinessShiftRequestsError: () => void;
   clearShiftAssignmentDetailsError: () => void;
   clearLeaveCreditsError: () => void;
   clearCreateShiftRequestError: () => void;
@@ -97,6 +118,10 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   shiftRequestsLoading: false,
   shiftRequestsError: null,
   shiftRequestsPagination: null,
+  businessShiftRequests: [],
+  businessShiftRequestsLoading: false,
+  businessShiftRequestsError: null,
+  businessShiftRequestsPagination: null,
   shiftAssignmentDetails: null,
   shiftAssignmentDetailsLoading: false,
   shiftAssignmentDetailsError: null,
@@ -312,6 +337,64 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  getBusinessShiftRequests: async (businessId, params) => {
+    try {
+      if (!businessId) {
+        set({
+          businessShiftRequests: [],
+          businessShiftRequestsLoading: false,
+          businessShiftRequestsError: null,
+          businessShiftRequestsPagination: null,
+        });
+        return [];
+      }
+
+      set({
+        businessShiftRequestsLoading: true,
+        businessShiftRequestsError: null,
+      });
+
+      const response = await axiosInstance.get(
+        `/shift-requests/business/${businessId}`,
+        {
+          params: {
+            page: params?.page,
+            limit: params?.limit,
+            status: params?.status,
+            type: params?.type,
+          },
+        }
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to fetch business shift requests"
+        );
+      }
+
+      const requests = Array.isArray(result?.data) ? result.data : [];
+      set({
+        businessShiftRequests: requests,
+        businessShiftRequestsLoading: false,
+        businessShiftRequestsPagination: result?.pagination || null,
+      });
+      return requests;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch business shift requests";
+      set({
+        businessShiftRequests: [],
+        businessShiftRequestsLoading: false,
+        businessShiftRequestsError: message,
+        businessShiftRequestsPagination: null,
+      });
+      throw new Error(message);
+    }
+  },
+
   getShiftAssignmentDetails: async (id) => {
     try {
       if (!id) {
@@ -492,6 +575,8 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
 
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
   clearShiftRequestsError: () => set({ shiftRequestsError: null }),
+  clearBusinessShiftRequestsError: () =>
+    set({ businessShiftRequestsError: null }),
   clearShiftAssignmentDetailsError: () =>
     set({ shiftAssignmentDetailsError: null }),
   clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
