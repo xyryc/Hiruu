@@ -1,4 +1,3 @@
-import { useJobStore } from "@/stores/jobStore";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
@@ -6,6 +5,7 @@ import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
+import { useJobStore } from "@/stores/jobStore";
 import {
   Feather,
   Foundation,
@@ -30,6 +30,8 @@ import { toast } from "sonner-native";
 type PreviewParams = {
   userId?: string;
   profileId?: string;
+  businessId?: string;
+  canRate?: string;
 };
 
 const UserProfilePreview = () => {
@@ -50,6 +52,9 @@ const UserProfilePreview = () => {
 
   const [isOn, setIsOn] = useState(false);
   const userId = typeof params.userId === "string" ? params.userId : "";
+  const businessId =
+    typeof params.businessId === "string" ? params.businessId : "";
+  const canRate = params.canRate === "true" && Boolean(businessId);
 
   useEffect(() => {
     let isMounted = true;
@@ -203,6 +208,7 @@ const UserProfilePreview = () => {
               pathname: "/screens/profile/rating",
               params: {
                 userId: profile?.userId || profile?.user?.id || "",
+                ...(canRate ? { businessId, canRate: "true" } : {}),
               },
             })
           }
