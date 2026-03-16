@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import LeaveRequestCard from "@/components/ui/cards/LeaveRequestCard";
-import SuccessRejectModal from "@/components/ui/modals/SuccessRejectModal";
+import LeaveRequestApprovalModal from "@/components/ui/modals/LeaveRequestApprovalModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
@@ -25,6 +25,7 @@ const LeaveRequest = () => {
   const [selectedTab, setSelectedTab] = useState("New Request");
   const [isSuccess, setIssuccess] = useState(false);
   const [reject, setReject] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const insets = useSafeAreaInsets();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const userBusiness = useBusinessStore((state) => state.userBusiness);
@@ -33,6 +34,8 @@ const LeaveRequest = () => {
     businessShiftRequests,
     businessShiftRequestsLoading,
     getBusinessShiftRequests,
+    approveBusinessShiftRequest,
+    approveShiftRequestLoading,
   } = useShiftStore();
 
   const loadRequests = useCallback(async () => {
@@ -113,6 +116,11 @@ const LeaveRequest = () => {
                 key={item?.id || i}
                 approved
                 request={item}
+                onPressCard={() => {
+                  setReject(false);
+                  setSelectedRequest(item);
+                  setIssuccess(true);
+                }}
               />
             ))}
             {!businessShiftRequestsLoading && approvedRequests.length === 0 ? (
@@ -133,11 +141,27 @@ const LeaveRequest = () => {
                 showReviewActions
                 userId={item?.employment?.user?.id}
                 onAccept={() => {
-                  setReject(false);
-                  setIssuccess(true);
+                  if (!businessId || !item?.id) {
+                    toast.error("Unable to approve this request");
+                    return;
+                  }
+
+                  approveBusinessShiftRequest(businessId, item.id)
+                    .then((result) => {
+                      setReject(false);
+                      setSelectedRequest(result?.data || item);
+                      setIssuccess(true);
+                      loadRequests();
+                    })
+                    .catch((error: any) => {
+                      toast.error(
+                        error?.message || "Failed to approve leave request"
+                      );
+                    });
                 }}
                 onReject={() => {
                   setReject(true);
+                  setSelectedRequest(item);
                   setIssuccess(true);
                 }}
               />
@@ -156,10 +180,12 @@ const LeaveRequest = () => {
           </View>
         ) : null}
 
-        <SuccessRejectModal
+        <LeaveRequestApprovalModal
           visible={isSuccess}
           onClose={() => setIssuccess(false)}
           reject={reject}
+          request={selectedRequest}
+          loading={approveShiftRequestLoading}
         />
       </ScrollView>
     </SafeAreaView>

@@ -7,6 +7,14 @@ import React, { useState } from "react";
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 
+const resolveMediaUrl = (value?: string | null) => {
+  if (!value || typeof value !== "string") return null;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
+  if (!base) return value;
+  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
+};
+
 type LeaveRequestCardProps = {
   title?: string;
   status?: string;
@@ -15,6 +23,7 @@ type LeaveRequestCardProps = {
   userId?: string;
   onAccept?: () => void;
   onReject?: () => void;
+  onPressCard?: () => void;
   request?: any;
 };
 
@@ -26,6 +35,7 @@ const LeaveRequestCard = ({
   userId,
   onAccept,
   onReject,
+  onPressCard,
   request,
 }: LeaveRequestCardProps) => {
   const router = useRouter();
@@ -48,7 +58,11 @@ const LeaveRequestCard = ({
       : " Unable to clock in due to poor internet connectivity at location.");
   const address =
     request?.employment?.user?.address?.address || "New York, North Bergen";
-  const role = request?.employment?.role?.role?.name || "Unassigned"
+  const role = request?.employment?.role?.name || "Unassigned";
+  const requester = request?.employment?.user || {};
+  const avatarSource = resolveMediaUrl(requester?.avatar)
+    ? { uri: resolveMediaUrl(requester?.avatar) as string }
+    : require("@/assets/images/placeholder.png");
 
   const handleMessageClick = async () => {
     if (!requestUserId) {
@@ -83,7 +97,12 @@ const LeaveRequestCard = ({
           {title}
         </Text>
       ) : null}
-      <View className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5">
+      <TouchableOpacity
+        activeOpacity={onPressCard ? 0.85 : 1}
+        onPress={onPressCard}
+        disabled={!onPressCard}
+        className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5"
+      >
         <View className="flex-row justify-between">
           {/* time label */}
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-1">
@@ -116,14 +135,10 @@ const LeaveRequestCard = ({
         />
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row gap-2 items-center">
-            <Image
-              source={request.employment.user.avatar || require("@/assets/images/placeholder.png")}
-              contentFit="contain"
-              style={{ height: 40, width: 40, borderRadius: 999 }}
-            />
+            <Image source={avatarSource} contentFit="cover" style={{ height: 40, width: 40, borderRadius: 999 }} />
             <View>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                {request.employment.user.name}
+                {requester?.name || "Unknown User"}
               </Text>
               <Text className="font-proximanova-regular text-secondary text-sm dark:text-dark-secondary">
                 {role}
@@ -163,7 +178,7 @@ const LeaveRequestCard = ({
             </View>
           ) : null}
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
