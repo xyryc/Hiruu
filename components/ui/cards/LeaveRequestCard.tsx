@@ -48,6 +48,7 @@ const LeaveRequestCard = ({
       : " Unable to clock in due to poor internet connectivity at location.");
   const address =
     request?.employment?.user?.address?.address || "New York, North Bergen";
+  const role = request?.employment?.role?.role?.name || "Unassigned"
 
   const handleMessageClick = async () => {
     if (!requestUserId) {
@@ -116,7 +117,7 @@ const LeaveRequestCard = ({
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row gap-2 items-center">
             <Image
-              source={request.employment.user.avatar}
+              source={request.employment.user.avatar || require("@/assets/images/placeholder.png")}
               contentFit="contain"
               style={{ height: 40, width: 40, borderRadius: 999 }}
             />
@@ -125,7 +126,7 @@ const LeaveRequestCard = ({
                 {request.employment.user.name}
               </Text>
               <Text className="font-proximanova-regular text-secondary text-sm dark:text-dark-secondary">
-                {request.employment.role.role.name}
+                {role}
               </Text>
             </View>
           </View>
