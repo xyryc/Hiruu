@@ -3,14 +3,16 @@ import { formatShortDateInTimezone } from "@/utils/date";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 
 const resolveMediaUrl = (value?: string | null) => {
   if (!value || typeof value !== "string") return null;
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
+  const base = (process.env.EXPO_PUBLIC_API_URL || "")
+    .replace(/\/api\/v1\/?$/, "")
+    .replace(/\/$/, "");
   if (!base) return value;
   return `${base}${value.startsWith("/") ? value : `/${value}`}`;
 };
@@ -40,6 +42,7 @@ const LeaveRequestCard = ({
 }: LeaveRequestCardProps) => {
   const router = useRouter();
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const requestUserId = request?.employment?.user?.id || userId;
   const leaveType = request?.leaveType || status;
@@ -64,9 +67,21 @@ const LeaveRequestCard = ({
       ? roleValue
       : roleValue?.name || roleValue?.role?.name || "Unassigned";
   const requester = request?.employment?.user || {};
-  const avatarSource = resolveMediaUrl(requester?.avatar)
-    ? { uri: resolveMediaUrl(requester?.avatar) as string }
-    : require("@/assets/images/placeholder.png");
+  const avatarSource = useMemo(() => {
+    const rawAvatar = requester?.avatar;
+    const normalizedAvatar =
+      typeof rawAvatar === "string"
+        ? rawAvatar.split("?")[0].replace(/\\/g, "/")
+        : "";
+    const isDefaultAvatar =
+      normalizedAvatar === "/uploads/users/user.png" ||
+      normalizedAvatar.endsWith("/uploads/users/user.png");
+    const resolved = !isDefaultAvatar ? resolveMediaUrl(rawAvatar) : null;
+    if (!resolved || avatarFailed) {
+      return require("@/assets/images/placeholder.png");
+    }
+    return { uri: resolved };
+  }, [avatarFailed, requester?.avatar]);
 
   const handleMessageClick = async () => {
     if (!requestUserId) {
@@ -139,7 +154,12 @@ const LeaveRequestCard = ({
         />
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row gap-2 items-center">
-            <Image source={avatarSource} contentFit="cover" style={{ height: 40, width: 40, borderRadius: 999 }} />
+            <Image
+              source={avatarSource}
+              contentFit="cover"
+              onError={() => setAvatarFailed(true)}
+              style={{ height: 40, width: 40, borderRadius: 999 }}
+            />
             <View>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
                 {requester?.name || "Unknown User"}

@@ -7,6 +7,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import ActionIconCard from "../ui/cards/ActionIconCard";
+import { useBusinessStore } from "@/stores/businessStore";
 
 type QuickActionBusinessProps = {
   className?: string;
@@ -14,6 +15,12 @@ type QuickActionBusinessProps = {
 
 const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
   const router = useRouter();
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const isBusinessProfile = selectedBusinesses.length > 0;
+
+  if (!isBusinessProfile) {
+    return null;
+  }
 
   return (
     <View className={`${className} px-4`}>
