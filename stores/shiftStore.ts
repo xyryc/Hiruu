@@ -88,15 +88,27 @@ type ShiftStoreState = {
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
-  createShiftRequest: (payload: {
-    employmentId: string;
-    type: "leave_request";
-    isHalfDay: boolean;
-    startDate: string;
-    endDate: string;
-    leaveType: string;
-    reason: string;
-  }) => Promise<any>;
+  createShiftRequest: (
+    payload:
+      | {
+          employmentId: string;
+          type: "leave_request";
+          isHalfDay: boolean;
+          startDate: string;
+          endDate: string;
+          leaveType: string;
+          reason: string;
+        }
+      | {
+          employmentId: string;
+          type: "overtime_request";
+          requestedDate: string;
+          startTime: string;
+          endTime: string;
+          overtimeHours: number;
+          reason: string;
+        }
+  ) => Promise<any>;
   approveBusinessShiftRequest: (
     businessId: string,
     id: string,

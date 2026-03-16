@@ -1,30 +1,116 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import Dropdown from "@/components/ui/dropdown/DropDown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
 import TimePicker from "@/components/ui/inputs/TimePicker";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
+import { useShiftStore } from "@/stores/shiftStore";
+import { MyEmploymentItem } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const OvertimeRequest = () => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [overtimeStart, setOvertimeStart] = useState("10:00Am");
-  const [overtimeEnd, setOvertimeEnd] = useState("04:00pm");
-
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const myEmployments = useJobStore((state) => state.myEmployments);
+  const myEmploymentsLoading = useJobStore((state) => state.myEmploymentsLoading);
+  const getMyEmployments = useJobStore((state) => state.getMyEmployments);
+  const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
+  const createShiftRequestLoading = useShiftStore(
+    (state) => state.createShiftRequestLoading
+  );
+  const [requestedDate, setRequestedDate] = useState<Date>(new Date());
+  const [overtimeStart, setOvertimeStart] = useState<Date>(new Date());
+  const [overtimeEnd, setOvertimeEnd] = useState<Date>(() => {
+    const dt = new Date();
+    dt.setHours(dt.getHours() + 1, 0, 0, 0);
+    return dt;
+  });
   const [reason, setReason] = useState("");
-  const companies = [
-    { label: "Company A", value: "company-a" },
-    { label: "Company B", value: "company-b" },
-    { label: "Company C", value: "company-c" },
-  ];
+
+  useEffect(() => {
+    getMyEmployments().catch((error: any) => {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to load businesses")
+      );
+    });
+  }, [getMyEmployments]);
+
+  const selectedBusinessId = selectedBusinesses?.[0] || "";
+  const selectedEmployment = useMemo<MyEmploymentItem | null>(() => {
+    const list = Array.isArray(myEmployments) ? myEmployments : [];
+    if (selectedBusinessId) {
+      return (
+        list.find((employment) => employment?.businessId === selectedBusinessId) || null
+      );
+    }
+    return list[0] || null;
+  }, [myEmployments, selectedBusinessId]);
+
+  const formatYmd = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatHm24 = (date: Date) => {
+    const h = String(date.getHours()).padStart(2, "0");
+    const m = String(date.getMinutes()).padStart(2, "0");
+    return `${h}:${m}`;
+  };
+
+  const calculateOvertimeHours = (start: Date, end: Date) => {
+    const startMinutes = start.getHours() * 60 + start.getMinutes();
+    const endMinutes = end.getHours() * 60 + end.getMinutes();
+    const diffMinutes = endMinutes - startMinutes;
+    return diffMinutes / 60;
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedEmployment?.id) {
+      toast.error("Employment not found");
+      return;
+    }
+
+    const overtimeHours = calculateOvertimeHours(overtimeStart, overtimeEnd);
+    if (!Number.isFinite(overtimeHours) || overtimeHours <= 0) {
+      toast.error("Overtime end time must be after start time");
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast.error("Please enter a reason");
+      return;
+    }
+
+    const payload = {
+      type: "overtime_request" as const,
+      requestedDate: formatYmd(requestedDate),
+      startTime: formatHm24(overtimeStart),
+      endTime: formatHm24(overtimeEnd),
+      overtimeHours,
+      reason: reason.trim(),
+      employmentId: selectedEmployment.id,
+    };
+
+    try {
+      const result = await createShiftRequest(payload);
+      toast.success(translateApiMessage(result?.message || "shift_request_created"));
+      router.back();
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to submit overtime request")
+      );
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
@@ -48,27 +134,20 @@ const OvertimeRequest = () => {
             Overtime Details
           </Text>
 
-          {/* Select Company */}
-          <View className="mb-5">
-            <Dropdown
-              label="Select Company"
-              placeholder="Select Company"
-              options={companies}
-              value={selectedCompany}
-              onSelect={setSelectedCompany}
-            />
-          </View>
-
           {/* Select Dates */}
           <View className="mb-5">
-            <DatePicker title="Select Dates" />
+            <DatePicker title="Select Dates" value={requestedDate} onChange={setRequestedDate} />
           </View>
 
           {/* Overtime Start and End Time */}
           <View className="flex-row mb-5 gap-3">
             {/* Overtime Start */}
             <View className="flex-1">
-              <TimePicker title="Overtime Start" />
+              <TimePicker
+                title="Overtime Start"
+                value={overtimeStart}
+                onChangeTime={setOvertimeStart}
+              />
             </View>
 
             {/* To Separator */}
@@ -80,7 +159,11 @@ const OvertimeRequest = () => {
 
             {/* Overtime End */}
             <View className="flex-1">
-              <TimePicker title=" Overtime End" />
+              <TimePicker
+                title=" Overtime End"
+                value={overtimeEnd}
+                onChangeTime={setOvertimeEnd}
+              />
             </View>
           </View>
 
@@ -105,10 +188,17 @@ const OvertimeRequest = () => {
       </ScrollView>
 
       <View className="mx-5 absolute bottom-0 left-0 right-0 py-5 items-center justify-end bg-white dark:bg-dark-background rounded-t-[20px]">
+        {myEmploymentsLoading ? (
+          <View className="py-4">
+            <ActivityIndicator size="small" color="#4FB2F3" />
+          </View>
+        ) : null}
         <PrimaryButton
           title="Send Request"
           className="my-10"
-          onPress={() => setShowModal(true)}
+          loading={createShiftRequestLoading}
+          disabled={createShiftRequestLoading || myEmploymentsLoading}
+          onPress={handleSubmit}
         />
       </View>
     </SafeAreaView>
@@ -116,4 +206,3 @@ const OvertimeRequest = () => {
 };
 
 export default OvertimeRequest;
-
