@@ -27,13 +27,32 @@ interface ProfileState {
       communication?: { average: number; count: number };
     };
   } | null;
+  businessRatingSummary: {
+    averageRating: number;
+    totalRatings: number;
+    ratingBreakdown: {
+      onTime?: { average: number; count: number };
+      trustWorthy?: { average: number; count: number };
+      communication?: { average: number; count: number };
+    };
+  } | null;
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
   getMyRatings: () => Promise<any>;
   getRatingsByUserId: (userId: string) => Promise<any>;
+  getRatingsByBusinessId: (businessId: string) => Promise<any>;
   getUserRatingSummary: (userId: string) => Promise<any>;
+  getBusinessRatingSummary: (businessId: string) => Promise<any>;
+  createUserBusinessRating: (payload: {
+    businessId: string;
+    ratings: {
+      onTime: number;
+      trustWorthy: number;
+      communication: number;
+    };
+  }) => Promise<any>;
   createBusinessEmployeeRating: (payload: {
     businessId: string;
     userId: string;
@@ -58,6 +77,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
   isProfileComplete: false,
   ratingsResponse: null,
   ratingSummary: null,
+  businessRatingSummary: null,
 
   updateProfile: async (profileData: UpdateProfileData) => {
     set({ isLoading: true, error: null });
@@ -187,6 +207,35 @@ export const useProfileStore = create<ProfileState>((set) => ({
     }
   },
 
+  getRatingsByBusinessId: async (businessId: string) => {
+    if (!businessId) {
+      const finalError = new Error("Business id is required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.get(`/ratings/businesses/${businessId}`);
+      const result = response.data;
+      set({
+        ratingsResponse: result,
+        isLoading: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load business ratings"
+      );
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
   getUserRatingSummary: async (userId: string) => {
     if (!userId) {
       const finalError = new Error("User id is required");
@@ -212,6 +261,68 @@ export const useProfileStore = create<ProfileState>((set) => ({
           "Failed to load user rating summary"
       );
       set({ isLoadingRatingSummary: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  getBusinessRatingSummary: async (businessId: string) => {
+    if (!businessId) {
+      const finalError = new Error("Business id is required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isLoadingRatingSummary: true, error: null });
+
+    try {
+      const response = await axiosInstance.get(
+        `/ratings/businesses/${businessId}/summary`
+      );
+      const result = response.data;
+      set({
+        businessRatingSummary: result?.data ?? null,
+        isLoadingRatingSummary: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load business rating summary"
+      );
+      set({ isLoadingRatingSummary: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  createUserBusinessRating: async (payload) => {
+    if (!payload.businessId) {
+      const finalError = new Error("Business id is required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isSubmittingRating: true, error: null });
+
+    try {
+      const response = await axiosInstance.post(
+        `/ratings/businesses/${payload.businessId}`,
+        {
+          ratings: payload.ratings,
+        }
+      );
+      const result = response.data;
+      set({ isSubmittingRating: false });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to submit business rating"
+      );
+      set({ isSubmittingRating: false, error: finalError });
       throw finalError;
     }
   },

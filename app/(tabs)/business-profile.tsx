@@ -319,7 +319,10 @@ const BusinessProfile = () => {
             </View>
 
             <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
-              <RatingBanner averageRating={averageRating} />
+              <RatingBanner
+                averageRating={averageRating}
+                onPress={() => router.push("/screens/profile/rating")}
+              />
 
               <View className="flex-row justify-between mt-5">
                 <View>

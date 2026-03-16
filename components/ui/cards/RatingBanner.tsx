@@ -1,12 +1,25 @@
 import { Image } from "expo-image";
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import RatingStar from "./RatingStar";
 
-const RatingBanner = ({ averageRating }: { averageRating: number }) => {
+type RatingBannerProps = {
+  averageRating: number;
+  onPress?: () => void;
+};
+
+const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
+  const formattedRating = Number.isFinite(averageRating)
+    ? Number(averageRating.toFixed(1)).toString()
+    : "0";
+
   return (
     <View>
-      <View className="flex-row justify-center items-center">
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={!onPress}
+        className="flex-row justify-center items-center"
+      >
         <Image
           source={require("@/assets/images/profile/rating-leaves.svg")}
           contentFit="contain"
@@ -17,7 +30,7 @@ const RatingBanner = ({ averageRating }: { averageRating: number }) => {
             Overall Rating
           </Text>
           <Text className="text-center font-proximanova-bold text-5xl text-primary dark:text-dark-primary">
-            {averageRating}
+            {formattedRating}
           </Text>
         </View>
         <Image
@@ -25,7 +38,7 @@ const RatingBanner = ({ averageRating }: { averageRating: number }) => {
           contentFit="contain"
           style={{ height: 84, width: 61 }}
         />
-      </View>
+      </TouchableOpacity>
 
       <RatingStar rating={5} />
       <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2">
