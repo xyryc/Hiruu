@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
 interface ProfileState {
   isLoading: boolean;
   isLoadingRatingSummary: boolean;
+  isSubmittingRating: boolean;
   error: Error | null;
   isProfileComplete: boolean;
   ratingsResponse: any | null;
@@ -33,6 +34,16 @@ interface ProfileState {
   getMyRatings: () => Promise<any>;
   getRatingsByUserId: (userId: string) => Promise<any>;
   getUserRatingSummary: (userId: string) => Promise<any>;
+  createBusinessEmployeeRating: (payload: {
+    businessId: string;
+    userId: string;
+    ratings: {
+      onTime: number;
+      trustWorthy: number;
+      communication: number;
+    };
+    comment: string;
+  }) => Promise<any>;
   syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
@@ -42,6 +53,7 @@ interface ProfileState {
 export const useProfileStore = create<ProfileState>((set) => ({
   isLoading: false,
   isLoadingRatingSummary: false,
+  isSubmittingRating: false,
   error: null,
   isProfileComplete: false,
   ratingsResponse: null,
@@ -200,6 +212,38 @@ export const useProfileStore = create<ProfileState>((set) => ({
           "Failed to load user rating summary"
       );
       set({ isLoadingRatingSummary: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  createBusinessEmployeeRating: async (payload) => {
+    if (!payload.businessId || !payload.userId) {
+      const finalError = new Error("Business id and user id are required");
+      set({ error: finalError });
+      throw finalError;
+    }
+
+    set({ isSubmittingRating: true, error: null });
+
+    try {
+      const response = await axiosInstance.post(
+        `/ratings/businesses/${payload.businessId}/users/${payload.userId}`,
+        {
+          ratings: payload.ratings,
+          comment: payload.comment,
+        }
+      );
+      const result = response.data;
+      set({ isSubmittingRating: false });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to submit rating"
+      );
+      set({ isSubmittingRating: false, error: finalError });
       throw finalError;
     }
   },

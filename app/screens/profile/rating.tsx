@@ -1,4 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingCard from "@/components/ui/cards/RatingCard";
 import RatingBar from "@/components/ui/inputs/RatingBar";
@@ -7,9 +8,10 @@ import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const formatRelativeTime = (value?: string) => {
   if (!value) return "Just now";
@@ -34,31 +36,43 @@ const formatRelativeTime = (value?: string) => {
 
 const Rating = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const params = useLocalSearchParams<{ userId?: string }>();
+  const params = useLocalSearchParams<{
+    userId?: string;
+    businessId?: string;
+    canRate?: string;
+    openAddRating?: string;
+  }>();
   const isLoading = useProfileStore((state) => state.isLoading);
+  const isSubmittingRating = useProfileStore((state) => state.isSubmittingRating);
   const ratingsResponse = useProfileStore((state) => state.ratingsResponse);
   const getMyRatings = useProfileStore((state) => state.getMyRatings);
   const getRatingsByUserId = useProfileStore((state) => state.getRatingsByUserId);
+  const createBusinessEmployeeRating = useProfileStore(
+    (state) => state.createBusinessEmployeeRating
+  );
   const targetUserId = typeof params.userId === "string" ? params.userId : "";
+  const businessId = typeof params.businessId === "string" ? params.businessId : "";
+  const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
+  const shouldOpenAddRating = params.openAddRating === "true";
+
+  const loadRatings = useCallback(async () => {
+    try {
+      if (targetUserId) {
+        await getRatingsByUserId(targetUserId);
+        return;
+      }
+
+      await getMyRatings();
+    } catch (error: any) {
+      console.log("user rating screen api error:", error?.message || error);
+    }
+  }, [getMyRatings, getRatingsByUserId, targetUserId]);
 
   useFocusEffect(
     useCallback(() => {
-      const loadRatings = async () => {
-        try {
-          if (targetUserId) {
-            await getRatingsByUserId(targetUserId);
-            return;
-          }
-
-          await getMyRatings();
-        } catch (error: any) {
-          console.log("user rating screen api error:", error?.message || error);
-        }
-      };
-
       loadRatings();
       return () => { };
-    }, [getMyRatings, getRatingsByUserId, targetUserId])
+    }, [loadRatings])
   );
 
   const { colorScheme } = useColorScheme();
@@ -102,6 +116,41 @@ const Rating = () => {
     );
     return Number((total / ratingItems.length).toFixed(1));
   }, [ratingItems]);
+
+  const canSubmitRating = canRate;
+
+  useEffect(() => {
+    if (shouldOpenAddRating && canSubmitRating) {
+      setIsVisible(true);
+    }
+  }, [canSubmitRating, shouldOpenAddRating]);
+
+  const handleSubmitRating = useCallback(
+    async (payload: {
+      ratings: { onTime: number; trustWorthy: number; communication: number };
+      comment: string;
+    }) => {
+      if (!targetUserId || !businessId) {
+        toast.error("Business or user information is missing");
+        return;
+      }
+
+      try {
+        await createBusinessEmployeeRating({
+          businessId,
+          userId: targetUserId,
+          ratings: payload.ratings,
+          comment: payload.comment,
+        });
+        toast.success("Rating submitted successfully");
+        setIsVisible(false);
+        await loadRatings();
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to submit rating");
+      }
+    },
+    [businessId, createBusinessEmployeeRating, loadRatings, targetUserId]
+  );
 
   return (
     <SafeAreaView
@@ -164,15 +213,19 @@ const Rating = () => {
         <RatingStarModal
           visible={isVisible}
           onClose={() => setIsVisible(false)}
+          onSubmit={handleSubmitRating}
+          loading={isSubmittingRating}
         />
       </ScrollView>
 
-      {/* <View className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-        <PrimaryButton
-          title="Add Rating"
-          onPress={() => setIsVisible(true)}
-        />
-      </View> */}
+      {canSubmitRating ? (
+        <View className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+          <PrimaryButton
+            title="Add Rating"
+            onPress={() => setIsVisible(true)}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 };

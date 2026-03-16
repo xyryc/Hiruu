@@ -19,6 +19,7 @@ import { toast } from "sonner-native";
 
 type EmployeeItem = {
   id: string;
+  userId: string;
   name: string;
   email: string;
   avatar: string | null;
@@ -49,6 +50,22 @@ const EmployeeListScreen = () => {
   );
   const [assigningRole, setAssigningRole] = useState(false);
 
+  const openEmployeeProfile = (userId: string) => {
+    if (!userId || !resolvedBusinessId) {
+      toast.error("Employee information is unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId,
+        businessId: resolvedBusinessId,
+        canRate: "true",
+      },
+    });
+  };
+
   useEffect(() => {
     if (!resolvedBusinessId) return;
 
@@ -65,6 +82,7 @@ const EmployeeListScreen = () => {
             if (!item?.id || !user?.id) return null;
             return {
               id: item?.id,
+              userId: user.id,
               name: user.name || "N/A",
               email: user.email || "N/A",
               avatar: user.avatar || null,
@@ -189,22 +207,28 @@ const EmployeeListScreen = () => {
           }
           renderItem={({ item }) => (
             <View className="flex-row items-center gap-3 border border-[#EEEEEE] dark:border-gray-800 rounded-xl px-4 py-3 mb-3">
-              <Image
-                source={item?.avatar || require("@/assets/images/placeholder.png")}
-                style={{ width: 42, height: 42, borderRadius: 999 }}
-                contentFit="cover"
-              />
-              <View className="flex-1">
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {item.name}
-                </Text>
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  {item.email}
-                </Text>
-                <Text className="font-proximanova-regular text-xs text-secondary dark:text-dark-secondary mt-0.5">
-                  Role: {item.roleName || "Not assigned"}
-                </Text>
-              </View>
+              <TouchableOpacity
+                onPress={() => openEmployeeProfile(item.userId)}
+                activeOpacity={0.7}
+                className="flex-1 flex-row items-center gap-3"
+              >
+                <Image
+                  source={item?.avatar || require("@/assets/images/placeholder.png")}
+                  style={{ width: 42, height: 42, borderRadius: 999 }}
+                  contentFit="cover"
+                />
+                <View className="flex-1">
+                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                    {item.name}
+                  </Text>
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    {item.email}
+                  </Text>
+                  <Text className="font-proximanova-regular text-xs text-secondary dark:text-dark-secondary mt-0.5">
+                    Role: {item.roleName || "Not assigned"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => openRoleModal(item.id)}

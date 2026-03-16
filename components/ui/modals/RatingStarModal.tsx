@@ -1,11 +1,12 @@
+import { AntDesign, Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../buttons/PrimaryButton";
-import { AntDesign, Entypo } from "@expo/vector-icons";
-import { useState } from "react";
 
-const RatingStarModal = ({ visible, onClose }: any) => {
+const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
+  const DEFAULT_RATING_COMMENT = "Rated from employee profile.";
   const handleDone = () => {
     onClose();
   };
@@ -14,7 +15,28 @@ const RatingStarModal = ({ visible, onClose }: any) => {
   const [workSelect, setWorkSelect] = useState<number>();
   const [commonSelect, setCommonSelect] = useState<number>();
 
-  console.log(paySelect);
+  useEffect(() => {
+    if (!visible) {
+      setPaySelect(undefined);
+      setWorkSelect(undefined);
+      setCommonSelect(undefined);
+    }
+  }, [visible]);
+
+  const handleSubmit = () => {
+    if (!paySelect || !workSelect || !commonSelect || !onSubmit) return;
+
+    onSubmit({
+      ratings: {
+        onTime: paySelect,
+        trustWorthy: workSelect,
+        communication: commonSelect,
+      },
+      comment: DEFAULT_RATING_COMMENT,
+    });
+  };
+
+  const isDisabled = !paySelect || !workSelect || !commonSelect || loading;
 
   return (
     <Modal
@@ -127,8 +149,14 @@ const RatingStarModal = ({ visible, onClose }: any) => {
                 </TouchableOpacity>
               ))}
             </View>
-
-            <PrimaryButton title="Submit" className="" />
+            <PrimaryButton
+              title="Submit"
+              className="mt-8 py-3.5"
+              onPress={handleSubmit}
+              loading={loading}
+              disabled={isDisabled}
+              showIcon={false}
+            />
           </SafeAreaView>
         </View>
       </BlurView>
