@@ -84,7 +84,10 @@ const LeaveRequest = () => {
 
         {/* Tabs */}
         <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
-          {["New Request", "Approved"].map((tab) => (
+          {["New Request", "Approved"].map((tab) => {
+            const tabCount =
+              tab === "New Request" ? pendingRequests.length : approvedRequests.length;
+            return (
             <TouchableOpacity
               className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
               key={tab}
@@ -96,14 +99,14 @@ const LeaveRequest = () => {
                 >
                   {tab}
                 </Text>
-                {tab === selectedTab && (
+                {tabCount > 0 && (
                   <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
-                    <Text className="text-white text-sm">3</Text>
+                    <Text className="text-white text-sm">{tabCount}</Text>
                   </View>
                 )}
               </View>
             </TouchableOpacity>
-          ))}
+          )})}
         </View>
       </View>
 
@@ -147,10 +150,8 @@ const LeaveRequest = () => {
                   }
 
                   approveBusinessShiftRequest(businessId, item.id)
-                    .then((result) => {
-                      setReject(false);
-                      setSelectedRequest(result?.data || item);
-                      setIssuccess(true);
+                    .then(() => {
+                      toast.success("Leave request approved");
                       loadRequests();
                     })
                     .catch((error: any) => {
