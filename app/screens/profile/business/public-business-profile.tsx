@@ -1,3 +1,4 @@
+import JobCard from "@/components/ui/cards/JobCard";
 import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingProgress from "@/components/ui/cards/RatingProgress";
 import { chatService } from "@/services/chatService";
@@ -41,6 +42,7 @@ const PublicBusinessProfile = () => {
   const [businessData, setBusinessData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("about");
 
   const loadBusiness = useCallback(async () => {
     if (!businessId) {
@@ -86,6 +88,7 @@ const PublicBusinessProfile = () => {
   const averageRating = Number(
     businessRatingSummary?.averageRating ?? businessData?.rating ?? 0
   );
+
   const handleOpenRatings = useCallback(() => {
     router.push({
       pathname: "/screens/profile/rating",
@@ -132,13 +135,20 @@ const PublicBusinessProfile = () => {
           key: "phone",
           icon: <Ionicons name="call-outline" size={18} color="black" />,
           label: "Phone",
-          value: businessData?.countryCode && businessData?.phoneNumber
-            ? `${businessData.countryCode} ${businessData.phoneNumber}`
-            : businessData?.phoneNumber,
+          value:
+            businessData?.countryCode && businessData?.phoneNumber
+              ? `${businessData.countryCode} ${businessData.phoneNumber}`
+              : businessData?.phoneNumber,
         },
         {
           key: "email",
-          icon: <MaterialCommunityIcons name="email-outline" size={18} color="black" />,
+          icon: (
+            <MaterialCommunityIcons
+              name="email-outline"
+              size={18}
+              color="black"
+            />
+          ),
           label: "Email",
           value: businessData?.email,
         },
@@ -251,209 +261,240 @@ const PublicBusinessProfile = () => {
             </View>
           </View>
 
-          <View className="flex-row justify-between items-centers mx-5 mt-6">
-            <View className="flex-row items-centers gap-2.5">
-              <View className="bg-[#E5F4FD] h-7 w-7 rounded-full flex-row items-center justify-center">
-                <SimpleLineIcons name="star" size={14} color="black" />
-              </View>
-              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                Rating Summary
-              </Text>
-            </View>
-            <TouchableOpacity onPress={handleOpenRatings} className="items-center">
-              <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                See All Ratings
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
-            <RatingBanner
-              averageRating={averageRating}
-            />
-
-            <View className="flex-row justify-between mt-5">
-              <View>
-                <RatingProgress rating={workEnvironmentRating} />
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                  Work Environment
-                </Text>
-              </View>
-
-              <Image
-                source={require("@/assets/images/vertical-line.svg")}
-                contentFit="contain"
-                style={{ height: 70, width: 0.5 }}
-              />
-
-              <View>
-                <RatingProgress rating={payOnTimeRating} />
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                  pay on time
-                </Text>
-              </View>
-
-              <Image
-                source={require("@/assets/images/vertical-line.svg")}
-                contentFit="contain"
-                style={{ height: 70, width: 0.5 }}
-              />
-
-              <View>
-                <RatingProgress rating={communicationRating} />
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                  communication
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="mx-5 mt-8 flex-row gap-2.5">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-              <SimpleLineIcons name="notebook" size={14} color="black" />
-            </View>
-
-            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              About Us
-            </Text>
-          </View>
-
-          <View className="mx-5 mt-4">
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {businessData?.description || "No description available."}
-            </Text>
-          </View>
-
-          <View className="mx-5 mt-8 flex-row gap-2.5">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-              <Ionicons name="person-outline" size={18} color="black" />
-            </View>
-
-            <View className="flex-1">
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Team & Overview
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row justify-between items-center px-4 py-3 mx-5 my-4 border border-[#eeeeee] rounded-xl">
-            <View className="flex-row gap-2">
-              <Feather name="users" size={18} color="black" />
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                Total Employee
-              </Text>
-            </View>
-            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              {businessData?.activeEmployeeCount ?? 0}
-            </Text>
-          </View>
-
-          <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
-            <View className="flex-row justify-between items-center p-2">
-              <View className="flex-row gap-2">
-                <MaterialCommunityIcons
-                  name="account-check-outline"
-                  size={18}
-                  color="black"
-                />
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Verified Business
-                </Text>
-              </View>
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {businessData?.isVerified ? "Yes" : "No"}
-              </Text>
-            </View>
-
-            <View className="flex-row justify-between items-center p-2">
-              <View className="flex-row gap-2">
-                <MaterialCommunityIcons
-                  name="account-search"
-                  size={18}
-                  color="#282930"
-                />
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Actively Recruiting
-                </Text>
-              </View>
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {businessData?.isRecruiting ? "Yes" : "No"}
-              </Text>
-            </View>
-          </View>
-
-          <View className="mx-5 mt-8 flex-row gap-2.5">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-              <Ionicons name="person-outline" size={16} color="black" />
-            </View>
-            <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Contact Owner
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={handleContactOwner}
-            disabled={isCreatingChat}
-            className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-3">
-                <Image
-                  source={
-                    businessData?.owner?.avatar
-                      ? { uri: businessData.owner.avatar }
-                      : require("@/assets/images/placeholder.png")
-                  }
-                  style={{ width: 40, height: 40, borderRadius: 999 }}
-                  contentFit="cover"
-                />
-
-                <Text className="font-proximanova-semibold text-base text-white">
-                  {businessData?.owner?.name || "Owner"}
-                </Text>
-              </View>
-
-              <View className="h-11 w-11 rounded-full bg-white items-center justify-center">
-                <Ionicons name="chatbubble-ellipses-outline" size={22} color="#4FB2F3" />
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <View className="flex-row justify-between items-center mx-5 mt-8">
-            <View className="flex-row gap-2.5">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                <Ionicons name="call-outline" size={16} color="black" />
-              </View>
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Contact Us On
-              </Text>
-            </View>
-          </View>
-
-          <View className="mx-5 my-4 border border-[#EEEEEE] rounded-2xl px-4 py-3">
-            {contactItems.length > 0 ? (
-              contactItems.map((item, index) => (
-                <View
-                  key={item.key}
-                  className={`${index > 0 ? "mt-3 pt-3 border-t border-[#EEEEEE]" : ""}`}
-                >
-                  <View className="flex-row items-center gap-2">
-                    {item.icon}
-                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                      {item.label}
-                    </Text>
-                  </View>
-                  <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    {item.value}
+          <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
+            {["about", "job"].map((tab) => (
+              <TouchableOpacity
+                className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : "border-b-hairline"}`}
+                key={tab}
+                onPress={() => setSelectedTab(tab)}
+              >
+                <View className="flex-row justify-center gap-2">
+                  <Text
+                    className={`text-center capitalize dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
+                  >
+                    {tab}
                   </Text>
                 </View>
-              ))
-            ) : (
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                No contact information available.
-              </Text>
-            )}
+              </TouchableOpacity>
+            ))}
           </View>
+
+          {selectedTab === "about" ? (
+            <View>
+              <View className="flex-row justify-between items-centers mx-5 mt-6">
+                <View className="flex-row items-centers gap-2.5">
+                  <View className="bg-[#E5F4FD] h-7 w-7 rounded-full flex-row items-center justify-center">
+                    <SimpleLineIcons name="star" size={14} color="black" />
+                  </View>
+                  <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                    Rating Summary
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={handleOpenRatings} className="items-center">
+                  <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                    See All Ratings
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
+                <RatingBanner averageRating={averageRating} />
+
+                <View className="flex-row justify-between mt-5">
+                  <View>
+                    <RatingProgress rating={workEnvironmentRating} />
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      Work Environment
+                    </Text>
+                  </View>
+
+                  <Image
+                    source={require("@/assets/images/vertical-line.svg")}
+                    contentFit="contain"
+                    style={{ height: 70, width: 0.5 }}
+                  />
+
+                  <View>
+                    <RatingProgress rating={payOnTimeRating} />
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      pay on time
+                    </Text>
+                  </View>
+
+                  <Image
+                    source={require("@/assets/images/vertical-line.svg")}
+                    contentFit="contain"
+                    style={{ height: 70, width: 0.5 }}
+                  />
+
+                  <View>
+                    <RatingProgress rating={communicationRating} />
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      communication
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View className="mx-5 mt-8 flex-row gap-2.5">
+                <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                  <SimpleLineIcons name="notebook" size={14} color="black" />
+                </View>
+
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  About Us
+                </Text>
+              </View>
+
+              <View className="mx-5 mt-4">
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  {businessData?.description || "No description available."}
+                </Text>
+              </View>
+
+              <View className="mx-5 mt-8 flex-row gap-2.5">
+                <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                  <Ionicons name="person-outline" size={18} color="black" />
+                </View>
+
+                <View className="flex-1">
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    Team & Overview
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row justify-between items-center px-4 py-3 mx-5 my-4 border border-[#eeeeee] rounded-xl">
+                <View className="flex-row gap-2">
+                  <Feather name="users" size={18} color="black" />
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    Total Employee
+                  </Text>
+                </View>
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  {businessData?.activeEmployeeCount ?? 0}
+                </Text>
+              </View>
+
+              <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
+                <View className="flex-row justify-between items-center p-2">
+                  <View className="flex-row gap-2">
+                    <MaterialCommunityIcons
+                      name="account-check-outline"
+                      size={18}
+                      color="black"
+                    />
+                    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                      Verified Business
+                    </Text>
+                  </View>
+                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                    {businessData?.isVerified ? "Yes" : "No"}
+                  </Text>
+                </View>
+
+                <View className="flex-row justify-between items-center p-2">
+                  <View className="flex-row gap-2">
+                    <MaterialCommunityIcons
+                      name="account-search"
+                      size={18}
+                      color="#282930"
+                    />
+                    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                      Actively Recruiting
+                    </Text>
+                  </View>
+                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                    {businessData?.isRecruiting ? "Yes" : "No"}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="mx-5 mt-8 flex-row gap-2.5">
+                <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                  <Ionicons name="person-outline" size={16} color="black" />
+                </View>
+                <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                  Contact Owner
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={handleContactOwner}
+                disabled={isCreatingChat}
+                className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-3">
+                    <Image
+                      source={
+                        businessData?.owner?.avatar
+                          ? { uri: businessData.owner.avatar }
+                          : require("@/assets/images/placeholder.png")
+                      }
+                      style={{ width: 40, height: 40, borderRadius: 999 }}
+                      contentFit="cover"
+                    />
+
+                    <Text className="font-proximanova-semibold text-base text-white">
+                      {businessData?.owner?.name || "Owner"}
+                    </Text>
+                  </View>
+
+                  <View className="h-11 w-11 rounded-full bg-white items-center justify-center">
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={22}
+                      color="#4FB2F3"
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              <View className="flex-row justify-between items-center mx-5 mt-8">
+                <View className="flex-row gap-2.5">
+                  <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                    <Ionicons name="call-outline" size={16} color="black" />
+                  </View>
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    Contact Us On
+                  </Text>
+                </View>
+              </View>
+
+              <View className="mx-5 my-4 border border-[#EEEEEE] rounded-2xl px-4 py-3">
+                {contactItems.length > 0 ? (
+                  contactItems.map((item, index) => (
+                    <View
+                      key={item.key}
+                      className={`${index > 0 ? "mt-3 pt-3 border-t border-[#EEEEEE]" : ""}`}
+                    >
+                      <View className="flex-row items-center gap-2">
+                        {item.icon}
+                        <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                          {item.label}
+                        </Text>
+                      </View>
+                      <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                        {item.value}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    No contact information available.
+                  </Text>
+                )}
+              </View>
+            </View>
+          ) : (
+            <View className="mx-5">
+              <Text className="my-4">Open Positions</Text>
+              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
+              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
+              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
+            </View>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>
