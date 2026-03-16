@@ -58,7 +58,11 @@ const LeaveRequestCard = ({
       : " Unable to clock in due to poor internet connectivity at location.");
   const address =
     request?.employment?.user?.address?.address || "New York, North Bergen";
-  const role = request?.employment?.role?.name || "Unassigned";
+  const roleValue = request?.employment?.role;
+  const role =
+    typeof roleValue === "string"
+      ? roleValue
+      : roleValue?.name || roleValue?.role?.name || "Unassigned";
   const requester = request?.employment?.user || {};
   const avatarSource = resolveMediaUrl(requester?.avatar)
     ? { uri: resolveMediaUrl(requester?.avatar) as string }

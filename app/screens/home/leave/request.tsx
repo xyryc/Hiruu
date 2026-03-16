@@ -4,6 +4,7 @@ import LeaveRequestApprovalModal from "@/components/ui/modals/LeaveRequestApprov
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
+import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -35,6 +36,7 @@ const LeaveRequest = () => {
     businessShiftRequestsLoading,
     getBusinessShiftRequests,
     approveBusinessShiftRequest,
+    rejectBusinessShiftRequest,
     approveShiftRequestLoading,
   } = useShiftStore();
 
@@ -42,7 +44,7 @@ const LeaveRequest = () => {
     if (!businessId) return;
     try {
       const response = await getBusinessShiftRequests(businessId);
-      console.log("[LeaveRequest] business shift requests:", response);
+      // console.log("[LeaveRequest] business shift requests:", response);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load leave requests");
     }
@@ -88,25 +90,26 @@ const LeaveRequest = () => {
             const tabCount =
               tab === "New Request" ? pendingRequests.length : approvedRequests.length;
             return (
-            <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
-              key={tab}
-              onPress={() => setSelectedTab(tab)}
-            >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                >
-                  {tab}
-                </Text>
-                {tabCount > 0 && (
-                  <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
-                    <Text className="text-white text-sm">{tabCount}</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          )})}
+              <TouchableOpacity
+                className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
+                key={tab}
+                onPress={() => setSelectedTab(tab)}
+              >
+                <View className="flex-row justify-center gap-2">
+                  <Text
+                    className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
+                  >
+                    {tab}
+                  </Text>
+                  {tabCount > 0 && (
+                    <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
+                      <Text className="text-white text-sm">{tabCount}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )
+          })}
         </View>
       </View>
 
@@ -151,7 +154,7 @@ const LeaveRequest = () => {
 
                   approveBusinessShiftRequest(businessId, item.id)
                     .then(() => {
-                      toast.success("Leave request approved");
+                      toast.success(t("api.shift_request_approved"));
                       loadRequests();
                     })
                     .catch((error: any) => {
@@ -161,9 +164,21 @@ const LeaveRequest = () => {
                     });
                 }}
                 onReject={() => {
-                  setReject(true);
-                  setSelectedRequest(item);
-                  setIssuccess(true);
+                  if (!businessId || !item?.id) {
+                    toast.error("Unable to reject this request");
+                    return;
+                  }
+
+                  rejectBusinessShiftRequest(businessId, item.id)
+                    .then(() => {
+                      toast.success(t("api.shift_request_declined"));
+                      loadRequests();
+                    })
+                    .catch((error: any) => {
+                      toast.error(
+                        error?.message || "Failed to reject leave request"
+                      );
+                    });
                 }}
               />
             ))}

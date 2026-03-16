@@ -30,7 +30,11 @@ const LeaveRequestApprovalModal = ({ visible, onClose, reject, request }: any) =
   ];
 
   const requester = request?.employment?.user || {};
-  const role = request?.employment?.role?.role?.name || "Unassigned";
+  const roleValue = request?.employment?.role;
+  const role =
+    typeof roleValue === "string"
+      ? roleValue
+      : roleValue?.name || roleValue?.role?.name || "Unassigned";
   const avatar =
     resolveMediaUrl(requester?.avatar) ||
     require("@/assets/images/placeholder.png");
