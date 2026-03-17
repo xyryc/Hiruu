@@ -172,7 +172,7 @@ const BusinessJobCard = ({
       </View>
 
       {/* mid */}
-      <View className="flex-row items-center justify-between gap-20 mt-2.5">
+      <View className="flex-row items-center justify-between mt-2.5">
         <View className="flex-row items-center gap-1.5">
           <SimpleLineIcons name="location-pin" size={12} color="black" />
           <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
@@ -185,7 +185,7 @@ const BusinessJobCard = ({
             {salaryMin}-{salaryMax}$
           </Text>
           <Text className="text-lg font-proximanova-regular text-secondary">
-            /{salaryType}
+            /{salaryType}{' '}
           </Text>
         </View>
       </View>
