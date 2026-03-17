@@ -1,38 +1,88 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import Dropdown from "@/components/ui/dropdown/DropDown";
-import { useRouter } from "expo-router";
+import { useShiftStore } from "@/stores/shiftStore";
+import { translateApiMessage } from "@/utils/apiMessages";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const ReportIssue = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    shiftAssignmentId?: string | string[];
+    employmentId?: string | string[];
+  }>();
+  const shiftAssignmentId = Array.isArray(params.shiftAssignmentId)
+    ? params.shiftAssignmentId[0]
+    : params.shiftAssignmentId;
+  const employmentId = Array.isArray(params.employmentId)
+    ? params.employmentId[0]
+    : params.employmentId;
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [showModal, setShowModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [overtimeStart, setOvertimeStart] = useState("10:00Am");
-  const [overtimeEnd, setOvertimeEnd] = useState("04:00pm");
-
+  const createShiftReport = useShiftStore((state) => state.createShiftReport);
+  const createShiftReportLoading = useShiftStore(
+    (state) => state.createShiftReportLoading
+  );
   const [reason, setReason] = useState("");
   const issues = [
-    { label: "System not working", value: "issue-a" },
-    { label: "Overstaffed shift", value: "issue-b" },
-    { label: "Missing team members on shift", value: "issue-c" },
-    { label: "Wrong timezone display", value: "issue-d" },
-    { label: "Building access problems", value: "issue-e" },
+    { label: "System not working", value: "system_not_working" },
+    { label: "Overstaffed shift", value: "overstaffed_shift" },
+    { label: "Missing team members on shift", value: "missing_team_members" },
+    { label: "Wrong timezone display", value: "wrong_timezone_display" },
+    { label: "Building access problems", value: "building_access_problems" },
   ];
+  const selectedIssueLabel =
+    issues.find((item) => item.value === selectedIssue)?.label || "";
+
+  const handleSubmit = async () => {
+    if (!shiftAssignmentId) {
+      toast.error("Shift assignment id is missing");
+      return;
+    }
+    if (!employmentId) {
+      toast.error("Employment id is missing");
+      return;
+    }
+    if (!selectedIssue) {
+      toast.error("Please select an issue type");
+      return;
+    }
+    if (!reason.trim()) {
+      toast.error("Please add issue details");
+      return;
+    }
+
+    try {
+      const result = await createShiftReport({
+        shiftAssignmentId,
+        employmentId,
+        type: "report",
+        issueType: selectedIssue,
+        notes: reason.trim(),
+        attachment: null,
+      });
+      toast.success(translateApiMessage(result?.message || "shift_report_created"));
+      router.back();
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to submit shift report")
+      );
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
       {/* Header */}
       <ScreenHeader
         onPressBack={() => router.back()}
-        className="px-5 pb-6 rounded-b-3xl overflow-hidden"
-        title="Overtime Request"
+        className="px-5 py-4 rounded-b-3xl overflow-hidden"
+        title="Report Issue"
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111111"}
       />
@@ -54,7 +104,7 @@ const ReportIssue = () => {
               label="Issue Types"
               placeholder="Select an issue"
               options={issues}
-              value={selectedIssue}
+              value={selectedIssueLabel}
               onSelect={setSelectedIssue}
             />
           </View>
@@ -82,7 +132,9 @@ const ReportIssue = () => {
       <View className="mx-5 absolute bottom-0 left-0 right-0 py-5 items-center justify-end bg-white dark:bg-dark-background rounded-t-[20px]">
         <PrimaryButton
           title="Send Request"
-          onPress={() => setShowModal(true)}
+          loading={createShiftReportLoading}
+          disabled={createShiftReportLoading}
+          onPress={handleSubmit}
         />
       </View>
     </SafeAreaView>
@@ -90,4 +142,3 @@ const ReportIssue = () => {
 };
 
 export default ReportIssue;
-

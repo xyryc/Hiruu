@@ -275,7 +275,15 @@ const ShiftDetails = () => {
             <ActionIconCard
               icon={<Ionicons name="document-text" size={24} color="#4FB2F3" />}
               title="Report Issue"
-              onPress={() => router.push("/screens/schedule/shift/report")}
+              onPress={() =>
+                router.push({
+                  pathname: "/screens/schedule/shift/report",
+                  params: {
+                    shiftAssignmentId: shiftId || details?.id,
+                    employmentId: details?.employmentId,
+                  },
+                })
+              }
             />
           </ScrollView>
         </View>

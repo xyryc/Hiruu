@@ -100,6 +100,8 @@
     "shift_request_approved": "Το αίτημα βάρδιας εγκρίθηκε με επιτυχία.",
     "shift_request_declined": "Το αίτημα βάρδιας απορρίφθηκε με επιτυχία.",
     "insufficient_leave_balance": "Μη επαρκές υπόλοιπο άδειας.",
+    "shift_report_created": "Η αναφορά βάρδιας υποβλήθηκε με επιτυχία.",
+    "a_report_already_exists_for_this_shift": "Υπάρχει ήδη αναφορά για αυτή τη βάρδια.",
     "claimed_successfully": "Η εξαργύρωση ολοκληρώθηκε με επιτυχία.",
     "shift_request_created": "Το αίτημα βάρδιας δημιουργήθηκε με επιτυχία.",
     "successfully_clocked_in": "Η καταχώριση παρουσίας ολοκληρώθηκε με επιτυχία.",

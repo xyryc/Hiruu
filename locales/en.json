@@ -99,6 +99,8 @@
     "shift_request_approved": "Shift request approved successfully.",
     "shift_request_declined": "Shift request declined successfully.",
     "insufficient_leave_balance": "Insufficient leave balance.",
+    "shift_report_created": "Shift report submitted successfully.",
+    "a_report_already_exists_for_this_shift": "A report already exists for this shift.",
     "claimed_successfully": "Claimed successfully.",
     "shift_request_created": "Shift request created successfully.",
     "successfully_clocked_in": "Successfully clocked in.",
