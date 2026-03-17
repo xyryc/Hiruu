@@ -58,7 +58,22 @@ const getOpenToWorkLabel = (profile: JobProfileData | null) =>
 
 const buildAvailabilityRows = (profile: JobProfileData | null) => {
   const byDay = new Map(
-    (profile?.weeklyAvailability || []).map((item) => [item.day.toLowerCase(), item])
+    (profile?.weeklyAvailability || []).flatMap((item: any) => {
+      if (typeof item === "string" && item.trim()) {
+        return [[item.toLowerCase(), { day: item, isOpen: true }]];
+      }
+
+      if (
+        item &&
+        typeof item === "object" &&
+        typeof item.day === "string" &&
+        item.day.trim()
+      ) {
+        return [[item.day.toLowerCase(), item]];
+      }
+
+      return [];
+    })
   );
 
   return dayOrder.map((day) => {
@@ -71,7 +86,7 @@ const buildAvailabilityRows = (profile: JobProfileData | null) => {
     const end = formatTimeToDisplay(item.endTime);
     return {
       day,
-      value: start && end ? `${start} - ${end}` : "Closed",
+      value: start && end ? `${start} - ${end}` : "Available",
     };
   });
 };
@@ -117,8 +132,7 @@ const JobProfile = () => {
     useCallback(() => {
       const loadProfile = async () => {
         try {
-          const data = await getMyJobProfile();
-          console.log("job profile data:", data);
+          await getMyJobProfile();
         } catch (error: any) {
           toast.error(error?.message || "Failed to load job profile");
         }
