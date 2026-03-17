@@ -47,16 +47,28 @@ const Rating = () => {
   const ratingsResponse = useProfileStore((state) => state.ratingsResponse);
   const getMyRatings = useProfileStore((state) => state.getMyRatings);
   const getRatingsByUserId = useProfileStore((state) => state.getRatingsByUserId);
+  const getRatingsByBusinessId = useProfileStore(
+    (state) => state.getRatingsByBusinessId
+  );
+  const createUserBusinessRating = useProfileStore(
+    (state) => state.createUserBusinessRating
+  );
   const createBusinessEmployeeRating = useProfileStore(
     (state) => state.createBusinessEmployeeRating
   );
   const targetUserId = typeof params.userId === "string" ? params.userId : "";
   const businessId = typeof params.businessId === "string" ? params.businessId : "";
+  const isBusinessRatingView = Boolean(businessId) && !targetUserId;
   const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
   const shouldOpenAddRating = params.openAddRating === "true";
 
   const loadRatings = useCallback(async () => {
     try {
+      if (isBusinessRatingView) {
+        await getRatingsByBusinessId(businessId);
+        return;
+      }
+
       if (targetUserId) {
         await getRatingsByUserId(targetUserId);
         return;
@@ -66,7 +78,14 @@ const Rating = () => {
     } catch (error: any) {
       console.log("user rating screen api error:", error?.message || error);
     }
-  }, [getMyRatings, getRatingsByUserId, targetUserId]);
+  }, [
+    businessId,
+    getRatingsByBusinessId,
+    getMyRatings,
+    getRatingsByUserId,
+    isBusinessRatingView,
+    targetUserId,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -117,7 +136,7 @@ const Rating = () => {
     return Number((total / ratingItems.length).toFixed(1));
   }, [ratingItems]);
 
-  const canSubmitRating = canRate;
+  const canSubmitRating = canRate || isBusinessRatingView;
 
   useEffect(() => {
     if (shouldOpenAddRating && canSubmitRating) {
@@ -131,17 +150,26 @@ const Rating = () => {
       comment: string;
     }) => {
       if (!targetUserId || !businessId) {
-        toast.error("Business or user information is missing");
-        return;
+        if (!isBusinessRatingView || !businessId) {
+          toast.error("Business or user information is missing");
+          return;
+        }
       }
 
       try {
-        await createBusinessEmployeeRating({
-          businessId,
-          userId: targetUserId,
-          ratings: payload.ratings,
-          comment: payload.comment,
-        });
+        if (isBusinessRatingView) {
+          await createUserBusinessRating({
+            businessId,
+            ratings: payload.ratings,
+          });
+        } else {
+          await createBusinessEmployeeRating({
+            businessId,
+            userId: targetUserId,
+            ratings: payload.ratings,
+            comment: payload.comment,
+          });
+        }
         toast.success("Rating submitted successfully");
         setIsVisible(false);
         await loadRatings();
@@ -149,7 +177,14 @@ const Rating = () => {
         toast.error(error?.message || "Failed to submit rating");
       }
     },
-    [businessId, createBusinessEmployeeRating, loadRatings, targetUserId]
+    [
+      businessId,
+      createBusinessEmployeeRating,
+      createUserBusinessRating,
+      isBusinessRatingView,
+      loadRatings,
+      targetUserId,
+    ]
   );
 
   return (
@@ -195,7 +230,11 @@ const Rating = () => {
               <RatingCard
                 key={item.id}
                 className="mt-8"
-                name={item?.business?.name || item?.raterUser?.name || "Unknown"}
+                name={
+                  isBusinessRatingView
+                    ? item?.raterUser?.name || item?.business?.name || "Unknown"
+                    : item?.business?.name || item?.raterUser?.name || "Unknown"
+                }
                 time={formatRelativeTime(item?.createdAt)}
                 rating={Math.max(
                   0,

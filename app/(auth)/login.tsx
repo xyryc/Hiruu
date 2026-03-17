@@ -1,12 +1,13 @@
 import TitleHeader from "@/components/header/TitleHeader";
 import SocialAuth from "@/components/layout/SocialAuth";
-import { registerForFcmToken } from "@/services/notificationService";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import { registerForFcmToken } from "@/services/notificationService";
 import { useAuthStore } from "@/stores/authStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { getCalendars } from 'expo-localization';
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
@@ -93,6 +94,8 @@ const Login = () => {
   const handleLogin = async () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
+    const timeZone = getCalendars()[0].timeZone || 'UTC';
+    console.log(timeZone)
 
     if (selectedTab === "Email") {
       if (!email || !password) {
@@ -106,6 +109,7 @@ const Login = () => {
           password,
           rememberMe,
           fcmToken,
+          timeZone,
         });
 
         if (result?.success) {
@@ -148,6 +152,7 @@ const Login = () => {
           phoneNumber: normalizedPhone,
           rememberMe,
           fcmToken,
+          timeZone,
         });
 
         if (result?.success) {

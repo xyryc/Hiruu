@@ -72,6 +72,13 @@ type RecruitmentApplicationListResponse = {
   };
 };
 
+type BusinessInvitePayload = {
+  userId: string;
+  roleId: string;
+  minSalary: number;
+  maxSalary: number;
+};
+
 type AllJobsFilters = Pick<
   RecruitmentFilterQuery,
   | "shiftType"
@@ -181,6 +188,10 @@ interface JobState {
   setAllJobsFilters: (filters: Partial<AllJobsFilters>) => void;
   clearAllJobsFilters: () => void;
   applyToRecruitment: (recruitmentId: string) => Promise<any>;
+  inviteCandidateToRecruitment: (
+    businessId: string,
+    payload: BusinessInvitePayload
+  ) => Promise<any>;
   getMyApplications: (
     query?: RecruitmentApplicationFilterQuery
   ) => Promise<RecruitmentApplicationListResponse>;
@@ -262,6 +273,32 @@ export const useJobStore = create<JobState>((set) => ({
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
         "Failed to apply for this job";
+      throw new Error(message);
+    }
+  },
+
+  inviteCandidateToRecruitment: async (businessId, payload) => {
+    try {
+      const response = await axiosInstance.post(
+        `/recruitment-application/business/${businessId}/invite`,
+        payload
+      );
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return result?.data || result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to invite candidate";
       throw new Error(message);
     }
   },

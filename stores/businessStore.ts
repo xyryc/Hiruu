@@ -64,6 +64,7 @@ interface BusinessState {
   getShiftTemplateById: (businessId: string, templateId: string) => Promise<any>;
   deleteShiftTemplate: (businessId: string, templateId: string) => Promise<any>;
   getBusinessProfile: (businessId: string) => Promise<any>;
+  getPublicBusinessProfile: (businessId: string) => Promise<any>;
   getBusinessEmployees: (businessId: string) => Promise<any[]>;
   updateMyBusinessProfile: (businessId: string, payload: any) => Promise<any>;
   deleteBusinessRole: (businessId: string, roleId: string) => Promise<any>;
@@ -738,6 +739,26 @@ export const useBusinessStore = create<BusinessState>()(
       return result.data;
     } catch (error) {
       console.error("Fetch business profile error:", error);
+      throw error;
+    }
+  },
+
+  getPublicBusinessProfile: async (businessId) => {
+    try {
+      const response = await axiosInstance.get(`/business/public/${businessId}`);
+      const result = response.data;
+
+      if (!result.success) {
+        const errorMsg =
+          result.error?.message ||
+          result.message?.code ||
+          "Failed to fetch public business profile";
+        throw new Error(errorMsg);
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error("Fetch public business profile error:", error);
       throw error;
     }
   },

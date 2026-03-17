@@ -1,9 +1,27 @@
+import { StatusBadgeProps, UserScheduleUiShift } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 
-const RegularShiftCard = ({ shift }) => {
+type RegularShiftCardProps = {
+  shift: UserScheduleUiShift;
+};
+
+const RegularShiftCard = ({ shift }: RegularShiftCardProps) => {
+  const badgeStatus: StatusBadgeProps["status"] =
+    shift.status === "no_shift" ? "upcoming" : shift.status;
+
+  const handleBusinessLogoPress = () => {
+    if (!shift?.businessId) return;
+
+    router.push({
+      pathname: "/screens/profile/business/public-business-profile",
+      params: { businessId: shift.businessId },
+    });
+  };
+
   return (
     <View>
       <Text className="font-proximanova-bold text-primary dark:text-dark-primary mb-3">
@@ -57,19 +75,21 @@ const RegularShiftCard = ({ shift }) => {
 
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
-          <Image
-            source={
-              shift.companyLogo
-                ? { uri: shift.companyLogo }
-                : require("@/assets/images/placeholder.png")
-            }
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 999,
-            }}
-            contentFit="cover"
-          />
+          <TouchableOpacity onPress={handleBusinessLogoPress}>
+            <Image
+              source={
+                shift.companyLogo
+                  ? { uri: shift.companyLogo }
+                  : require("@/assets/images/placeholder.png")
+              }
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 999,
+              }}
+              contentFit="cover"
+            />
+          </TouchableOpacity>
 
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
             {shift.company}
@@ -77,7 +97,7 @@ const RegularShiftCard = ({ shift }) => {
         </View>
 
         <View className="flex-row gap-1.5 items-center">
-          <StatusBadge status={shift.status} />
+          <StatusBadge status={badgeStatus} />
           <TouchableOpacity
             className={`p-2 rounded-full
               ${shift.status === "ongoing" || shift.status === "upcoming" ? "bg-[#4FB2F3]" : "bg-[#4fb1f365]"}`}
