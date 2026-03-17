@@ -8,6 +8,7 @@ export interface RegisterData {
   role?: "user" | "provider";
   firstName?: string;
   lastName?: string;
+  timeZone?: string;
 }
 
 export interface LoginData {
@@ -17,6 +18,7 @@ export interface LoginData {
   phoneNumber?: string;
   rememberMe?: boolean;
   fcmToken?: string;
+  timeZone?: string;
 }
 
 export interface OAuthData {

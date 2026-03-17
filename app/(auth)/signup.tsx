@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { getCalendars } from 'expo-localization';
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
@@ -78,6 +79,7 @@ const SignUp = () => {
   const handleSignup = async () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
+    const timeZone = getCalendars()[0]?.timeZone || "UTC";
     console.log("fcm register", fcmToken)
 
     if (selectedTab === "email") {
@@ -103,6 +105,7 @@ const SignUp = () => {
           password,
           rememberMe,
           fcmToken,
+          timeZone,
         });
 
         if (result?.success) {
@@ -132,6 +135,7 @@ const SignUp = () => {
           countryCode: effectiveCountryCode,
           rememberMe,
           fcmToken,
+          timeZone,
         });
 
         if (result?.success) {
