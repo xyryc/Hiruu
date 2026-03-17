@@ -112,9 +112,15 @@ const BusinessJobCard = ({
     });
   };
 
+  const handleOpenOfferModal = () => {
+    const userId = profile?.userId || profile?.user?.id;
+    console.log("[BusinessJobCard] bottom sheet opened for userId:", userId);
+    setShowModal(true);
+  };
+
   return (
     <TouchableOpacity
-      onPress={() => setShowModal(true)}
+      onPress={handleOpenOfferModal}
       className={`${className}
       ${status === "featured" && "bg-[#E5F4FD]"}
       p-2.5 rounded-xl border border-[#4FB2F330]`}
@@ -329,6 +335,7 @@ const BusinessJobCard = ({
       <BusinessOfferModal
         visible={showModal}
         onClose={() => setShowModal(false)}
+        userId={profile?.userId || profile?.user?.id || ""}
       />
     </TouchableOpacity>
   );
