@@ -14,9 +14,28 @@ const STORAGE_KEYS = {
 interface ProfileState {
   isLoading: boolean;
   isLoadingRatingSummary: boolean;
+  isLoadingAnalyticsSummary: boolean;
   isSubmittingRating: boolean;
   error: Error | null;
   isProfileComplete: boolean;
+  analyticsSummary: {
+    period?: {
+      type?: string;
+      from?: string;
+      to?: string;
+    };
+    metrics?: {
+      onTimeArrivalPercent?: number;
+      taskCompletionPercent?: number;
+      positiveFeedbackPercent?: number;
+      growthScorePercent?: number;
+    };
+    counts?: {
+      onTimeArrival?: { numerator?: number; denominator?: number };
+      taskCompletion?: { numerator?: number; denominator?: number };
+      positiveFeedback?: { numerator?: number; denominator?: number };
+    };
+  } | null;
   ratingsResponse: any | null;
   ratingSummary: {
     averageRating: number;
@@ -40,6 +59,7 @@ interface ProfileState {
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
+  getAnalyticsSummary: () => Promise<any>;
   getMyRatings: () => Promise<any>;
   getRatingsByUserId: (userId: string) => Promise<any>;
   getRatingsByBusinessId: (businessId: string) => Promise<any>;
@@ -72,9 +92,11 @@ interface ProfileState {
 export const useProfileStore = create<ProfileState>((set) => ({
   isLoading: false,
   isLoadingRatingSummary: false,
+  isLoadingAnalyticsSummary: false,
   isSubmittingRating: false,
   error: null,
   isProfileComplete: false,
+  analyticsSummary: null,
   ratingsResponse: null,
   ratingSummary: null,
   businessRatingSummary: null,
@@ -151,6 +173,37 @@ export const useProfileStore = create<ProfileState>((set) => ({
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Failed to fetch profile");
       set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  getAnalyticsSummary: async () => {
+    set({ isLoadingAnalyticsSummary: true, error: null });
+
+    try {
+      const response = await axiosInstance.get("/analytics/summary");
+      const result = response.data;
+
+      if (
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400)
+      ) {
+        throw new Error(result?.message || "Failed to load analytics summary");
+      }
+
+      set({
+        analyticsSummary: result?.data ?? null,
+        isLoadingAnalyticsSummary: false,
+      });
+      return result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const finalError = new Error(
+        axiosError.response?.data?.message ||
+          axiosError.message ||
+          "Failed to load analytics summary"
+      );
+      set({ isLoadingAnalyticsSummary: false, error: finalError });
       throw finalError;
     }
   },

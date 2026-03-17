@@ -507,6 +507,7 @@ const BusinessProfile = () => {
               className="mx-5 my-4"
               value={socialLinks}
               onChange={handleSocialLinksChange}
+              hideEmpty
             />
           </View>
         )}
