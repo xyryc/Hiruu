@@ -4,10 +4,11 @@ import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarSchedu
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -48,20 +49,26 @@ const LeaveHistory = () => {
   const shiftRequestsLoading = useShiftStore((state) => state.shiftRequestsLoading);
   const getShiftRequests = useShiftStore((state) => state.getShiftRequests);
 
-  useEffect(() => {
-    getShiftRequests({ startDate: DEFAULT_START_DATE, type: "leave_request" }).catch(
-      (error: any) => {
-        toast.error(
-          translateApiMessage(error?.message || "Failed to fetch shift requests")
-        );
-      }
-    );
+  const fetchLeaveHistory = useCallback(async () => {
+    try {
+      await getShiftRequests({ startDate: DEFAULT_START_DATE, type: "leave_request" });
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to fetch shift requests")
+      );
+    }
   }, [getShiftRequests]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchLeaveHistory();
+    }, [fetchLeaveHistory])
+  );
 
   const handleRefresh = async () => {
     try {
       setRefreshing(true);
-      await getShiftRequests({ startDate: DEFAULT_START_DATE, type: "leave_request" });
+      await fetchLeaveHistory();
     } catch (error: any) {
       toast.error(
         translateApiMessage(error?.message || "Failed to fetch shift requests")

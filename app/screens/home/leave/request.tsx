@@ -1,9 +1,10 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import LeaveRequestCard from "@/components/ui/cards/LeaveRequestCard";
-import SuccessRejectModal from "@/components/ui/modals/SuccessRejectModal";
+import LeaveRequestApprovalModal from "@/components/ui/modals/LeaveRequestApprovalModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
+import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -25,6 +26,7 @@ const LeaveRequest = () => {
   const [selectedTab, setSelectedTab] = useState("New Request");
   const [isSuccess, setIssuccess] = useState(false);
   const [reject, setReject] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const insets = useSafeAreaInsets();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const userBusiness = useBusinessStore((state) => state.userBusiness);
@@ -33,13 +35,16 @@ const LeaveRequest = () => {
     businessShiftRequests,
     businessShiftRequestsLoading,
     getBusinessShiftRequests,
+    approveBusinessShiftRequest,
+    rejectBusinessShiftRequest,
+    approveShiftRequestLoading,
   } = useShiftStore();
 
   const loadRequests = useCallback(async () => {
     if (!businessId) return;
     try {
       const response = await getBusinessShiftRequests(businessId);
-      console.log("[LeaveRequest] business shift requests:", response);
+      // console.log("[LeaveRequest] business shift requests:", response);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load leave requests");
     }
@@ -81,26 +86,30 @@ const LeaveRequest = () => {
 
         {/* Tabs */}
         <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
-          {["New Request", "Approved"].map((tab) => (
-            <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
-              key={tab}
-              onPress={() => setSelectedTab(tab)}
-            >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                >
-                  {tab}
-                </Text>
-                {tab === selectedTab && (
-                  <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
-                    <Text className="text-white text-sm">3</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+          {["New Request", "Approved"].map((tab) => {
+            const tabCount =
+              tab === "New Request" ? pendingRequests.length : approvedRequests.length;
+            return (
+              <TouchableOpacity
+                className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
+                key={tab}
+                onPress={() => setSelectedTab(tab)}
+              >
+                <View className="flex-row justify-center gap-2">
+                  <Text
+                    className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
+                  >
+                    {tab}
+                  </Text>
+                  {tabCount > 0 && (
+                    <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
+                      <Text className="text-white text-sm">{tabCount}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )
+          })}
         </View>
       </View>
 
@@ -113,6 +122,11 @@ const LeaveRequest = () => {
                 key={item?.id || i}
                 approved
                 request={item}
+                onPressCard={() => {
+                  setReject(false);
+                  setSelectedRequest(item);
+                  setIssuccess(true);
+                }}
               />
             ))}
             {!businessShiftRequestsLoading && approvedRequests.length === 0 ? (
@@ -133,12 +147,38 @@ const LeaveRequest = () => {
                 showReviewActions
                 userId={item?.employment?.user?.id}
                 onAccept={() => {
-                  setReject(false);
-                  setIssuccess(true);
+                  if (!businessId || !item?.id) {
+                    toast.error("Unable to approve this request");
+                    return;
+                  }
+
+                  approveBusinessShiftRequest(businessId, item.id)
+                    .then(() => {
+                      toast.success(t("api.shift_request_approved"));
+                      loadRequests();
+                    })
+                    .catch((error: any) => {
+                      toast.error(
+                        error?.message || "Failed to approve leave request"
+                      );
+                    });
                 }}
                 onReject={() => {
-                  setReject(true);
-                  setIssuccess(true);
+                  if (!businessId || !item?.id) {
+                    toast.error("Unable to reject this request");
+                    return;
+                  }
+
+                  rejectBusinessShiftRequest(businessId, item.id)
+                    .then(() => {
+                      toast.success(t("api.shift_request_declined"));
+                      loadRequests();
+                    })
+                    .catch((error: any) => {
+                      toast.error(
+                        error?.message || "Failed to reject leave request"
+                      );
+                    });
                 }}
               />
             ))}
@@ -156,10 +196,12 @@ const LeaveRequest = () => {
           </View>
         ) : null}
 
-        <SuccessRejectModal
+        <LeaveRequestApprovalModal
           visible={isSuccess}
           onClose={() => setIssuccess(false)}
           reject={reject}
+          request={selectedRequest}
+          loading={approveShiftRequestLoading}
         />
       </ScrollView>
     </SafeAreaView>

@@ -1,3 +1,4 @@
+import { formatShortDateInTimezone } from "@/utils/date";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -6,7 +7,15 @@ import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StatusBadge from "../badges/StatusBadge";
 
-const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
+const resolveMediaUrl = (value?: string | null) => {
+  if (!value || typeof value !== "string") return null;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  const base = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
+  if (!base) return value;
+  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
+};
+
+const LeaveRequestApprovalModal = ({ visible, onClose, reject, request }: any) => {
   const handleDone = () => {
     onClose();
   };
@@ -19,6 +28,30 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
     { key: "notice", label: "Insufficient notice" },
     { key: "other", label: "Other" },
   ];
+
+  const requester = request?.employment?.user || {};
+  const roleValue = request?.employment?.role;
+  const role =
+    typeof roleValue === "string"
+      ? roleValue
+      : roleValue?.name || roleValue?.role?.name || "Unassigned";
+  const avatar =
+    resolveMediaUrl(requester?.avatar) ||
+    require("@/assets/images/placeholder.png");
+  const startDate = request?.startDate
+    ? formatShortDateInTimezone(request.startDate)
+    : "Apr 20, 2025";
+  const endDate = request?.endDate
+    ? formatShortDateInTimezone(request.endDate)
+    : startDate;
+  const submittedOn = request?.createdAt
+    ? formatShortDateInTimezone(request.createdAt)
+    : "Apr 20, 2025";
+  const approvedOn = request?.approvedAt
+    ? formatShortDateInTimezone(request.approvedAt)
+    : "Apr 20, 2025";
+  const leaveType = request?.leaveType || "leave";
+  const reason = request?.reason || "No reason provided";
 
   return (
     <Modal
@@ -50,16 +83,16 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
             {/* headers */}
             <View className="flex-row gap-2 items-center">
               <Image
-                source={require("@/assets/images/adaptive-icon.png")}
-                contentFit="contain"
-                style={{ height: 40, width: 40 }}
+                source={avatar}
+                contentFit="cover"
+                style={{ height: 40, width: 40, borderRadius: 999 }}
               />
               <View>
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Emma Wilson
+                  {requester?.name || "Unknown User"}
                 </Text>
                 <Text className="font-proximanova-regular text-secondary text-sm dark:text-dark-secondary">
-                  Cashier - Housekeeping
+                  {role}
                 </Text>
               </View>
             </View>
@@ -72,7 +105,7 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
                     From:
                   </Text>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    Apr 20, 2025
+                    {startDate}
                   </Text>
                 </View>
                 <View className="mt-4">
@@ -80,7 +113,7 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
                     Submitted On:
                   </Text>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    Apr 20,2025
+                    {submittedOn}
                   </Text>
                 </View>
               </View>
@@ -90,15 +123,15 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
                     To:
                   </Text>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    Apr 23, 2025
+                    {endDate}
                   </Text>
                 </View>
                 <View className="mt-4">
                   <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
                     Type:
                   </Text>
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    doctor’s Appointment
+                  <Text className="capitalize font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                    {leaveType}
                   </Text>
                 </View>
               </View>
@@ -111,9 +144,7 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
                   Reason:
                 </Text>
                 <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  I have a doctor's appointment and may not return until late
-                  afternoon due to tests. Need to undergo some routine checkups
-                  and waiting time might be longer.
+                  {reason}
                 </Text>
               </View>
             )}
@@ -123,7 +154,7 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
             {reject || (
               <View className="flex-row justify-between mt-9 items-center mb-4 ">
                 <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Approved on apr 20, 2025
+                  Approved on {approvedOn}
                 </Text>
                 <StatusBadge status="approved" />
               </View>
@@ -204,4 +235,4 @@ const SuccessRejectModal = ({ visible, onClose, reject }: any) => {
   );
 };
 
-export default SuccessRejectModal;
+export default LeaveRequestApprovalModal;

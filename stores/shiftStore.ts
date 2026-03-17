@@ -50,6 +50,12 @@ type ShiftStoreState = {
   leaveCreditsError: string | null;
   createShiftRequestLoading: boolean;
   createShiftRequestError: string | null;
+  approveShiftRequestLoading: boolean;
+  approveShiftRequestError: string | null;
+  rejectShiftRequestLoading: boolean;
+  rejectShiftRequestError: string | null;
+  createShiftReportLoading: boolean;
+  createShiftReportError: string | null;
   fetchMyShifts: (date?: string) => Promise<any[]>;
   fetchHomeShifts: (businessIds?: string[]) => Promise<any[]>;
   fetchBusinessAssignments: (
@@ -84,14 +90,44 @@ type ShiftStoreState = {
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   getMyLeaveCredits: (businessId: string) => Promise<LeaveCreditItem | null>;
-  createShiftRequest: (payload: {
+  createShiftRequest: (
+    payload:
+      | {
+          employmentId: string;
+          type: "leave_request";
+          isHalfDay: boolean;
+          startDate: string;
+          endDate: string;
+          leaveType: string;
+          reason: string;
+        }
+      | {
+          employmentId: string;
+          type: "overtime_request";
+          requestedDate: string;
+          startTime: string;
+          endTime: string;
+          overtimeHours: number;
+          reason: string;
+        }
+  ) => Promise<any>;
+  approveBusinessShiftRequest: (
+    businessId: string,
+    id: string,
+    payload?: { approvalNotes?: string }
+  ) => Promise<any>;
+  rejectBusinessShiftRequest: (
+    businessId: string,
+    id: string,
+    payload?: { responseNotes?: string }
+  ) => Promise<any>;
+  createShiftReport: (payload: {
+    shiftAssignmentId: string;
     employmentId: string;
-    type: "leave_request";
-    isHalfDay: boolean;
-    startDate: string;
-    endDate: string;
-    leaveType: string;
-    reason: string;
+    type: "report" | "summary";
+    issueType: string;
+    notes: string;
+    attachment?: string | null;
   }) => Promise<any>;
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
@@ -101,6 +137,9 @@ type ShiftStoreState = {
   clearShiftAssignmentDetailsError: () => void;
   clearLeaveCreditsError: () => void;
   clearCreateShiftRequestError: () => void;
+  clearApproveShiftRequestError: () => void;
+  clearRejectShiftRequestError: () => void;
+  clearCreateShiftReportError: () => void;
 };
 
 export const useShiftStore = create<ShiftStoreState>((set, get) => ({
@@ -130,6 +169,12 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   leaveCreditsError: null,
   createShiftRequestLoading: false,
   createShiftRequestError: null,
+  approveShiftRequestLoading: false,
+  approveShiftRequestError: null,
+  rejectShiftRequestLoading: false,
+  rejectShiftRequestError: null,
+  createShiftReportLoading: false,
+  createShiftReportError: null,
 
   fetchMyShifts: async (date) => {
     try {
@@ -573,6 +618,113 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     }
   },
 
+  approveBusinessShiftRequest: async (businessId, id, payload) => {
+    try {
+      if (!businessId || !id) {
+        throw new Error("Business id and request id are required");
+      }
+
+      set({ approveShiftRequestLoading: true, approveShiftRequestError: null });
+      const response = await axiosInstance.post(
+        `/shift-requests/business/${businessId}/${id}/approve`,
+        payload
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to approve shift request");
+      }
+
+      const approvedItem = result?.data;
+      set((state) => ({
+        approveShiftRequestLoading: false,
+        businessShiftRequests: Array.isArray(state.businessShiftRequests)
+          ? state.businessShiftRequests.map((item: any) =>
+              item?.id === approvedItem?.id ? { ...item, ...approvedItem } : item
+            )
+          : state.businessShiftRequests,
+      }));
+
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to approve shift request";
+      set({
+        approveShiftRequestLoading: false,
+        approveShiftRequestError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  rejectBusinessShiftRequest: async (businessId, id, payload) => {
+    try {
+      if (!businessId || !id) {
+        throw new Error("Business id and request id are required");
+      }
+
+      set({ rejectShiftRequestLoading: true, rejectShiftRequestError: null });
+      const response = await axiosInstance.post(
+        `/shift-requests/business/${businessId}/${id}/reject`,
+        payload
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to reject shift request");
+      }
+
+      const rejectedItem = result?.data;
+      set((state) => ({
+        rejectShiftRequestLoading: false,
+        businessShiftRequests: Array.isArray(state.businessShiftRequests)
+          ? state.businessShiftRequests.map((item: any) =>
+              item?.id === rejectedItem?.id ? { ...item, ...rejectedItem } : item
+            )
+          : state.businessShiftRequests,
+      }));
+
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to reject shift request";
+      set({
+        rejectShiftRequestLoading: false,
+        rejectShiftRequestError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  createShiftReport: async (payload) => {
+    try {
+      set({ createShiftReportLoading: true, createShiftReportError: null });
+      const response = await axiosInstance.post("/shift-reports", payload);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to submit shift report");
+      }
+
+      set({ createShiftReportLoading: false });
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to submit shift report";
+      set({
+        createShiftReportLoading: false,
+        createShiftReportError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
   clearBusinessAssignmentsError: () => set({ businessAssignmentsError: null }),
   clearShiftRequestsError: () => set({ shiftRequestsError: null }),
   clearBusinessShiftRequestsError: () =>
@@ -581,4 +733,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
     set({ shiftAssignmentDetailsError: null }),
   clearLeaveCreditsError: () => set({ leaveCreditsError: null }),
   clearCreateShiftRequestError: () => set({ createShiftRequestError: null }),
+  clearApproveShiftRequestError: () => set({ approveShiftRequestError: null }),
+  clearRejectShiftRequestError: () => set({ rejectShiftRequestError: null }),
+  clearCreateShiftReportError: () => set({ createShiftReportError: null }),
 }));

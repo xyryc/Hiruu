@@ -194,10 +194,19 @@ const RequestLeave = () => {
       reason: leaveText.trim(),
     };
 
-    const result = await createShiftRequest(payload);
-    toast.success(
-      translateApiMessage(result?.message || "shift_request_created")
-    );
+    try {
+      const result = await createShiftRequest(payload);
+      toast.success(
+        translateApiMessage(result?.message || "shift_request_created")
+      );
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.message || "Failed to submit leave request"
+        )
+      );
+      throw error;
+    }
   };
 
   return (

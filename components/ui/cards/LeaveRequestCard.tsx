@@ -3,9 +3,19 @@ import { formatShortDateInTimezone } from "@/utils/date";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
+
+const resolveMediaUrl = (value?: string | null) => {
+  if (!value || typeof value !== "string") return null;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  const base = (process.env.EXPO_PUBLIC_API_URL || "")
+    .replace(/\/api\/v1\/?$/, "")
+    .replace(/\/$/, "");
+  if (!base) return value;
+  return `${base}${value.startsWith("/") ? value : `/${value}`}`;
+};
 
 type LeaveRequestCardProps = {
   title?: string;
@@ -15,6 +25,7 @@ type LeaveRequestCardProps = {
   userId?: string;
   onAccept?: () => void;
   onReject?: () => void;
+  onPressCard?: () => void;
   request?: any;
 };
 
@@ -26,10 +37,12 @@ const LeaveRequestCard = ({
   userId,
   onAccept,
   onReject,
+  onPressCard,
   request,
 }: LeaveRequestCardProps) => {
   const router = useRouter();
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const requestUserId = request?.employment?.user?.id || userId;
   const leaveType = request?.leaveType || status;
@@ -48,6 +61,27 @@ const LeaveRequestCard = ({
       : " Unable to clock in due to poor internet connectivity at location.");
   const address =
     request?.employment?.user?.address?.address || "New York, North Bergen";
+  const roleValue = request?.employment?.role;
+  const role =
+    typeof roleValue === "string"
+      ? roleValue
+      : roleValue?.name || roleValue?.role?.name || "Unassigned";
+  const requester = request?.employment?.user || {};
+  const avatarSource = useMemo(() => {
+    const rawAvatar = requester?.avatar;
+    const normalizedAvatar =
+      typeof rawAvatar === "string"
+        ? rawAvatar.split("?")[0].replace(/\\/g, "/")
+        : "";
+    const isDefaultAvatar =
+      normalizedAvatar === "/uploads/users/user.png" ||
+      normalizedAvatar.endsWith("/uploads/users/user.png");
+    const resolved = !isDefaultAvatar ? resolveMediaUrl(rawAvatar) : null;
+    if (!resolved || avatarFailed) {
+      return require("@/assets/images/placeholder.png");
+    }
+    return { uri: resolved };
+  }, [avatarFailed, requester?.avatar]);
 
   const handleMessageClick = async () => {
     if (!requestUserId) {
@@ -82,7 +116,12 @@ const LeaveRequestCard = ({
           {title}
         </Text>
       ) : null}
-      <View className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5">
+      <TouchableOpacity
+        activeOpacity={onPressCard ? 0.85 : 1}
+        onPress={onPressCard}
+        disabled={!onPressCard}
+        className="border border-[#eeeeee] rounded-xl p-2.5 mt-2.5"
+      >
         <View className="flex-row justify-between">
           {/* time label */}
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-1">
@@ -116,16 +155,17 @@ const LeaveRequestCard = ({
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row gap-2 items-center">
             <Image
-              source={request.employment.user.avatar}
-              contentFit="contain"
+              source={avatarSource}
+              contentFit="cover"
+              onError={() => setAvatarFailed(true)}
               style={{ height: 40, width: 40, borderRadius: 999 }}
             />
             <View>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                {request.employment.user.name}
+                {requester?.name || "Unknown User"}
               </Text>
               <Text className="font-proximanova-regular text-secondary text-sm dark:text-dark-secondary">
-                {request.employment.role.role.name}
+                {role}
               </Text>
             </View>
           </View>
@@ -162,7 +202,7 @@ const LeaveRequestCard = ({
             </View>
           ) : null}
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

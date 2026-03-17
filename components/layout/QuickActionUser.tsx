@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import ActionIconCard from "../ui/cards/ActionIconCard";
+import { useBusinessStore } from "@/stores/businessStore";
 
 type QuickActionUserProps = {
   className?: string;
@@ -15,6 +16,12 @@ type QuickActionUserProps = {
 
 const QuickActionUser = ({ className }: QuickActionUserProps) => {
   const router = useRouter();
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const isUserProfile = selectedBusinesses.length === 0;
+
+  if (!isUserProfile) {
+    return null;
+  }
 
   return (
     <View className={`${className} px-4`}>
