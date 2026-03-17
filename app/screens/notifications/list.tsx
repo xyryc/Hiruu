@@ -1,10 +1,12 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import NotificationCard from "@/components/ui/cards/NotificationCard";
 import NotificationModal from "@/components/ui/modals/NotificationModal";
+import { useNotificationStore } from "@/stores/notificationStore";
 import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,6 +14,13 @@ const NotificationScreen = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [modalVisible, setModalVisible] = useState(false);
+  const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnreadCount().catch(() => undefined);
+    }, [fetchUnreadCount])
+  );
 
   return (
     <SafeAreaView

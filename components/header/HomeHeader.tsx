@@ -1,10 +1,11 @@
 import { HomeHeaderProps } from "@/types";
 import { useBusinessStore } from "@/stores/businessStore";
+import NotificationBell from "@/components/ui/notification/NotificationBell";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 const HomeHeader = ({ className }: HomeHeaderProps) => {
   const { selectedBusinesses } = useBusinessStore();
@@ -36,23 +37,10 @@ const HomeHeader = ({ className }: HomeHeaderProps) => {
           />
         </TouchableOpacity>
 
-        {/* notification */}
-        <TouchableOpacity
-          onPress={() => router.push("/screens/notifications/list")}
+        <NotificationBell
           className="h-10 w-10 bg-[#F5F5F5] border-[0.5px] border-[#b2b1b185] rounded-full items-center justify-center"
-        >
-          <Image
-            source={require("@/assets/images/bell.svg")}
-            style={{
-              width: 22,
-              height: 22,
-            }}
-            contentFit="contain"
-          />
-          <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-            <Text className="text-[10px] text-white">1</Text>
-          </View>
-        </TouchableOpacity>
+          iconSize={22}
+        />
 
         {/* scanner */}
         <TouchableOpacity

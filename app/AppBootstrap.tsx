@@ -4,6 +4,7 @@ import { useIncomingCallListener } from "@/hooks/useIncomingCallListener";
 import { useSocketLifecycle } from "@/hooks/useSocketLifecycle";
 import { registerForFcmToken } from "@/services/notificationService";
 import { useAuthStore } from "@/stores/authStore";
+import { useNotificationStore } from "@/stores/notificationStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useServerStatusStore } from "@/stores/serverStatusStore";
 import {
@@ -41,8 +42,17 @@ const AppBootstrap = () => {
 
   const [appIsReady, setAppIsReady] = useState(false);
   const { initializeAuth, user } = useAuthStore();
+  const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
   const netInfo = useNetInfo();
   const { isServerDown, message, checkHealthNow } = useServerStatusStore();
+  const isExpectedAuthBootstrapError = useCallback((error: any) => {
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("token_revoked_or_not_found") ||
+      message.includes("no refresh token available") ||
+      message.includes("unauthorized")
+    );
+  }, []);
 
   const extractChatNotificationPayload = useCallback((rawData: any) => {
     if (!rawData || typeof rawData !== "object") return null;
@@ -134,6 +144,11 @@ const AppBootstrap = () => {
 
     setupFcm();
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchUnreadCount().catch(() => undefined);
+  }, [fetchUnreadCount, user]);
 
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
@@ -235,12 +250,3 @@ const AppBootstrap = () => {
 };
 
 export default AppBootstrap;
-
-  const isExpectedAuthBootstrapError = useCallback((error: any) => {
-    const message = String(error?.message || "").toLowerCase();
-    return (
-      message.includes("token_revoked_or_not_found") ||
-      message.includes("no refresh token available") ||
-      message.includes("unauthorized")
-    );
-  }, []);

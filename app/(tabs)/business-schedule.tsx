@@ -4,11 +4,11 @@ import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
+import NotificationBell from "@/components/ui/notification/NotificationBell";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { RelativePathString, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -497,23 +497,10 @@ const BusinessScheduleScreen = () => {
               <Ionicons name="calendar-outline" size={20} color="black" />
             </TouchableOpacity>
 
-            {/* notification */}
-            <TouchableOpacity
-              onPress={() => router.push("/screens/notifications/list")}
+            <NotificationBell
               className="w-10 h-10 items-center justify-center bg-[#F5F5F5] rounded-full"
-            >
-              <Image
-                source={require("@/assets/images/bell.svg")}
-                style={{
-                  width: 20,
-                  height: 20,
-                }}
-                contentFit="contain"
-              />
-              <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-                <Text className="text-[10px] text-white">1</Text>
-              </View>
-            </TouchableOpacity>
+              iconSize={20}
+            />
           </View>
         </View>
 
