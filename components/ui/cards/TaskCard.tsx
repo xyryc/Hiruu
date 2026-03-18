@@ -308,20 +308,12 @@ const TaskCard = ({
             />
           </View>
 
-          <View className="w-36">
-            <Text
-              className="font-proximanova-regular text-sm text-primary"
-              numberOfLines={1}
-            >
-              {address}
-            </Text>
-            <Text
-              className="font-proximanova-regular text-sm text-primary"
-              numberOfLines={1}
-            >
-              {city}
-            </Text>
-          </View>
+          <Text
+            className="font-proximanova-regular text-sm text-primary"
+            numberOfLines={2}
+          >
+            {address}
+          </Text>
         </View>
 
         {/* Button */}
