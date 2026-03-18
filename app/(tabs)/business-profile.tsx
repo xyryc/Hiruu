@@ -139,6 +139,7 @@ const BusinessProfile = () => {
   );
   const averageRating = Number(ratingSummary?.averageRating ?? 0);
   const activeJobPostingCount = businessJobs.length;
+  const totalEmployeeCount = Number(businessData?._count?.employments ?? 0);
 
   const handleShare = async () => {
     try {
@@ -438,7 +439,7 @@ const BusinessProfile = () => {
                 </Text>
               </View>
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                50 +
+                {String(totalEmployeeCount).padStart(2, "0")}
               </Text>
             </TouchableOpacity>
 
