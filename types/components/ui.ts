@@ -295,6 +295,7 @@ export type RecruitmentShiftType = "remote" | "hybrid" | "onsite";
 export interface JobCardProps {
   className?: string;
   compact?: boolean;
+  hideApplyButton?: boolean;
   job?: {
     id: string;
     businessId?: string;

@@ -6,6 +6,7 @@ import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
 import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
 import {
   EvilIcons,
@@ -41,9 +42,11 @@ const BusinessProfile = () => {
   const [recruitingUpdateLoading, setRecruitingUpdateLoading] = useState(false);
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
+  const [businessJobs, setBusinessJobs] = useState<any[]>([]);
   const userId = useAuthStore((state) => state.user?.id);
   const getUserRatingSummary = useProfileStore((state) => state.getUserRatingSummary);
   const ratingSummary = useProfileStore((state) => state.ratingSummary);
+  const getBusinessRecruitments = useJobStore((state) => state.getBusinessRecruitments);
   const {
     selectedBusinesses,
     getBusinessProfile,
@@ -70,6 +73,26 @@ const BusinessProfile = () => {
     }
   }, [businessId, getBusinessProfile]);
 
+  const loadBusinessJobs = useCallback(async () => {
+    if (!businessId) {
+      setBusinessJobs([]);
+      return;
+    }
+
+    try {
+      const result = await getBusinessRecruitments(businessId, {
+        page: 1,
+        limit: 5,
+      });
+      const jobs = Array.isArray(result?.data)
+        ? result.data.filter((item: any) => item?.isActive !== false)
+        : [];
+      setBusinessJobs(jobs);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load jobs");
+    }
+  }, [businessId, getBusinessRecruitments]);
+
   const loadRatingSummary = useCallback(async () => {
     if (!userId) return;
     try {
@@ -81,14 +104,16 @@ const BusinessProfile = () => {
 
   useEffect(() => {
     loadBusiness();
-  }, [loadBusiness]);
+    loadBusinessJobs();
+  }, [loadBusiness, loadBusinessJobs]);
 
   useFocusEffect(
     useCallback(() => {
       loadBusiness();
+      loadBusinessJobs();
       loadRatingSummary();
       return () => { };
-    }, [loadBusiness, loadRatingSummary])
+    }, [loadBusiness, loadBusinessJobs, loadRatingSummary])
   );
 
   useEffect(() => {
@@ -96,6 +121,12 @@ const BusinessProfile = () => {
       setToggleIsOn(businessData.isRecruiting);
     }
   }, [businessData?.isRecruiting]);
+
+  useEffect(() => {
+    if (selectedTab === "job" && businessId) {
+      console.log("[BusinessProfile] job tab businessId:", businessId);
+    }
+  }, [businessId, selectedTab]);
 
   const workEnvironmentRating = Number(
     ratingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
@@ -107,6 +138,8 @@ const BusinessProfile = () => {
     ratingSummary?.ratingBreakdown?.communication?.average ?? 0
   );
   const averageRating = Number(ratingSummary?.averageRating ?? 0);
+  const activeJobPostingCount = businessJobs.length;
+  const totalEmployeeCount = Number(businessData?._count?.employments ?? 0);
 
   const handleShare = async () => {
     try {
@@ -406,7 +439,7 @@ const BusinessProfile = () => {
                 </Text>
               </View>
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                50 +
+                {String(totalEmployeeCount).padStart(2, "0")}
               </Text>
             </TouchableOpacity>
 
@@ -423,7 +456,7 @@ const BusinessProfile = () => {
                   </Text>
                 </View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  04
+                  {String(activeJobPostingCount).padStart(2, "0")}
                 </Text>
               </View>
 
@@ -475,6 +508,7 @@ const BusinessProfile = () => {
               className="mx-5 my-4"
               value={socialLinks}
               onChange={handleSocialLinksChange}
+              hideEmpty
             />
           </View>
         )}
@@ -484,15 +518,14 @@ const BusinessProfile = () => {
           <View className="mx-5">
             <Text className="my-4">Open Positions</Text>
 
-            <JobCard
-              className="bg-white border border-[#EEEEEE] mb-4"
-            />
-            <JobCard
-              className="bg-white border border-[#EEEEEE] mb-4"
-            />
-            <JobCard
-              className="bg-white border border-[#EEEEEE] mb-4"
-            />
+            {businessJobs.map((job) => (
+              <JobCard
+                key={job?.id}
+                className="bg-white border border-[#EEEEEE] mb-4"
+                hideApplyButton
+                job={job}
+              />
+            ))}
           </View>
         )}
       </ScrollView>

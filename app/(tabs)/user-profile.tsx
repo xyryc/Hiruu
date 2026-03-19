@@ -40,7 +40,8 @@ const Profile = () => {
   const [isOn, setIsOn] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const { setSelectedBusinesses } = useBusinessStore();
-  const { updateProfile, getProfile } = useProfileStore();
+  const { updateProfile, getProfile, getAnalyticsSummary, analyticsSummary } =
+    useProfileStore();
   const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
   const jobProfile = useJobStore((state) => state.jobProfile);
   const { refreshAt } = useLocalSearchParams<{ refreshAt?: string }>();
@@ -82,6 +83,13 @@ const Profile = () => {
     }, [getMyJobProfile])
   );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      getAnalyticsSummary().catch(() => null);
+      return () => {};
+    }, [getAnalyticsSummary])
+  );
+
   const handleColorSelect = (color: string | string[]) => {
     if (Array.isArray(color)) {
       // Handle gradient
@@ -110,6 +118,11 @@ const Profile = () => {
     typeof jobProfile?.headline === "string" ? jobProfile.headline.trim() : "",
     typeof jobProfile?.about === "string" ? jobProfile.about.trim() : "",
   ].find((value) => value.length > 0);
+  const formatMetric = (value?: number) => {
+    if (typeof value !== "number" || Number.isNaN(value)) return "0%";
+    return `${Math.round(value)}%`;
+  };
+  const analyticsMetrics = analyticsSummary?.metrics;
 
   const handleSocialLinksChange = async (nextSocial: Record<string, string>) => {
     const previousSocial = profileData?.social || {};
@@ -364,13 +377,13 @@ const Profile = () => {
           </View>
           <View className="flex-row gap-3 mb-4 mt-4">
             <StatCardPrimary
-              point={"87%"}
+              point={formatMetric(analyticsMetrics?.onTimeArrivalPercent)}
               title="On-Time Arrival"
               subtitle={"This month"}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={"92%"}
+              point={formatMetric(analyticsMetrics?.taskCompletionPercent)}
               title="Task Completion"
               subtitle={"completed"}
               background={require("@/assets/images/stats-bg.svg")}
@@ -378,13 +391,13 @@ const Profile = () => {
           </View>
           <View className="flex-row gap-3 mb-4">
             <StatCardPrimary
-              point={"80%"}
+              point={formatMetric(analyticsMetrics?.positiveFeedbackPercent)}
               title="Positive Feedback"
               subtitle={"positive"}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={"30%"}
+              point={formatMetric(analyticsMetrics?.growthScorePercent)}
               title="Growth Score"
               subtitle={"growth"}
               background={require("@/assets/images/stats-bg.svg")}
@@ -492,6 +505,7 @@ const Profile = () => {
           className="mx-5 my-4"
           value={socialLinks}
           onChange={handleSocialLinksChange}
+          hideEmpty
         />
       </ScrollView>
 

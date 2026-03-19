@@ -88,7 +88,12 @@ const MarqueeText = ({
   );
 };
 
-const JobCard = ({ className, compact = false, job }: JobCardProps) => {
+const JobCard = ({
+  className,
+  compact = false,
+  hideApplyButton = false,
+  job,
+}: JobCardProps) => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
 
@@ -296,20 +301,24 @@ const JobCard = ({ className, compact = false, job }: JobCardProps) => {
               style={{ width: 1, height: 18 }}
             />
 
-            <SmallButton
-              className="w-28"
-              title="Apply Now"
-              onPress={() => setShowModal(true)}
-            />
+            {!hideApplyButton ? (
+              <SmallButton
+                className="w-28"
+                title="Apply Now"
+                onPress={() => setShowModal(true)}
+              />
+            ) : null}
           </View>
         </>
       )}
 
-      <JobApplyModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        job={job}
-      />
+      {!hideApplyButton ? (
+        <JobApplyModal
+          visible={showModal}
+          onClose={() => setShowModal(false)}
+          job={job}
+        />
+      ) : null}
     </View>
   );
 };

@@ -88,6 +88,29 @@ const PublicBusinessProfile = () => {
   const averageRating = Number(
     businessRatingSummary?.averageRating ?? businessData?.rating ?? 0
   );
+  const publicRecruitments = Array.isArray(businessData?.recruitments)
+    ? businessData.recruitments
+        .filter((item: any) => item?.isActive !== false)
+        .map((job: any) => ({
+          ...job,
+          name:
+            job?.name ||
+            job?.role?.role?.name ||
+            job?.role?.name ||
+            "Open Position",
+          businessId: job?.businessId || businessData?.id,
+          business: job?.business || {
+            id: businessData?.id,
+            name: businessData?.name,
+            logo: businessData?.logo,
+            address: businessData?.address,
+            isPremium: businessData?.isPremium,
+          },
+          _count: job?._count || {
+            recruitmentApplications: 0,
+          },
+        }))
+    : [];
 
   const handleOpenRatings = useCallback(() => {
     router.push({
@@ -490,9 +513,19 @@ const PublicBusinessProfile = () => {
           ) : (
             <View className="mx-5">
               <Text className="my-4">Open Positions</Text>
-              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
-              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
-              <JobCard className="bg-white border border-[#EEEEEE] mb-4" />
+              {publicRecruitments.length > 0 ? (
+                publicRecruitments.map((job: any) => (
+                  <JobCard
+                    key={job?.id}
+                    className="bg-white border border-[#EEEEEE] mb-4"
+                    job={job}
+                  />
+                ))
+              ) : (
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  No open positions available.
+                </Text>
+              )}
             </View>
           )}
         </ScrollView>

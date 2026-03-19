@@ -68,12 +68,17 @@ const ConnectSocials = ({
   className,
   value,
   onChange,
+  hideEmpty = false,
 }: {
   className?: string;
   value?: SocialLinks;
   onChange?: (next: SocialLinks) => void;
+  hideEmpty?: boolean;
 }) => {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
+  const visibleItems = hideEmpty
+    ? SOCIAL_ITEMS.filter((item) => Boolean(value?.[item.id]))
+    : SOCIAL_ITEMS;
 
   const startLink = (id: string) => {
     const key = id as SocialKey;
@@ -110,7 +115,15 @@ const ConnectSocials = ({
 
   return (
     <View className={`${className} border border-[#EEEEEE] rounded-xl`}>
-      {SOCIAL_ITEMS.map((item, index) => {
+      {visibleItems.length === 0 && hideEmpty ? (
+        <View className="p-4">
+          <Text className="text-sm font-proximanova-regular text-secondary">
+            No contact information available.
+          </Text>
+        </View>
+      ) : null}
+
+      {visibleItems.map((item, index) => {
         const isEditing = Object.prototype.hasOwnProperty.call(editingValues, item.id);
         const linkedValue = value?.[item.id] || "";
         const inputValue = editingValues[item.id] || "";
@@ -119,7 +132,7 @@ const ConnectSocials = ({
           <View
             key={item.id}
             className={`flex-row justify-between items-center p-3 ${
-              index !== SOCIAL_ITEMS.length - 1 ? "border-b border-[#EEEEEE]" : ""
+              index !== visibleItems.length - 1 ? "border-b border-[#EEEEEE]" : ""
             }`}
           >
             <TouchableOpacity className="flex-row items-center gap-1.5">
@@ -155,7 +168,7 @@ const ConnectSocials = ({
                   <Ionicons name="close" size={24} color="#111827" />
                 </TouchableOpacity>
               </View>
-            ) : (
+            ) : hideEmpty ? null : (
               <SmallButton title="Link" onPress={() => startLink(item.id)} />
             )}
           </View>
