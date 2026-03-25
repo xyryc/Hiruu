@@ -5,8 +5,8 @@ import useUnreadApplications from "@/hooks/useUnreadApplications";
 import { walletService } from "@/services/walletService";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -16,13 +16,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const JobRequest = () => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
   const getMyApplications = useJobStore((s) => s.getMyApplications);
   const tabs = ["send request", "received"];
   const [isActive, setIsActive] = useState("send request");
@@ -211,147 +212,141 @@ const JobRequest = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
+    <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor="#E5F4FD" translucent={false} />
+
       {/* Header */}
-      <ScreenHeader
-        onPressBack={() => router.back()}
-        className="px-5 pb-4 pt-2.5 rounded-b-3xl bg-[#E5F4FD] overflow-hidden"
-        title="Job Request"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111111"}
-        components={
-          <View className="flex-row items-center">
-            <Image
-              source={require("@/assets/images/hiruu-coin.svg")}
-              style={{
-                width: 32,
-                height: 32,
-              }}
-              contentFit="contain"
-            />
-            <View className="px-4 py-2 bg-white -ml-3 -z-10 rounded-r-[40px]">
-              <Text className="text-sm font-proximanova-semibold">{walletCoins}</Text>
-            </View>
-          </View>
-        }
-      />
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
+        <ScreenHeader
+          onPressBack={() => router.back()}
+          className="px-5 pt-2.5 pb-4"
+          title="Job Request"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111111"}
+        />
 
-      <View className="flex-row justify-center mx-5">
-        {tabs.map((tab, index) => {
-          // Use unread counts from API based on tab
-          const totalCount = tab === "send request" ? unreadSent : unreadReceived;
+        <View className="flex-row justify-center mx-5">
+          {tabs.map((tab, index) => {
+            // Use unread counts from API based on tab
+            const totalCount = tab === "send request" ? unreadSent : unreadReceived;
 
-          return (
-            <TouchableOpacity
-              key={index}
-              className={`w-1/2 flex-row items-center justify-center gap-2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
-              onPress={() => setIsActive(tab)}
-            >
-              <Text
-                className={`text-center capitalize ${isActive === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+            return (
+              <TouchableOpacity
+                key={index}
+                className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${isActive === tab && "border-[#11293A] border-b-2"}`}
+                onPress={() => setIsActive(tab)}
               >
-                {tab}
-              </Text>
-
-              <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
-                <Text className="font-proximanova-semibold text-sm text-white">
-                  {totalCount}
+                <Text
+                  className={`text-center capitalize ${isActive === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+                >
+                  {tab}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+
+                <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
+                  <Text className="font-proximanova-semibold text-sm text-white">
+                    {totalCount}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
-      <FlatList
-        data={visibleItems}
-        keyExtractor={(item) => String(item?.id)}
-        renderItem={({ item }) => (
-          <View className="px-5">
-            <JobRequestCard
-              className="bg-white border border-[#EEEEEE] mb-4"
-              status={isActive as "send request" | "received"}
-              job={mapToJobCard(item)}
-            />
-          </View>
-        )}
-        ListHeaderComponent={
-          <View className="px-5 pt-5 pb-4 bg-white">
-            <SearchBar className="w-full" value={search} onSearch={setSearch} />
-          </View>
-        }
-        ListEmptyComponent={
-          isLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
+      <View className="flex-1 bg-white">
+        <FlatList
+          data={visibleItems}
+          keyExtractor={(item) => String(item?.id)}
+          renderItem={({ item }) => (
+            <View className="px-5">
+              <JobRequestCard
+                className="bg-white border border-[#EEEEEE] mb-4"
+                status={isActive as "send request" | "received"}
+                job={mapToJobCard(item)}
+              />
             </View>
-          ) : (
-            <View className="px-5 pb-5 items-center">
-              <Text className="text-sm font-proximanova-regular text-secondary">
-                No job requests found.
-              </Text>
+          )}
+          ListHeaderComponent={
+            <View className="px-5 pt-5 pb-4 bg-white">
+              <SearchBar className="w-full" value={search} onSearch={setSearch} />
             </View>
-          )
-        }
-        ListFooterComponent={
-          <View className="pb-5">
-            {isLoadingMore ? (
-              <View className="py-4 items-center">
-                <ActivityIndicator size="small" color={isDark ? "#fff" : "#111"} />
+          }
+          ListEmptyComponent={
+            isLoading ? (
+              <View className="py-10 items-center">
+                <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
               </View>
-            ) : null}
-
-            {totalPages > 1 ? (
-              <View className="px-5 pt-2 flex-row items-center justify-between">
-                <TouchableOpacity
-                  onPress={goToPrevPage}
-                  disabled={page <= 1 || isLoading || isLoadingMore}
-                  className={`px-4 py-2 rounded-lg border ${page <= 1 || isLoading || isLoadingMore
-                    ? "border-[#E5E7EB] bg-[#F9FAFB]"
-                    : "border-[#D1D5DB] bg-white"
-                    }`}
-                >
-                  <Text
-                    className={`text-sm font-proximanova-semibold ${page <= 1 || isLoading || isLoadingMore
-                      ? "text-[#9CA3AF]"
-                      : "text-primary"
-                      }`}
-                  >
-                    Previous
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="text-sm font-proximanova-semibold text-secondary">
-                  Page {page} / {totalPages}
+            ) : (
+              <View className="px-5 pb-5 items-center">
+                <Text className="text-sm font-proximanova-regular text-secondary">
+                  No job requests found.
                 </Text>
+              </View>
+            )
+          }
+          ListFooterComponent={
+            <View className="pb-5">
+              {isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color={isDark ? "#fff" : "#111"} />
+                </View>
+              ) : null}
 
-                <TouchableOpacity
-                  onPress={goToNextPage}
-                  disabled={page >= totalPages || isLoading || isLoadingMore}
-                  className={`px-4 py-2 rounded-lg border ${page >= totalPages || isLoading || isLoadingMore
-                    ? "border-[#E5E7EB] bg-[#F9FAFB]"
-                    : "border-[#D1D5DB] bg-white"
-                    }`}
-                >
-                  <Text
-                    className={`text-sm font-proximanova-semibold ${page >= totalPages || isLoading || isLoadingMore
-                      ? "text-[#9CA3AF]"
-                      : "text-primary"
+              {totalPages > 1 ? (
+                <View className="px-5 pt-2 flex-row items-center justify-between">
+                  <TouchableOpacity
+                    onPress={goToPrevPage}
+                    disabled={page <= 1 || isLoading || isLoadingMore}
+                    className={`px-4 py-2 rounded-lg border ${page <= 1 || isLoading || isLoadingMore
+                      ? "border-[#E5E7EB] bg-[#F9FAFB]"
+                      : "border-[#D1D5DB] bg-white"
                       }`}
                   >
-                    Next
+                    <Text
+                      className={`text-sm font-proximanova-semibold ${page <= 1 || isLoading || isLoadingMore
+                        ? "text-[#9CA3AF]"
+                        : "text-primary"
+                        }`}
+                    >
+                      Previous
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text className="text-sm font-proximanova-semibold text-secondary">
+                    Page {page} / {totalPages}
                   </Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-          </View>
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.3}
-        showsVerticalScrollIndicator={false}
-        className="bg-white"
-        keyboardShouldPersistTaps="handled"
-      />
+
+                  <TouchableOpacity
+                    onPress={goToNextPage}
+                    disabled={page >= totalPages || isLoading || isLoadingMore}
+                    className={`px-4 py-2 rounded-lg border ${page >= totalPages || isLoading || isLoadingMore
+                      ? "border-[#E5E7EB] bg-[#F9FAFB]"
+                      : "border-[#D1D5DB] bg-white"
+                      }`}
+                  >
+                    <Text
+                      className={`text-sm font-proximanova-semibold ${page >= totalPages || isLoading || isLoadingMore
+                        ? "text-[#9CA3AF]"
+                        : "text-primary"
+                        }`}
+                    >
+                      Next
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </View>
+          }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+          showsVerticalScrollIndicator={false}
+          className="bg-white"
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
     </SafeAreaView>
   );
 };
