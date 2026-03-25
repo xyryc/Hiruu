@@ -149,6 +149,32 @@ const CreateTemplate = () => {
     return `${hour12}:${`${minute}`.padStart(2, "0")} ${period}`;
   };
 
+  const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
+
+  const timeValidationError = useMemo(() => {
+    const shiftStartMinutes = toMinutes(shiftStartTime);
+    const shiftEndMinutes = toMinutes(shiftEndTime);
+    const breakStartMinutes = toMinutes(breakStartTime);
+    const breakEndMinutes = toMinutes(breakEndTime);
+
+    if (shiftEndMinutes <= shiftStartMinutes) {
+      return "Shift end time must be after shift start time.";
+    }
+
+    if (breakEndMinutes <= breakStartMinutes) {
+      return "Break end time must be after break start time.";
+    }
+
+    if (
+      breakStartMinutes < shiftStartMinutes ||
+      breakEndMinutes > shiftEndMinutes
+    ) {
+      return "Break time must be within the shift time range.";
+    }
+
+    return null;
+  }, [breakEndTime, breakStartTime, shiftEndTime, shiftStartTime]);
+
   const getValidatedPayload = () => {
     if (!selectedBusiness) {
       toast.error("Please select a business.");
@@ -167,6 +193,11 @@ const CreateTemplate = () => {
 
     if (!isRequiredCountMatched) {
       toast.error("Total roles must equal required staff.");
+      return null;
+    }
+
+    if (timeValidationError) {
+      toast.error(timeValidationError);
       return null;
     }
 
@@ -205,6 +236,7 @@ const CreateTemplate = () => {
       setIsPreviewOpen(false);
       router.back();
     } catch (error: any) {
+      setIsPreviewOpen(false);
       toast.error(
         translateApiMessage(
           error?.response?.data?.message ||
@@ -335,6 +367,12 @@ const CreateTemplate = () => {
                 />
               </View>
             </View>
+
+            {timeValidationError ? (
+              <Text className="mt-2 text-xs font-proximanova-regular text-[#F34F4F]">
+                {timeValidationError}
+              </Text>
+            ) : null}
           </View>
 
           {/* business dropdown */}
@@ -453,7 +491,7 @@ const CreateTemplate = () => {
             <PrimaryButton
               onPress={handleOpenPreview}
               loading={isSubmitting}
-              disabled={isSubmitting}
+              disabled={isSubmitting || Boolean(timeValidationError)}
               title="Save Template"
             />
           </View>

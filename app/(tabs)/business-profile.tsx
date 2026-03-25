@@ -218,6 +218,7 @@ const BusinessProfile = () => {
           </Text>
           <MaterialIcons name="arrow-drop-down" size={30} color="black" />
         </TouchableOpacity>
+
         <View className="flex-row gap-1.5 items-center justify-center">
           {businessId ? (
             <TouchableOpacity
