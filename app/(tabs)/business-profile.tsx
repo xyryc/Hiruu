@@ -4,7 +4,6 @@ import RatingBanner from '@/components/ui/cards/RatingBanner';
 import RatingProgress from "@/components/ui/cards/RatingProgress";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
-import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -43,9 +42,8 @@ const BusinessProfile = () => {
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const [businessJobs, setBusinessJobs] = useState<any[]>([]);
-  const userId = useAuthStore((state) => state.user?.id);
-  const getUserRatingSummary = useProfileStore((state) => state.getUserRatingSummary);
-  const ratingSummary = useProfileStore((state) => state.ratingSummary);
+  const getBusinessRatingSummary = useProfileStore((state) => state.getBusinessRatingSummary);
+  const businessRatingSummary = useProfileStore((state) => state.businessRatingSummary);
   const getBusinessRecruitments = useJobStore((state) => state.getBusinessRecruitments);
   const {
     selectedBusinesses,
@@ -94,13 +92,13 @@ const BusinessProfile = () => {
   }, [businessId, getBusinessRecruitments]);
 
   const loadRatingSummary = useCallback(async () => {
-    if (!userId) return;
+    if (!businessId) return;
     try {
-      await getUserRatingSummary(userId);
+      await getBusinessRatingSummary(businessId);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load rating summary");
     }
-  }, [getUserRatingSummary, userId]);
+  }, [businessId, getBusinessRatingSummary]);
 
   useEffect(() => {
     loadBusiness();
@@ -123,21 +121,32 @@ const BusinessProfile = () => {
   }, [businessData?.isRecruiting]);
 
   useEffect(() => {
+    if (businessData) {
+      console.log(
+        "[BusinessProfile] owner business data:",
+        JSON.stringify(businessData, null, 2)
+      );
+    }
+  }, [businessData]);
+
+  useEffect(() => {
     if (selectedTab === "job" && businessId) {
       console.log("[BusinessProfile] job tab businessId:", businessId);
     }
   }, [businessId, selectedTab]);
 
   const workEnvironmentRating = Number(
-    ratingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
+    businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );
   const payOnTimeRating = Number(
-    ratingSummary?.ratingBreakdown?.onTime?.average ?? 0
+    businessRatingSummary?.ratingBreakdown?.onTime?.average ?? 0
   );
   const communicationRating = Number(
-    ratingSummary?.ratingBreakdown?.communication?.average ?? 0
+    businessRatingSummary?.ratingBreakdown?.communication?.average ?? 0
   );
-  const averageRating = Number(ratingSummary?.averageRating ?? 0);
+  const averageRating = Number(
+    businessRatingSummary?.averageRating ?? businessData?.rating ?? 0
+  );
   const activeJobPostingCount = businessJobs.length;
   const totalEmployeeCount = Number(businessData?._count?.employments ?? 0);
 
@@ -289,14 +298,18 @@ const BusinessProfile = () => {
               {businessData?.name || "Business"}
             </Text>
 
-            <MaterialCommunityIcons
-              name="check-decagram"
-              size={20}
-              color="#3EBF5A"
-            />
-            <View className="h-5 w-5 bg-[#4E57FF]  flex-row justify-center items-center rounded-full">
-              <FontAwesome6 name="crown" size={8} color="white" />
-            </View>
+            {businessData?.isVerified ? (
+              <MaterialCommunityIcons
+                name="check-decagram"
+                size={20}
+                color="#3EBF5A"
+              />
+            ) : null}
+            {businessData?.isPremium ? (
+              <View className="h-5 w-5 bg-[#4E57FF] flex-row justify-center items-center rounded-full">
+                <FontAwesome6 name="crown" size={8} color="white" />
+              </View>
+            ) : null}
           </View>
 
           <View className="flex-row items-center gap-1">
@@ -342,7 +355,12 @@ const BusinessProfile = () => {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => router.push("/screens/profile/rating")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/profile/rating",
+                    params: { businessId },
+                  })
+                }
                 className="items-center"
               >
                 <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
@@ -354,7 +372,7 @@ const BusinessProfile = () => {
             <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
               <RatingBanner
                 averageRating={averageRating}
-                onPress={() => router.push("/screens/profile/rating")}
+
               />
 
               <View className="flex-row justify-between mt-5">

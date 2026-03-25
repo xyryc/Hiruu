@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import RoleSelector from "@/components/ui/modals/RoleSelector";
@@ -14,7 +15,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   View,
@@ -429,14 +429,14 @@ const PostJob = () => {
             placeholderTextColor="#7D7D7D"
           />
 
-          {isPremiumBusiness && (
-            <View className="mt-7 flex-row items-center justify-between border border-[#EEEEEE] rounded-[10px] px-4 py-3">
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Exclusive
-              </Text>
-              <Switch value={isFeatured} onValueChange={setIsFeatured} />
-            </View>
-          )}
+            {isPremiumBusiness && (
+              <View className="mt-7 flex-row items-center justify-between border border-[#EEEEEE] rounded-[10px] px-4 py-3">
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  Featured
+                </Text>
+                <ToggleButton isOn={isFeatured} setIsOn={setIsFeatured} />
+              </View>
+            )}
 
           <View className="mt-8 mb-5">
             <PrimaryButton
