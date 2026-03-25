@@ -219,6 +219,15 @@ const BusinessProfile = () => {
           <MaterialIcons name="arrow-drop-down" size={30} color="black" />
         </TouchableOpacity>
         <View className="flex-row gap-1.5 items-center justify-center">
+          {businessId ? (
+            <TouchableOpacity
+              onPress={() => router.push("/screens/home/qr/generate")}
+              className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
+            >
+              <Ionicons name="qr-code-outline" size={18} color="black" />
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
             onPress={() =>
               router.push("/screens/profile/business/edit-business-profile")
