@@ -378,6 +378,10 @@ const BusinessSetup = () => {
       toast.error("Location is required.");
       return;
     }
+    if (!selectedLocationOption) {
+      toast.error("Please select a valid location from suggestions.");
+      return;
+    }
     const latitude = toOptionalNumber(selectedLocationOption?.latitude);
     const longitude = toOptionalNumber(selectedLocationOption?.longitude);
     const payload = {
@@ -614,9 +618,9 @@ const BusinessSetup = () => {
             onChangeText={(text) => {
                 const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
                 setLocationSearch(nextText);
-                setValue(nextText);
                 if (selectedLocationOption && nextText !== selectedLocationOption.label) {
                   setSelectedLocationOption(null);
+                  setValue(null);
                 }
               }}
               placeholder="Search location"

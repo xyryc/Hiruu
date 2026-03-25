@@ -167,13 +167,13 @@ export default function Step1({
       return false;
     }
 
-    // if (!location) {
-    //   Alert.alert(
-    //     t("validation.validationError"),
-    //     t("validation.selectLocation")
-    //   );
-    //   return false;
-    // }
+    if (!selectedLocationOption) {
+      Alert.alert(
+        t("validation.validationError"),
+        t("validation.selectLocation")
+      );
+      return false;
+    }
 
     if (!dateOfBirth) {
       Alert.alert(
@@ -202,13 +202,12 @@ export default function Step1({
 
     try {
       // Prepare data for API - Just the data fields, no step wrapper
-      const fallbackAddress = "Central Park, New York, NY";
       const profileData = {
         name: fullName.trim(),
         address: {
-          address: location || fallbackAddress,
-          latitude: selectedCoords?.latitude ?? 40.785091,
-          longitude: selectedCoords?.longitude ?? -73.968285,
+          address: selectedLocationOption?.label || location || "",
+          latitude: selectedCoords?.latitude,
+          longitude: selectedCoords?.longitude,
           placeId: selectedLocationOption?.placeId,
           city: selectedLocationOption?.city,
           state: selectedLocationOption?.state,
@@ -316,10 +315,10 @@ export default function Step1({
             }}
             onChangeText={(text) => {
               setLocationSearch(text);
-              setLocation(text);
               if (selectedLocationOption && text !== selectedLocationOption.label) {
                 setSelectedLocationOption(null);
                 setSelectedCoords(null);
+                setLocation(null);
               }
             }}
             placeholder={t("user.setup.selectLocation")}
