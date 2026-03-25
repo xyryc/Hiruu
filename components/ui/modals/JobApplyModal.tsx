@@ -187,109 +187,110 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
             </TouchableOpacity>
           </View>
 
-          <SafeAreaView edges={["bottom"]} className="px-5 py-7 items-center">
-            <Image
-              source={companyLogo}
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 999,
-              }}
-              contentFit="cover"
-            />
-
-            <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
-              {companyName}
-            </Text>
-
-            <View className="flex-row items-center justify-center mt-2.5 gap-7">
-              <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
-                <SimpleLineIcons
-                  name="location-pin"
-                  size={20}
-                  color="#7A7A7A"
-                />
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  {locationLabel}
-                </Text>
-              </View>
-
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                4.8/5 <Fontisto name="star" size={14} color="#F1C400" />
-              </Text>
-            </View>
-
-            <View className="flex-row flex-wrap items-center justify-center gap-2.5 mt-2.5">
-              <SimpleStatusBadge title={`Hiring: ${roleName}`} bgColor="#F5F5F5" />
-              <SimpleStatusBadge title={`Salary: ${salaryLabel}`} bgColor="#F5F5F5" />
-              <SimpleStatusBadge title={`Shift: ${shiftLabel}`} bgColor="#F5F5F5" />
-              {distanceLabel ? (
-                <SimpleStatusBadge title={distanceLabel} bgColor="#F5F5F5" />
-              ) : null}
-            </View>
-
-            <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
-              To apply for this job, please share Details so the business can
-              contact you.
-            </Text>
-            {applyError ? (
-              <Text className="text-sm font-proximanova-semibold text-[#F34F4F] text-center mt-2">
-                {applyError}
-              </Text>
-            ) : null}
-
-            <PrimaryButton
-              title={isAlreadyEmployed ? "Already Employed" : isApplying ? "Applying..." : "Apply Now"}
-              className="mt-7"
-              onPress={handleApplyNow}
-              disabled={isApplying || isAlreadyEmployed}
-            />
-          </SafeAreaView>
-
-          <Animated.View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "white",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              transform: [{ translateX: slideAnim }],
-            }}
-          >
-            <SafeAreaView
-              edges={["bottom"]}
-              className="flex-1 px-5 py-7 justify-center"
-            >
+          {!showDetails ? (
+            <SafeAreaView edges={["bottom"]} className="px-5 py-7 items-center">
               <Image
-                source={require("@/assets/images/complete.svg")}
+                source={companyLogo}
                 style={{
-                  width: 156,
-                  height: 120,
-                  alignSelf: "center",
+                  width: 100,
+                  height: 100,
+                  borderRadius: 999,
                 }}
                 contentFit="cover"
               />
 
-              <Text className="text-center text-lg font-proximanova-semibold mt-3 mb-2">
-                Application Sent! successfully
+              <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
+                {companyName}
               </Text>
 
-              <Text className="w-4/6 mx-auto text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
-                You applied to {companyName}. They may contact you soon. Good
-                luck!
+              <View className="flex-row items-center justify-center mt-2.5 gap-7">
+                <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
+                  <SimpleLineIcons
+                    name="location-pin"
+                    size={20}
+                    color="#7A7A7A"
+                  />
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    {locationLabel}
+                  </Text>
+                </View>
+
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  4.8/5 <Fontisto name="star" size={14} color="#F1C400" />
+                </Text>
+              </View>
+
+              <View className="flex-row flex-wrap items-center justify-center gap-2.5 mt-2.5">
+                <SimpleStatusBadge title={`Hiring: ${roleName}`} bgColor="#F5F5F5" />
+                <SimpleStatusBadge title={`Salary: ${salaryLabel}`} bgColor="#F5F5F5" />
+                <SimpleStatusBadge title={`Shift: ${shiftLabel}`} bgColor="#F5F5F5" />
+                {distanceLabel ? (
+                  <SimpleStatusBadge title={distanceLabel} bgColor="#F5F5F5" />
+                ) : null}
+              </View>
+
+              <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
+                To apply for this job, please share Details so the business can
+                contact you.
               </Text>
+              {applyError ? (
+                <Text className="text-sm font-proximanova-semibold text-[#F34F4F] text-center mt-2">
+                  {applyError}
+                </Text>
+              ) : null}
+
+              <PrimaryButton
+                title={isAlreadyEmployed ? "Already Employed" : isApplying ? "Applying..." : "Apply Now"}
+                className="mt-7"
+                onPress={handleApplyNow}
+                disabled={isApplying || isAlreadyEmployed}
+              />
+            </SafeAreaView>
+          ) : null}
+
+          {showDetails ? (
+            <Animated.View
+              style={{
+                backgroundColor: "white",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                transform: [{ translateX: slideAnim }],
+              }}
+            >
+            <SafeAreaView
+              edges={["bottom"]}
+              className="px-5 pt-7 pb-7"
+            >
+              <View className="items-center">
+                <Image
+                  source={require("@/assets/images/complete.svg")}
+                  style={{
+                    width: 156,
+                    height: 120,
+                    alignSelf: "center",
+                  }}
+                  contentFit="cover"
+                />
+
+                <Text className="text-center text-lg font-proximanova-semibold mt-3 mb-2">
+                  Application Sent! successfully
+                </Text>
+
+                <Text className="w-4/6 mx-auto text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
+                  You applied to {companyName}. They may contact you soon. Good
+                  luck!
+                </Text>
+              </View>
 
               <SmallButton
                 onPress={handleBackToJobBoard}
-                className="bg-white border-hairline mt-5"
+                className="bg-white border-hairline mt-7"
                 title="Back to Job Board"
                 textClass="!text-primary"
               />
             </SafeAreaView>
-          </Animated.View>
+            </Animated.View>
+          ) : null}
         </View>
       </BlurView>
     </Modal>
