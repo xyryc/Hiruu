@@ -338,31 +338,31 @@ const EditBusinessProfile = () => {
         ...((type === "profile" && profileImage) ||
           (type === "cover" && coverImage)
           ? [
-            {
-              text: "Remove Photo",
-              style: "destructive",
-              onPress: () => removeImage(type),
-            },
+              {
+                text: "Remove Photo",
+                style: "destructive" as const,
+                onPress: () => removeImage(type),
+              },
           ]
           : []),
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+          {
+            text: "Cancel",
+            style: "cancel" as const,
+          },
       ]
     );
   };
 
   const removeImage = (type: "profile" | "cover") => {
     Alert.alert("Remove Photo", "Are you sure you want to remove this photo?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => {
+        {
+          text: "Cancel",
+          style: "cancel" as const,
+        },
+        {
+          text: "Remove",
+          style: "destructive" as const,
+          onPress: () => {
           if (type === "profile") {
             setProfileImage(null);
           } else {

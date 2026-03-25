@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet } from "react-native";
-import React, { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 const RatingProgress = ({ rating }: { rating: number }) => {
   const ratings = rating * 20;
-  const [progress, setProgress] = useState(80);
+  const [progress, setProgress] = useState(0);
 
   // Color mapping based on progress
   const getTintColor = (fill: number) => {
@@ -31,7 +31,7 @@ const RatingProgress = ({ rating }: { rating: number }) => {
       {() => (
         <View className="absolute inset-0 items-center justify-center">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-            {rating}/5
+            {Math.round(rating)}/5
           </Text>
 
           <AntDesign name="star" size={20} color="#F1C400" />

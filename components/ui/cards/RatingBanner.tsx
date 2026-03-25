@@ -9,6 +9,7 @@ type RatingBannerProps = {
 };
 
 const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
+  const safeAverageRating = Number.isFinite(averageRating) ? averageRating : 0;
   const formattedRating = Number.isFinite(averageRating)
     ? Number(averageRating.toFixed(1)).toString()
     : "0";
@@ -40,7 +41,7 @@ const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
         />
       </TouchableOpacity>
 
-      <RatingStar rating={5} />
+      <RatingStar rating={safeAverageRating} />
       <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2">
         Based on overall rating
       </Text>

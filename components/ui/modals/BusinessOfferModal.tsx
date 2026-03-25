@@ -49,6 +49,14 @@ const normalizeRoleLabel = (item: any) =>
   item?.title ||
   "";
 
+const prettyLog = (label: string, value: unknown) => {
+  try {
+    console.log(label, JSON.stringify(value, null, 2));
+  } catch {
+    console.log(label, value);
+  }
+};
+
 const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProps) => {
   const getJobProfileByUserId = useJobStore((state) => state.getJobProfileByUserId);
   const inviteCandidateToRecruitment = useJobStore(
@@ -106,6 +114,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         setIsLoadingProfile(true);
         const result = await getJobProfileByUserId(userId);
         if (!active) return;
+        prettyLog("[BusinessOfferModal] profile data:", result);
         setProfile(result);
       } catch {
         if (!active) return;
@@ -137,6 +146,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         setIsLoadingBusinesses(true);
         const businesses = await getMyBusinesses();
         if (!active) return;
+        prettyLog("[BusinessOfferModal] businesses data:", businesses);
 
         const normalized = (Array.isArray(businesses) ? businesses : [])
           .map((item: any) => ({
@@ -195,6 +205,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         const roles = await getBusinessRolesDetailed(selectedBusiness);
 
         if (!active) return;
+        prettyLog("[BusinessOfferModal] detailed roles data:", roles);
 
         let normalizedRoles = (Array.isArray(roles) ? roles : [])
           .map((item: any) => ({
@@ -206,6 +217,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         if (!normalizedRoles.length) {
           const fallbackRoles = await getMyBusinessRoles(selectedBusiness);
           if (!active) return;
+          prettyLog("[BusinessOfferModal] fallback roles data:", fallbackRoles);
 
           normalizedRoles = (Array.isArray(fallbackRoles) ? fallbackRoles : [])
             .map((item: any) => ({
@@ -334,9 +346,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
     );
   }, [profile, visible]);
 
-  const profileAvatar =
-    profile?.user?.avatar ||
-    "https://media.licdn.com/dms/image/v2/D5603AQFMeZ7i9ybZgw/profile-displayphoto-shrink_200_200/B56ZS29wLQHwAY-/0/1738236429558?e=2147483647&v=beta&t=RTX-UGEWSzuEb-Gv2bqXqREzQX15FMKi0TK1HJBAKuE";
+  const profileAvatar = profile?.user?.avatar || require('@/assets/images/placeholder.png')
   const profileName = profile?.user?.name || "Candidate";
   const profileHeadline = profile?.headline || profile?.highlightedExperience || "Open to work";
   const salaryLabel =
