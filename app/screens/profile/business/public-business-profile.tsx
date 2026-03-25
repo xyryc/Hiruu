@@ -1,3 +1,4 @@
+import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
 import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingProgress from "@/components/ui/cards/RatingProgress";
@@ -76,6 +77,15 @@ const PublicBusinessProfile = () => {
     loadRatingSummary();
   }, [loadBusiness, loadRatingSummary]);
 
+  useEffect(() => {
+    if (businessData) {
+      console.log(
+        "[PublicBusinessProfile] business data:",
+        JSON.stringify(businessData, null, 2)
+      );
+    }
+  }, [businessData]);
+
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );
@@ -88,28 +98,31 @@ const PublicBusinessProfile = () => {
   const averageRating = Number(
     businessRatingSummary?.averageRating ?? businessData?.rating ?? 0
   );
+  const totalEmployeeCount = Number(
+    businessData?._count?.employments ?? businessData?.activeEmployeeCount ?? 0
+  );
   const publicRecruitments = Array.isArray(businessData?.recruitments)
     ? businessData.recruitments
-        .filter((item: any) => item?.isActive !== false)
-        .map((job: any) => ({
-          ...job,
-          name:
-            job?.name ||
-            job?.role?.role?.name ||
-            job?.role?.name ||
-            "Open Position",
-          businessId: job?.businessId || businessData?.id,
-          business: job?.business || {
-            id: businessData?.id,
-            name: businessData?.name,
-            logo: businessData?.logo,
-            address: businessData?.address,
-            isPremium: businessData?.isPremium,
-          },
-          _count: job?._count || {
-            recruitmentApplications: 0,
-          },
-        }))
+      .filter((item: any) => item?.isActive !== false)
+      .map((job: any) => ({
+        ...job,
+        name:
+          job?.name ||
+          job?.role?.role?.name ||
+          job?.role?.name ||
+          "Open Position",
+        businessId: job?.businessId || businessData?.id,
+        business: job?.business || {
+          id: businessData?.id,
+          name: businessData?.name,
+          logo: businessData?.logo,
+          address: businessData?.address,
+          isPremium: businessData?.isPremium,
+        },
+        _count: job?._count || {
+          recruitmentApplications: 0,
+        },
+      }))
     : [];
 
   const handleOpenRatings = useCallback(() => {
@@ -192,26 +205,18 @@ const PublicBusinessProfile = () => {
     >
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      <View className="flex-row items-center justify-between mx-5 py-3.5">
-        <TouchableOpacity
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-              return;
-            }
-            router.replace("/(tabs)/user-schedule");
-          }}
-          className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
-        >
-          <Ionicons name="chevron-back" size={20} color="black" />
-        </TouchableOpacity>
-
-        <Text className="font-proximanova-bold text-xl text-primary dark:text-dark-primary">
-          Business Profile
-        </Text>
-
-        <View className="w-10" />
-      </View>
+      <ScreenHeader
+        className="mx-5 py-3.5"
+        onPressBack={() => {
+          if (router.canGoBack()) {
+            router.back();
+            return;
+          }
+          router.replace("/(tabs)/user-schedule");
+        }}
+        title="Business Profile"
+        buttonTitle=""
+      />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -279,7 +284,7 @@ const PublicBusinessProfile = () => {
               <EvilIcons name="location" size={18} color="black" />
 
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {businessData?.address?.address || "Location unavailable"}
+                {businessData?.address?.state || "Location unavailable"}
               </Text>
             </View>
           </View>
@@ -395,7 +400,7 @@ const PublicBusinessProfile = () => {
                   </Text>
                 </View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {businessData?.activeEmployeeCount ?? 0}
+                  {totalEmployeeCount}
                 </Text>
               </View>
 
