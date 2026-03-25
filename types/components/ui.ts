@@ -324,7 +324,9 @@ export interface JobCardProps {
       id: string;
       name: string;
       logo?: string;
-      address?: string;
+      address?: {
+        city?: string
+      };
       isPremium?: boolean;
     } | null;
     _count?: {

@@ -34,15 +34,11 @@ const JobRequest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [walletCoins, setWalletCoins] = useState<number>(0);
-  const [unreadSent, setUnreadSent] = useState(0);
-  const [unreadReceived, setUnreadReceived] = useState(0);
   const limit = 10;
 
   const { markAsRead } = useUnreadApplications({
     autoRefresh: false,
   });
-
-  const getUnreadCount = useJobStore((s) => s.getUnreadCount);
 
   const loadApplications = useCallback(
     async (targetPage = 1, append = false) => {
@@ -90,29 +86,16 @@ const JobRequest = () => {
     }
   }, []);
 
-  const loadUnreadCounts = useCallback(async () => {
-    try {
-      const result = await getUnreadCount({ scope: "user" });
-      setUnreadSent(result.user_applied ?? 0);
-      setUnreadReceived(result.business_invited ?? 0);
-    } catch (err) {
-      console.error("Failed to fetch unread counts:", err);
-      setUnreadSent(0);
-      setUnreadReceived(0);
-    }
-  }, [getUnreadCount]);
-
   useFocusEffect(
     useCallback(() => {
       loadApplications(1, false);
       loadWallet();
-      loadUnreadCounts();
 
       // Mark all as read when user opens this screen (don't update UI)
       markAsRead().catch((err) => {
         console.error("Failed to mark as read:", err);
       });
-    }, [loadApplications, loadWallet, loadUnreadCounts, markAsRead])
+    }, [loadApplications, loadWallet, markAsRead])
   );
 
   const sourceFiltered = useMemo(() => {
@@ -230,8 +213,7 @@ const JobRequest = () => {
 
         <View className="flex-row justify-center mx-5">
           {tabs.map((tab, index) => {
-            // Use unread counts from API based on tab
-            const totalCount = tab === "send request" ? unreadSent : unreadReceived;
+            const totalCount = tab === "send request" ? sentCount : receivedCount;
 
             return (
               <TouchableOpacity

@@ -137,7 +137,7 @@ const JobCard = ({
       job?.salaryMax as number
     )}$${salarySuffix}`
     : "-";
-  const addressLabel = getAddressLabel(job?.business?.address);
+  const addressLabel = getAddressLabel(job?.business?.address?.city);
 
   return (
     <View
@@ -200,7 +200,7 @@ const JobCard = ({
           </Text>
         </View>
 
-        <View style={{ width: 132 }}>
+        <View style={{ width: 132 }} className='border'>
           <MarqueeText
             text={salaryLabel}
             className="text-xl font-proximanova-semibold text-primary text-right"
