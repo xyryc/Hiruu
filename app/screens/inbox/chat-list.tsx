@@ -4,16 +4,18 @@ import SearchBar from "@/components/ui/inputs/SearchBar";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const ChatList = () => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
   const tabs = ["group", "chat"];
   const [isActive, setIsActive] = useState("group");
   const [rooms, setRooms] = useState<any[]>([]);
@@ -67,31 +69,38 @@ const ChatList = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
-      {/* Header */}
-      <ScreenHeader
-        onPressBack={() => router.back()}
-        className="px-5 pb-4 pt-2.5 rounded-b-3xl bg-[#E5F4FD] overflow-hidden"
-        title="Messages"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111111"}
-      />
+    <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor="#E5F4FD" translucent={false} />
 
-      {/* tabs */}
-      <View className="flex-row justify-center mx-5">
-        {tabs.map((tab, index) => (
-          <TouchableOpacity
-            key={index}
-            className={`w-1/2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
-            onPress={() => setIsActive(tab)}
-          >
-            <Text
-              className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+      {/* Header */}
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
+        <ScreenHeader
+          onPressBack={() => router.back()}
+          className="px-5 pt-2.5 pb-4"
+          title="Messages"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111111"}
+        />
+
+        {/* tabs */}
+        <View className="flex-row justify-center mx-5">
+          {tabs.map((tab, index) => (
+            <TouchableOpacity
+              key={index}
+              className={`w-1/2 border-b pb-3 ${isActive === tab && "border-[#11293A] border-b-2"}`}
+              onPress={() => setIsActive(tab)}
             >
-              <Text className="capitalize">{tab}</Text>
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+              >
+                <Text className="capitalize">{tab}</Text>
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* content */}

@@ -20,6 +20,7 @@ import {
   SimpleLineIcons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -146,16 +147,14 @@ const Profile = () => {
     }
   };
   return (
-    <DynamicBackground
-      style={{
-        paddingTop: insets.top,
-      }}
-      pickerType={pickerType}
-      profileColor={profileColor}
-      gradientColors={gradientColors}
-    >
+    <View className="flex-1 bg-white dark:bg-dark-background">
+      <StatusBar style="dark" backgroundColor="#E5F4FD" translucent={false} />
+
       <DynamicBackground
-        className="rounded-b-xl pb-3"
+        className="rounded-b-xl pb-3 overflow-hidden"
+        style={{
+          paddingTop: insets.top,
+        }}
         pickerType={pickerType}
         profileColor={profileColor}
         gradientColors={gradientColors}
@@ -510,7 +509,7 @@ const Profile = () => {
       </ScrollView>
 
 
-    </DynamicBackground>
+    </View>
   );
 };
 

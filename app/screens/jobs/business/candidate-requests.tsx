@@ -7,6 +7,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -16,13 +17,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const CandidateRequests = () => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
   const getBusinessApplications = useJobStore((s) => s.getBusinessApplications);
   const getUnreadCount = useJobStore((s) => s.getUnreadCount);
   const { selectedBusinesses } = useBusinessStore();
@@ -225,14 +227,22 @@ const CandidateRequests = () => {
 
   if (!currentBusinessId) {
     return (
-      <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
-        <ScreenHeader
-          onPressBack={() => router.back()}
-          className="px-5 pb-4 pt-2.5 rounded-b-3xl bg-[#E5F4FD] overflow-hidden"
-          title="Candidate Requests"
-          titleClass="text-primary dark:text-dark-primary"
-          iconColor={isDark ? "#fff" : "#111111"}
-        />
+      <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
+        <StatusBar style={isDark ? "light" : "dark"} backgroundColor="#E5F4FD" translucent={false} />
+
+        <View
+          className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+          style={{ paddingTop: insets.top }}
+        >
+          <ScreenHeader
+            onPressBack={() => router.back()}
+            className="px-5 pt-2.5 pb-4"
+            title="Candidate Requests"
+            titleClass="text-primary dark:text-dark-primary"
+            iconColor={isDark ? "#fff" : "#111111"}
+          />
+        </View>
+
         <View className="flex-1 items-center justify-center px-5">
           <Text className="text-center text-secondary font-proximanova-regular">
             Please select a business to view candidate requests
@@ -243,43 +253,50 @@ const CandidateRequests = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#E5F4FD] dark:bg-dark-background">
+    <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor="#E5F4FD" translucent={false} />
+
       {/* Header */}
-      <ScreenHeader
-        onPressBack={() => router.back()}
-        className="px-5 pb-4 pt-2.5 rounded-b-3xl bg-[#E5F4FD] overflow-hidden"
-        title="Candidate Requests"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111111"}
-      />
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
+        <ScreenHeader
+          onPressBack={() => router.back()}
+          className="px-5 pt-2.5 pb-4"
+          title="Candidate Requests"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111111"}
+        />
 
-      {/* tabs */}
-      <View className="flex-row justify-center mx-5">
-        {tabs.map((tab, index) => {
-          const totalCount = tab === "Send Request" ? unreadSent : unreadReceived;
+        {/* tabs */}
+        <View className="flex-row justify-center mx-5">
+          {tabs.map((tab, index) => {
+            const totalCount = tab === "Send Request" ? unreadSent : unreadReceived;
 
-          return (
-            <TouchableOpacity
-              key={index}
-              className={`w-1/2 flex-row items-center justify-center gap-2 border-b  pb-2 ${isActive === tab && "border-[#11293A] border-b-2"}`}
-              onPress={() => setIsActive(tab)}
-            >
-              <Text
-                className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+            return (
+              <TouchableOpacity
+                key={index}
+                className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${isActive === tab && "border-[#11293A] border-b-2"}`}
+                onPress={() => setIsActive(tab)}
               >
-                <Text className="capitalize">{tab}</Text>
-              </Text>
+                <Text
+                  className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+                >
+                  <Text className="capitalize">{tab}</Text>
+                </Text>
 
-              {totalCount > 0 && (
-                <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
-                  <Text className="font-proximanova-semibold text-sm text-white">
-                    {totalCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+                {totalCount > 0 && (
+                  <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
+                    <Text className="font-proximanova-semibold text-sm text-white">
+                      {totalCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* content */}
