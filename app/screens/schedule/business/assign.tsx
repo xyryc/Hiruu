@@ -160,10 +160,10 @@ const Assign = () => {
       return;
     }
     setWeeklyRoleAssignment(assignmentKey, selectedEmployeesByRole);
-    toast.success("Assignments saved.");
+    // toast.success("Assignments saved.");
     setTimeout(() => {
       router.back();
-    }, 150);
+    }, 1500);
   };
 
   const selectedRoleMemberIds = selectedRoleId
