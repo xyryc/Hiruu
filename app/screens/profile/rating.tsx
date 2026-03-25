@@ -144,11 +144,50 @@ const Rating = () => {
     }
   }, [canSubmitRating, shouldOpenAddRating]);
 
+  useEffect(() => {
+    console.log(
+      "[RatingScreen] route context:",
+      JSON.stringify(
+        {
+          businessId,
+          targetUserId,
+          isBusinessRatingView,
+          canRate,
+        },
+        null,
+        2
+      )
+    );
+  }, [businessId, canRate, isBusinessRatingView, targetUserId]);
+
+  useEffect(() => {
+    if (ratingsResponse) {
+      console.log(
+        "[RatingScreen] ratings response:",
+        JSON.stringify(ratingsResponse, null, 2)
+      );
+    }
+  }, [ratingsResponse]);
+
   const handleSubmitRating = useCallback(
     async (payload: {
       ratings: { onTime: number; trustWorthy: number; communication: number };
       comment: string;
     }) => {
+      console.log(
+        "[RatingScreen] submitted rating payload:",
+        JSON.stringify(
+          {
+            businessId,
+            targetUserId,
+            isBusinessRatingView,
+            payload,
+          },
+          null,
+          2
+        )
+      );
+
       if (!targetUserId || !businessId) {
         if (!isBusinessRatingView || !businessId) {
           toast.error("Business or user information is missing");
@@ -226,13 +265,18 @@ const Rating = () => {
               <ActivityIndicator color={isDark ? "#fff" : "#111"} />
             </View>
           ) : ratingItems.length ? (
-            ratingItems.map((item: any) => (
-              <RatingCard
-                key={item.id}
-                className="mt-8"
-                name={
-                  isBusinessRatingView
-                    ? item?.raterUser?.name || item?.business?.name || "Unknown"
+              ratingItems.map((item: any) => (
+                <RatingCard
+                  key={item.id}
+                  className="mt-8"
+                  image={
+                    isBusinessRatingView
+                      ? item?.raterUser?.avatar || item?.business?.logo || null
+                      : item?.business?.logo || item?.raterUser?.avatar || null
+                  }
+                  name={
+                    isBusinessRatingView
+                      ? item?.raterUser?.name || item?.business?.name || "Unknown"
                     : item?.business?.name || item?.raterUser?.name || "Unknown"
                 }
                 time={formatRelativeTime(item?.createdAt)}
