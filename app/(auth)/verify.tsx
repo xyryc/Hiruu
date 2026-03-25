@@ -28,12 +28,40 @@ const Verify = () => {
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
   const handleOtpChange = (value: string, index: number) => {
+    const digits = value.replace(/\D/g, "");
     const newOtp = [...otp];
-    newOtp[index] = value;
+
+    if (!digits) {
+      newOtp[index] = "";
+      setOtp(newOtp);
+      return;
+    }
+
+    // Handle multi-digit paste/autofill into any box.
+    if (digits.length > 1) {
+      const remainingSlots = 6 - index;
+      const fillDigits = digits.slice(0, remainingSlots).split("");
+
+      fillDigits.forEach((digit, offset) => {
+        newOtp[index + offset] = digit;
+      });
+
+      setOtp(newOtp);
+
+      const nextFocusIndex = index + fillDigits.length;
+      if (nextFocusIndex <= 5) {
+        inputRefs.current[nextFocusIndex]?.focus();
+      } else {
+        inputRefs.current[5]?.blur();
+      }
+      return;
+    }
+
+    newOtp[index] = digits;
     setOtp(newOtp);
 
     // Auto focus next input
-    if (value && index < 5) {
+    if (index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -85,9 +113,9 @@ const Verify = () => {
         ...(email
           ? { email }
           : {
-              phoneNumber,
-              countryCode,
-            }),
+            phoneNumber,
+            countryCode,
+          }),
       };
 
       const result = await verifyAccount(payload);
@@ -112,13 +140,13 @@ const Verify = () => {
         source === "login"
           ? await requestVerifyAccount({ type: getVerificationType() })
           : await resendOTP(
-              email
-                ? { email }
-                : {
-                    phoneNumber,
-                    countryCode,
-                  }
-            );
+            email
+              ? { email }
+              : {
+                phoneNumber,
+                countryCode,
+              }
+          );
 
       if (result?.success) {
         toast.success(translateApiMessage(result?.message || "otp_sent_email"));
@@ -162,7 +190,7 @@ const Verify = () => {
                   handleKeyPress(nativeEvent.key, index)
                 }
                 keyboardType="numeric"
-                maxLength={1}
+                maxLength={6}
                 selectTextOnFocus
               />
             ))}
