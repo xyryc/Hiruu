@@ -5,8 +5,17 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { EmojiSheetModule } from "expo-native-sheet-emojis";
 import React from "react";
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  I18nManager,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from "react-native";
 
 interface AttachmentPreview {
   uri: string;
@@ -40,20 +49,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
   disabled = false,
 }) => {
   const [typingTimeout, setTypingTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const inputRef = React.useRef<TextInput | null>(null);
+  const colorScheme = useColorScheme();
 
   const handleTextChange = (text: string) => {
     setMessage(text);
 
-    // Trigger typing indicator
     if (onTyping && text.length > 0) {
       onTyping();
 
-      // Clear previous timeout
       if (typingTimeout) {
         clearTimeout(typingTimeout);
       }
 
-      // Set new timeout to stop typing after 2 seconds of inactivity
       const timeout = setTimeout(() => {
         if (onStopTyping) {
           onStopTyping();
@@ -76,6 +84,30 @@ const ChatInput: React.FC<ChatInputProps> = ({
       if (typingTimeout) {
         clearTimeout(typingTimeout);
       }
+    }
+  };
+
+  const handlePickEmoji = async () => {
+    if (disabled || isSending) {
+      return;
+    }
+
+    try {
+      const result = await EmojiSheetModule.present({
+        theme: colorScheme === "dark" ? "dark" : "light",
+        layoutDirection: I18nManager.isRTL ? "rtl" : "ltr",
+        showSearch: true,
+      });
+
+      if ("cancelled" in result) {
+        return;
+      }
+
+      const next = `${message}${result.emoji}`;
+      handleTextChange(next);
+      inputRef.current?.focus();
+    } catch (error) {
+      console.error("[ChatInput] Failed to open emoji sheet:", error);
     }
   };
 
@@ -113,57 +145,54 @@ const ChatInput: React.FC<ChatInputProps> = ({
       )}
 
       <View className="flex-row items-center gap-3">
-      {/* input and file attach */}
-      <View className="px-3.5 py-1 flex-1 bg-[#F5F5F5] rounded-full flex-row items-center gap-1.5">
-        {/* emoji */}
-        <TouchableOpacity disabled={disabled}>
-          <MaterialCommunityIcons
-            name="emoticon-outline"
-            size={22}
-            color={disabled ? "#CCC" : "#111111"}
-          />
-        </TouchableOpacity>
+        <View className="px-3.5 py-1 flex-1 bg-[#F5F5F5] rounded-full flex-row items-center gap-1.5">
+          <TouchableOpacity disabled={disabled || isSending} onPress={handlePickEmoji}>
+            <MaterialCommunityIcons
+              name="emoticon-outline"
+              size={22}
+              color={disabled || isSending ? "#CCC" : "#111111"}
+            />
+          </TouchableOpacity>
 
-        {/* chat input */}
-        <TextInput
-          value={message}
-          onChangeText={handleTextChange}
-          placeholder="Type Something...."
-          placeholderTextColor="#999"
-          className="flex-1 font-proximanova-regular text-sm text-secondary"
-          editable={!disabled && !isSending}
-          multiline
-          maxLength={1000}
-          onSubmitEditing={handleSend}
-          blurOnSubmit={false}
-        />
-
-        {/* attach file */}
-        <TouchableOpacity disabled={disabled || isSending} onPress={onPickMedia}>
-          <MaterialIcons
-            name="attach-file"
-            size={22}
-            color={disabled || isSending ? "#CCC" : "#111111"}
+          <TextInput
+            ref={inputRef}
+            value={message}
+            onChangeText={handleTextChange}
+            placeholder="Type Something...."
+            placeholderTextColor="#999"
+            className="flex-1 font-proximanova-regular text-sm text-secondary"
+            editable={!disabled && !isSending}
+            multiline
+            maxLength={1000}
+            onSubmitEditing={handleSend}
+            blurOnSubmit={false}
           />
+
+          <TouchableOpacity disabled={disabled || isSending} onPress={onPickMedia}>
+            <MaterialIcons
+              name="attach-file"
+              size={22}
+              color={disabled || isSending ? "#CCC" : "#111111"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          className="w-12 h-12 bg-[#11293A] rounded-full items-center justify-center"
+          onPress={handleSend}
+          disabled={(!message.trim() && attachments.length === 0) || isSending || disabled || !onSend}
+          style={{
+            opacity:
+              (!message.trim() && attachments.length === 0) || isSending || disabled || !onSend ? 0.5 : 1,
+          }}
+        >
+          {isSending ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Feather name="send" size={18} color="white" />
+          )}
         </TouchableOpacity>
       </View>
-
-      {/* send button */}
-      <TouchableOpacity
-        className="w-12 h-12 bg-[#11293A] rounded-full items-center justify-center"
-        onPress={handleSend}
-        disabled={(!message.trim() && attachments.length === 0) || isSending || disabled || !onSend}
-        style={{
-          opacity: (!message.trim() && attachments.length === 0) || isSending || disabled || !onSend ? 0.5 : 1,
-        }}
-      >
-        {isSending ? (
-          <ActivityIndicator size="small" color="white" />
-        ) : (
-          <Feather name="send" size={18} color="white" />
-        )}
-      </TouchableOpacity>
-    </View>
     </View>
   );
 };
