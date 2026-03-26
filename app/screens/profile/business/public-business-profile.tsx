@@ -5,7 +5,6 @@ import RatingProgress from "@/components/ui/cards/RatingProgress";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   EvilIcons,
   Feather,
@@ -13,6 +12,7 @@ import {
   MaterialCommunityIcons,
   SimpleLineIcons,
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -82,18 +82,11 @@ const PublicBusinessProfile = () => {
     useCallback(() => {
       loadBusiness();
       loadRatingSummary();
-      return () => {};
+      return () => { };
     }, [loadBusiness, loadRatingSummary])
   );
 
-  useEffect(() => {
-    if (businessData) {
-      console.log(
-        "[PublicBusinessProfile] business data:",
-        JSON.stringify(businessData, null, 2)
-      );
-    }
-  }, [businessData]);
+
 
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0

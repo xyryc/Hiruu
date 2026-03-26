@@ -157,7 +157,7 @@ export type JobProfileData = {
   headline?: string | null;
   about?: string | null;
   isOpenToWork?: boolean;
-  // preferredRoleIds?: string[];
+  preferredRoleIds?: string[];
   highlightedExperience?: string | null;
   preferredSalaryType?: string | null;
   expectedSalaryMin?: number | string | null;
