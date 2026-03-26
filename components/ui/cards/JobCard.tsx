@@ -200,7 +200,7 @@ const JobCard = ({
           </Text>
         </View>
 
-        <View style={{ width: 132 }} className='border'>
+        <View style={{ width: 132 }}>
           <MarqueeText
             text={salaryLabel}
             className="text-xl font-proximanova-semibold text-primary text-right"
