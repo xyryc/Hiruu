@@ -5,6 +5,7 @@ import RatingProgress from "@/components/ui/cards/RatingProgress";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   EvilIcons,
   Feather,
@@ -76,6 +77,14 @@ const PublicBusinessProfile = () => {
     loadBusiness();
     loadRatingSummary();
   }, [loadBusiness, loadRatingSummary]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBusiness();
+      loadRatingSummary();
+      return () => {};
+    }, [loadBusiness, loadRatingSummary])
+  );
 
   useEffect(() => {
     if (businessData) {
