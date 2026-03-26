@@ -69,11 +69,13 @@ const ConnectSocials = ({
   value,
   onChange,
   hideEmpty = false,
+  canEdit = true,
 }: {
   className?: string;
   value?: SocialLinks;
   onChange?: (next: SocialLinks) => void;
   hideEmpty?: boolean;
+  canEdit?: boolean;
 }) => {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
   const visibleItems = hideEmpty
@@ -144,7 +146,7 @@ const ConnectSocials = ({
               <Text className="text-sm font-proximanova-semibold">{item.label}</Text>
             </TouchableOpacity>
 
-            {isEditing ? (
+            {isEditing && canEdit ? (
               <View className="flex-row items-center gap-2 max-w-[56%]">
                 <TextInput
                   value={inputValue}
@@ -164,11 +166,13 @@ const ConnectSocials = ({
                 <Text className="text-sm font-proximanova-semibold text-primary" numberOfLines={1}>
                   {toDisplayValue(item.id, linkedValue)}
                 </Text>
-                <TouchableOpacity onPress={() => removeLink(item.id)}>
-                  <Ionicons name="close" size={24} color="#111827" />
-                </TouchableOpacity>
+                {canEdit ? (
+                  <TouchableOpacity onPress={() => removeLink(item.id)}>
+                    <Ionicons name="close" size={24} color="#111827" />
+                  </TouchableOpacity>
+                ) : null}
               </View>
-            ) : hideEmpty ? null : (
+            ) : hideEmpty || !canEdit ? null : (
               <SmallButton title="Link" onPress={() => startLink(item.id)} />
             )}
           </View>

@@ -518,17 +518,13 @@ const BusinessProfile = () => {
             </View>
 
             {/* Contact Us On */}
-            <View className="flex-row justify-between items-center mx-5 mt-8">
-              <View className="flex-row gap-2.5">
-                <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                  <Ionicons name="call-outline" size={16} color="black" />
-                </View>
-                <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  Contact Us On
-                </Text>
+            <View className="flex-row items-center gap-2 mx-5 mt-8">
+              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                <Ionicons name="call-outline" size={16} color="black" />
               </View>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                Edit
+
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                Contact Us On
               </Text>
             </View>
 
@@ -537,6 +533,7 @@ const BusinessProfile = () => {
               value={socialLinks}
               onChange={handleSocialLinksChange}
               hideEmpty
+              canEdit={false}
             />
           </View>
         )}

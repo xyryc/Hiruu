@@ -505,6 +505,7 @@ const Profile = () => {
           value={socialLinks}
           onChange={handleSocialLinksChange}
           hideEmpty
+          canEdit={false}
         />
       </ScrollView>
 
