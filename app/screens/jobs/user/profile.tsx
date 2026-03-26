@@ -15,7 +15,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -69,6 +69,11 @@ const JobProfile = () => {
   const companyLogo =
     resolveMediaUrl(job?.business?.logo) ||
     "https://images-platform.99static.com//gkoGE5-VZ1k4SXxg0mrUj7O0V38=/250x0:1750x1500/fit-in/500x500/99designs-contests-attachments/102/102585/attachment_102585463";
+  const companyRatingValue = Math.max(
+    0,
+    Math.min(5, Number(job?.business?.rating ?? 0))
+  );
+  const companyRatingLabel = Number(companyRatingValue.toFixed(1)).toString();
   const locationLabel =
     job?.business?.address?.address || "Unknown Location";
 
@@ -110,6 +115,54 @@ const JobProfile = () => {
       twitter: social.twitter || "@alber256",
     };
   }, [job?.business?.social]);
+
+  useEffect(() => {
+    if (!job) return;
+
+    console.log(
+      "[UserJobProfile] screen data:",
+      JSON.stringify(
+        {
+          route: { businessId, recruitmentId },
+          job,
+          companyName,
+          companyLogo,
+          locationLabel,
+          roleName,
+          aboutRole,
+          genderLabel,
+          experienceLabel,
+          ageLabel,
+          shiftLabel,
+          salaryLabel,
+          managerName,
+          managerAvatar,
+          distanceLabel,
+          socials,
+        },
+        null,
+        2
+      )
+    );
+  }, [
+    aboutRole,
+    ageLabel,
+    businessId,
+    companyLogo,
+    companyName,
+    distanceLabel,
+    experienceLabel,
+    genderLabel,
+    job,
+    locationLabel,
+    managerAvatar,
+    managerName,
+    recruitmentId,
+    roleName,
+    salaryLabel,
+    shiftLabel,
+    socials,
+  ]);
 
   const handleShare = async () => {
     try {
@@ -173,6 +226,21 @@ const JobProfile = () => {
     }
   };
 
+  const handleOpenBusinessProfile = () => {
+    const targetBusinessId =
+      typeof job?.business?.id === "string" ? job.business.id : null;
+
+    if (!targetBusinessId) {
+      toast.error("Business profile unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/profile/business/public-business-profile",
+      params: { businessId: targetBusinessId },
+    });
+  };
+
   return (
     <SafeAreaView
       className="bg-[#E5F4FD] dark:bg-dark-background"
@@ -199,37 +267,40 @@ const JobProfile = () => {
       <View className="bg-white">
         {/* profile */}
         <View className="absolute -top-16 inset-x-0">
-          {/* profile image */}
-          <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
-            <Image
-              source={companyLogo}
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 999,
-              }}
-              contentFit="cover"
-            />
-          </View>
-
-          {/* name */}
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
-            {companyName}{" "}
-            <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-          </Text>
-
-          <View className="flex-row items-center justify-center mt-2.5 gap-7">
-            <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
-              <SimpleLineIcons name="location-pin" size={14} color="#7A7A7A" />
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {locationLabel}
-              </Text>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleOpenBusinessProfile}>
+            {/* profile image */}
+            <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
+              <Image
+                source={companyLogo}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 999,
+                }}
+                contentFit="cover"
+              />
             </View>
 
-            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              4.8/5 <Fontisto name="star" size={14} color="#F1C400" />
+            {/* name */}
+            <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
+              {companyName}{" "}
+              <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
             </Text>
-          </View>
+
+            <View className="flex-row items-center justify-center mt-2.5 gap-7">
+              <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
+                <SimpleLineIcons name="location-pin" size={14} color="#7A7A7A" />
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  {locationLabel}
+                </Text>
+              </View>
+
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                {companyRatingLabel}/5{" "}
+                <Fontisto name="star" size={14} color="#F1C400" />
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
