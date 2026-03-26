@@ -37,7 +37,7 @@ class SocketService {
 
             this.socket = io(`${baseURL}/chat`, {
                 auth: { token: this.token },
-                transports: ['websocket', 'polling'],
+                transports: ['polling', 'websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
@@ -116,7 +116,7 @@ class SocketService {
 
             this.callsSocket = io(`${baseURL}/calls`, {
                 auth: { token: this.token },
-                transports: ['websocket', 'polling'],
+                transports: ['polling', 'websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
