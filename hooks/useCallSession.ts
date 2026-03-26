@@ -66,7 +66,7 @@ export const useCallSession = () => {
   const hasLeftRef = useRef(false);
   const hasClosedRef = useRef(false);
   const hasJoinedCallRoomRef = useRef(false);
-  const hasAcceptedIncomingRef = useRef(!isInitialIncoming);
+  const hasAcceptedIncomingRef = useRef(false);
   const incomingToneRef = useRef<any>(null);
   const ringbackToneRef = useRef<any>(null);
   const agoraEngineRef = useRef<any>(null);
@@ -328,11 +328,17 @@ export const useCallSession = () => {
   }, [remoteJoined, startedAt]);
 
   useEffect(() => {
-    if (mode !== "incoming") {
-      setJoining(false);
-      setIsIncomingPending(false);
-      hasAcceptedIncomingRef.current = true;
+    if (mode === "incoming") {
+      if (!hasAcceptedIncomingRef.current) {
+        setJoining(true);
+        setIsIncomingPending(true);
+      }
+      return;
     }
+
+    setJoining(false);
+    setIsIncomingPending(false);
+    hasAcceptedIncomingRef.current = true;
   }, [mode]);
 
   useEffect(() => {
@@ -346,7 +352,7 @@ export const useCallSession = () => {
   useEffect(() => {
     const playState = async () => {
       const isConnected = remoteJoined || Boolean(startedAt);
-      const shouldPlayIncoming = isIncomingPending && !isConnected;
+      const shouldPlayIncoming = isIncomingPending;
       const shouldPlayRingback = mode === "outgoing" && !isIncomingPending && !isConnected;
 
       if (shouldPlayIncoming) {
@@ -368,10 +374,11 @@ export const useCallSession = () => {
   }, [isIncomingPending, mode, remoteJoined, startedAt]);
 
   useEffect(() => {
+    if (isIncomingPending) return;
     if (!(remoteJoined || startedAt)) return;
     void stopTone(incomingToneRef.current);
     void stopTone(ringbackToneRef.current);
-  }, [remoteJoined, startedAt]);
+  }, [isIncomingPending, remoteJoined, startedAt]);
 
   useEffect(() => {
     if (!callId || !user?.id) return;
@@ -422,6 +429,7 @@ export const useCallSession = () => {
               String(item?.status || "").toLowerCase() === "joined"
           );
           setParticipantsCount(Math.max(1, active.length || list.length || 1));
+          if (mode === "incoming" && !hasAcceptedIncomingRef.current) return;
           setRemoteJoined(hasOtherJoined);
           if (hasOtherJoined) setJoining(false);
         };
@@ -429,6 +437,7 @@ export const useCallSession = () => {
         onJoined = (payload: any) => {
           const participantId = payload?.userId;
           if (!mounted || !participantId || participantId === user.id) return;
+          if (mode === "incoming" && !hasAcceptedIncomingRef.current) return;
           setRemoteJoined(true);
           setJoining(false);
           setParticipantsCount((prev) => Math.max(2, prev + 1));
