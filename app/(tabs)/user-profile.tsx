@@ -215,7 +215,7 @@ const Profile = () => {
 
             {/* user edit screen */}
             <TouchableOpacity
-              onPress={() => router.push("/screens/profile/user/edit")}
+              onPress={() => router.push("/screens/profile/user/edit-profile")}
               className="h-10 w-10 bg-white rounded-full items-center justify-center"
             >
               <SimpleLineIcons name="pencil" size={18} color="black" />
@@ -313,7 +313,7 @@ const Profile = () => {
           </View>
         ) : (
           <TouchableOpacity
-            onPress={() => router.push("/screens/profile/user/edit")}
+            onPress={() => router.push("/screens/profile/user/edit-profile")}
             className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3"
           >
             <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">

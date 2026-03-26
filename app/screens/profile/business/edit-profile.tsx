@@ -86,6 +86,7 @@ const EditBusinessProfile = () => {
   const hasShownGeoapifyMissingKey = useRef(false);
   const [addressDetails, setAddressDetails] = useState<AddressPayload | null>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
+  const [isEditingSocials, setIsEditingSocials] = useState(false);
 
   useEffect(() => {
     if (!locationSearch || locationSearch.trim().length < 3) {
@@ -666,12 +667,20 @@ const EditBusinessProfile = () => {
             </View>
 
             <View className="mt-8">
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mb-2.5">
-                Contact Us On
-              </Text>
+              <View className="flex-row items-center justify-between mb-2.5">
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  Contact Us On
+                </Text>
+                <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {isEditingSocials ? "Done" : "Edit"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <ConnectSocials
                 value={socialLinks}
                 onChange={(next) => setSocialLinks((prev: any) => ({ ...prev, ...next }))}
+                canEdit={isEditingSocials}
               />
             </View>
 

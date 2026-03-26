@@ -43,6 +43,7 @@ const Edit = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [shortIntro, setShortIntro] = useState("");
   const [isEditingIntro, setIsEditingIntro] = useState(false);
+  const [isEditingSocials, setIsEditingSocials] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
@@ -336,15 +337,18 @@ const Edit = () => {
               Contact Us On
             </Text>
           </View>
-          <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-            Edit
-          </Text>
+          <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
+            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+              {isEditingSocials ? "Done" : "Edit"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <ConnectSocials
           className="mx-5 my-4"
           value={socialLinks}
           onChange={(next) => setSocialLinks((prev: any) => ({ ...prev, ...next }))}
+          canEdit={isEditingSocials}
         />
 
         <PrimaryButton

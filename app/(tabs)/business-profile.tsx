@@ -240,7 +240,7 @@ const BusinessProfile = () => {
 
           <TouchableOpacity
             onPress={() =>
-              router.push("/screens/profile/business/edit-business-profile")
+              router.push("/screens/profile/business/edit-profile")
             }
             className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
           >
