@@ -31,8 +31,8 @@ export const useIncomingCallListener = (enabled: boolean) => {
 
       const callPath =
         callType === "video"
-          ? "/screens/jobs/video-call"
-          : "/screens/jobs/audio-call";
+          ? "/screens/inbox/video-call"
+          : "/screens/inbox/audio-call";
       console.log("[CALL_DEBUG][INCOMING] navigate:call-screen", { callId, roomId, callType });
       lastHandledCallIdRef.current = callId;
       router.push({
