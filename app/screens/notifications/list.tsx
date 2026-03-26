@@ -1,33 +1,182 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import NotificationCard from "@/components/ui/cards/NotificationCard";
 import NotificationModal from "@/components/ui/modals/NotificationModal";
-import { useNotificationStore } from "@/stores/notificationStore";
+import {
+  NotificationItem,
+  useNotificationStore,
+} from "@/stores/notificationStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type NotificationListItem = {
+  item: NotificationItem;
+  timeTitle?: string;
+};
+
+const formatRelativeTime = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const diffMs = Date.now() - date.getTime();
+  const mins = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
+const getSectionLabel = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (isSameDay(date, today)) return "Today";
+  if (isSameDay(date, yesterday)) return "Yesterday";
+  return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+};
+
+const resolveNotificationVisual = (type: string) => {
+  const normalized = String(type || "").toLowerCase();
+
+  if (normalized.includes("chat")) {
+    return {
+      icon: <Feather name="message-circle" size={20} color="#3EBF5A" />,
+      iconBackgroundColor: "#3EBF5A26",
+    };
+  }
+
+  if (normalized.includes("call")) {
+    return {
+      icon: <Ionicons name="call-outline" size={20} color="#4FB2F3" />,
+      iconBackgroundColor: "#E5F4FD",
+    };
+  }
+
+  if (normalized.includes("achievement")) {
+    return {
+      icon: <Ionicons name="trophy-outline" size={20} color="#F1C400" />,
+      iconBackgroundColor: "#F1C40026",
+    };
+  }
+
+  if (normalized.includes("cancel")) {
+    return {
+      icon: <EvilIcons name="close-o" size={22} color="#F34F4F" />,
+      iconBackgroundColor: "#F34F4F4D",
+    };
+  }
+
+  if (normalized.includes("clock") || normalized.includes("reminder")) {
+    return {
+      icon: <Ionicons name="calendar-outline" size={20} color="#4FB2F3" />,
+      iconBackgroundColor: "#E5F4FD",
+    };
+  }
+
+  return {
+    icon: <Ionicons name="notifications-outline" size={20} color="#4FB2F3" />,
+    iconBackgroundColor: "#E5F4FD",
+  };
+};
 
 const NotificationScreen = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [modalVisible, setModalVisible] = useState(false);
+
   const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
+  const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+  const notifications = useNotificationStore((state) => state.notifications);
+  const notificationsLoading = useNotificationStore((state) => state.notificationsLoading);
+  const notificationsRefreshing = useNotificationStore((state) => state.notificationsRefreshing);
+  const notificationsLoadingMore = useNotificationStore((state) => state.notificationsLoadingMore);
+  const pagination = useNotificationStore((state) => state.notificationsPagination);
+
+  const loadNotifications = useCallback(
+    async (page = 1, append = false) => {
+      try {
+        await fetchNotifications({
+          page,
+          limit: 5,
+          sort: "createdAt:desc",
+          append,
+        });
+      } catch (error: any) {
+        toast.error(translateApiMessage(error?.message || "Failed to fetch notifications"));
+      }
+    },
+    [fetchNotifications]
+  );
 
   useFocusEffect(
     useCallback(() => {
       fetchUnreadCount().catch(() => undefined);
-    }, [fetchUnreadCount])
+      void loadNotifications(1, false);
+      return () => {};
+    }, [fetchUnreadCount, loadNotifications])
   );
+
+  const listData = useMemo<NotificationListItem[]>(() => {
+    let previousLabel = "";
+    return notifications.map((item) => {
+      const currentLabel = getSectionLabel(item.createdAt);
+      const showLabel = currentLabel && currentLabel !== previousLabel ? currentLabel : undefined;
+      previousLabel = currentLabel;
+      return {
+        item,
+        timeTitle: showLabel,
+      };
+    });
+  }, [notifications]);
+
+  const onRefresh = useCallback(async () => {
+    await loadNotifications(1, false);
+  }, [loadNotifications]);
+
+  const onEndReached = useCallback(async () => {
+    if (!pagination.hasNext || notificationsLoadingMore || notificationsLoading) return;
+    await loadNotifications(pagination.page + 1, true);
+  }, [
+    loadNotifications,
+    notificationsLoading,
+    notificationsLoadingMore,
+    pagination.hasNext,
+    pagination.page,
+  ]);
 
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      {/* Header */}
       <View className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl pt-14 px-5 pb-4">
         <ScreenHeader
           onPressBack={() => router.back()}
@@ -42,72 +191,58 @@ const NotificationScreen = () => {
         />
       </View>
 
-      {/* ✅ Scrollable Content */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <FlatList
+        data={listData}
+        keyExtractor={(entry) => entry.item.id}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
-      >
-        <NotificationCard
-          className="mt-8"
-          timeTitle="Today"
-          title="Missed clock-out"
-          details="You missed logging out on your shift. Please submit a correction request. "
-          time="2h ago"
-          buttonTitle="Submit Correction"
-          border
-          icon={<Ionicons name="warning-outline" size={22} color="#F34F4F" />}
-          iconBackgroundColor="#F34F4F4D"
-        />
-        <NotificationCard
-          title="Tomorrow’s shift reminder:"
-          details="Shift at 10:00 AM, ABC Mall. Don’t forget to clock in"
-          time="2h ago"
-          border
-          icon={<Ionicons name="calendar-outline" size={20} color="#4FB2F3" />}
-          iconBackgroundColor="#E5F4FD"
-        />
-        <NotificationCard
-          title="Message from Sarah (Manager)"
-          details="Can you cover the evening shift tomorrow?"
-          time="2h ago"
-          icon={<Feather name="message-circle" size={20} color="#3EBF5A" />}
-          iconBackgroundColor="#3EBF5A26"
-        />
-        <NotificationCard
-          className="mt-8"
-          timeTitle="Yesterday"
-          title="Achievement Unlocked!"
-          details="Completed 5 shifts this week - Great work!"
-          time="1d ago"
-          border
-          icon={<Ionicons name="trophy-outline" size={20} color="#F1C400" />}
-          iconBackgroundColor="#F1C40026"
-        />
-        <NotificationCard
-          title="Shift Cancelled"
-          details="Your shift scheduled on 6 June at Downtown Cafe has been cancelled"
-          time="1d ago"
-          icon={<EvilIcons name="close-o" size={20} color="#F34F4F" />}
-          iconBackgroundColor="#F34F4F4D"
-        />
-        <NotificationCard
-          className="mt-8"
-          timeTitle="Last Week"
-          title="Feedback Requested"
-          details="We’d love to hear about your experience "
-          time="5d ago"
-          border
-          icon={<Feather name="edit" size={20} color="#F3934F" />}
-          iconBackgroundColor="#F3934F4D"
-        />
-        <NotificationCard
-          title="Feedback Requested"
-          details="We’d love to hear about your experience "
-          time="5d ago"
-          icon={<Feather name="edit" size={20} color="#F3934F" />}
-          iconBackgroundColor="#F3934F4D"
-        />
-      </ScrollView>
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={notificationsRefreshing}
+            onRefresh={onRefresh}
+            tintColor="#4FB2F3"
+          />
+        }
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.3}
+        renderItem={({ item: entry, index }) => {
+          const { item, timeTitle } = entry;
+          const visual = resolveNotificationVisual(item.type);
+          return (
+            <NotificationCard
+              className={index === 0 ? "mt-8" : ""}
+              timeTitle={timeTitle}
+              title={translateApiMessage(item.title || item.type)}
+              details={translateApiMessage(item.message || item.type)}
+              time={formatRelativeTime(item.createdAt)}
+              border
+              icon={visual.icon}
+              iconBackgroundColor={visual.iconBackgroundColor}
+            />
+          );
+        }}
+        ListEmptyComponent={
+          notificationsLoading ? (
+            <View className="py-10 items-center">
+              <ActivityIndicator size="small" color="#4FB2F3" />
+            </View>
+          ) : (
+            <View className="py-10 items-center">
+              <Text className="text-sm text-secondary dark:text-dark-secondary">
+                No notifications yet.
+              </Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          notificationsLoadingMore ? (
+            <View className="py-4 items-center">
+              <ActivityIndicator size="small" color="#4FB2F3" />
+            </View>
+          ) : null
+        }
+      />
+
       <NotificationModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
