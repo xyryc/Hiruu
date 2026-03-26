@@ -51,7 +51,6 @@ const QrScanner = () => {
       setIsModalVisible(true);
 
       // Process the scanned data
-      console.log(`QR Code Type: ${type}, Data: ${data}`);
     }
   };
 

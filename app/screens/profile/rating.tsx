@@ -76,7 +76,7 @@ const Rating = () => {
 
       await getMyRatings();
     } catch (error: any) {
-      console.log("user rating screen api error:", error?.message || error);
+      console.error("user rating screen api error:", error?.message || error);
     }
   }, [
     businessId,
@@ -144,50 +144,11 @@ const Rating = () => {
     }
   }, [canSubmitRating, shouldOpenAddRating]);
 
-  useEffect(() => {
-    console.log(
-      "[RatingScreen] route context:",
-      JSON.stringify(
-        {
-          businessId,
-          targetUserId,
-          isBusinessRatingView,
-          canRate,
-        },
-        null,
-        2
-      )
-    );
-  }, [businessId, canRate, isBusinessRatingView, targetUserId]);
-
-  useEffect(() => {
-    if (ratingsResponse) {
-      console.log(
-        "[RatingScreen] ratings response:",
-        JSON.stringify(ratingsResponse, null, 2)
-      );
-    }
-  }, [ratingsResponse]);
-
   const handleSubmitRating = useCallback(
     async (payload: {
       ratings: { onTime: number; trustWorthy: number; communication: number };
       comment: string;
     }) => {
-      console.log(
-        "[RatingScreen] submitted rating payload:",
-        JSON.stringify(
-          {
-            businessId,
-            targetUserId,
-            isBusinessRatingView,
-            payload,
-          },
-          null,
-          2
-        )
-      );
-
       if (!targetUserId || !businessId) {
         if (!isBusinessRatingView || !businessId) {
           toast.error("Business or user information is missing");

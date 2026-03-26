@@ -89,7 +89,6 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                     .filter(Boolean)
                 : [];
             if (callBodies.length) {
-                console.log('[CHAT_DEBUG] load-messages:call-body', callBodies);
             }
 
             if (isMounted.current) {
@@ -210,7 +209,6 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
                 void (async () => {
                     try {
-                        console.log('[CHAT_DEBUG] send-media-message:body', { roomId, content, media });
                         const result = await chatService.sendMessage(roomId, {
                             content,
                             media,
@@ -232,7 +230,6 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
             try {
                 setSending(true);
-                console.log('[CHAT_DEBUG] send-message:body', { roomId, content, media });
                 if (socketService.isConnected()) {
                     socketService.sendMessage({
                         chatRoomId: roomId,
@@ -357,7 +354,6 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
                 // Listen for new messages
                 const handleNewMessage = (data: any) => {
-                    console.log('[CHAT_DEBUG] socket:new-message:body', data?.message || data);
                     const incomingMessage = data?.message || data;
                     const eventRoomId =
                         data?.chatRoomId ||
@@ -366,7 +362,6 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                         incomingMessage?.chatRoomId;
                     const callBody = extractCallBody(incomingMessage);
                     if (callBody) {
-                        console.log('[CHAT_DEBUG] socket:new-message:call-body', callBody);
                     }
 
                     if (eventRoomId === roomId) {

@@ -610,7 +610,6 @@ const ChatScreen = () => {
     };
 
     try {
-      console.log("[CALL_DEBUG] initiate-call:start", { roomId: actualRoomId, callType });
 
       // Pre-check active call to avoid stale-call initiate errors.
       try {
@@ -621,14 +620,6 @@ const ChatScreen = () => {
           const isInitiator = activeCall?.initiatedBy === user?.id;
           const hasOtherActive = hasOtherActiveParticipant(activeCall);
           const hasAnyActive = hasAnyActiveParticipant(activeCall);
-          console.log("[CALL_DEBUG] initiate-call:active-precheck", {
-            callId: activeCall.id,
-            callStatus: activeCall?.status,
-            myStatus,
-            isInitiator,
-            hasOtherActive,
-            hasAnyActive,
-          });
 
           // If I initiated and no one else is active, close stale call then create a fresh call.
           if (
@@ -638,7 +629,7 @@ const ChatScreen = () => {
             try {
               await callService.endCall(activeCall.id);
             } catch (endErr) {
-              console.log("[CALL_DEBUG] initiate-call:active-precheck:end-error", endErr);
+              console.error("[ChatScreen] active precheck end error:", endErr);
             }
           } else {
             router.push({
@@ -659,7 +650,6 @@ const ChatScreen = () => {
 
       setStarting(true);
       const response = await callService.initiateCall(actualRoomId, callType);
-      console.log("[CALL_DEBUG] initiate-call:response", response);
       const callData = response?.data;
       const callId =
         callData?.id || callData?.callId || callData?.call?.id || null;
@@ -674,7 +664,7 @@ const ChatScreen = () => {
         params: { callId, roomId: actualRoomId, mode: "outgoing", callType },
       });
     } catch (error: any) {
-      console.log("[CALL_DEBUG] initiate-call:error", error);
+      console.error("[ChatScreen] initiate-call error:", error);
       const apiMessage =
         error?.response?.data?.message || error?.message || `Failed to start ${callType} call`;
 
@@ -712,7 +702,7 @@ const ChatScreen = () => {
                   return;
                 }
               } catch (retryError) {
-                console.log("[CALL_DEBUG] initiate-call:retry-after-end:error", retryError);
+                console.error("[ChatScreen] retry-after-end error:", retryError);
               }
             }
             router.push({
@@ -727,7 +717,7 @@ const ChatScreen = () => {
             return;
           }
         } catch (activeError) {
-          console.log("[CALL_DEBUG] initiate-call:active-call:fetch-error", activeError);
+          console.error("[ChatScreen] active-call fetch error:", activeError);
         }
       }
 

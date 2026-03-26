@@ -189,7 +189,6 @@ const BusinessPlan = () => {
         businessId: selectedBusinessId,
       });
 
-      console.log("business plan", intentData.setupIntentClientSecret, planForCheckout.id, billingCycle, selectedBusinessId)
 
       toast.success("Business subscription activated");
       await Promise.all([getBusinessPlans(), loadActiveSubscriptions()]);

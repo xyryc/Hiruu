@@ -25,7 +25,7 @@ const HelpSupport = () => {
         try {
           await getFaq();
         } catch (error) {
-          console.log("support faq error:", error);
+          console.error("support faq error:", error);
         }
       };
 

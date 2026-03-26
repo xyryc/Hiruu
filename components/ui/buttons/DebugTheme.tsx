@@ -7,7 +7,6 @@ export const NuclearTest1 = () => {
   const [localColor, setLocalColor] = useState("red");
   const { theme, setTheme } = useTheme();
 
-  console.log("🔥 NuclearTest1 - theme:", theme, "localColor:", localColor);
 
   return (
     <View style={{ padding: 20, backgroundColor: "white" }}>
@@ -59,18 +58,10 @@ export const NuclearTest2 = () => {
   const [forceUpdate, setForceUpdate] = useState(0);
 
   const handleToggle = () => {
-    console.log("🔥 Before toggle:", theme);
     setTheme(theme === "light" ? "dark" : "light");
     setForceUpdate((prev) => prev + 1); // Force re-render
-    console.log("🔥 After toggle");
   };
 
-  console.log(
-    "🔥 NuclearTest2 render - theme:",
-    theme,
-    "forceUpdate:",
-    forceUpdate
-  );
 
   // Calculate colors
   const bgColor = theme === "dark" ? "#10B981" : "#D1D5DB";
@@ -142,7 +133,6 @@ export const NuclearTest3 = () => {
 const ToggleComponent = ({ onToggle }: { onToggle: () => void }) => {
   const { theme } = useTheme();
 
-  console.log("🔥 ToggleComponent mounted with theme:", theme);
 
   return (
     <TouchableOpacity
@@ -283,16 +273,13 @@ export const NuclearSolutionToggle = () => {
       isDark: themeContext.isDark,
     };
     setInternalState(newState);
-    console.log("🔥 Nuclear Solution - synced state:", newState);
   }, [themeContext.theme, themeContext.isDark]);
 
   const handleToggle = () => {
     const newTheme = internalState.theme === "light" ? "dark" : "light";
-    console.log("🔥 Nuclear Solution - toggling to:", newTheme);
     themeContext.setTheme(newTheme);
   };
 
-  console.log("🔥 Nuclear Solution render:", internalState);
 
   return (
     <View style={{ padding: 20 }}>

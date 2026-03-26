@@ -120,21 +120,6 @@ const BusinessProfile = () => {
     }
   }, [businessData?.isRecruiting]);
 
-  useEffect(() => {
-    if (businessData) {
-      console.log(
-        "[BusinessProfile] owner business data:",
-        JSON.stringify(businessData, null, 2)
-      );
-    }
-  }, [businessData]);
-
-  useEffect(() => {
-    if (selectedTab === "job" && businessId) {
-      console.log("[BusinessProfile] job tab businessId:", businessId);
-    }
-  }, [businessId, selectedTab]);
-
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );

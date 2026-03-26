@@ -131,7 +131,6 @@ const BusinessJobs = () => {
       let isActive = true;
 
       const loadScreenData = async () => {
-        console.log("[BusinessJobs] selected business id:", currentBusinessId);
         const preferredRoleId = await loadBusinessRoleId();
         if (!isActive) return;
 

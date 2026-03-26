@@ -23,9 +23,8 @@ const Privacy = () => {
       const loadPrivacyPolicy = async () => {
         try {
           const data = await getPrivacyPolicy();
-          console.log("privacy-policy data:", data);
         } catch (error) {
-          console.log("privacy-policy error:", error);
+          console.error("privacy-policy error:", error);
         }
       };
 

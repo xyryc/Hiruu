@@ -65,7 +65,7 @@ const NotificationCard = ({
           {buttonTitle && (
             <TouchableOpacity
               className="bg-[#11293A] px-5 py-2.5 mt-1.5 rounded-full self-start active:opacity-80"
-              onPress={() => console.log("Submit Correction pressed")}
+              onPress={() => {}}
             >
               <Text className="font-proximanova-semibold text-sm text-white">
                 {buttonTitle}

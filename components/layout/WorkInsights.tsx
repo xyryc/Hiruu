@@ -16,7 +16,6 @@ const WorkInsights = ({ className, title }: WorkInsightsProps | any) => {
 
   const handleReportMonthChange = (date: Date) => {
     setReportMonth(date);
-    console.log("Report month selected:", date.toLocaleDateString());
   };
 
   // Get display content for header button

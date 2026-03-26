@@ -51,7 +51,6 @@ const CandidateRequests = () => {
   const loadApplications = useCallback(
     async (targetPage = 1, append = false) => {
       if (!currentBusinessId) {
-        console.log("[CandidateRequests] No business selected");
         setItems([]);
         return;
       }
@@ -100,10 +99,6 @@ const CandidateRequests = () => {
       });
       setUnreadSent(result.business_invited ?? 0);
       setUnreadReceived(result.user_applied ?? 0);
-      console.log("[CandidateRequests] Unread counts:", {
-        sent: result.business_invited,
-        received: result.user_applied,
-      });
     } catch (err) {
       console.error("[CandidateRequests] Failed to fetch unread counts:", err);
       setUnreadSent(0);
@@ -114,7 +109,6 @@ const CandidateRequests = () => {
   useFocusEffect(
     useCallback(() => {
       if (!currentBusinessId) {
-        console.log("[CandidateRequests] No business selected, skipping load");
         return;
       }
 
@@ -180,20 +174,6 @@ const CandidateRequests = () => {
 
     // Handle address - prefer from user object in the application response
     const userAddress = user?.address;
-
-    console.log("[CandidateRequests] Mapping profile:", {
-      userId: user?.id,
-      userName: user?.name,
-      hasAddress: !!userAddress,
-      addressType: typeof userAddress,
-      address: userAddress,
-      isOpenToWork: jobProfile?.isOpenToWork,
-      recruitmentSalary: {
-        min: recruitment?.salaryMin,
-        max: recruitment?.salaryMax,
-        type: recruitment?.salaryType,
-      },
-    });
 
     return {
       id: jobProfile?.id || item?.id,

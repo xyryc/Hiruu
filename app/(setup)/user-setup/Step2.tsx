@@ -59,11 +59,6 @@ export default function Step2({
       }
       profileData.onboarding = 2;
 
-      console.log("Sending Step2 data:", {
-        bio: profileData.bio,
-        hasImage: !!profileData.avatar,
-      });
-
       // Call same API as Step1
       await updateProfile(profileData);
 

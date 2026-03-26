@@ -100,7 +100,6 @@ export default function Step5({
 
     try {
       setIsVerifyingOtp(true);
-      console.log("send otp", parsed)
       await addContact(parsed);
       setOtpSent(true);
       toast.success("OTP sent successfully!");
@@ -125,7 +124,6 @@ export default function Step5({
         toast.error("Please enter a valid phone number.");
         return;
       }
-      console.log("verify code", parsed.phoneNumber, parsed.countryCode, otpCode)
 
       await verifyAccount({
         phoneNumber: parsed.phoneNumber,

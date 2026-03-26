@@ -20,7 +20,6 @@ export const useIncomingCallListener = (enabled: boolean) => {
 
   useEffect(() => {
     if (!enabled) return;
-    console.log("[CALL_DEBUG][INCOMING] listener:enabled", { userId: user?.id });
 
     let incomingHandler: ((payload: any) => void) | null = null;
     let participantsHandler: ((payload: any) => void) | null = null;
@@ -33,7 +32,6 @@ export const useIncomingCallListener = (enabled: boolean) => {
         callType === "video"
           ? "/screens/inbox/video-call"
           : "/screens/inbox/audio-call";
-      console.log("[CALL_DEBUG][INCOMING] navigate:call-screen", { callId, roomId, callType });
       lastHandledCallIdRef.current = callId;
       router.push({
         pathname: callPath,
@@ -70,21 +68,12 @@ export const useIncomingCallListener = (enabled: boolean) => {
         const shouldOpen =
           myRole === "receiver" && OPENABLE_PARTICIPANT_STATUSES.has(myStatus);
 
-        console.log("[CALL_DEBUG][INCOMING] resolve", {
-          callId,
-          callStatus,
-          myRole,
-          myStatus,
-          shouldOpen,
-          roomId,
-        });
-
         if (shouldOpen) {
           const callType = String(call?.type || "").toLowerCase() === "video" ? "video" : "audio";
           openIncomingCall(callId, roomId || call?.chatRoomId || "", callType);
         }
       } catch (error) {
-        console.log("[CALL_DEBUG][INCOMING] resolve:error", { callId, error });
+        console.error("[IncomingCallListener] resolve error:", { callId, error });
       } finally {
         if (resolvingCallIdRef.current === callId) {
           resolvingCallIdRef.current = null;
@@ -94,12 +83,9 @@ export const useIncomingCallListener = (enabled: boolean) => {
 
     const setup = async () => {
       try {
-        console.log("[CALL_DEBUG][INCOMING] socket:connect:start");
         await socketService.connectCalls();
-        console.log("[CALL_DEBUG][INCOMING] socket:connect:ok");
 
         incomingHandler = (payload: any) => {
-          console.log("[CALL_DEBUG][INCOMING] event:incoming_call", payload);
           const call = payload?.call || payload?.data || payload;
           const callId = call?.callId || call?.id;
           const roomId = call?.chatRoomId || call?.roomId || "";
@@ -107,7 +93,6 @@ export const useIncomingCallListener = (enabled: boolean) => {
         };
 
         participantsHandler = (payload: any) => {
-          console.log("[CALL_DEBUG][INCOMING] event:call_participants", payload);
           const callId = payload?.callId;
           if (!callId) return;
           void resolveAndOpenIfReceiver(callId);
@@ -116,14 +101,13 @@ export const useIncomingCallListener = (enabled: boolean) => {
         socketService.onIncomingCall(incomingHandler);
         socketService.onCallParticipants(participantsHandler);
       } catch (error) {
-        console.log("[CALL_DEBUG][INCOMING] socket:connect:error", error);
+        console.error("[IncomingCallListener] socket connect error:", error);
       }
     };
 
     setup();
 
     return () => {
-      console.log("[CALL_DEBUG][INCOMING] listener:cleanup");
       if (incomingHandler) socketService.offIncomingCall(incomingHandler);
       if (participantsHandler) socketService.offCallParticipants(participantsHandler);
     };

@@ -29,13 +29,11 @@ const OTPInput = ({ otp, setOtp }: any) => {
   const handleVerify = () => {
     if (isOtpComplete) {
       const otpCode = otp.join("");
-      console.log("OTP:", otpCode);
     }
   };
 
   const handleResendOtp = () => {
     // Add resend OTP logic here
-    console.log("Resending OTP...");
   };
 
   return (

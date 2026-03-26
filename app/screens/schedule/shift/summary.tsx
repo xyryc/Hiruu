@@ -15,7 +15,6 @@ const ShiftSummary = () => {
 
   const handleFileUpload = () => {
     // Handle file upload logic here
-    console.log("Upload file");
   };
 
   return (

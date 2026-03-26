@@ -143,17 +143,12 @@ const JobProfileEdit = () => {
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (!isValidWeeklyAvailability(weeklyAvailability)) {
-          console.log(
-            "job profile weekly availability autosave skipped:",
-            weeklyAvailability
-          );
           return;
         }
 
         await updateMyJobProfile({ weeklyAvailability });
-        console.log("job profile weekly availability autosaved:", weeklyAvailability);
       } catch (error) {
-        console.log("job profile weekly availability autosave error:", error);
+        console.error("job profile weekly availability autosave error:", error);
       }
     }, 700);
 

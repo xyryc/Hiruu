@@ -226,7 +226,6 @@ const CreateTemplate = () => {
 
     try {
       setIsSubmitting(true);
-      console.log("createShiftTemplate payload:", payload);
       const result = await createShiftTemplate(selectedBusiness, payload);
       toast.success(
         translateApiMessage(

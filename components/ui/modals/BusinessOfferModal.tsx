@@ -49,14 +49,6 @@ const normalizeRoleLabel = (item: any) =>
   item?.title ||
   "";
 
-const prettyLog = (label: string, value: unknown) => {
-  try {
-    console.log(label, JSON.stringify(value, null, 2));
-  } catch {
-    console.log(label, value);
-  }
-};
-
 const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProps) => {
   const getJobProfileByUserId = useJobStore((state) => state.getJobProfileByUserId);
   const inviteCandidateToRecruitment = useJobStore(
@@ -114,7 +106,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         setIsLoadingProfile(true);
         const result = await getJobProfileByUserId(userId);
         if (!active) return;
-        prettyLog("[BusinessOfferModal] profile data:", result);
         setProfile(result);
       } catch {
         if (!active) return;
@@ -146,7 +137,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         setIsLoadingBusinesses(true);
         const businesses = await getMyBusinesses();
         if (!active) return;
-        prettyLog("[BusinessOfferModal] businesses data:", businesses);
 
         const normalized = (Array.isArray(businesses) ? businesses : [])
           .map((item: any) => ({
@@ -164,8 +154,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
           ) ||
           normalized[0]?.value ||
           "";
-
-        console.log("[BusinessOfferModal] selected business id:", preferredBusinessId);
 
         setSelectedBusiness((prev) =>
           prev && normalized.some((item) => item.value === prev)
@@ -205,7 +193,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         const roles = await getBusinessRolesDetailed(selectedBusiness);
 
         if (!active) return;
-        prettyLog("[BusinessOfferModal] detailed roles data:", roles);
 
         let normalizedRoles = (Array.isArray(roles) ? roles : [])
           .map((item: any) => ({
@@ -217,7 +204,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         if (!normalizedRoles.length) {
           const fallbackRoles = await getMyBusinessRoles(selectedBusiness);
           if (!active) return;
-          prettyLog("[BusinessOfferModal] fallback roles data:", fallbackRoles);
 
           normalizedRoles = (Array.isArray(fallbackRoles) ? fallbackRoles : [])
             .map((item: any) => ({
@@ -226,11 +212,6 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
             }))
             .filter((item: DropdownOption) => item.label && item.value);
         }
-
-        console.log(
-          "[BusinessOfferModal] available role ids:",
-          normalizedRoles.map((item) => item.value)
-        );
 
         setRoleOptions(normalizedRoles);
 

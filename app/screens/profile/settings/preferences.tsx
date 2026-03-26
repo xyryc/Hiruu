@@ -128,7 +128,7 @@ const Preferences = () => {
           //   data?.weeklyAvailability ?? null
           // );
         } catch (error) {
-          console.log("weekly schedule integration error:", error);
+          console.error("weekly schedule integration error:", error);
         }
       };
 
@@ -146,19 +146,14 @@ const Preferences = () => {
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (!isValidWeeklyAvailability(pendingAvailability)) {
-          console.log(
-            "weekly schedule autosave skipped: invalid time range",
-            pendingAvailability
-          );
           return;
         }
 
         await updateMyJobProfile({
           weeklyAvailability: pendingAvailability,
         });
-        console.log("weekly schedule autosaved:", pendingAvailability);
       } catch (error) {
-        console.log("weekly schedule autosave error:", error);
+        console.error("weekly schedule autosave error:", error);
       }
     }, 700);
 

@@ -411,7 +411,7 @@ const BusinessSetup = () => {
       toast.success(messageText);
       router.replace("/(tabs)/home");
     } catch (error: any) {
-      console.log("create business error", error)
+      console.error("create business error", error)
       toast.error(error.message || t("common.error"));
     }
   };

@@ -32,7 +32,6 @@ const ShiftRequestModal = ({ visible, onClose }: any) => {
   };
 
   const handleSave = () => {
-    console.log({ selectedReason, reasonNote });
     onClose();
   };
 

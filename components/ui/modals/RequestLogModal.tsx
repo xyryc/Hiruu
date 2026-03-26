@@ -8,7 +8,6 @@ const RequestLogModal = ({ visible, onClose }: any) => {
   const [selectedOption, setSelectedOption] = useState("automatic");
 
   const handleSave = () => {
-    console.log("Selected option:", selectedOption);
     onClose();
   };
 

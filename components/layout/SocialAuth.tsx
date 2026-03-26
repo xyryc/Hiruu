@@ -27,16 +27,15 @@ const SocialAuth = () => {
       const idToken = result.data?.idToken;
 
       if (!idToken) {
-        console.log("No idToken returned");
+        console.error("No idToken returned");
         return;
       }
 
       const credential = GoogleAuthProvider.credential(idToken);
       const userCredential = await signInWithCredential(auth, credential);
 
-      console.log("FIREBASE_USER:", userCredential.user);
     } catch (e) {
-      console.log("GOOGLE_SIGNIN_ERROR:", e);
+      console.error("GOOGLE_SIGNIN_ERROR:", e);
     }
   };
 

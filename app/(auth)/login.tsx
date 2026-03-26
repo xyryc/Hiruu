@@ -95,7 +95,6 @@ const Login = () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
     const timeZone = getCalendars()[0].timeZone || 'UTC';
-    console.log(timeZone)
 
     if (selectedTab === "Email") {
       if (!email || !password) {

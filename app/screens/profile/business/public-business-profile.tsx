@@ -77,15 +77,6 @@ const PublicBusinessProfile = () => {
     loadRatingSummary();
   }, [loadBusiness, loadRatingSummary]);
 
-  useEffect(() => {
-    if (businessData) {
-      console.log(
-        "[PublicBusinessProfile] business data:",
-        JSON.stringify(businessData, null, 2)
-      );
-    }
-  }, [businessData]);
-
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );

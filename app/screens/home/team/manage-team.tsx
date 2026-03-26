@@ -169,7 +169,6 @@ const ManageTeamPanel = () => {
       title: "Create Role",
       icon: "create-outline",
       onPress: () => {
-        console.log("Navigate to Create Role");
         // router.push("/create-role");
       },
     },

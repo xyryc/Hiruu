@@ -20,7 +20,6 @@ const JoinInvitation = () => {
   const handleJoinBusiness = () => {
     // Handle joining the business
     // You can navigate to the next screen or make an API call
-    console.log("Joining business:", { businessName, code, employeeName });
 
     // Example: Navigate to registration or confirmation screen
     // router.push('/registration');

@@ -22,9 +22,8 @@ const Terms = () => {
       const loadTermsAndConditions = async () => {
         try {
           const data = await getTermsAndConditions();
-          console.log("terms-and-conditions data:", data);
         } catch (error) {
-          console.log("terms-and-conditions error:", error);
+          console.error("terms-and-conditions error:", error);
         }
       };
 

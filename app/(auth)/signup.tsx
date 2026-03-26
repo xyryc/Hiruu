@@ -80,7 +80,6 @@ const SignUp = () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
     const timeZone = getCalendars()[0]?.timeZone || "UTC";
-    console.log("fcm register", fcmToken)
 
     if (selectedTab === "email") {
       // Validate email and password

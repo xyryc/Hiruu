@@ -93,11 +93,6 @@ const BusinessJobCard = ({
   const handleViewProfile = () => {
     const userId = profile?.userId || profile?.user?.id;
 
-    console.log("[BusinessJobCard] view profile clicked:", {
-      profileId: profile?.id,
-      userId,
-    });
-
     if (!userId) {
       toast.error("User information is unavailable");
       return;
@@ -113,8 +108,6 @@ const BusinessJobCard = ({
   };
 
   const handleOpenOfferModal = () => {
-    const userId = profile?.userId || profile?.user?.id;
-    console.log("[BusinessJobCard] bottom sheet opened for userId:", userId);
     setShowModal(true);
   };
 

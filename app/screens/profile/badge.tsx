@@ -91,7 +91,7 @@ const Badge = () => {
   };
 
   const handleClickOpenModal = (e: string) => {
-    console.log(e);
+    console.error(e);
     setVisible(true);
     if (e === "Silver") {
       setData(silver);

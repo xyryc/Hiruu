@@ -135,10 +135,9 @@ const AppBootstrap = () => {
     const setupFcm = async () => {
       if (!user) return;
       try {
-        const token = await registerForFcmToken();
-        console.log("FCM_TOKEN =>", token);
+        await registerForFcmToken();
       } catch (e) {
-        console.log("FCM setup error:", e);
+        console.error("FCM setup error:", e);
       }
     };
 
@@ -153,7 +152,6 @@ const AppBootstrap = () => {
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
       console.log("FCM foreground =>", remoteMessage);
-
       // Show a visible banner while app is foregrounded.
       await Notifications.scheduleNotificationAsync({
         content: {
