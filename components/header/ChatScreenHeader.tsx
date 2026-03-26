@@ -26,7 +26,7 @@ const ChatScreenHeader = ({
 
   return (
     <View className="bg-white px-4 pt-2.5 pb-5 flex-row items-center justify-between border-b border-[#EEEEEE]">
-      <View className="flex-row items-center flex-1">
+      <View className="flex-row items-center flex-1 min-w-0 mr-2">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back-outline" size={24} color="black" />
         </TouchableOpacity>
@@ -39,7 +39,7 @@ const ChatScreenHeader = ({
           }
           className="w-10 h-10 rounded-full"
         />
-        <View className="ml-3">
+        <View className="ml-3 flex-1 min-w-0">
           <Text className="text-lg font-proximanova-semibold text-primary" numberOfLines={1}>
             {title || "Chat"}
           </Text>
@@ -51,7 +51,7 @@ const ChatScreenHeader = ({
         </View>
       </View>
 
-      <View className="flex-row items-center gap-4">
+      <View className="flex-row items-center gap-4 shrink-0">
         <TouchableOpacity
           className="w-10 h-10 items-center justify-center rounded-full bg-[#F5F5F5] border-[0.5px] border-[#B2B1B165]"
           onPress={onAudioCallPress}

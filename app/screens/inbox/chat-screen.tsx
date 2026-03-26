@@ -9,6 +9,7 @@ import { callService } from "@/services/callService";
 import type { ChatUploadMedia } from "@/services/chatService";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -667,10 +668,13 @@ const ChatScreen = () => {
       console.error("[ChatScreen] initiate-call error:", error);
       const apiMessage =
         error?.response?.data?.message || error?.message || `Failed to start ${callType} call`;
+      const localizedApiMessage =
+        typeof apiMessage === "string" ? translateApiMessage(apiMessage) : apiMessage;
 
       if (
         typeof apiMessage === "string" &&
-        apiMessage.toLowerCase().includes("already an ongoing call")
+        (apiMessage.toLowerCase().includes("already an ongoing call") ||
+          apiMessage === "calls_there_is_already_an_ongoing_call_in_this_room")
       ) {
         try {
           const activeResponse = await callService.getActiveCall(actualRoomId);
@@ -721,7 +725,7 @@ const ChatScreen = () => {
         }
       }
 
-      toast.error(apiMessage);
+      toast.error(localizedApiMessage);
     } finally {
       setStarting(false);
     }
