@@ -257,7 +257,17 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
                 />
               </View>
 
-              <View className="flex-row items-center gap-2">
+              <TouchableOpacity
+                onPress={() => {
+                  if (!shift?.businessId) return;
+                  router.push({
+                    pathname: "/screens/profile/business/public-business-profile",
+                    params: { businessId: shift.businessId },
+                  });
+                }}
+                disabled={!shift?.businessId}
+                className="flex-row items-center gap-2"
+              >
                 <Image
                   source={
                     shift.companyLogo
@@ -297,7 +307,7 @@ const ShiftItem = ({ shift, index, shiftsLength }) => {
                     </View>
                   ) : null}
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           ) : shift.type === "leave" ? (
             <LeaveCard shift={shift} />

@@ -27,7 +27,7 @@ export default function RatingBar({ label, value, max }: TRatingBar) {
           {label}
         </Text>
         <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-          {value.toFixed(1)}/{max}
+          {Math.round(value)}/{max}
         </Text>
       </View>
 

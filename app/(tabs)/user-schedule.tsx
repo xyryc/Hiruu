@@ -249,8 +249,36 @@ const ShiftSchedule = () => {
     );
   }, [selectedEmploymentBusinessIds, uiShifts]);
 
+  useEffect(() => {
+    console.log(
+      "[UserSchedule] screen data:",
+      JSON.stringify(
+        {
+          selectedDate,
+          selectedEmploymentBusinessIds,
+          myEmployments,
+          myShifts,
+          uiShifts,
+          filteredShifts,
+        },
+        null,
+        2
+      )
+    );
+  }, [
+    filteredShifts,
+    myEmployments,
+    myShifts,
+    selectedDate,
+    selectedEmploymentBusinessIds,
+    uiShifts,
+  ]);
+
   const modalBusinesses = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; logo?: string }>();
+    const map = new Map<
+      string,
+      { id: string; name: string; imageUrl: string; logo?: string }
+    >();
     (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment) => {
       const business = employment?.business;
       if (!business?.id) return;
@@ -258,6 +286,7 @@ const ShiftSchedule = () => {
       map.set(business.id, {
         id: business.id,
         name: business.name || "Business",
+        imageUrl: business.logo || "",
         logo: business.logo,
       });
     });

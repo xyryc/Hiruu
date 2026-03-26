@@ -4,6 +4,7 @@ import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingCard from "@/components/ui/cards/RatingCard";
 import RatingBar from "@/components/ui/inputs/RatingBar";
 import RatingStarModal from "@/components/ui/modals/RatingStarModal";
+import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -58,7 +59,12 @@ const Rating = () => {
   );
   const targetUserId = typeof params.userId === "string" ? params.userId : "";
   const businessId = typeof params.businessId === "string" ? params.businessId : "";
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isBusinessRatingView = Boolean(businessId) && !targetUserId;
+  const isOwnBusinessRatingView =
+    isBusinessRatingView &&
+    Boolean(selectedBusinesses?.[0]) &&
+    selectedBusinesses[0] === businessId;
   const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
   const shouldOpenAddRating = params.openAddRating === "true";
 
@@ -136,7 +142,7 @@ const Rating = () => {
     return Number((total / ratingItems.length).toFixed(1));
   }, [ratingItems]);
 
-  const canSubmitRating = canRate || isBusinessRatingView;
+  const canSubmitRating = canRate || (isBusinessRatingView && !isOwnBusinessRatingView);
 
   useEffect(() => {
     if (shouldOpenAddRating && canSubmitRating) {
@@ -152,13 +158,14 @@ const Rating = () => {
           businessId,
           targetUserId,
           isBusinessRatingView,
+          isOwnBusinessRatingView,
           canRate,
         },
         null,
         2
       )
     );
-  }, [businessId, canRate, isBusinessRatingView, targetUserId]);
+  }, [businessId, canRate, isBusinessRatingView, isOwnBusinessRatingView, targetUserId]);
 
   useEffect(() => {
     if (ratingsResponse) {
@@ -265,26 +272,29 @@ const Rating = () => {
               <ActivityIndicator color={isDark ? "#fff" : "#111"} />
             </View>
           ) : ratingItems.length ? (
-              ratingItems.map((item: any) => (
+            ratingItems.map((item: any) => (
                 <RatingCard
                   key={item.id}
                   className="mt-8"
                   image={
                     isBusinessRatingView
-                      ? item?.raterUser?.avatar || item?.business?.logo || null
-                      : item?.business?.logo || item?.raterUser?.avatar || null
-                  }
-                  name={
-                    isBusinessRatingView
-                      ? item?.raterUser?.name || item?.business?.name || "Unknown"
-                    : item?.business?.name || item?.raterUser?.name || "Unknown"
+                    ? item?.raterUser?.avatar || item?.business?.logo || null
+                    : item?.business?.logo || item?.raterUser?.avatar || null
                 }
-                time={formatRelativeTime(item?.createdAt)}
-                rating={Math.max(
-                  0,
-                  Math.min(5, Math.round(Number(item?.overallRating ?? item?.rating ?? 0)))
-                )}
-              />
+                name={
+                  isBusinessRatingView
+                    ? item?.raterUser?.name || item?.business?.name || "Unknown"
+                    : item?.business?.name || item?.raterUser?.name || "Unknown"
+                  }
+                  time={formatRelativeTime(item?.createdAt)}
+                  rating={Math.max(
+                    0,
+                    Math.min(
+                      5,
+                      Number(Number(item?.overallRating ?? item?.rating ?? 0).toFixed(1))
+                    )
+                  )}
+                />
             ))
           ) : (
             <Text className="mt-8 text-center text-sm text-secondary dark:text-dark-secondary">
