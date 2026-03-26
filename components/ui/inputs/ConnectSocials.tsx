@@ -16,6 +16,8 @@ const SOCIAL_ITEMS = [
 type SocialKey = (typeof SOCIAL_ITEMS)[number]["id"];
 type SocialLinks = Partial<Record<SocialKey, string>>;
 
+const PHONE_ONLY_SOCIALS = new Set<SocialKey>(["whatsapp"]);
+
 const SOCIAL_BASE_URL: Record<SocialKey, string> = {
   facebook: "https://facebook.com/",
   linkedin: "https://linkedin.com/in/",
@@ -78,6 +80,7 @@ const ConnectSocials = ({
   canEdit?: boolean;
 }) => {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
+  const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
   const visibleItems = hideEmpty
     ? SOCIAL_ITEMS.filter((item) => Boolean(value?.[item.id]))
     : SOCIAL_ITEMS;
@@ -86,15 +89,38 @@ const ConnectSocials = ({
     const key = id as SocialKey;
     const currentValue = value?.[key] || "";
     setEditingValues((prev) => ({ ...prev, [id]: currentValue }));
+    setInputErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   const confirmLink = (id: string) => {
     const key = id as SocialKey;
-    const normalized = normalizeSocialLink(key, editingValues[id] || "");
+    const rawValue = editingValues[id] || "";
+
+    if (PHONE_ONLY_SOCIALS.has(key)) {
+      const digits = rawValue.replace(/[^\d]/g, "");
+      if (!digits || digits.length < 7) {
+        setInputErrors((prev) => ({
+          ...prev,
+          [id]: "Enter a valid phone number",
+        }));
+        return;
+      }
+    }
+
+    const normalized = normalizeSocialLink(key, rawValue);
     if (!normalized) return;
 
     onChange?.({ ...(value || {}), [key]: normalized });
     setEditingValues((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setInputErrors((prev) => {
       const next = { ...prev };
       delete next[id];
       return next;
@@ -109,10 +135,26 @@ const ConnectSocials = ({
       delete next[id];
       return next;
     });
+    setInputErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   const updateDraft = (id: string, value: string) => {
-    setEditingValues((prev) => ({ ...prev, [id]: value }));
+    const key = id as SocialKey;
+    const nextValue = PHONE_ONLY_SOCIALS.has(key)
+      ? value.replace(/[^\d]/g, "")
+      : value;
+
+    setEditingValues((prev) => ({ ...prev, [id]: nextValue }));
+    setInputErrors((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   return (
@@ -131,51 +173,67 @@ const ConnectSocials = ({
         const inputValue = editingValues[item.id] || "";
 
         return (
-          <View
-            key={item.id}
-            className={`flex-row justify-between items-center p-3 ${
-              index !== visibleItems.length - 1 ? "border-b border-[#EEEEEE]" : ""
-            }`}
-          >
-            <TouchableOpacity className="flex-row items-center gap-1.5">
-              <Image
-                style={{ height: 36, width: 36 }}
-                source={item.icon}
-                contentFit="contain"
-              />
-              <Text className="text-sm font-proximanova-semibold">{item.label}</Text>
-            </TouchableOpacity>
-
-            {isEditing && canEdit ? (
-              <View className="flex-row items-center gap-2 max-w-[56%]">
-                <TextInput
-                  value={inputValue}
-                  onChangeText={(value) => updateDraft(item.id, value)}
-                  placeholder={`Enter ${item.label}`}
-                  className="bg-white border border-[#D8D8D8] rounded-full px-3 py-2 text-xs min-w-[120px]"
+          <React.Fragment key={item.id}>
+            <View
+              className={`flex-row justify-between items-center p-3 ${
+                index !== visibleItems.length - 1 ? "border-b border-[#EEEEEE]" : ""
+              }`}
+            >
+              <TouchableOpacity className="flex-row items-center gap-1.5">
+                <Image
+                  style={{ height: 36, width: 36 }}
+                  source={item.icon}
+                  contentFit="contain"
                 />
-                <TouchableOpacity
-                  onPress={() => confirmLink(item.id)}
-                  className="w-8 h-8 rounded-full bg-[#11293A] items-center justify-center"
-                >
-                  <Ionicons name="checkmark" size={16} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            ) : linkedValue ? (
-              <View className="flex-row items-center gap-2 max-w-[56%]">
-                <Text className="text-sm font-proximanova-semibold text-primary" numberOfLines={1}>
-                  {toDisplayValue(item.id, linkedValue)}
-                </Text>
-                {canEdit ? (
-                  <TouchableOpacity onPress={() => removeLink(item.id)}>
-                    <Ionicons name="close" size={24} color="#111827" />
+                <Text className="text-sm font-proximanova-semibold">{item.label}</Text>
+              </TouchableOpacity>
+
+              {isEditing && canEdit ? (
+                <View className="flex-row items-center gap-2 max-w-[56%]">
+                  <TextInput
+                    value={inputValue}
+                    onChangeText={(value) => updateDraft(item.id, value)}
+                    placeholder={
+                      PHONE_ONLY_SOCIALS.has(item.id)
+                        ? "Enter phone number"
+                        : `Enter ${item.label}`
+                    }
+                    className="bg-white border border-[#D8D8D8] rounded-full px-3 py-2 text-xs min-w-[120px]"
+                    keyboardType={
+                      PHONE_ONLY_SOCIALS.has(item.id) ? "phone-pad" : "default"
+                    }
+                  />
+                  <TouchableOpacity
+                    onPress={() => confirmLink(item.id)}
+                    className="w-8 h-8 rounded-full bg-[#11293A] items-center justify-center"
+                  >
+                    <Ionicons name="checkmark" size={16} color="#fff" />
                   </TouchableOpacity>
-                ) : null}
+                </View>
+              ) : linkedValue ? (
+                <View className="flex-row items-center gap-2 max-w-[56%]">
+                  <Text className="text-sm font-proximanova-semibold text-primary" numberOfLines={1}>
+                    {toDisplayValue(item.id, linkedValue)}
+                  </Text>
+                  {canEdit ? (
+                    <TouchableOpacity onPress={() => removeLink(item.id)}>
+                      <Ionicons name="close" size={24} color="#111827" />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : hideEmpty || !canEdit ? null : (
+                <SmallButton title="Link" onPress={() => startLink(item.id)} />
+              )}
+            </View>
+
+            {isEditing && inputErrors[item.id] ? (
+              <View className="px-3 pb-2">
+                <Text className="text-xs text-[#F34F4F] font-proximanova-regular text-right">
+                  {inputErrors[item.id]}
+                </Text>
               </View>
-            ) : hideEmpty || !canEdit ? null : (
-              <SmallButton title="Link" onPress={() => startLink(item.id)} />
-            )}
-          </View>
+            ) : null}
+          </React.Fragment>
         );
       })}
     </View>
