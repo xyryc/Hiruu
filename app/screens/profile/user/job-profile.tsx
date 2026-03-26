@@ -1,10 +1,11 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
+import { useBusinessStore } from "@/stores/businessStore";
 import { JobProfileData, useJobStore } from "@/stores/jobStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -121,18 +122,61 @@ const ValueCard = ({ value }: { value: string }) => (
   </View>
 );
 
+type RoleItem = {
+  id: string;
+  name: string;
+};
+
 const JobProfile = () => {
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
   const jobProfile = useJobStore((state) => state.jobProfile);
+  const getRoles = useBusinessStore((state) => state.getRoles);
+  const [roleOptions, setRoleOptions] = useState<RoleItem[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRoles = async () => {
+      try {
+        const data = await getRoles();
+        if (!isMounted) return;
+
+        const normalized = (Array.isArray(data) ? data : [])
+          .filter(
+            (item: any) =>
+              typeof item?.id === "string" && typeof item?.name === "string"
+          )
+          .map((item: any) => ({
+            id: item.id,
+            name: item.name,
+          }));
+
+        setRoleOptions(normalized);
+      } catch (error: any) {
+        if (isMounted) {
+          toast.error(error?.message || "Failed to load roles");
+        }
+      }
+    };
+
+    loadRoles();
+    return () => {
+      isMounted = false;
+    };
+  }, [getRoles]);
 
   useFocusEffect(
     useCallback(() => {
       const loadProfile = async () => {
         try {
-          await getMyJobProfile();
+          const data = await getMyJobProfile();
+          console.log(
+            "[JobProfile] profile response:",
+            JSON.stringify(data, null, 2)
+          );
         } catch (error: any) {
           toast.error(error?.message || "Failed to load job profile");
         }
@@ -144,6 +188,15 @@ const JobProfile = () => {
   );
 
   const availabilityRows = buildAvailabilityRows(jobProfile);
+  const preferredRoles = useMemo(() => {
+    const preferredRoleIds = Array.isArray(jobProfile?.preferredRoleIds)
+      ? jobProfile.preferredRoleIds
+      : [];
+
+    return preferredRoleIds
+      .map((roleId) => roleOptions.find((role) => role.id === roleId)?.name)
+      .filter((name): name is string => typeof name === "string" && name.trim().length > 0);
+  }, [jobProfile?.preferredRoleIds, roleOptions]);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right", "bottom"]}>
@@ -186,6 +239,31 @@ const JobProfile = () => {
         // }
         />
         <ValueCard value={getJobType(jobProfile)} />
+
+        <SectionTitle
+          title="Preferred Roles"
+          icon={<MaterialCommunityIcons name="shape-outline" size={16} color="black" />}
+        />
+        <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
+          {preferredRoles.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              {preferredRoles.map((roleName) => (
+                <View
+                  key={roleName}
+                  className="rounded-full bg-[#E5F4FD] px-3 py-2"
+                >
+                  <Text className="font-proximanova-semibold text-sm text-[#11293A]">
+                    {roleName}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              Not added yet
+            </Text>
+          )}
+        </View>
 
         <SectionTitle
           title="Expected Salary"

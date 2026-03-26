@@ -2,7 +2,11 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
+import MultiRoleSelector, {
+  MultiRoleSelectorItem,
+} from "@/components/ui/inputs/MultiRoleSelector";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
+import { useBusinessStore } from "@/stores/businessStore";
 import {
   JobProfileData,
   useJobStore,
@@ -40,6 +44,9 @@ const buildFormState = (profile: JobProfileData | null) => ({
     typeof profile?.expectedSalaryMax === "string"
       ? `${profile.expectedSalaryMax}`
       : "",
+  preferredRoleIds: Array.isArray(profile?.preferredRoleIds)
+    ? profile.preferredRoleIds.filter((item): item is string => typeof item === "string")
+    : [],
   weeklyAvailability: profile?.weeklyAvailability || [],
 });
 
@@ -85,14 +92,18 @@ const JobProfileEdit = () => {
   const updateMyJobProfile = useJobStore((state) => state.updateMyJobProfile);
   const jobProfile = useJobStore((state) => state.jobProfile);
   const isLoadingJobProfile = useJobStore((state) => state.isLoadingJobProfile);
+  const getRoles = useBusinessStore((state) => state.getRoles);
 
   const [jobType, setJobType] = useState("");
   const [isOpenToWork, setIsOpenToWork] = useState(false);
   const [expectedSalaryMin, setExpectedSalaryMin] = useState("");
   const [expectedSalaryMax, setExpectedSalaryMax] = useState("");
+  const [preferredRoleIds, setPreferredRoleIds] = useState<string[]>([]);
   const [weeklyAvailability, setWeeklyAvailability] = useState<WeeklyAvailabilityItem[]>([]);
   const [availabilityTouched, setAvailabilityTouched] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+  const [roleOptions, setRoleOptions] = useState<MultiRoleSelectorItem[]>([]);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jobTypeOptions = useMemo(
     () => [
@@ -108,9 +119,47 @@ const JobProfileEdit = () => {
     setJobType(nextState.jobType);
     setExpectedSalaryMin(nextState.expectedSalaryMin);
     setExpectedSalaryMax(nextState.expectedSalaryMax);
+    setPreferredRoleIds(nextState.preferredRoleIds);
     setWeeklyAvailability(nextState.weeklyAvailability);
     setAvailabilityTouched(false);
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRoles = async () => {
+      try {
+        setIsLoadingRoles(true);
+        const data = await getRoles();
+        if (!isMounted) return;
+
+        const normalized = (Array.isArray(data) ? data : [])
+          .filter(
+            (item: any) =>
+              typeof item?.id === "string" && typeof item?.name === "string"
+          )
+          .map((item: any) => ({
+            id: item.id,
+            name: item.name,
+          }));
+
+        setRoleOptions(normalized);
+      } catch (error: any) {
+        if (isMounted) {
+          toast.error(error?.message || "Failed to load roles");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingRoles(false);
+        }
+      }
+    };
+
+    loadRoles();
+    return () => {
+      isMounted = false;
+    };
+  }, [getRoles]);
 
   useFocusEffect(
     useCallback(() => {
@@ -166,6 +215,7 @@ const JobProfileEdit = () => {
       await updateMyJobProfile({
         isOpenToWork,
         preferredSalaryType: jobType.trim() || null,
+        preferredRoleIds,
         expectedSalaryMin: expectedSalaryMin.trim()
           ? Number(expectedSalaryMin)
           : null,
@@ -205,7 +255,7 @@ const JobProfileEdit = () => {
             Job Preferences
           </Text>
           <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
-            Update your job type, expected salary range, and working days.
+            Update your job type, preferred roles, expected salary range, and working days.
           </Text>
         </View>
 
@@ -233,6 +283,25 @@ const JobProfileEdit = () => {
             value={jobType}
             listMaxHeight={220}
             onSelect={(value: string) => setJobType(value)}
+          />
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="shape-outline" size={16} color="black" />}
+          title="Preferred Roles"
+        />
+        <View className="mx-5 mt-4">
+          <MultiRoleSelector
+            roles={roleOptions}
+            loading={isLoadingRoles}
+            selectedRoleIds={preferredRoleIds}
+            placeholder="Select preferred roles"
+            helperText="You can select up to 4 preferred roles."
+            maxSelection={4}
+            onChange={setPreferredRoleIds}
+            onLimitReached={() =>
+              toast.error("You can select up to 4 preferred roles")
+            }
           />
         </View>
 

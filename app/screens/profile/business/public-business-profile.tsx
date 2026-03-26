@@ -12,6 +12,7 @@ import {
   MaterialCommunityIcons,
   SimpleLineIcons,
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -72,11 +73,18 @@ const PublicBusinessProfile = () => {
     }
   }, [businessId, getBusinessRatingSummary]);
 
-  useEffect(() => {
+useEffect(() => {
     loadBusiness();
     loadRatingSummary();
   }, [loadBusiness, loadRatingSummary]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadBusiness();
+      loadRatingSummary();
+      return () => { };
+    }, [loadBusiness, loadRatingSummary])
+  );
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );

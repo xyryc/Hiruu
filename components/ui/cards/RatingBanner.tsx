@@ -9,6 +9,7 @@ type RatingBannerProps = {
 };
 
 const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
+
   const safeAverageRating = Number.isFinite(averageRating) ? averageRating : 0;
   const formattedRating = Number.isFinite(averageRating)
     ? Number(averageRating.toFixed(1)).toString()
