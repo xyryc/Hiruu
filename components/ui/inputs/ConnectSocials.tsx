@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import SmallButton from "../buttons/SmallButton";
 
 const SOCIAL_ITEMS = [
@@ -64,6 +64,18 @@ const toDisplayValue = (key: SocialKey, value?: string) => {
 
   const cleaned = sanitizeHandle(value);
   return cleaned ? `@${cleaned}` : value;
+};
+
+const resolveOpenUrl = (key: SocialKey, rawValue?: string) => {
+  if (!rawValue) return "";
+  const value = rawValue.trim();
+  if (!value) return "";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return normalizeSocialLink(key, value);
 };
 
 const ConnectSocials = ({
@@ -157,6 +169,19 @@ const ConnectSocials = ({
     });
   };
 
+  const handleOpenLink = async (key: SocialKey, rawValue?: string) => {
+    const url = resolveOpenUrl(key, rawValue);
+    if (!url) return;
+
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) return;
+      await Linking.openURL(url);
+    } catch {
+      // Ignore open-link failure silently to keep UI stable.
+    }
+  };
+
   return (
     <View className={`${className} border border-[#EEEEEE] rounded-xl`}>
       {visibleItems.length === 0 && hideEmpty ? (
@@ -212,9 +237,14 @@ const ConnectSocials = ({
                 </View>
               ) : linkedValue ? (
                 <View className="flex-row items-center gap-2 max-w-[56%]">
-                  <Text className="text-sm font-proximanova-semibold text-primary" numberOfLines={1}>
-                    {toDisplayValue(item.id, linkedValue)}
-                  </Text>
+                  <TouchableOpacity onPress={() => handleOpenLink(item.id, linkedValue)}>
+                    <Text
+                      className="text-sm font-proximanova-semibold text-[#2563EB] underline"
+                      numberOfLines={1}
+                    >
+                      {toDisplayValue(item.id, linkedValue)}
+                    </Text>
+                  </TouchableOpacity>
                   {canEdit ? (
                     <TouchableOpacity onPress={() => removeLink(item.id)}>
                       <Ionicons name="close" size={24} color="#111827" />
