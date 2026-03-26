@@ -48,10 +48,16 @@ const NotificationCard = ({
         <View className="flex-1">
           {/* Header Row */}
           <View className="flex-row justify-between items-center">
-            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              className="flex-1 mr-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary"
+            >
               {title}
             </Text>
-            <Text className="font-proximanova-regular text-xs text-secondary dark:text-dark-sectext-secondary">
+            <Text
+              className="shrink-0 font-proximanova-regular text-xs text-secondary dark:text-dark-sectext-secondary"
+            >
               {time}
             </Text>
           </View>

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useServerStatusStore } from "@/stores/serverStatusStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import {
   setPendingChatNavigation,
 } from "@/utils/notificationNavigation";
@@ -152,11 +153,16 @@ const AppBootstrap = () => {
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
       console.log("FCM foreground =>", remoteMessage);
+      const rawTitle = remoteMessage.notification?.title || "Notification";
+      const rawBody = remoteMessage.notification?.body || "You have a new message";
+      const title = translateApiMessage(rawTitle);
+      const body = translateApiMessage(rawBody);
+
       // Show a visible banner while app is foregrounded.
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: remoteMessage.notification?.title || "Notification",
-          body: remoteMessage.notification?.body || "You have a new message",
+          title,
+          body,
           sound: "default",
           data: remoteMessage.data,
         },

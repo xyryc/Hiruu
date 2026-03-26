@@ -7,6 +7,7 @@ import {
 } from "@/stores/notificationStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -68,7 +69,13 @@ const resolveNotificationVisual = (type: string) => {
 
   if (normalized.includes("chat")) {
     return {
-      icon: <Feather name="message-circle" size={20} color="#3EBF5A" />,
+      icon: (
+        <Image
+          source={require("@/assets/images/messages.svg")}
+          style={{ width: 20, height: 20 }}
+          contentFit="contain"
+        />
+      ),
       iconBackgroundColor: "#3EBF5A26",
     };
   }
@@ -107,6 +114,41 @@ const resolveNotificationVisual = (type: string) => {
   };
 };
 
+const resolveNotificationTitle = (item: NotificationItem) => {
+  const metadata = item.metadata || {};
+
+  if (item.type === "chat_message") {
+    const senderName = String((metadata as any)?.senderName || "").trim();
+    const roomName = String((metadata as any)?.roomName || "").trim();
+
+    if (senderName) {
+      return roomName ? `Message from ${senderName} (${roomName})` : `Message from ${senderName}`;
+    }
+  }
+
+  const raw = String(item.title || "").trim();
+  if (!raw) return "Notification";
+
+  const translated = translateApiMessage(raw);
+  return translated || raw;
+};
+
+const resolveNotificationBody = (item: NotificationItem) => {
+  const metadata = item.metadata || {};
+  const raw = String(item.message || "").trim();
+  const translated = raw ? translateApiMessage(raw) : "";
+
+  // Show actual preview for chat notifications when available.
+  if (item.type === "chat_message") {
+    const preview = String((metadata as any)?.messagePreview || "").trim();
+    if (preview) return preview;
+  }
+
+  if (translated) return translated;
+  if (raw) return raw;
+  return "You have a new notification.";
+};
+
 const NotificationScreen = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -125,7 +167,7 @@ const NotificationScreen = () => {
       try {
         await fetchNotifications({
           page,
-          limit: 5,
+          limit: 10,
           sort: "createdAt:desc",
           append,
         });
@@ -212,8 +254,8 @@ const NotificationScreen = () => {
             <NotificationCard
               className={index === 0 ? "mt-8" : ""}
               timeTitle={timeTitle}
-              title={translateApiMessage(item.title || item.type)}
-              details={translateApiMessage(item.message || item.type)}
+              title={resolveNotificationTitle(item)}
+              details={resolveNotificationBody(item)}
               time={formatRelativeTime(item.createdAt)}
               border
               icon={visual.icon}
