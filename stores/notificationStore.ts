@@ -60,6 +60,10 @@ type NotificationStoreState = {
     append?: boolean;
   }) => Promise<NotificationItem[]>;
   markNotificationAsRead: (notificationId: string) => Promise<NotificationItem>;
+  markAllNotificationsAsRead: () => Promise<{
+    message: string;
+    updatedCount: number;
+  }>;
   setUnreadCount: (count: number) => void;
   clearUnreadCountError: () => void;
   clearNotificationsError: () => void;
@@ -229,6 +233,44 @@ export const useNotificationStore = create<NotificationStoreState>((set) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to mark notification as read";
+      throw new Error(message);
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    try {
+      const response = await axiosInstance.patch("/notifications/read-all");
+      const result = response?.data;
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to mark all notifications as read");
+      }
+      const message = String(result?.message || "all_notifications_marked_as_read_successfully");
+      const updatedCount = Number(result?.data?.updatedCount || 0);
+
+      const nowIso = new Date().toISOString();
+      set((state) => ({
+        unreadCount: 0,
+        notifications: state.notifications.map((item) =>
+          item.isRead
+            ? item
+            : {
+                ...item,
+                isRead: true,
+                readAt: item.readAt || nowIso,
+                updatedAt: nowIso,
+              }
+        ),
+      }));
+
+      return {
+        message,
+        updatedCount: Number.isFinite(updatedCount) ? updatedCount : 0,
+      };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to mark all notifications as read";
       throw new Error(message);
     }
   },

@@ -205,6 +205,9 @@ const NotificationScreen = () => {
 
   const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
   const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+  const markAllNotificationsAsRead = useNotificationStore(
+    (state) => state.markAllNotificationsAsRead
+  );
   const markNotificationAsRead = useNotificationStore(
     (state) => state.markNotificationAsRead
   );
@@ -359,6 +362,21 @@ const NotificationScreen = () => {
     [markNotificationAsRead]
   );
 
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      const result = await markAllNotificationsAsRead();
+      toast.success(
+        translateApiMessage(
+          result?.message || "all_notifications_marked_as_read_successfully"
+        )
+      );
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to mark all notifications as read")
+      );
+    }
+  }, [markAllNotificationsAsRead]);
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
@@ -397,7 +415,6 @@ const NotificationScreen = () => {
           const visual = resolveNotificationVisual(item.type);
           return (
             <NotificationCard
-              className={index === 0 ? "mt-8" : ""}
               timeTitle={timeTitle}
               title={resolveNotificationTitle(item)}
               details={resolveNotificationBody(item)}
@@ -435,6 +452,7 @@ const NotificationScreen = () => {
       <NotificationModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+        onMarkAllAsRead={handleMarkAllAsRead}
       />
     </SafeAreaView>
   );
