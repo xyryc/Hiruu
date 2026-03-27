@@ -36,6 +36,9 @@ const UserRewards = () => {
   const recentAchievement = useAchievementStore(
     (state) => state.board?.recentAchievement || null
   );
+  const standardChallenges = useAchievementStore(
+    (state) => state.board?.standardChallenges || []
+  );
   const timezone = usePreferencesStore((state) => state.timezone);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -104,6 +107,35 @@ const UserRewards = () => {
     recentAchievementTarget,
   ]);
 
+  const recentAchievementProgressPercent = useMemo(() => {
+    const target = recentAchievementTarget;
+    const calculatedPercent =
+      target > 0 ? (recentAchievementProgress / target) * 100 : 0;
+    const apiPercent = Number(recentAchievement?.userProgress?.progressPercent ?? NaN);
+    const value = Number.isFinite(apiPercent)
+      ? apiPercent
+      : Number.isFinite(calculatedPercent)
+        ? calculatedPercent
+        : 0;
+
+    return Math.max(0, Math.min(100, value));
+  }, [
+    recentAchievement?.userProgress?.progressPercent,
+    recentAchievementProgress,
+    recentAchievementTarget,
+  ]);
+
+  const recentAchievementProgressColor = useMemo(() => {
+    if (recentAchievementProgressPercent < 10) return "#F9B8A6";
+    if (recentAchievementProgressPercent < 20) return "#F7A58E";
+    if (recentAchievementProgressPercent < 35) return "#EFDDA0";
+    if (recentAchievementProgressPercent < 50) return "#E9D68A";
+    if (recentAchievementProgressPercent < 65) return "#CFE09A";
+    if (recentAchievementProgressPercent < 80) return "#BFD98C";
+    if (recentAchievementProgressPercent < 90) return "#ACD88F";
+    return "#9EDF91";
+  }, [recentAchievementProgressPercent]);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNowMs(Date.now());
@@ -145,35 +177,26 @@ const UserRewards = () => {
     timezone,
   ]);
 
-  const cardData = [
-    {
-      coin: "05",
-      text1: "Complate",
-      text2: "Profile",
-      imageSource: require("@/assets/images/reward/complate-profile.svg"),
-      border: "#3EBF5A",
-      back: "#ECF9EF",
-      route: "/(setup)/user-setup/progress",
-    },
-    {
-      coin: 20,
-      text1: "Refer A",
-      text2: "Friend",
-      imageSource: require("@/assets/images/reward/refer-friend.svg"),
-      border: "#F3934F",
-      back: "#FEEFE5",
-      route: "screens/profile/settings/refer",
-    },
-    {
-      coin: 30,
-      text1: "Refer A",
-      text2: "Business",
-      imageSource: require("@/assets/images/reward/refer-business.svg"),
-      border: "#788CFF",
-      back: "#788CFF10",
-      route: "screens/profile/settings/refer",
-    },
-  ];
+  const fallbackChallengeImage = require("@/assets/images/reward/giftbox.svg");
+  const challengeCardStyleCycle = [
+    { border: "#3EBF5A", back: "#ECF9EF" },
+    { border: "#F3934F", back: "#FEEFE5" },
+    { border: "#788CFF", back: "#788CFF10" },
+  ] as const;
+
+  const toTwoLineTitle = useCallback((title?: string | null) => {
+    const words = String(title || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (!words.length) return { line1: "Challenge", line2: "" };
+    if (words.length === 1) return { line1: words[0], line2: "" };
+    return {
+      line1: words.slice(0, Math.ceil(words.length / 2)).join(" "),
+      line2: words.slice(Math.ceil(words.length / 2)).join(" "),
+    };
+  }, []);
 
   return (
     <SafeAreaView
@@ -249,7 +272,7 @@ const UserRewards = () => {
               <View className="flex-row gap-2 mt-3">
                 <View>
                   <Image
-                    source={require("@/assets/images/reward/reward-complite-spark.svg")}
+                    source={require("@/assets/images/reward/reward-complete-spark.svg")}
                     contentFit="contain"
                     style={{ width: 44, height: 44 }}
                   />
@@ -266,11 +289,21 @@ const UserRewards = () => {
                     </Text>
                   </View>
 
-                  <Image
-                    source={require("@/assets/images/reward/reward-complite-slider.svg")}
-                    contentFit="fill"
-                    style={{ height: 24, width: "100%" }}
-                  />
+                  <View className="h-6 w-full justify-center">
+                    <View
+                      className="w-full bg-white/35 overflow-hidden"
+                      style={{ height: 16, borderRadius: 10 }}
+                    >
+                      <View
+                        className="h-full"
+                        style={{
+                          width: `${recentAchievementProgressPercent}%`,
+                          backgroundColor: recentAchievementProgressColor,
+                          borderRadius: 10,
+                        }}
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
@@ -323,34 +356,42 @@ const UserRewards = () => {
               className="mt-4"
               showsHorizontalScrollIndicator={false}
             >
-              {cardData.map((card, index) => (
+              {standardChallenges.map((challenge, index) => {
+                const cardStyle =
+                  challengeCardStyleCycle[index % challengeCardStyleCycle.length];
+                const titleLines = toTwoLineTitle(challenge?.title);
+                const rewardTokens = Number(challenge?.rewardTokens || 0);
+                const challengeImageSource =
+                  typeof challenge?.icon === "string" && challenge.icon.trim()
+                    ? { uri: challenge.icon.trim() }
+                    : fallbackChallengeImage;
+                return (
                 <TouchableOpacity
-                  key={index}
+                  key={challenge?.id || String(index)}
                   style={{
                     width: screenWidth * 0.3,
                   }}
                   className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
-                  //@ts-ignore
-                  onPress={() => router.push(card.route)}
+                  onPress={() => router.push("/screens/rewards/challenges")}
                 >
                   <View
                     className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl"
                     style={{
-                      backgroundColor: card.back,
-                      borderColor: card.border,
+                      backgroundColor: cardStyle.back,
+                      borderColor: cardStyle.border,
                     }}
                   >
                     <Image
-                      source={card.imageSource}
+                      source={challengeImageSource}
                       contentFit="contain"
                       style={{ height: 57, width: 59 }}
                     />
                   </View>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-2.5 text-center ">
-                    {card.text1}
+                    {titleLines.line1}
                   </Text>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center ">
-                    {card.text2}
+                    {titleLines.line2}
                   </Text>
 
                   <View className="flex-row justify-between items-center"></View>
@@ -367,7 +408,7 @@ const UserRewards = () => {
                     <View className="px-2.5 py-0.5 bg-[#DDF1FF]  -ml-2.5 -z-10 rounded-r-[40px]">
                       {/*bg-[#DDF1FF]*/}
                       <Text className="text-xs font-proximanova-semibold">
-                        {card.coin}
+                        {rewardTokens}
                       </Text>
                     </View>
                     <FontAwesome6
@@ -378,7 +419,8 @@ const UserRewards = () => {
                     />
                   </View>
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </ScrollView>
 
             {/* redeem rewards */}

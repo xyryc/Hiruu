@@ -52,6 +52,7 @@ export type AchievementBoardItem = {
 
 export type AchievementBoardData = {
   recentAchievement?: AchievementBoardItem | null;
+  standardChallenges?: AchievementBoardItem[];
 };
 
 interface AchievementState {
