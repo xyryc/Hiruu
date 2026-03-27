@@ -175,12 +175,32 @@ const ListofShifts = () => {
                 <ActivityIndicator size="large" />
               </View>
             ) : (
-              <View className="py-10 items-center">
-                <Text className="text-sm text-secondary dark:text-dark-secondary">
-                  {businessId
-                    ? "No shifts found for selected business."
-                    : "Select a business first."}
-                </Text>
+              <View className="py-10 items-center px-4">
+                {businessId ? (
+                  <>
+                    <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary text-center">
+                      You don&apos;t have any shift template yet
+                    </Text>
+                    <Text className="mt-2 text-sm text-secondary dark:text-dark-secondary text-center">
+                      Create your first one here.
+                    </Text>
+                    <TouchableOpacity
+                      className="mt-5 bg-[#11293A] rounded-full px-5 py-2.5"
+                      activeOpacity={0.85}
+                      onPress={() =>
+                        router.push("/screens/schedule/business/create-template")
+                      }
+                    >
+                      <Text className="font-proximanova-semibold text-sm text-white">
+                        Create Shift Template
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <Text className="text-sm text-secondary dark:text-dark-secondary">
+                    Select a business first.
+                  </Text>
+                )}
               </View>
             )
           }
