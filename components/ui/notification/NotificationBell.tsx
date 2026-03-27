@@ -22,7 +22,7 @@ const NotificationBell = ({ className = "", iconSize = 20 }: NotificationBellPro
 
   return (
     <TouchableOpacity
-      onPress={() => router.push("/screens/notifications/list")}
+      onPress={() => router.push("/screens/notifications")}
       className={className}
     >
       <Image

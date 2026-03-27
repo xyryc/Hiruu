@@ -6,8 +6,7 @@ import {
   useNotificationStore,
 } from "@/stores/notificationStore";
 import { translateApiMessage } from "@/utils/apiMessages";
-import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import { Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -69,13 +68,7 @@ const resolveNotificationVisual = (type: string) => {
 
   if (normalized.includes("chat")) {
     return {
-      icon: (
-        <Image
-          source={require("@/assets/images/messages.svg")}
-          style={{ width: 20, height: 20 }}
-          contentFit="contain"
-        />
-      ),
+      icon: <Ionicons name="chatbubble-ellipses-outline" size={20} color="#3EBF5A" />,
       iconBackgroundColor: "#3EBF5A26",
     };
   }
@@ -109,7 +102,7 @@ const resolveNotificationVisual = (type: string) => {
   }
 
   return {
-    icon: <Ionicons name="notifications-outline" size={20} color="#4FB2F3" />,
+    icon: <Ionicons name="notifications-outline" size={20} color="#3EBF5A" />,
     iconBackgroundColor: "#E5F4FD",
   };
 };
@@ -124,6 +117,21 @@ const resolveNotificationTitle = (item: NotificationItem) => {
     if (senderName) {
       return roomName ? `Message from ${senderName} (${roomName})` : `Message from ${senderName}`;
     }
+  }
+
+  if (item.type === "call_incoming") {
+    const callTypeRaw = String((metadata as any)?.callType || "").trim().toLowerCase();
+    const callType = callTypeRaw === "video" ? "Video" : "Audio";
+    return `Incoming ${callType} Call`;
+  }
+
+  if (item.type === "business_announcement") {
+    return "Employee Joined Business";
+  }
+
+  if (item.type === "clock_in_reminder") {
+    const rawTitle = String(item.title || "").trim();
+    return rawTitle || "Shift reminder";
   }
 
   const raw = String(item.title || "").trim();
@@ -142,6 +150,29 @@ const resolveNotificationBody = (item: NotificationItem) => {
   if (item.type === "chat_message") {
     const preview = String((metadata as any)?.messagePreview || "").trim();
     if (preview) return preview;
+  }
+
+  if (item.type === "call_incoming") {
+    const callerName = String((metadata as any)?.callerName || "").trim();
+    if (callerName) return `${callerName} is calling you`;
+    return "You have an incoming call.";
+  }
+
+  if (item.type === "business_announcement") {
+    const employeeName = String((metadata as any)?.joinedEmployeeName || "").trim();
+    if (employeeName) return `${employeeName} joined your business.`;
+    return "A new employee joined your business.";
+  }
+
+  if (item.type === "clock_in_reminder") {
+    const rawMessage = String(item.message || "").trim();
+    if (rawMessage) return rawMessage;
+
+    const smartAlertMinutes = Number((metadata as any)?.smartAlertMinutes);
+    if (Number.isFinite(smartAlertMinutes) && smartAlertMinutes > 0) {
+      return `Your shift starts in ${smartAlertMinutes} minutes.`;
+    }
+    return "Your shift starts soon.";
   }
 
   if (translated) return translated;
@@ -182,7 +213,7 @@ const NotificationScreen = () => {
     useCallback(() => {
       fetchUnreadCount().catch(() => undefined);
       void loadNotifications(1, false);
-      return () => {};
+      return () => { };
     }, [fetchUnreadCount, loadNotifications])
   );
 
