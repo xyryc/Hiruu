@@ -533,6 +533,13 @@ const BusinessProfile = () => {
                 key={job?.id}
                 className="bg-white border border-[#EEEEEE] mb-4"
                 hideApplyButton
+                showOwnerMenu
+                onPressOwnerEdit={() =>
+                  router.push({
+                    pathname: "/screens/jobs/business/edit-job",
+                    params: { businessId, recruitmentId: job?.id },
+                  })
+                }
                 job={job}
               />
             ))}

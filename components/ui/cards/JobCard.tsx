@@ -1,9 +1,10 @@
 import { JobCardProps } from "@/types";
 import {
+  Entypo,
   FontAwesome,
   MaterialCommunityIcons,
   MaterialIcons,
-  SimpleLineIcons,
+  SimpleLineIcons
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -11,6 +12,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Text, TouchableOpacity, View } from "react-native";
 import SmallButton from "../buttons/SmallButton";
 import JobApplyModal from "../modals/JobApplyModal";
+import OwnerJobActionsModal from "../modals/OwnerJobActionsModal";
 
 const getAddressLabel = (value: unknown): string => {
   if (typeof value === "string") return value;
@@ -92,10 +94,13 @@ const JobCard = ({
   className,
   compact = false,
   hideApplyButton = false,
+  showOwnerMenu = false,
+  onPressOwnerEdit,
   job,
 }: JobCardProps) => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  const [showOwnerMenuModal, setShowOwnerMenuModal] = useState(false);
 
   const salarySuffix = useMemo(
     () => (job?.salaryType === "monthly" ? "/mo" : "/hr"),
@@ -144,50 +149,62 @@ const JobCard = ({
       className={`${className} p-4 rounded-xl`}
       style={{ backgroundColor: isFeatured ? "#E5F4FD" : "#FFFFFF" }}
     >
-      <TouchableOpacity
-        onPress={() => {
-          const businessId = job?.businessId || job?.business?.id;
-          const recruitmentId = job?.id;
+      <View className="flex-row items-start justify-between gap-3">
+        <TouchableOpacity
+          onPress={() => {
+            const businessId = job?.businessId || job?.business?.id;
+            const recruitmentId = job?.id;
 
-          if (businessId && recruitmentId) {
-            router.push({
-              pathname: "/screens/jobs/user/profile",
-              params: { businessId, recruitmentId },
-            });
-            return;
-          }
+            if (businessId && recruitmentId) {
+              router.push({
+                pathname: "/screens/jobs/user/profile",
+                params: { businessId, recruitmentId },
+              });
+              return;
+            }
 
-          router.push("/screens/jobs/user/profile");
-        }}
-        className="flex-row gap-2.5"
-      >
-        <Image
-          source={
-            job?.business?.logo ||
-            require("@/assets/images/placeholder.png")
-          }
-          style={{ width: 40, height: 40, borderRadius: 999 }}
-          contentFit="cover"
-        />
+            router.push("/screens/jobs/user/profile");
+          }}
+          className="flex-1 flex-row gap-2.5"
+        >
+          <Image
+            source={
+              job?.business?.logo ||
+              require("@/assets/images/placeholder.png")
+            }
+            style={{ width: 40, height: 40, borderRadius: 999 }}
+            contentFit="cover"
+          />
 
-        <View>
-          <Text
-            numberOfLines={1}
-            className="font-proximanova-semibold text-primary dark:text-dark-primary mb-1"
+          <View className="flex-1">
+            <Text
+              numberOfLines={1}
+              className="font-proximanova-semibold text-primary dark:text-dark-primary mb-1"
+            >
+              {roleName}{" "}
+              {isFeatured ? (
+                <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+              ) : null}
+            </Text>
+            <Text
+              numberOfLines={1}
+              className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary"
+            >
+              {job?.business?.name || "-"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {showOwnerMenu ? (
+          <TouchableOpacity
+            onPress={() => setShowOwnerMenuModal(true)}
+            className="rounded-full p-2"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            {roleName}{" "}
-            {isFeatured ? (
-              <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-            ) : null}
-          </Text>
-          <Text
-            numberOfLines={1}
-            className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary"
-          >
-            {job?.business?.name || "-"}
-          </Text>
-        </View>
-      </TouchableOpacity>
+            <Entypo name="dots-three-vertical" size={16} color="black" />
+          </TouchableOpacity>
+        ) : null}
+      </View>
 
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center gap-1.5 pr-2">
@@ -319,6 +336,15 @@ const JobCard = ({
           job={job}
         />
       ) : null}
+
+      <OwnerJobActionsModal
+        visible={showOwnerMenu && showOwnerMenuModal}
+        onClose={() => setShowOwnerMenuModal(false)}
+        onEdit={() => {
+          setShowOwnerMenuModal(false);
+          onPressOwnerEdit?.();
+        }}
+      />
     </View>
   );
 };

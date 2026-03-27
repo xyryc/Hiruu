@@ -25,6 +25,8 @@ type CreateRecruitmentPayload = {
   isFeatured?: boolean;
 };
 
+type UpdateRecruitmentPayload = CreateRecruitmentPayload;
+
 type FeaturedRecruitmentQuery = {
   page?: number;
   limit?: number;
@@ -211,6 +213,11 @@ interface JobState {
   createRecruitment: (
     businessId: string,
     payload: CreateRecruitmentPayload
+  ) => Promise<any>;
+  updateRecruitment: (
+    businessId: string,
+    id: string,
+    payload: UpdateRecruitmentPayload
   ) => Promise<any>;
   getUnreadCount: (query?: GetUnreadCountQuery) => Promise<UnreadCountResponse>;
   markApplicationsAsRead: (
@@ -532,6 +539,43 @@ export const useJobStore = create<JobState>((set) => ({
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
         "Failed to create recruitment";
+      const finalError = new Error(message);
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  updateRecruitment: async (businessId, id, payload) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.patch(
+        `/recruitment/${businessId}/${id}`,
+        payload
+      );
+      const result = response.data;
+
+      if (!result?.success) {
+        const messageKey = result?.message || "UNKNOWN_ERROR";
+        const validation = Array.isArray(result?.data)
+          ? result.data.join("\n")
+          : null;
+        const message = validation || translateApiMessage(messageKey);
+        throw new Error(message);
+      }
+
+      set({ isLoading: false });
+      return result.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const apiValidation = Array.isArray(axiosError.response?.data?.data)
+        ? axiosError.response?.data?.data?.join("\n")
+        : null;
+      const message =
+        apiValidation ||
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to update recruitment";
       const finalError = new Error(message);
       set({ isLoading: false, error: finalError });
       throw finalError;
