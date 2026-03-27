@@ -55,7 +55,6 @@ const EditTemplate = () => {
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
-  const [requiredStaffCount, setRequiredStaffCount] = useState<string>("15");
   const [currentRoleSlotsTotal, setCurrentRoleSlotsTotal] = useState<number>(0);
   const [initialRoleRequirements, setInitialRoleRequirements] = useState<
     { roleId: string; roleName: string; count: number }[]
@@ -65,6 +64,7 @@ const EditTemplate = () => {
   >([]);
   const [shiftStartTime, setShiftStartTime] = useState<Date>(new Date());
   const [shiftEndTime, setShiftEndTime] = useState<Date>(new Date());
+  const [hasBreak, setHasBreak] = useState(false);
   const [breakStartTime, setBreakStartTime] = useState<Date>(new Date());
   const [breakEndTime, setBreakEndTime] = useState<Date>(new Date());
   const [roleSelectionVersion, setRoleSelectionVersion] = useState(0);
@@ -110,7 +110,6 @@ const EditTemplate = () => {
           setSelectedBusiness(data?.businessId || templateBusinessId);
           setInitialRoleRequirements(roles);
           setRoleRequirements(roles);
-          setRequiredStaffCount(String(totalRequired || 0));
           setCurrentRoleSlotsTotal(totalRequired);
 
           const parseTimeToDate = (value?: string) => {
@@ -133,6 +132,8 @@ const EditTemplate = () => {
           const firstBreak = Array.isArray(data?.breakDuration)
             ? data.breakDuration[0]
             : null;
+          const hasBreakValue = Boolean(firstBreak?.startTime && firstBreak?.endTime);
+          setHasBreak(hasBreakValue);
           setBreakStartTime(parseTimeToDate(firstBreak?.startTime));
           setBreakEndTime(parseTimeToDate(firstBreak?.endTime));
 
@@ -188,8 +189,6 @@ const EditTemplate = () => {
     () => roleOptions.find((item) => item.value === selectedRole) || null,
     [roleOptions, selectedRole]
   );
-  const selectedRequiredCount = Number(requiredStaffCount) || 0;
-  const isRequiredCountMatched = currentRoleSlotsTotal === selectedRequiredCount;
 
   const handleTotalRequiredChange = useCallback((total: number) => {
     setCurrentRoleSlotsTotal((prev) => (prev === total ? prev : total));
@@ -216,6 +215,41 @@ const EditTemplate = () => {
     return `${hour12}:${`${minute}`.padStart(2, "0")} ${period}`;
   };
 
+  const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
+
+  const shiftTimeValidationError = useMemo(() => {
+    const shiftStartMinutes = toMinutes(shiftStartTime);
+    const shiftEndMinutes = toMinutes(shiftEndTime);
+
+    if (shiftEndMinutes <= shiftStartMinutes) {
+      return "Shift end time must be after shift start time.";
+    }
+
+    return null;
+  }, [shiftEndTime, shiftStartTime]);
+
+  const breakTimeValidationError = useMemo(() => {
+    if (!hasBreak) return null;
+
+    const shiftStartMinutes = toMinutes(shiftStartTime);
+    const shiftEndMinutes = toMinutes(shiftEndTime);
+    const breakStartMinutes = toMinutes(breakStartTime);
+    const breakEndMinutes = toMinutes(breakEndTime);
+
+    if (breakEndMinutes <= breakStartMinutes) {
+      return "Break end time must be after break start time.";
+    }
+
+    if (
+      breakStartMinutes < shiftStartMinutes ||
+      breakEndMinutes > shiftEndMinutes
+    ) {
+      return "Break time must be within the shift time range.";
+    }
+
+    return null;
+  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime]);
+
   const selectedBusinessInfo = useMemo(
     () => (myBusinesses || []).find((business: any) => business?.id === selectedBusiness),
     [myBusinesses, selectedBusiness]
@@ -225,8 +259,10 @@ const EditTemplate = () => {
     () => ({
       templateName: templateName.trim() || "Template",
       shiftTimeRange: `${formatTime12(shiftStartTime)} - ${formatTime12(shiftEndTime)}`,
-      breakTimeRange: `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`,
-      totalStaff: selectedRequiredCount,
+      breakTimeRange: hasBreak
+        ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
+        : "No break",
+      totalStaff: currentRoleSlotsTotal,
       roles: roleRequirements.map((item) => ({
         roleName: item.roleName || "Role",
         count: item.count || 0,
@@ -240,10 +276,11 @@ const EditTemplate = () => {
       roleRequirements,
       selectedBusinessInfo?.logo,
       selectedBusinessInfo?.name,
-      selectedRequiredCount,
+      currentRoleSlotsTotal,
       shiftEndTime,
       shiftStartTime,
       templateName,
+      hasBreak,
     ]
   );
 
@@ -263,8 +300,13 @@ const EditTemplate = () => {
       return null;
     }
 
-    if (!isRequiredCountMatched) {
-      toast.error("Total roles must equal required staff.");
+    if (shiftTimeValidationError) {
+      toast.error(shiftTimeValidationError);
+      return null;
+    }
+
+    if (breakTimeValidationError) {
+      toast.error(breakTimeValidationError);
       return null;
     }
 
@@ -274,12 +316,16 @@ const EditTemplate = () => {
       startTime: formatTime24(shiftStartTime),
       timezone,
       endTime: formatTime24(shiftEndTime),
-      breakDuration: [
-        {
-          startTime: formatTime24(breakStartTime),
-          endTime: formatTime24(breakEndTime),
-        },
-      ],
+      ...(hasBreak
+        ? {
+          breakDuration: [
+            {
+              startTime: formatTime24(breakStartTime),
+              endTime: formatTime24(breakEndTime),
+            },
+          ],
+        }
+        : {}),
       roleRequirements: roleRequirements.map((item) => ({
         roleId: item.roleId,
         count: item.count,
@@ -396,25 +442,49 @@ const EditTemplate = () => {
               </View>
 
               <View className="mt-8">
-                <View className="flex-row gap-4 items-center">
-                  <View className="flex-1">
-                    <TimePicker
-                      title="Add Break"
-                      value={breakStartTime}
-                      onChangeTime={setBreakStartTime}
-                    />
-                  </View>
-                  <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    To
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setHasBreak((prev) => !prev)}
+                  className="flex-row items-center gap-2 mb-3"
+                >
+                  <Feather
+                    name={hasBreak ? "check-square" : "square"}
+                    size={18}
+                    color={hasBreak ? "#4FB2F3" : "#A0A0A0"}
+                  />
+                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                    Add break (optional)
                   </Text>
-                  <View className="flex-1">
+                </TouchableOpacity>
+
+                <View
+                  pointerEvents={hasBreak ? "auto" : "none"}
+                  style={{ opacity: hasBreak ? 1 : 0.45 }}
+                >
+                  <View className="flex-row gap-4 items-center">
+                    <View className="flex-1">
+                      <TimePicker
+                        value={breakStartTime}
+                        onChangeTime={setBreakStartTime}
+                      />
+                    </View>
+
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                      To
+                    </Text>
+
                     <TimePicker
-                      title="  "
                       value={breakEndTime}
                       onChangeTime={setBreakEndTime}
                     />
                   </View>
                 </View>
+
+                {hasBreak && breakTimeValidationError ? (
+                  <Text className="mt-2 text-xs font-proximanova-regular text-[#F34F4F]">
+                    {breakTimeValidationError}
+                  </Text>
+                ) : null}
               </View>
 
               <View>
@@ -442,19 +512,14 @@ const EditTemplate = () => {
 
               <View className="mt-8 flex-row justify-between items-center">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Roles & Required Count
+                  Roles
                 </Text>
-
-                <TextInput
-                  value={requiredStaffCount}
-                  onChangeText={(value) =>
-                    setRequiredStaffCount(value.replace(/[^0-9]/g, ""))
-                  }
-                  keyboardType="number-pad"
-                  className="w-16 px-3 py-2 text-center text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-                  placeholder="0"
-                  placeholderTextColor="#7D7D7D"
-                />
+                <View className="flex-row items-center gap-1.5">
+                  <Feather name="users" size={14} color="#4FB2F3" />
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
+                    Required count: {currentRoleSlotsTotal}
+                  </Text>
+                </View>
               </View>
 
               <View className="mt-4">
@@ -499,23 +564,6 @@ const EditTemplate = () => {
                 }}
               />
 
-              <View className="flex-row items-center gap-2.5 -mt-4">
-                <Feather
-                  name={isRequiredCountMatched ? "check-circle" : "alert-triangle"}
-                  size={16}
-                  color={isRequiredCountMatched ? "#22C55E" : "#F34F4F"}
-                />
-                <Text
-                  numberOfLines={1}
-                  className={`ml-1.5 text-sm font-proximanova-regular ${isRequiredCountMatched ? "text-[#22C55E]" : "text-[#F34F4F]"
-                    }`}
-                >
-                  {isRequiredCountMatched
-                    ? "Role count matches required staff"
-                    : `Total roles (${currentRoleSlotsTotal}) must equal required staff (${selectedRequiredCount})`}
-                </Text>
-              </View>
-
               <View className="mt-8 mb-5 flex-row gap-2">
                 <TouchableOpacity
                   onPress={() => {
@@ -533,7 +581,11 @@ const EditTemplate = () => {
                   className="flex-1"
                   onPress={handleOpenPreview}
                   loading={isSubmitting}
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    Boolean(shiftTimeValidationError) ||
+                    Boolean(breakTimeValidationError)
+                  }
                   title="Save"
                 />
               </View>

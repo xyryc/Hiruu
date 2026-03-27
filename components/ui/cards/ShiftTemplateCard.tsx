@@ -49,23 +49,26 @@ const ShiftTemplateCard = ({
       ? `${timeRange} (${timezoneLabel})`
       : `7:00 AM - 3:00 PM (${timezoneLabel})`;
 
-  const resolvedBreakTimeRange =
-    Array.isArray(breakDurations) && breakDurations.length > 0
-      ? `${breakDurations
-          .map((item: any) => {
-            const start = item?.startTime ? to12Hour(item.startTime) : "";
-            const end = item?.endTime ? to12Hour(item.endTime) : "";
+  const formattedBreakSegments = Array.isArray(breakDurations)
+    ? breakDurations
+        .map((item: any) => {
+          const start = item?.startTime ? to12Hour(item.startTime) : "";
+          const end = item?.endTime ? to12Hour(item.endTime) : "";
 
-            if (!start && !end) return "";
-            if (!start) return end;
-            if (!end) return start;
-            return `${start} - ${end}`;
-          })
-          .filter(Boolean)
-          .join(", ")} (${timezoneLabel})`
-      : breakTimeRange
+          if (!start && !end) return "";
+          if (!start) return end;
+          if (!end) return start;
+          return `${start} - ${end}`;
+        })
+        .filter(Boolean)
+    : [];
+
+  const resolvedBreakTimeRange =
+    formattedBreakSegments.length > 0
+      ? `${formattedBreakSegments.join(", ")} (${timezoneLabel})`
+      : breakTimeRange && String(breakTimeRange).trim().length > 0
         ? `${breakTimeRange} (${timezoneLabel})`
-        : `10:00 AM - 11:00 PM (${timezoneLabel})`;
+        : `No break (${timezoneLabel})`;
 
   return (
     <View className={`${className}`}>

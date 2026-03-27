@@ -216,13 +216,13 @@ const CreateTemplate = () => {
       endTime: formatTime24(shiftEndTime),
       ...(hasBreak
         ? {
-            breakDuration: [
-              {
-                startTime: formatTime24(breakStartTime),
-                endTime: formatTime24(breakEndTime),
-              },
-            ],
-          }
+          breakDuration: [
+            {
+              startTime: formatTime24(breakStartTime),
+              endTime: formatTime24(breakEndTime),
+            },
+          ],
+        }
         : {}),
       roleRequirements: roleRequirements.map((item) => ({
         roleId: item.roleId,
@@ -378,26 +378,23 @@ const CreateTemplate = () => {
               pointerEvents={hasBreak ? "auto" : "none"}
               style={{ opacity: hasBreak ? 1 : 0.45 }}
             >
-            <View className="flex-row gap-4 items-center">
-              <TimePicker
-                title="Add Break"
-                value={breakStartTime}
-                onChangeTime={setBreakStartTime}
-              />
-
-
-              <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                To
-              </Text>
-
-              <View className="flex-1">
+              <View className="flex-row gap-4 items-center">
                 <TimePicker
-                  title="  "
+                  value={breakStartTime}
+                  onChangeTime={setBreakStartTime}
+                />
+
+
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  To
+                </Text>
+
+
+                <TimePicker
                   value={breakEndTime}
                   onChangeTime={setBreakEndTime}
                 />
               </View>
-            </View>
             </View>
 
             {hasBreak && breakTimeValidationError ? (
