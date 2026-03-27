@@ -18,6 +18,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import {
@@ -48,6 +49,7 @@ const CreateTemplate = () => {
   >([]);
   const [shiftStartTime, setShiftStartTime] = useState<Date>(new Date());
   const [shiftEndTime, setShiftEndTime] = useState<Date>(new Date());
+  const [hasBreak, setHasBreak] = useState(false);
   const [breakStartTime, setBreakStartTime] = useState<Date>(new Date());
   const [breakEndTime, setBreakEndTime] = useState<Date>(new Date());
   const [roleSelectionVersion, setRoleSelectionVersion] = useState(0);
@@ -151,15 +153,24 @@ const CreateTemplate = () => {
 
   const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
 
-  const timeValidationError = useMemo(() => {
+  const shiftTimeValidationError = useMemo(() => {
     const shiftStartMinutes = toMinutes(shiftStartTime);
     const shiftEndMinutes = toMinutes(shiftEndTime);
-    const breakStartMinutes = toMinutes(breakStartTime);
-    const breakEndMinutes = toMinutes(breakEndTime);
 
     if (shiftEndMinutes <= shiftStartMinutes) {
       return "Shift end time must be after shift start time.";
     }
+
+    return null;
+  }, [shiftEndTime, shiftStartTime]);
+
+  const breakTimeValidationError = useMemo(() => {
+    if (!hasBreak) return null;
+
+    const shiftStartMinutes = toMinutes(shiftStartTime);
+    const shiftEndMinutes = toMinutes(shiftEndTime);
+    const breakStartMinutes = toMinutes(breakStartTime);
+    const breakEndMinutes = toMinutes(breakEndTime);
 
     if (breakEndMinutes <= breakStartMinutes) {
       return "Break end time must be after break start time.";
@@ -173,7 +184,7 @@ const CreateTemplate = () => {
     }
 
     return null;
-  }, [breakEndTime, breakStartTime, shiftEndTime, shiftStartTime]);
+  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime]);
 
   const getValidatedPayload = () => {
     if (!selectedBusiness) {
@@ -196,8 +207,13 @@ const CreateTemplate = () => {
       return null;
     }
 
-    if (timeValidationError) {
-      toast.error(timeValidationError);
+    if (shiftTimeValidationError) {
+      toast.error(shiftTimeValidationError);
+      return null;
+    }
+
+    if (breakTimeValidationError) {
+      toast.error(breakTimeValidationError);
       return null;
     }
 
@@ -206,12 +222,16 @@ const CreateTemplate = () => {
       startTime: formatTime24(shiftStartTime),
       timezone,
       endTime: formatTime24(shiftEndTime),
-      breakDuration: [
-        {
-          startTime: formatTime24(breakStartTime),
-          endTime: formatTime24(breakEndTime),
-        },
-      ],
+      ...(hasBreak
+        ? {
+            breakDuration: [
+              {
+                startTime: formatTime24(breakStartTime),
+                endTime: formatTime24(breakEndTime),
+              },
+            ],
+          }
+        : {}),
       roleRequirements: roleRequirements.map((item) => ({
         roleId: item.roleId,
         count: item.count,
@@ -239,8 +259,8 @@ const CreateTemplate = () => {
       toast.error(
         translateApiMessage(
           error?.response?.data?.message ||
-            error?.message ||
-            "Failed to create shift template"
+          error?.message ||
+          "Failed to create shift template"
         )
       );
     } finally {
@@ -265,9 +285,9 @@ const CreateTemplate = () => {
       shiftTimeRange: `${formatTime12(shiftStartTime)} - ${formatTime12(
         shiftEndTime
       )}`,
-      breakTimeRange: `${formatTime12(breakStartTime)} - ${formatTime12(
-        breakEndTime
-      )}`,
+      breakTimeRange: hasBreak
+        ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
+        : "No break",
       totalStaff: selectedRequiredCount,
       roles: roleRequirements.map((item) => ({
         roleName: item.roleName || "Role",
@@ -286,6 +306,7 @@ const CreateTemplate = () => {
       shiftEndTime,
       shiftStartTime,
       templateName,
+      hasBreak,
     ]
   );
 
@@ -344,8 +365,27 @@ const CreateTemplate = () => {
             </View>
           </View>
 
-          {/* Time Picker shift  */}
+          {/* Break (optional) */}
           <View className="mt-8">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setHasBreak((prev) => !prev)}
+              className="flex-row items-center gap-2 mb-3"
+            >
+              <Feather
+                name={hasBreak ? "check-square" : "square"}
+                size={18}
+                color={hasBreak ? "#4FB2F3" : "#A0A0A0"}
+              />
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                Add break (optional)
+              </Text>
+            </TouchableOpacity>
+
+            <View
+              pointerEvents={hasBreak ? "auto" : "none"}
+              style={{ opacity: hasBreak ? 1 : 0.45 }}
+            >
             <View className="flex-row gap-4 items-center">
               <TimePicker
                 title="Add Break"
@@ -366,10 +406,11 @@ const CreateTemplate = () => {
                 />
               </View>
             </View>
+            </View>
 
-            {timeValidationError ? (
+            {hasBreak && breakTimeValidationError ? (
               <Text className="mt-2 text-xs font-proximanova-regular text-[#F34F4F]">
-                {timeValidationError}
+                {breakTimeValidationError}
               </Text>
             ) : null}
           </View>
@@ -490,7 +531,11 @@ const CreateTemplate = () => {
             <PrimaryButton
               onPress={handleOpenPreview}
               loading={isSubmitting}
-              disabled={isSubmitting || Boolean(timeValidationError)}
+              disabled={
+                isSubmitting ||
+                Boolean(shiftTimeValidationError) ||
+                Boolean(breakTimeValidationError)
+              }
               title="Save Template"
             />
           </View>
