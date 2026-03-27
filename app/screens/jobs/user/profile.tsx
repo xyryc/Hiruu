@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import SimpleStatusBadge from "@/components/ui/badges/SimpleStatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import JobApplyModal from "@/components/ui/modals/JobApplyModal";
 import { chatService } from "@/services/chatService";
 import { useJobStore } from "@/stores/jobStore";
@@ -124,15 +125,7 @@ const JobProfile = () => {
     ? `${distanceValue.toFixed(2)} Km Away`
     : null;
 
-  const socials = useMemo(() => {
-    const social = job?.business?.social || {};
-    return {
-      facebook: social.facebook || "@alvarez_f",
-      linkedin: social.linkedin || "in/albert-flore-12562f25",
-      whatsapp: social.whatsapp || "+1(125) 256 25612",
-      twitter: social.twitter || "@alber256",
-    };
-  }, [job?.business?.social]);
+  const socials = useMemo(() => job?.business?.social || {}, [job?.business?.social]);
 
   useEffect(() => {
     if (!job) return;
@@ -451,96 +444,12 @@ const JobProfile = () => {
               </Text>
             </View>
 
-            {/* socials */}
-            <View className="mt-4 border-hairline border-[#EEEEEE] rounded-xl">
-              {/* facebook */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/facebook2.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.facebook}
-                </Text>
-              </View>
-
-              {/* linkedin */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/linkedin.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.linkedin}
-                </Text>
-              </View>
-
-              {/* whatsapp */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/whatsapp.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.whatsapp}
-                </Text>
-              </View>
-
-              {/* twitter */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/twitter.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.twitter}
-                </Text>
-              </View>
-            </View>
+            <ConnectSocials
+              className="mt-4"
+              value={socials}
+              hideEmpty
+              canEdit={false}
+            />
           </View>
 
           <PrimaryButton
