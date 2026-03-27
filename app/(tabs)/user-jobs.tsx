@@ -170,7 +170,12 @@ const UserJobs = () => {
               </Text>
 
               <TouchableOpacity
-                onPress={() => router.push("/screens/jobs/user/all-jobs")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/jobs/user/all-jobs",
+                    params: { reset: "1", type: "featured" },
+                  })
+                }
               >
                 <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
                   See All
@@ -216,7 +221,12 @@ const UserJobs = () => {
               </Text>
 
               <TouchableOpacity
-                onPress={() => router.push("/screens/jobs/user/all-jobs")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/jobs/user/all-jobs",
+                    params: { reset: "1", type: "suggested" },
+                  })
+                }
               >
                 <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
                   See All
