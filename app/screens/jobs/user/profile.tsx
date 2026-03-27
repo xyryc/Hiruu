@@ -4,6 +4,8 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import JobApplyModal from "@/components/ui/modals/JobApplyModal";
 import { chatService } from "@/services/chatService";
 import { useJobStore } from "@/stores/jobStore";
+import { usePreferencesStore } from "@/stores/preferencesStore";
+import { utcTimeToLocalDate } from "@/utils/timezone";
 import {
   Feather,
   Fontisto,
@@ -36,11 +38,25 @@ const resolveMediaUrl = (value?: string | null) => {
   return `${base}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
+const formatShiftTime12Hour = (value?: string | null, timezone?: string) => {
+  if (!value || typeof value !== "string") return null;
+
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+
+  return utcTimeToLocalDate(value, timezone).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 const JobProfile = () => {
   const { businessId, recruitmentId } = useLocalSearchParams<{
     businessId?: string;
     recruitmentId?: string;
   }>();
+  const timezone = usePreferencesStore((state) => state.timezone);
   const getRecruitmentById = useJobStore((s) => s.getRecruitmentById);
   const shareRecruitment = useJobStore((s) => s.shareRecruitment);
 
@@ -88,9 +104,11 @@ const JobProfile = () => {
     typeof job?.ageMin === "number" && typeof job?.ageMax === "number"
       ? `${job.ageMin}-${job.ageMax}`
       : "18-25";
+  const formattedShiftStartTime = formatShiftTime12Hour(job?.shiftStartTime, timezone);
+  const formattedShiftEndTime = formatShiftTime12Hour(job?.shiftEndTime, timezone);
   const shiftLabel =
-    job?.shiftStartTime && job?.shiftEndTime
-      ? `${job.shiftStartTime} - ${job.shiftEndTime}`
+    formattedShiftStartTime && formattedShiftEndTime
+      ? `${formattedShiftStartTime} - ${formattedShiftEndTime}`
       : "10:00 AM - 11:00 PM";
   const salaryLabel =
     typeof job?.salaryMin === "number" &&
