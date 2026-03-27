@@ -145,7 +145,8 @@
     "achievement_unlocked_title": "Ξεκλείδωσες επίτευγμα",
     "achievement_unlocked_body": "Ξεκλείδωσες ένα νέο επίτευγμα.",
     "business_announcement_title": "Ενημέρωση επιχείρησης",
-    "business_announcement_body": "Υπάρχει νέα ενημέρωση από την επιχείρησή σου."
+    "business_announcement_body": "Υπάρχει νέα ενημέρωση από την επιχείρησή σου.",
+    "recruitment_has_applications": "Αυτή η θέση δεν μπορεί να διαγραφεί επειδή έχει ήδη αιτήσεις."
   },
   "validation": {
     "fillAllFields": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÏƒÏ…Î¼Ï€Î»Î·ÏÏŽÏƒÏ„Îµ ÏŒÎ»Î± Ï„Î± Ï€ÎµÎ´Î¯Î±",

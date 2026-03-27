@@ -45,6 +45,7 @@ const BusinessProfile = () => {
   const getBusinessRatingSummary = useProfileStore((state) => state.getBusinessRatingSummary);
   const businessRatingSummary = useProfileStore((state) => state.businessRatingSummary);
   const getBusinessRecruitments = useJobStore((state) => state.getBusinessRecruitments);
+  const deleteRecruitment = useJobStore((state) => state.deleteRecruitment);
   const {
     selectedBusinesses,
     getBusinessProfile,
@@ -533,6 +534,22 @@ const BusinessProfile = () => {
                 key={job?.id}
                 className="bg-white border border-[#EEEEEE] mb-4"
                 hideApplyButton
+                showOwnerMenu
+                onPressOwnerEdit={() =>
+                  router.push({
+                    pathname: "/screens/jobs/business/edit-job",
+                    params: { businessId, recruitmentId: job?.id },
+                  })
+                }
+                onPressOwnerDelete={async () => {
+                  if (!businessId || !job?.id) return;
+
+                  await deleteRecruitment(businessId, job.id);
+                  setBusinessJobs((prev) =>
+                    prev.filter((item) => item?.id !== job.id)
+                  );
+                  toast.success("Job deleted");
+                }}
                 job={job}
               />
             ))}

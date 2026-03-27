@@ -296,6 +296,9 @@ export interface JobCardProps {
   className?: string;
   compact?: boolean;
   hideApplyButton?: boolean;
+  showOwnerMenu?: boolean;
+  onPressOwnerEdit?: () => void;
+  onPressOwnerDelete?: () => Promise<void> | void;
   job?: {
     id: string;
     businessId?: string;

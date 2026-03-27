@@ -1,9 +1,12 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import SimpleStatusBadge from "@/components/ui/badges/SimpleStatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import JobApplyModal from "@/components/ui/modals/JobApplyModal";
 import { chatService } from "@/services/chatService";
 import { useJobStore } from "@/stores/jobStore";
+import { usePreferencesStore } from "@/stores/preferencesStore";
+import { utcTimeToLocalDate } from "@/utils/timezone";
 import {
   Feather,
   Fontisto,
@@ -15,7 +18,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -36,11 +39,25 @@ const resolveMediaUrl = (value?: string | null) => {
   return `${base}${value.startsWith("/") ? value : `/${value}`}`;
 };
 
+const formatShiftTime12Hour = (value?: string | null, timezone?: string) => {
+  if (!value || typeof value !== "string") return null;
+
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+
+  return utcTimeToLocalDate(value, timezone).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 const JobProfile = () => {
   const { businessId, recruitmentId } = useLocalSearchParams<{
     businessId?: string;
     recruitmentId?: string;
   }>();
+  const timezone = usePreferencesStore((state) => state.timezone);
   const getRecruitmentById = useJobStore((s) => s.getRecruitmentById);
   const shareRecruitment = useJobStore((s) => s.shareRecruitment);
 
@@ -69,6 +86,11 @@ const JobProfile = () => {
   const companyLogo =
     resolveMediaUrl(job?.business?.logo) ||
     "https://images-platform.99static.com//gkoGE5-VZ1k4SXxg0mrUj7O0V38=/250x0:1750x1500/fit-in/500x500/99designs-contests-attachments/102/102585/attachment_102585463";
+  const companyRatingValue = Math.max(
+    0,
+    Math.min(5, Number(job?.business?.rating ?? 0))
+  );
+  const companyRatingLabel = Number(companyRatingValue.toFixed(1)).toString();
   const locationLabel =
     job?.business?.address?.address || "Unknown Location";
 
@@ -83,9 +105,11 @@ const JobProfile = () => {
     typeof job?.ageMin === "number" && typeof job?.ageMax === "number"
       ? `${job.ageMin}-${job.ageMax}`
       : "18-25";
+  const formattedShiftStartTime = formatShiftTime12Hour(job?.shiftStartTime, timezone);
+  const formattedShiftEndTime = formatShiftTime12Hour(job?.shiftEndTime, timezone);
   const shiftLabel =
-    job?.shiftStartTime && job?.shiftEndTime
-      ? `${job.shiftStartTime} - ${job.shiftEndTime}`
+    formattedShiftStartTime && formattedShiftEndTime
+      ? `${formattedShiftStartTime} - ${formattedShiftEndTime}`
       : "10:00 AM - 11:00 PM";
   const salaryLabel =
     typeof job?.salaryMin === "number" &&
@@ -101,15 +125,55 @@ const JobProfile = () => {
     ? `${distanceValue.toFixed(2)} Km Away`
     : null;
 
-  const socials = useMemo(() => {
-    const social = job?.business?.social || {};
-    return {
-      facebook: social.facebook || "@alvarez_f",
-      linkedin: social.linkedin || "in/albert-flore-12562f25",
-      whatsapp: social.whatsapp || "+1(125) 256 25612",
-      twitter: social.twitter || "@alber256",
-    };
-  }, [job?.business?.social]);
+  const socials = useMemo(() => job?.business?.social || {}, [job?.business?.social]);
+
+  useEffect(() => {
+    if (!job) return;
+
+    console.log(
+      "[UserJobProfile] screen data:",
+      JSON.stringify(
+        {
+          route: { businessId, recruitmentId },
+          job,
+          companyName,
+          companyLogo,
+          locationLabel,
+          roleName,
+          aboutRole,
+          genderLabel,
+          experienceLabel,
+          ageLabel,
+          shiftLabel,
+          salaryLabel,
+          managerName,
+          managerAvatar,
+          distanceLabel,
+          socials,
+        },
+        null,
+        2
+      )
+    );
+  }, [
+    aboutRole,
+    ageLabel,
+    businessId,
+    companyLogo,
+    companyName,
+    distanceLabel,
+    experienceLabel,
+    genderLabel,
+    job,
+    locationLabel,
+    managerAvatar,
+    managerName,
+    recruitmentId,
+    roleName,
+    salaryLabel,
+    shiftLabel,
+    socials,
+  ]);
 
   const handleShare = async () => {
     try {
@@ -173,6 +237,21 @@ const JobProfile = () => {
     }
   };
 
+  const handleOpenBusinessProfile = () => {
+    const targetBusinessId =
+      typeof job?.business?.id === "string" ? job.business.id : null;
+
+    if (!targetBusinessId) {
+      toast.error("Business profile unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/profile/business/public-business-profile",
+      params: { businessId: targetBusinessId },
+    });
+  };
+
   return (
     <SafeAreaView
       className="bg-[#E5F4FD] dark:bg-dark-background"
@@ -199,37 +278,40 @@ const JobProfile = () => {
       <View className="bg-white">
         {/* profile */}
         <View className="absolute -top-16 inset-x-0">
-          {/* profile image */}
-          <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
-            <Image
-              source={companyLogo}
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 999,
-              }}
-              contentFit="cover"
-            />
-          </View>
-
-          {/* name */}
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
-            {companyName}{" "}
-            <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-          </Text>
-
-          <View className="flex-row items-center justify-center mt-2.5 gap-7">
-            <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
-              <SimpleLineIcons name="location-pin" size={14} color="#7A7A7A" />
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {locationLabel}
-              </Text>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleOpenBusinessProfile}>
+            {/* profile image */}
+            <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
+              <Image
+                source={companyLogo}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 999,
+                }}
+                contentFit="cover"
+              />
             </View>
 
-            <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              4.8/5 <Fontisto name="star" size={14} color="#F1C400" />
+            {/* name */}
+            <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
+              {companyName}{" "}
+              <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
             </Text>
-          </View>
+
+            <View className="flex-row items-center justify-center mt-2.5 gap-7">
+              <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
+                <SimpleLineIcons name="location-pin" size={14} color="#7A7A7A" />
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  {locationLabel}
+                </Text>
+              </View>
+
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                {companyRatingLabel}/5{" "}
+                <Fontisto name="star" size={14} color="#F1C400" />
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -362,96 +444,12 @@ const JobProfile = () => {
               </Text>
             </View>
 
-            {/* socials */}
-            <View className="mt-4 border-hairline border-[#EEEEEE] rounded-xl">
-              {/* facebook */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/facebook2.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.facebook}
-                </Text>
-              </View>
-
-              {/* linkedin */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/linkedin.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.linkedin}
-                </Text>
-              </View>
-
-              {/* whatsapp */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/whatsapp.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.whatsapp}
-                </Text>
-              </View>
-
-              {/* twitter */}
-              <View className="flex-row justify-between items-center p-3 border-b-hairline border-[#EEEEEE]">
-                <TouchableOpacity className="flex-row items-center gap-1.5">
-                  <Image
-                    style={{
-                      height: 36,
-                      width: 36,
-                    }}
-                    source={require("@/assets/images/twitter.svg")}
-                    contentFit="contain"
-                  />
-
-                  <Text className="text-sm font-proximanova-semibold">
-                    Facebook
-                  </Text>
-                </TouchableOpacity>
-
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {socials.twitter}
-                </Text>
-              </View>
-            </View>
+            <ConnectSocials
+              className="mt-4"
+              value={socials}
+              hideEmpty
+              canEdit={false}
+            />
           </View>
 
           <PrimaryButton
