@@ -27,6 +27,24 @@ type NotificationListItem = {
   timeTitle?: string;
 };
 
+const getPrimaryNotificationAction = (item: NotificationItem) =>
+  Array.isArray(item.actions) && item.actions.length > 0 ? item.actions[0] : null;
+
+const toNonEmptyString = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim();
+  return normalized ? normalized : undefined;
+};
+
+const getActionPayloadValue = (
+  action: ReturnType<typeof getPrimaryNotificationAction>,
+  key: string
+) => {
+  const payload = action?.payload;
+  if (!payload || typeof payload !== "object") return undefined;
+  return toNonEmptyString((payload as Record<string, unknown>)[key]);
+};
+
 const formatRelativeTime = (value?: string | null) => {
   if (!value) return "";
   const date = new Date(value);
@@ -187,6 +205,9 @@ const NotificationScreen = () => {
 
   const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
   const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+  const markNotificationAsRead = useNotificationStore(
+    (state) => state.markNotificationAsRead
+  );
   const notifications = useNotificationStore((state) => state.notifications);
   const notificationsLoading = useNotificationStore((state) => state.notificationsLoading);
   const notificationsRefreshing = useNotificationStore((state) => state.notificationsRefreshing);
@@ -245,6 +266,99 @@ const NotificationScreen = () => {
     pagination.page,
   ]);
 
+  const handleNotificationPress = useCallback(
+    async (item: NotificationItem) => {
+      if (!item.isRead) {
+        try {
+          await markNotificationAsRead(item.id);
+        } catch (error: any) {
+          toast.error(
+            translateApiMessage(
+              error?.message || "Failed to mark notification as read"
+            )
+          );
+        }
+      }
+
+      const action = getPrimaryNotificationAction(item);
+      const actionKey = String(action?.key || "").toLowerCase();
+      const targetType = String(
+        action?.targetType || item.relatedEntityType || ""
+      ).toLowerCase();
+      const metadata =
+        item.metadata && typeof item.metadata === "object"
+          ? (item.metadata as Record<string, unknown>)
+          : {};
+
+      const targetId =
+        toNonEmptyString(action?.targetId) || toNonEmptyString(item.relatedEntityId);
+
+      const chatRoomId =
+        getActionPayloadValue(action, "chatRoomId") ||
+        toNonEmptyString(metadata.chatRoomId);
+
+      const shiftAssignmentId =
+        getActionPayloadValue(action, "shiftAssignmentId") ||
+        toNonEmptyString(metadata.shiftAssignmentId) ||
+        targetId;
+
+      const callTypeRaw =
+        getActionPayloadValue(action, "callType") ||
+        toNonEmptyString(metadata.callType);
+      const callType = callTypeRaw?.toLowerCase() === "video" ? "video" : "audio";
+
+      if (
+        actionKey === "open_chat" ||
+        item.type === "chat_message" ||
+        targetType === "chat_message"
+      ) {
+        if (!chatRoomId) {
+          toast.error("Unable to open chat for this notification.");
+          return;
+        }
+        router.push({
+          pathname: "/screens/inbox/chat-screen",
+          params: { roomId: chatRoomId },
+        });
+        return;
+      }
+
+      if (actionKey === "join_call" || item.type === "call_incoming" || targetType === "call") {
+        if (!targetId) {
+          toast.error("Unable to open call for this notification.");
+          return;
+        }
+        router.push({
+          pathname: "/screens/inbox/call-screen",
+          params: {
+            callId: targetId,
+            roomId: chatRoomId || "",
+            mode: "incoming",
+            callType,
+          },
+        });
+        return;
+      }
+
+      if (
+        actionKey === "view_shift_assignment" ||
+        targetType === "shift_assignment" ||
+        item.relatedEntityType === "shift_assignment"
+      ) {
+        if (!shiftAssignmentId) {
+          toast.error("Unable to open shift details for this notification.");
+          return;
+        }
+        router.push({
+          pathname: "/screens/schedule/shift/[id]",
+          params: { id: shiftAssignmentId },
+        });
+        return;
+      }
+    },
+    [markNotificationAsRead]
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
@@ -267,7 +381,7 @@ const NotificationScreen = () => {
       <FlatList
         data={listData}
         keyExtractor={(entry) => entry.item.id}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -288,6 +402,8 @@ const NotificationScreen = () => {
               title={resolveNotificationTitle(item)}
               details={resolveNotificationBody(item)}
               time={formatRelativeTime(item.createdAt)}
+              onPress={() => handleNotificationPress(item)}
+              isUnread={!item.isRead}
               border
               icon={visual.icon}
               iconBackgroundColor={visual.iconBackgroundColor}
