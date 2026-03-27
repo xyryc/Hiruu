@@ -249,31 +249,6 @@ const ShiftSchedule = () => {
     );
   }, [selectedEmploymentBusinessIds, uiShifts]);
 
-  useEffect(() => {
-    console.log(
-      "[UserSchedule] screen data:",
-      JSON.stringify(
-        {
-          selectedDate,
-          selectedEmploymentBusinessIds,
-          myEmployments,
-          myShifts,
-          uiShifts,
-          filteredShifts,
-        },
-        null,
-        2
-      )
-    );
-  }, [
-    filteredShifts,
-    myEmployments,
-    myShifts,
-    selectedDate,
-    selectedEmploymentBusinessIds,
-    uiShifts,
-  ]);
-
   const modalBusinesses = useMemo(() => {
     const map = new Map<
       string,

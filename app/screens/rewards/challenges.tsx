@@ -6,6 +6,7 @@ import {
   AchievementType,
   useAchievementStore,
 } from "@/stores/achievementStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -79,10 +80,14 @@ const challenges = () => {
 
       try {
         const result = await claimAchievement(achievement.id);
-        toast.success(result?.message || "Achievement claimed successfully");
+        toast.success(
+          translateApiMessage(result?.message) || "Achievement claimed successfully"
+        );
         await getAchievements(currentType);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to claim achievement");
+        toast.error(
+          translateApiMessage(error?.message) || "Failed to claim achievement"
+        );
       }
     },
     [claimAchievement, currentType, getAchievements]

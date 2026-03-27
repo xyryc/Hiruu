@@ -113,3 +113,23 @@ export type UserScheduleUiShift = {
   countdownTargetAt?: number;
   message?: string;
 };
+
+export type CalendarMarkedDates = Record<
+  string,
+  {
+    startingDay?: boolean;
+    endingDay?: boolean;
+    color?: string;
+    textColor?: string;
+    selected?: boolean;
+    selectedColor?: string;
+    selectedTextColor?: string;
+  }
+>;
+
+export type WeeklyScheduleBlockItem = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  name?: string;
+};
