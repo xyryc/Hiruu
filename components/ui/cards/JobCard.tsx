@@ -1,4 +1,5 @@
 import { JobCardProps } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import {
   Entypo,
   FontAwesome,
@@ -10,7 +11,9 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
 import SmallButton from "../buttons/SmallButton";
+import DeleteConfirmModal from "../modals/DeleteConfirmModal";
 import JobApplyModal from "../modals/JobApplyModal";
 import OwnerJobActionsModal from "../modals/OwnerJobActionsModal";
 
@@ -96,11 +99,14 @@ const JobCard = ({
   hideApplyButton = false,
   showOwnerMenu = false,
   onPressOwnerEdit,
+  onPressOwnerDelete,
   job,
 }: JobCardProps) => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [showOwnerMenuModal, setShowOwnerMenuModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const salarySuffix = useMemo(
     () => (job?.salaryType === "monthly" ? "/mo" : "/hr"),
@@ -344,6 +350,37 @@ const JobCard = ({
           setShowOwnerMenuModal(false);
           onPressOwnerEdit?.();
         }}
+        onDelete={() => {
+          setShowOwnerMenuModal(false);
+          setShowDeleteConfirm(true);
+        }}
+      />
+
+      <DeleteConfirmModal
+        visible={showDeleteConfirm}
+        deleting={isDeleting}
+        onClose={() => {
+          if (isDeleting) return;
+          setShowDeleteConfirm(false);
+        }}
+        onConfirm={async () => {
+          if (!onPressOwnerDelete || isDeleting) return;
+          try {
+            setIsDeleting(true);
+            setShowDeleteConfirm(false);
+            await onPressOwnerDelete();
+          } catch (error: any) {
+            toast.error(
+              translateApiMessage(error?.message || "Failed to delete job")
+            );
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        title="Delete Job"
+        description="Are you sure you want to delete this job? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </View>
   );

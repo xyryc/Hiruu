@@ -120,7 +120,8 @@
     "break_end_time_must_be_after_start_time": "Break end time must be after start time.",
     "experiences.0.startDate must be a valid ISO 8601 date string": "Experience start date must be a valid ISO 8601 date string.",
     "UNKNOWN_ERROR": "An unexpected error occurred",
-    "already_employed": "You are already employed with this business and cannot apply to this job."
+    "already_employed": "You are already employed with this business and cannot apply to this job.",
+    "recruitment_has_applications": "This job cannot be deleted because it already has applications."
   },
   "validation": {
     "fillAllFields": "Please fill in all fields",

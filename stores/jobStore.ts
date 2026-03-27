@@ -219,6 +219,7 @@ interface JobState {
     id: string,
     payload: UpdateRecruitmentPayload
   ) => Promise<any>;
+  deleteRecruitment: (businessId: string, id: string) => Promise<any>;
   getUnreadCount: (query?: GetUnreadCountQuery) => Promise<UnreadCountResponse>;
   markApplicationsAsRead: (
     type: RecruitmentApplicationSource,
@@ -576,6 +577,36 @@ export const useJobStore = create<JobState>((set) => ({
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
         "Failed to update recruitment";
+      const finalError = new Error(message);
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  deleteRecruitment: async (businessId, id) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axiosInstance.delete(`/recruitment/${businessId}/${id}`);
+      const result = response.data;
+
+      if (
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400)
+      ) {
+        const message =
+          translateApiMessage(result?.message) || "Failed to delete recruitment";
+        throw new Error(message);
+      }
+
+      set({ isLoading: false });
+      return result?.data || result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to delete recruitment";
       const finalError = new Error(message);
       set({ isLoading: false, error: finalError });
       throw finalError;

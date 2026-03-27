@@ -6,8 +6,9 @@ import TimePicker from "@/components/ui/inputs/TimePicker";
 import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
+import { usePreferencesStore } from "@/stores/preferencesStore";
 import type { RecruitmentShiftType } from "@/types";
-import { localDateToUTCTime } from "@/utils/timezone";
+import { localDateToUTCTime, utcTimeToLocalDate } from "@/utils/timezone";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
@@ -26,15 +27,14 @@ import {
 } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const parseTimeToDate = (value?: string | null) => {
+const parseTimeToDate = (value?: string | null, timezone?: string) => {
   const next = new Date();
   if (!value || typeof value !== "string") return next;
 
   const match = value.match(/^(\d{2}):(\d{2})$/);
   if (!match) return next;
 
-  next.setHours(Number(match[1]), Number(match[2]), 0, 0);
-  return next;
+  return utcTimeToLocalDate(value, timezone);
 };
 
 const formatOptionLabel = (value?: string | null) =>
@@ -46,6 +46,7 @@ const EditJob = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const timezone = usePreferencesStore((state) => state.timezone);
   const params = useLocalSearchParams<{
     businessId?: string;
     recruitmentId?: string;
@@ -163,8 +164,8 @@ const EditJob = () => {
         setAgeMax(
           data?.ageMax !== null && data?.ageMax !== undefined ? `${data.ageMax}` : ""
         );
-        setShiftStartTime(parseTimeToDate(data?.shiftStartTime));
-        setShiftEndTime(parseTimeToDate(data?.shiftEndTime));
+        setShiftStartTime(parseTimeToDate(data?.shiftStartTime, timezone));
+        setShiftEndTime(parseTimeToDate(data?.shiftEndTime, timezone));
         setSalaryMin(
           data?.salaryMin !== null && data?.salaryMin !== undefined
             ? `${data.salaryMin}`
@@ -197,7 +198,7 @@ const EditJob = () => {
     return () => {
       isMounted = false;
     };
-  }, [businessId, getRecruitmentById, recruitmentId]);
+  }, [businessId, getRecruitmentById, recruitmentId, timezone]);
 
   const selectedBusiness = useMemo(() => {
     if (!businessId) return null;
@@ -272,7 +273,7 @@ const EditJob = () => {
     }
   }, [isFeatured, isPremiumBusiness]);
 
-  const formatTime24 = (date: Date) => localDateToUTCTime(date);
+  const formatTime24 = (date: Date) => localDateToUTCTime(date, timezone);
 
   const handleUpdateJob = async () => {
     if (!businessId || !recruitmentId) {

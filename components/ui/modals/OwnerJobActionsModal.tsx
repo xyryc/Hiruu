@@ -9,12 +9,14 @@ type OwnerJobActionsModalProps = {
   visible: boolean;
   onClose: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 const OwnerJobActionsModal = ({
   visible,
   onClose,
   onEdit,
+  onDelete,
 }: OwnerJobActionsModalProps) => {
   return (
     <Modal
@@ -56,11 +58,12 @@ const OwnerJobActionsModal = ({
                 showIcon={false}
                 className="flex-1 rounded-xl py-3 px-4"
               />
-              <View className="flex-1 bg-[#EF4444] rounded-xl py-3 px-4 opacity-60 items-center justify-center">
-                <Text className="font-proximanova-semibold text-white">
-                  Delete Job
-                </Text>
-              </View>
+              <PrimaryButton
+                title="Delete Job"
+                onPress={onDelete}
+                showIcon={false}
+                className="flex-1 bg-[#EF4444] rounded-xl py-3 px-4"
+              />
             </View>
           </SafeAreaView>
         </View>
