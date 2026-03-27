@@ -42,7 +42,6 @@ const CreateTemplate = () => {
   const [templateName, setTemplateName] = useState("");
   const [selectedBusiness, setSelectedBusiness] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
-  const [requiredStaffCount, setRequiredStaffCount] = useState<string>("15");
   const [currentRoleSlotsTotal, setCurrentRoleSlotsTotal] = useState<number>(0);
   const [roleRequirements, setRoleRequirements] = useState<
     { roleId: string; roleName: string; count: number }[]
@@ -109,8 +108,6 @@ const CreateTemplate = () => {
     () => roleOptions.find((item) => item.value === selectedRole) || null,
     [roleOptions, selectedRole]
   );
-  const selectedRequiredCount = Number(requiredStaffCount) || 0;
-  const isRequiredCountMatched = currentRoleSlotsTotal === selectedRequiredCount;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTotalRequiredChange = useCallback((total: number) => {
@@ -202,11 +199,6 @@ const CreateTemplate = () => {
       return null;
     }
 
-    if (!isRequiredCountMatched) {
-      toast.error("Total roles must equal required staff.");
-      return null;
-    }
-
     if (shiftTimeValidationError) {
       toast.error(shiftTimeValidationError);
       return null;
@@ -288,7 +280,7 @@ const CreateTemplate = () => {
       breakTimeRange: hasBreak
         ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
         : "No break",
-      totalStaff: selectedRequiredCount,
+      totalStaff: currentRoleSlotsTotal,
       roles: roleRequirements.map((item) => ({
         roleName: item.roleName || "Role",
         count: item.count || 0,
@@ -302,7 +294,7 @@ const CreateTemplate = () => {
       roleRequirements,
       selectedBusinessInfo?.logo,
       selectedBusinessInfo?.name,
-      selectedRequiredCount,
+      currentRoleSlotsTotal,
       shiftEndTime,
       shiftStartTime,
       templateName,
@@ -446,19 +438,14 @@ const CreateTemplate = () => {
           {/* role required */}
           <View className="mt-8 flex-row items-center justify-between">
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Roles & Required Count
+              Roles
             </Text>
-
-            <TextInput
-              value={requiredStaffCount}
-              onChangeText={(value) =>
-                setRequiredStaffCount(value.replace(/[^0-9]/g, ""))
-              }
-              keyboardType="number-pad"
-              className="w-16 px-3 py-2 text-center text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-              placeholder="0"
-              placeholderTextColor="#7D7D7D"
-            />
+            <View className="flex-row items-center gap-1.5">
+              <Feather name="users" size={14} color="#4FB2F3" />
+              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
+                Required count: {currentRoleSlotsTotal}
+              </Text>
+            </View>
           </View>
 
           {/* role list */}
@@ -508,24 +495,6 @@ const CreateTemplate = () => {
               setOpenRoleDropdownTrigger((prev) => prev + 1);
             }}
           />
-
-          {/* Total roles must equal required staff */}
-          <View className="flex-row items-center gap-2.5 -mt-4">
-            <Feather
-              name={isRequiredCountMatched ? "check-circle" : "alert-triangle"}
-              size={16}
-              color={isRequiredCountMatched ? "#22C55E" : "#F34F4F"}
-            />
-            <Text
-              numberOfLines={1}
-              className={`ml-1.5 text-sm font-proximanova-regular ${isRequiredCountMatched ? "text-[#22C55E]" : "text-[#F34F4F]"
-                }`}
-            >
-              {isRequiredCountMatched
-                ? "Role count matches required staff"
-                : `Total roles (${currentRoleSlotsTotal}) must equal required staff (${selectedRequiredCount})`}
-            </Text>
-          </View>
 
           <View className="mt-8 mb-5">
             <PrimaryButton
