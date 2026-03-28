@@ -37,7 +37,7 @@ class SocketService {
 
             this.socket = io(`${baseURL}/chat`, {
                 auth: { token: this.token },
-                transports: ['polling', 'websocket'],
+                transports: ['websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
@@ -49,7 +49,11 @@ class SocketService {
             });
 
             this.socket.on('connect_error', (error) => {
-                console.error('❌ Socket connection error:', error.message);
+                console.error('Socket connection error:', {
+                    message: error?.message,
+                    description: (error as any)?.description,
+                    context: (error as any)?.context,
+                });
                 this.isConnecting = false;
             });
 
@@ -116,7 +120,7 @@ class SocketService {
 
             this.callsSocket = io(`${baseURL}/calls`, {
                 auth: { token: this.token },
-                transports: ['polling', 'websocket'],
+                transports: ['websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
@@ -128,6 +132,11 @@ class SocketService {
             });
 
             this.callsSocket.on('connect_error', (error) => {
+                console.error('Calls socket connection error:', {
+                    message: error?.message,
+                    description: (error as any)?.description,
+                    context: (error as any)?.context,
+                });
                 this.isCallsConnecting = false;
             });
 
