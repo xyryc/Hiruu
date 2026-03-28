@@ -1,13 +1,14 @@
-import { useRouter } from "expo-router";
-import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useBusinessStore } from "@/stores/businessStore";
 import {
   FontAwesome,
   Ionicons,
   MaterialCommunityIcons,
+  MaterialIcons,
 } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
+import { ScrollView, Text, View } from "react-native";
 import ActionIconCard from "../ui/cards/ActionIconCard";
-import { useBusinessStore } from "@/stores/businessStore";
 
 type QuickActionBusinessProps = {
   className?: string;
@@ -45,6 +46,12 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
           }
           title="Shift Request"
           onPress={() => router.push("/screens/home/team/shift-requests")}
+        />
+
+        <ActionIconCard
+          icon={<MaterialIcons name="timer" size={24} color="#4FB2F3" />}
+          title="OT Request"
+          onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
         <ActionIconCard

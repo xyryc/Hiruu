@@ -73,6 +73,14 @@ type ShiftStoreState = {
     status?: string;
     type?: string;
   }) => Promise<any[]>;
+  getMyShiftRequests: (params?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    type?: string;
+  }) => Promise<any[]>;
   getBusinessShiftRequests: (
     businessId: string,
     params?: {
@@ -365,6 +373,47 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to fetch shift requests";
+      set({
+        shiftRequests: [],
+        shiftRequestsLoading: false,
+        shiftRequestsError: message,
+        shiftRequestsPagination: null,
+      });
+      throw new Error(message);
+    }
+  },
+
+  getMyShiftRequests: async (params) => {
+    try {
+      set({ shiftRequestsLoading: true, shiftRequestsError: null });
+      const response = await axiosInstance.get("/shift-requests/my-requests", {
+        params: {
+          page: params?.page,
+          limit: params?.limit,
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          status: params?.status,
+          type: params?.type,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to fetch my shift requests");
+      }
+
+      const requests = Array.isArray(result?.data) ? result.data : [];
+      set({
+        shiftRequests: requests,
+        shiftRequestsLoading: false,
+        shiftRequestsPagination: result?.pagination || null,
+      });
+      return requests;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch my shift requests";
       set({
         shiftRequests: [],
         shiftRequestsLoading: false,

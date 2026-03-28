@@ -1,293 +1,294 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import StatusBadge from "@/components/ui/badges/StatusBadge";
-import CustomModal from "@/components/ui/modals/CustomModal";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useShiftStore } from "@/stores/shiftStore";
+import { formatDate } from "@/utils/date";
 import { EvilIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import { toast } from "sonner-native";
+
+const formatApiTime = (time?: string | null) => {
+  if (!time) return "-";
+  const [h = "0", m = "0"] = time.split(":");
+  const hours = Number(h);
+  const minutes = Number(m);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return time;
+
+  const suffix = hours >= 12 ? "PM" : "AM";
+  const twelveHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${twelveHour}:${String(minutes).padStart(2, "0")} ${suffix}`;
+};
 
 const OvertimeHistory = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [selectedTab, setSelectedTab] = useState("Send Request");
+  const insets = useSafeAreaInsets();
+
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const isBusinessProfile = (selectedBusinesses?.length || 0) > 0;
+  const selectedBusinessId = selectedBusinesses?.[0] || "";
+
+  const getMyShiftRequests = useShiftStore((state) => state.getMyShiftRequests);
+  const getBusinessShiftRequests = useShiftStore((state) => state.getBusinessShiftRequests);
+  const approveBusinessShiftRequest = useShiftStore(
+    (state) => state.approveBusinessShiftRequest
+  );
+  const rejectBusinessShiftRequest = useShiftStore(
+    (state) => state.rejectBusinessShiftRequest
+  );
+  const shiftRequestsLoading = useShiftStore((state) => state.shiftRequestsLoading);
+  const businessShiftRequestsLoading = useShiftStore(
+    (state) => state.businessShiftRequestsLoading
+  );
+
+  const [requests, setRequests] = useState<any[]>([]);
+  const [actioningId, setActioningId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [filter, setFilter] = useState<string>("all");
-  const filterOptions = ["all", "accepted", "rejected", "pending"];
+  const filterOptions = ["all", "pending", "approved", "rejected", "cancelled", "expired"];
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Expanded requests array with type (send/receive)
-  const requests = [
-    {
-      name: "Housekeeping Staff",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Helped close the store",
-      hotel: "Hotel Paradise",
-      status: "accepted",
-      type: "send", // 'send' means Send Request
-    },
-    {
-      name: "Housekeeping Staff",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Extended work due to staff shortage",
-      hotel: "Space Hotel",
-      status: "rejected",
-      type: "send", // 'receive' means Received
-    },
-    {
-      name: "Inventory Associate",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Completed closing tasks",
-      hotel: "Hotel Paradise",
-      status: "accepted",
-      type: "send",
-    },
-    {
-      name: "Security Guard",
-      date: "13 Jun, 2025",
-      start: "10:00 PM",
-      end: "1:00 AM",
-      reason: "Extra shift due to safety concerns",
-      hotel: "City View Hotel",
-      status: "pending",
-      type: "receive",
-    },
-    {
-      name: "Chef",
-      date: "14 Jun, 2025",
-      start: "8:00 PM",
-      end: "11:00 PM",
-      reason: "Overtime to prepare extra meals",
-      hotel: "Gourmet Inn",
-      status: "accepted",
-      type: "send",
-    },
-    {
-      name: "Waiter",
-      date: "15 Jun, 2025",
-      start: "7:00 PM",
-      end: "10:00 PM",
-      reason: "Assisted during peak hours",
-      hotel: "Blue Lagoon",
-      status: "pending",
-      type: "receive",
-    },
-    {
-      name: "Receptionist",
-      date: "16 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 AM",
-      reason: "Handled emergency customer requests",
-      hotel: "Skyline Resort",
-      status: "pending",
-      type: "receive",
-    },
-  ];
+  const isLoading = isBusinessProfile
+    ? businessShiftRequestsLoading
+    : shiftRequestsLoading;
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [data, setData] = useState({
-    img: "",
-    title: "",
-    subtitle: "",
-  });
-  const success = require("@/assets/images/success.svg");
-  const reject = require("@/assets/images/reject.png");
+  const loadRequests = useCallback(async () => {
+    const params = { page: 1, limit: 50, type: "overtime_request" };
+    if (isBusinessProfile) {
+      if (!selectedBusinessId) {
+        setRequests([]);
+        return;
+      }
+      const response = await getBusinessShiftRequests(selectedBusinessId, params);
+      setRequests(Array.isArray(response) ? response : []);
+      return;
+    }
 
-  const toggleModalAccepet = (e: any) => {
-    setModalVisible(!modalVisible);
-    setData({
-      img: success, // Pass the actual image here
-      title: "Request Accepted", // Title
-      subtitle: "Your request has been accepted successfully.", // Subtitle
-    });
-  };
-  const toggleModalReject = () => {
-    setModalVisible(!modalVisible);
-    setData({
-      img: reject, // Pass the actual image here
-      title: "Request Rejected", // Title
-      subtitle: "Your request has been rejected.", // Subtitle
-    });
-  };
+    const response = await getMyShiftRequests(params);
+    setRequests(Array.isArray(response) ? response : []);
+  }, [
+    getBusinessShiftRequests,
+    getMyShiftRequests,
+    isBusinessProfile,
+    selectedBusinessId,
+  ]);
 
-  const filteredRequests = requests.filter((request) => {
-    const matchesStatus =
-      filter === "all" || request.status.toLowerCase() === filter;
-    const matchesType =
-      selectedTab === "Send Request"
-        ? request.type === "send"
-        : request.type === "receive";
-    const matchesSearch =
-      request.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.hotel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.reason.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesType && matchesSearch;
-  });
+  useFocusEffect(
+    useCallback(() => {
+      loadRequests();
+    }, [loadRequests])
+  );
 
-  const getFilterCount = (filter: string) => {
-    if (filter === "all") return requests.length;
-    return requests.filter((request) => request.status.toLowerCase() === filter)
-      .length;
-  };
+  const filteredRequests = useMemo(() => {
+    return requests
+      .filter((request) => filter === "all" || request?.status === filter)
+      .filter((request) => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return true;
 
-  const renderItem = ({ item }: any) => (
-    <View
-      key={item.date}
-      className="mx-5 border border-[#EEEEEE] mb-3 rounded-[14px] p-4"
-    >
-      {/* Name */}
-      <Text className="font-proximanova-bold text-base text-primary dark:text-dark-primary mb-2">
-        {item.name}
-      </Text>
+        const employeeName = request?.employment?.user?.name || "";
+        const businessName = request?.business?.name || "";
+        const reason = request?.reason || "";
+        const roleName = request?.employment?.role?.role?.name || "";
+        const haystack = `${employeeName} ${businessName} ${reason} ${roleName}`.toLowerCase();
+        return haystack.includes(q);
+      });
+  }, [filter, requests, searchQuery]);
 
-      <View className="flex-row justify-between">
-        <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
-          Date:
+  const getFilterCount = useCallback(
+    (status: string) => {
+      if (status === "all") return requests.length;
+      return requests.filter((request) => request?.status === status).length;
+    },
+    [requests]
+  );
+
+  const renderItem = ({ item }: any) => {
+    const employeeName = item?.employment?.user?.name || "-";
+    const roleName = item?.employment?.role?.role?.name || "";
+    const requestedDate = item?.requestedDate || item?.createdAt || null;
+    const businessName = item?.business?.name || "-";
+    const businessLogo = item?.business?.logo || undefined;
+
+    const isPending = item?.status === "pending";
+    const isActioning = actioningId === item?.id;
+
+    const handleApprove = async () => {
+      if (!selectedBusinessId || !item?.id) return;
+      try {
+        setActioningId(item.id);
+        setActionType("approve");
+        await approveBusinessShiftRequest(selectedBusinessId, item.id);
+        setRequests((prev) =>
+          prev.map((req) =>
+            req?.id === item.id ? { ...req, status: "approved" } : req
+          )
+        );
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to approve request");
+      } finally {
+        setActioningId(null);
+        setActionType(null);
+      }
+    };
+
+    const handleReject = async () => {
+      if (!selectedBusinessId || !item?.id) return;
+      try {
+        setActioningId(item.id);
+        setActionType("reject");
+        await rejectBusinessShiftRequest(selectedBusinessId, item.id);
+        setRequests((prev) =>
+          prev.map((req) =>
+            req?.id === item.id ? { ...req, status: "rejected" } : req
+          )
+        );
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to reject request");
+      } finally {
+        setActioningId(null);
+        setActionType(null);
+      }
+    };
+
+    return (
+      <View
+        key={item?.id}
+        className="mx-5 border border-[#EEEEEE] mb-3 rounded-[14px] p-4"
+      >
+        <Text className="font-proximanova-bold text-base text-primary dark:text-dark-primary mb-2">
+          {employeeName}
+          {roleName ? ` (${roleName})` : ""}
         </Text>
-        <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
-          {item.date}
-        </Text>
-      </View>
-      <View className="flex-row justify-between">
-        <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
-          Overtime Start:
-        </Text>
-        <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
-          {item.start}
-        </Text>
-      </View>
-      <View className="flex-row justify-between">
-        <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
-          Overtime End:
-        </Text>
-        <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
-          {item.end}
-        </Text>
-      </View>
-      <View className="flex-row justify-between">
-        <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
-          Reason:
-        </Text>
-        <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
-          {item.reason}
-        </Text>
-      </View>
-      <View className="flex-row justify-between">
-        <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
-          Hotel:
-        </Text>
-        <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
-          {item.hotel}
-        </Text>
-      </View>
-      <View className=" my-4">
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          style={{ height: 1, width: "100%" }}
-          contentFit="contain"
-        />
-      </View>
-      <View className="flex-row justify-between items-center">
-        <View className="flex-row gap-2">
-          <Image
-            source="https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg"
-            style={{ height: 30, width: 30, borderRadius: 999 }}
-            contentFit="cover"
-          />
-          <Text className="mt-2 text-sm font-proximanova-regular text-placeholder dark:text-dark-placeholder">
-            {item.hotel}
+
+        <View className="flex-row justify-between">
+          <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
+            Date:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
+            {formatDate(requestedDate)}
           </Text>
         </View>
-        <View>
-          {item.status === "pending" ? (
+        <View className="flex-row justify-between">
+          <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
+            Overtime Start:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
+            {formatApiTime(item?.startTime)}
+          </Text>
+        </View>
+        <View className="flex-row justify-between">
+          <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
+            Overtime End:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
+            {formatApiTime(item?.endTime)}
+          </Text>
+        </View>
+        <View className="flex-row justify-between">
+          <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
+            Reason:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
+            {item?.reason || "-"}
+          </Text>
+        </View>
+        <View className="flex-row justify-between">
+          <Text className="text-secondary dark:text-dark-secondary font-proximanova-regular text-sm">
+            Hotel:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary font-proximanova-regular text-sm">
+            {businessName}
+          </Text>
+        </View>
+
+        <View className="my-4">
+          <Image
+            source={require("@/assets/images/dotted-line.svg")}
+            style={{ height: 1, width: "100%" }}
+            contentFit="contain"
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row gap-2 items-center">
+            <Image
+              source={
+                businessLogo ||
+                "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg"
+              }
+              style={{ height: 30, width: 30, borderRadius: 999 }}
+              contentFit="cover"
+            />
+            <Text className="text-sm font-proximanova-regular text-placeholder dark:text-dark-placeholder">
+              {businessName}
+            </Text>
+          </View>
+          {isBusinessProfile && isPending ? (
             <View className="flex-row gap-2">
-              <TouchableOpacity onPress={toggleModalReject}>
-                <View className="bg-[#F34F4F] px-3 py-2 rounded-3xl">
-                  <Text className="text-white font-proximanova-semibold text-sm">
-                    Reject
-                  </Text>
-                </View>
+              <TouchableOpacity
+                disabled={isActioning}
+                onPress={handleReject}
+                className="bg-[#F34F4F] px-3 py-2 rounded-3xl"
+              >
+                <Text className="text-white font-proximanova-semibold text-sm">
+                  {isActioning && actionType === "reject" ? "Rejecting..." : "Reject"}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={toggleModalAccepet}>
-                <View className="bg-[#11293A] px-3 py-2 rounded-3xl">
-                  <Text className="text-white font-proximanova-semibold text-sm">
-                    Accept
-                  </Text>
-                </View>
+              <TouchableOpacity
+                disabled={isActioning}
+                onPress={handleApprove}
+                className="bg-[#11293A] px-3 py-2 rounded-3xl"
+              >
+                <Text className="text-white font-proximanova-semibold text-sm">
+                  {isActioning && actionType === "approve" ? "Accepting..." : "Accept"}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <StatusBadge status={item.status} />
+            <StatusBadge status={item?.status} />
           )}
         </View>
       </View>
-    </View>
-  );
-
-  const pendingData = requests.filter(
-    (item) => item.status === "pending"
-  ).length;
-
-  const insets = useSafeAreaInsets();
+    );
+  };
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={["left", "right", "bottom"]}
-    >
-      <View className="bg-[#E5F4FD] rounded-b-2xl px-5">
+    <SafeAreaView className="flex-1 bg-white" edges={["left", "right", "bottom"]}>
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
           onPressBack={() => router.back()}
-          title="Overtime Request"
+          title={`Overtime Request (${isBusinessProfile ? "Received" : "Sent"})`}
+          className="px-5 pt-2.5 pb-4"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
-          style={{
-            paddingTop: insets.top,
-          }}
         />
-        {/* Tabs */}
-        <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
-          {["Send Request", "Received"].map((tab) => (
-            <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
-              key={tab}
-              onPress={() => setSelectedTab(tab)}
-            >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                >
-                  {tab}
-                </Text>
-                {selectedTab === tab && (
-                  <View className="bg-[#4FB2F3] rounded-full w-6 h-6 items-center">
-                    <Text className="text-white">{pendingData}</Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
 
-      <View className="flex-1 bg-white dark:bg-dark-background ">
-        {/* Search Bar */}
+      <View className="flex-1 bg-white dark:bg-dark-background">
         <View className="flex-row items-center border border-b mt-5 rounded-xl pl-3 p-1 border-[#EEEEEE] mx-5">
           <EvilIcons name="search" size={24} color="black" />
           <TextInput
@@ -298,51 +299,47 @@ const OvertimeHistory = () => {
           />
         </View>
 
-        {/* Filter Buttons */}
         <View>
           <FlatList
             data={filterOptions}
             keyExtractor={(item) => item}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              marginVertical: 15,
-            }}
+            contentContainerStyle={{ paddingHorizontal: 16, marginVertical: 15 }}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() => setFilter(item.toLowerCase())}
-                className={`mr-2 px-4 py-2 border border-[#EEEEEE] text-white rounded-full ${filter == item.toLowerCase() ? " bg-[#11293A]" : ""}`}
+                onPress={() => setFilter(item)}
+                className={`mr-2 px-4 py-2 border border-[#EEEEEE] rounded-full ${
+                  filter === item ? "bg-[#11293A]" : ""
+                }`}
               >
                 <Text
-                  className={`text-center text-sm ${filter == item.toLowerCase() ? "font-proximanova-semibold text-white dark:text-dark-primary" : "dark:text-dark-primary text-primary font-proximanova-regular"}`}
+                  className={`text-center text-sm ${
+                    filter === item
+                      ? "font-proximanova-semibold text-white"
+                      : "font-proximanova-regular text-primary"
+                  }`}
                 >
-                  <Text
-                    className={`capitalize text-sm ${filter == item.toLowerCase() ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                  >
-                    {item}
-                  </Text>
-                  ({getFilterCount(item.toLowerCase())})
+                  <Text className="capitalize">{item}</Text> ({getFilterCount(item)})
                 </Text>
               </TouchableOpacity>
             )}
           />
         </View>
 
-        {/* FlatList to display requests */}
-        <FlatList
-          data={filteredRequests}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => item.date + index}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
+          </View>
+        ) : (
+          <FlatList
+            data={filteredRequests}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => item?.id || `overtime-${index}`}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        )}
       </View>
-
-      <CustomModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        data={data}
-      />
     </SafeAreaView>
   );
 };
