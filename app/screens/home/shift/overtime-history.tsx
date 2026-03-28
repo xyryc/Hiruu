@@ -18,7 +18,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const OverTimeRequestAction = () => {
+const OvertimeHistory = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [selectedTab, setSelectedTab] = useState("Send Request");
@@ -347,4 +347,4 @@ const OverTimeRequestAction = () => {
   );
 };
 
-export default OverTimeRequestAction;
+export default OvertimeHistory;

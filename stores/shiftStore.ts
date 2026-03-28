@@ -98,11 +98,13 @@ type ShiftStoreState = {
         }
       | {
           employmentId: string;
+          shiftAssignmentId: string;
           type: "overtime_request";
           requestedDate: string;
           startTime: string;
           endTime: string;
           overtimeHours: number;
+          overtimeRate: number;
           reason: string;
         }
   ) => Promise<any>;

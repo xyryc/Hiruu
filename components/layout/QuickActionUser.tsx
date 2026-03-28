@@ -39,7 +39,7 @@ const QuickActionUser = ({ className }: QuickActionUserProps) => {
         <ActionIconCard
           icon={<MaterialIcons name="timer" size={24} color="#4FB2F3" />}
           title="OT Request"
-          onPress={() => router.push("/screens/home/shift/overtime-request")}
+          onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
         <ActionIconCard
