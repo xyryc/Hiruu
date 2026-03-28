@@ -55,7 +55,7 @@ const EnterJoinCode = () => {
     if (!isCodeComplete || isJoiningBusiness) return;
 
     try {
-      await joinBusiness(undefined, invitationCode);
+      await joinBusiness(invitationCode);
       toast.success("You joined the business successfully!");
       router.replace("/(tabs)/home");
     } catch (err: any) {
