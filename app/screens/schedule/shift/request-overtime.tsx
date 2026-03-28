@@ -7,7 +7,7 @@ import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { MyEmploymentItem } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
@@ -16,6 +16,16 @@ import { toast } from "sonner-native";
 
 const OvertimeRequest = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    shiftAssignmentId?: string | string[];
+    employmentId?: string | string[];
+  }>();
+  const shiftAssignmentId = Array.isArray(params.shiftAssignmentId)
+    ? params.shiftAssignmentId[0]
+    : params.shiftAssignmentId;
+  const employmentIdFromParams = Array.isArray(params.employmentId)
+    ? params.employmentId[0]
+    : params.employmentId;
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
@@ -46,13 +56,16 @@ const OvertimeRequest = () => {
   const selectedBusinessId = selectedBusinesses?.[0] || "";
   const selectedEmployment = useMemo<MyEmploymentItem | null>(() => {
     const list = Array.isArray(myEmployments) ? myEmployments : [];
+    if (employmentIdFromParams) {
+      return list.find((employment) => employment?.id === employmentIdFromParams) || null;
+    }
     if (selectedBusinessId) {
       return (
         list.find((employment) => employment?.businessId === selectedBusinessId) || null
       );
     }
     return list[0] || null;
-  }, [myEmployments, selectedBusinessId]);
+  }, [employmentIdFromParams, myEmployments, selectedBusinessId]);
 
   const formatYmd = (date: Date) => {
     const year = date.getFullYear();
@@ -75,6 +88,11 @@ const OvertimeRequest = () => {
   };
 
   const handleSubmit = async () => {
+    if (!shiftAssignmentId) {
+      toast.error("Shift assignment not found");
+      return;
+    }
+
     if (!selectedEmployment?.id) {
       toast.error("Employment not found");
       return;
@@ -97,8 +115,10 @@ const OvertimeRequest = () => {
       startTime: formatHm24(overtimeStart),
       endTime: formatHm24(overtimeEnd),
       overtimeHours,
+      overtimeRate: 1.5,
       reason: reason.trim(),
       employmentId: selectedEmployment.id,
+      shiftAssignmentId,
     };
 
     try {

@@ -123,24 +123,6 @@ export default function LeaderboardScreen() {
         onPressBack={() => router.back()}
         className="px-4 mt-2.5"
         title="Leaderboard"
-        components={
-          <TouchableOpacity
-            onPress={() => setShowModal(true)}
-            className="bg-[#E5F4FD] flex-row items-center p-0.5 rounded-[26px]"
-          >
-            <Image
-              source="https://cdn.textstudio.com/output/studio/template/preview/stamped/g/4/c/7/z7a7c4g.webp"
-              style={{ width: 28, height: 28, borderRadius: 999 }}
-              contentFit="cover"
-            />
-            <SimpleLineIcons
-              className="px-1.5"
-              name="arrow-down"
-              size={12}
-              color="#111111"
-            />
-          </TouchableOpacity>
-        }
       />
 
       <BusinessSelectionModal

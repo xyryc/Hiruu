@@ -71,7 +71,12 @@ const LeaderboardInfo = () => {
       />
 
       {/* rules */}
-      <ScrollView className="mt-7 mx-5" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 40
+        }}
+        className="mt-7 mx-5"
+        showsVerticalScrollIndicator={false}>
         {/* rules */}
         <View className="bg-[#E5F4FD] rounded-xl p-4">
           {/* Title */}

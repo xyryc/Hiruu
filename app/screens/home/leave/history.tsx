@@ -42,7 +42,7 @@ const LeaveHistory = () => {
   const isDark = colorScheme === "dark";
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORIES)[number]>("all");
-  const [onCalender, setOnCalendet] = useState(false);
+  const [onCalendar, setOnCalendar] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const shiftRequests = useShiftStore((state) => state.shiftRequests);
@@ -174,7 +174,7 @@ const LeaveHistory = () => {
         components={
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
-              onPress={() => setOnCalendet(true)}
+              onPress={() => setOnCalendar(true)}
               className="bg-[#F5F5F5] rounded-full p-2"
             >
               <Ionicons name="calendar-outline" size={22} color="#111111" />
@@ -255,9 +255,10 @@ const LeaveHistory = () => {
           <SickLeaveCard item={item} selectedCategory={selectedCategory} />
         )}
       />
+
       <UserCalendarScheduleModal
-        visible={onCalender}
-        onClose={() => setOnCalendet(false)}
+        visible={onCalendar}
+        onClose={() => setOnCalendar(false)}
       />
     </SafeAreaView>
   );

@@ -261,8 +261,15 @@ const ShiftDetails = () => {
                 />
               }
               title="Overwork"
-              // onPress={() => router.push("/(user)/schreen/schedule/shift/overtime")}
-              onPress={() => router.push("/screens/schedule/shift/overtime")}
+              onPress={() =>
+                router.push({
+                  pathname: "/screens/schedule/shift/request-overtime",
+                  params: {
+                    shiftAssignmentId: shiftId || details?.id,
+                    employmentId: details?.employmentId,
+                  },
+                })
+              }
             />
 
             <ActionIconCard

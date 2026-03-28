@@ -1,11 +1,19 @@
 import { Entypo, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const NotificationModal = ({ visible, onClose }: any) => {
+type NotificationModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  onMarkAllAsRead?: () => Promise<void>;
+};
+
+const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationModalProps) => {
+  const [markingAllRead, setMarkingAllRead] = useState(false);
+
   const handleDone = () => {
     onClose(); // Close the modal
   };
@@ -13,6 +21,17 @@ const NotificationModal = ({ visible, onClose }: any) => {
   const handlePreferences = () => {
     router.push("/screens/notifications/preferences");
     onClose(); // Close the modal
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (!onMarkAllAsRead || markingAllRead) return;
+    try {
+      setMarkingAllRead(true);
+      await onMarkAllAsRead();
+      onClose();
+    } finally {
+      setMarkingAllRead(false);
+    }
   };
 
   return (
@@ -42,7 +61,11 @@ const NotificationModal = ({ visible, onClose }: any) => {
               </Text>
             </View>
             <View>
-              <TouchableOpacity className="flex-row gap-2.5 items-center mb-6">
+              <TouchableOpacity
+                onPress={handleMarkAllAsRead}
+                disabled={markingAllRead}
+                className={`flex-row gap-2.5 items-center mb-6 ${markingAllRead ? "opacity-60" : ""}`}
+              >
                 <MaterialCommunityIcons
                   name="check-circle"
                   size={24}
@@ -50,7 +73,7 @@ const NotificationModal = ({ visible, onClose }: any) => {
                 />
 
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Mark all as read
+                  {markingAllRead ? "Marking..." : "Mark all as read"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

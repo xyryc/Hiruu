@@ -79,7 +79,7 @@ interface BusinessState {
   createCompanyManual: (companyData: any) => Promise<any>;
   createBusinessProfile: (payload: any) => Promise<any>;
   generateBusinessCode: (businessId: string) => Promise<any>;
-  joinBusiness: (businessId: string | undefined, invitationCode: string) => Promise<any>;
+  joinBusiness: (invitationCode: string) => Promise<any>;
   resetBusinessSession: () => void;
   clearError: () => void;
 }
@@ -1051,14 +1051,12 @@ export const useBusinessStore = create<BusinessState>()(
     }
   },
 
-  joinBusiness: async (businessId, invitationCode) => {
+  joinBusiness: async (invitationCode) => {
     try {
       set({ isJoiningBusiness: true, error: null });
-      const payload: Record<string, string> = { invitationCode };
-      if (businessId && businessId.trim().length > 0) {
-        payload.businessId = businessId;
-      }
-      const response = await axiosInstance.post("/employment/join", payload);
+      const response = await axiosInstance.post("/employment/join", {
+        invitationCode,
+      });
 
       const result = response.data;
 

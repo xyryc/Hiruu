@@ -123,14 +123,13 @@ const QrScanner = () => {
     try {
       const url = new URL(data);
 
-      const businessId = url.searchParams.get("businessid");
       const invitationCode = url.searchParams.get("inviteCode");
 
       if (!invitationCode) {
         throw new Error("Invalid QR code");
       }
 
-      return { businessId: businessId || undefined, invitationCode };
+      return { invitationCode };
     } catch {
       return null;
     }
@@ -277,7 +276,7 @@ const QrScanner = () => {
                     return;
                   }
                   try {
-                    await joinBusiness(parsed.businessId, parsed.invitationCode);
+                    await joinBusiness(parsed.invitationCode);
 
                     toast.success("You joined the business successfully!");
                     resetScanner();

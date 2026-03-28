@@ -1,5 +1,8 @@
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { walletService } from "@/services/walletService";
+import { useAchievementStore } from "@/stores/achievementStore";
+import { usePreferencesStore } from "@/stores/preferencesStore";
+import { formatCountdownFromSeconds } from "@/utils/date";
 import {
   FontAwesome,
   FontAwesome6,
@@ -8,14 +11,16 @@ import {
   MaterialIcons,
   Octicons,
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useMemo, useState } from "react";
+import { DateTime } from "luxon";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -26,6 +31,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const UserRewards = () => {
   const screenWidth = Dimensions.get("window").width;
   const [totalTokens, setTotalTokens] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const getBoard = useAchievementStore((state) => state.getBoard);
+  const recentAchievement = useAchievementStore(
+    (state) => state.board?.recentAchievement || null
+  );
+  const standardChallenges = useAchievementStore(
+    (state) => state.board?.standardChallenges || []
+  );
+  const timezone = usePreferencesStore((state) => state.timezone);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const loadWallet = useCallback(async () => {
     try {
@@ -40,43 +55,148 @@ const UserRewards = () => {
   useFocusEffect(
     useCallback(() => {
       loadWallet();
-    }, [loadWallet])
+      getBoard().catch(() => undefined);
+    }, [getBoard, loadWallet])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadWallet(), getBoard()]);
+    } catch {
+      // no-op: existing UI already handles fallback values
+    } finally {
+      setRefreshing(false);
+    }
+  }, [getBoard, loadWallet]);
 
   const totalTokensLabel = useMemo(
     () => new Intl.NumberFormat("en-US").format(totalTokens),
     [totalTokens]
   );
 
-  const cardData = [
-    {
-      coin: "05",
-      text1: "Complate",
-      text2: "Profile",
-      imageSource: require("@/assets/images/reward/complate-profile.svg"),
-      border: "#3EBF5A",
-      back: "#ECF9EF",
-      route: "/(setup)/user-setup/progress",
-    },
-    {
-      coin: 20,
-      text1: "Refer A",
-      text2: "Friend",
-      imageSource: require("@/assets/images/reward/refer-friend.svg"),
-      border: "#F3934F",
-      back: "#FEEFE5",
-      route: "screens/profile/settings/refer",
-    },
-    {
-      coin: 30,
-      text1: "Refer A",
-      text2: "Business",
-      imageSource: require("@/assets/images/reward/refer-business.svg"),
-      border: "#788CFF",
-      back: "#788CFF10",
-      route: "screens/profile/settings/refer",
-    },
-  ];
+  const recentAchievementTitle = useMemo(
+    () => recentAchievement?.title?.trim() || "You've Completed 3 Shifts In A Row!",
+    [recentAchievement?.title]
+  );
+
+  const recentAchievementProgress = useMemo(() => {
+    const progress = Number(recentAchievement?.userProgress?.progress || 0);
+    return Number.isFinite(progress) ? progress : 0;
+  }, [recentAchievement?.userProgress?.progress]);
+
+  const recentAchievementTarget = useMemo(() => {
+    const target = Number(recentAchievement?.target || 0);
+    return Number.isFinite(target) && target > 0 ? target : 5;
+  }, [recentAchievement?.target]);
+
+  const recentAchievementRewardTokens = useMemo(() => {
+    const tokens = Number(recentAchievement?.rewardTokens || 0);
+    return Number.isFinite(tokens) ? tokens : 20;
+  }, [recentAchievement?.rewardTokens]);
+
+  const recentAchievementProgressLabel = useMemo(() => {
+    if (recentAchievement?.description?.trim()) {
+      return recentAchievement.description.trim();
+    }
+
+    return `Completed: ${recentAchievementProgress}/${recentAchievementTarget}`;
+  }, [
+    recentAchievement?.description,
+    recentAchievementProgress,
+    recentAchievementTarget,
+  ]);
+
+  const recentAchievementProgressPercent = useMemo(() => {
+    const target = recentAchievementTarget;
+    const calculatedPercent =
+      target > 0 ? (recentAchievementProgress / target) * 100 : 0;
+    const apiPercent = Number(recentAchievement?.userProgress?.progressPercent ?? NaN);
+    const value = Number.isFinite(apiPercent)
+      ? apiPercent
+      : Number.isFinite(calculatedPercent)
+        ? calculatedPercent
+        : 0;
+
+    return Math.max(0, Math.min(100, value));
+  }, [
+    recentAchievement?.userProgress?.progressPercent,
+    recentAchievementProgress,
+    recentAchievementTarget,
+  ]);
+
+  const recentAchievementProgressColor = useMemo(() => {
+    if (recentAchievementProgressPercent < 10) return "#F9B8A6";
+    if (recentAchievementProgressPercent < 20) return "#F7A58E";
+    if (recentAchievementProgressPercent < 35) return "#EFDDA0";
+    if (recentAchievementProgressPercent < 50) return "#E9D68A";
+    if (recentAchievementProgressPercent < 65) return "#CFE09A";
+    if (recentAchievementProgressPercent < 80) return "#BFD98C";
+    if (recentAchievementProgressPercent < 90) return "#ACD88F";
+    return "#9EDF91";
+  }, [recentAchievementProgressPercent]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  const remainingTimeLabel = useMemo(() => {
+    const periodStartRaw = recentAchievement?.userProgress?.periodStart;
+    const periodEndRaw = recentAchievement?.userProgress?.periodEnd;
+
+    if (!periodStartRaw || !periodEndRaw) {
+      return "00:00:00";
+    }
+
+    const zone = timezone || "UTC";
+    const now = DateTime.fromMillis(nowMs, { zone });
+    const periodStart = DateTime.fromISO(periodStartRaw, { zone: "utc" }).setZone(zone);
+    const periodEnd = DateTime.fromISO(periodEndRaw, { zone: "utc" }).setZone(zone);
+
+    if (!now.isValid || !periodStart.isValid || !periodEnd.isValid) {
+      return "00:00:00";
+    }
+
+    const effectiveNow = now < periodStart ? periodStart : now;
+    const secondsLeft = Math.max(
+      0,
+      Math.floor(periodEnd.diff(effectiveNow, "seconds").seconds)
+    );
+
+    return formatCountdownFromSeconds(secondsLeft);
+  }, [
+    nowMs,
+    recentAchievement?.userProgress?.periodEnd,
+    recentAchievement?.userProgress?.periodStart,
+    timezone,
+  ]);
+
+  const fallbackChallengeImage = require("@/assets/images/reward/giftbox.svg");
+  const challengeCardStyleCycle = [
+    { border: "#3EBF5A", back: "#ECF9EF" },
+    { border: "#F3934F", back: "#FEEFE5" },
+    { border: "#788CFF", back: "#788CFF10" },
+  ] as const;
+
+  const toTwoLineTitle = useCallback((title?: string | null) => {
+    const words = String(title || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (!words.length) return { line1: "Challenge", line2: "" };
+    if (words.length === 1) return { line1: words[0], line2: "" };
+    return {
+      line1: words.slice(0, Math.ceil(words.length / 2)).join(" "),
+      line2: words.slice(Math.ceil(words.length / 2)).join(" "),
+    };
+  }, []);
 
   return (
     <SafeAreaView
@@ -93,13 +213,18 @@ const UserRewards = () => {
         <ScrollView
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#4FB2F3"
+            />
+          }
           contentContainerStyle={{
             paddingBottom: 40,
           }}
         >
           <View className="mx-5">
-
-
             <TouchableOpacity
               onPress={() => router.push("/screens/rewards/token-activity")}
               className="w-10 h-10 items-center justify-center bg-[#ffffff] rounded-full absolute top-2.5 right-0"
@@ -141,13 +266,13 @@ const UserRewards = () => {
 
             <View className="bg-[#4FB2F3] p-4 rounded-2xl mt-8">
               <Text className="font-proximanova-semibold text-lg text-[#FFFFFF]">
-                You've Completed 3 Shifts In A Row!
+                {recentAchievementTitle}
               </Text>
 
               <View className="flex-row gap-2 mt-3">
                 <View>
                   <Image
-                    source={require("@/assets/images/reward/reward-complite-spark.svg")}
+                    source={require("@/assets/images/reward/reward-complete-spark.svg")}
                     contentFit="contain"
                     style={{ width: 44, height: 44 }}
                   />
@@ -155,46 +280,57 @@ const UserRewards = () => {
                 <View className="flex-1">
                   <View className="flex-row justify-between">
                     <Text className="font-proximanova-regular text-sm text-[#ffffff]">
-                      <Text className="text-[#ffffff]/70">Completed:</Text> 3/5
-                      Shifts
+                      <Text className="text-[#ffffff]/70">
+                        {recentAchievementProgressLabel}
+                      </Text>
                     </Text>
                     <Text className="font-proximanova-semibold text-sm text-[#ffffff]">
-                      20 Tokens
+                      {recentAchievementRewardTokens} Tokens
                     </Text>
                   </View>
 
-                  <Image
-                    source={require("@/assets/images/reward/reward-complite-slider.svg")}
-                    contentFit="fill"
-                    style={{ height: 24, width: "100%" }}
-                  />
+                  <View className="h-6 w-full justify-center">
+                    <View
+                      className="w-full bg-white/35 overflow-hidden"
+                      style={{ height: 16, borderRadius: 10 }}
+                    >
+                      <View
+                        className="h-full"
+                        style={{
+                          width: `${recentAchievementProgressPercent}%`,
+                          backgroundColor: recentAchievementProgressColor,
+                          borderRadius: 10,
+                        }}
+                      />
+                    </View>
+                  </View>
                 </View>
               </View>
             </View>
 
-            <View>
+            <View className="items-center">
               <Image
                 source={require("@/assets/images/shift-ongoing-bg.svg")}
                 contentFit="contain"
                 style={{ height: 34, width: 250, marginHorizontal: "auto" }}
               />
-              <View className="flex-row items-center justify-center">
-                <Text className="text-center -top-8 font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                  Your Time Remaining:{" "}
+
+              <View className="flex-row items-center justify-center -mt-8 gap-1">
+                <Text className="text-center font-proximanova-regular text-sm text-primary dark:text-dark-primary">
+                  Your Time Remaining:
                 </Text>
+
                 <Image
                   source={require("@/assets/images/reward/timer.svg")}
                   contentFit="contain"
                   style={{
-                    height: 20,
-                    width: 20,
-                    marginVertical: "auto",
-                    top: -26,
+                    height: 18,
+                    width: 18,
                   }}
                 />
-                <Text className="text-center -top-7 font-proximanova-bold text-[#F3934F]">
-                  {" "}
-                  00:59:21
+
+                <Text className="text-center font-proximanova-bold text-[#F3934F]">
+                  {remainingTimeLabel}
                 </Text>
               </View>
             </View>
@@ -220,34 +356,42 @@ const UserRewards = () => {
               className="mt-4"
               showsHorizontalScrollIndicator={false}
             >
-              {cardData.map((card, index) => (
+              {standardChallenges.map((challenge, index) => {
+                const cardStyle =
+                  challengeCardStyleCycle[index % challengeCardStyleCycle.length];
+                const titleLines = toTwoLineTitle(challenge?.title);
+                const rewardTokens = Number(challenge?.rewardTokens || 0);
+                const challengeImageSource =
+                  typeof challenge?.icon === "string" && challenge.icon.trim()
+                    ? { uri: challenge.icon.trim() }
+                    : fallbackChallengeImage;
+                return (
                 <TouchableOpacity
-                  key={index}
+                  key={challenge?.id || String(index)}
                   style={{
                     width: screenWidth * 0.3,
                   }}
                   className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
-                  //@ts-ignore
-                  onPress={() => router.push(card.route)}
+                  onPress={() => router.push("/screens/rewards/challenges")}
                 >
                   <View
                     className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl"
                     style={{
-                      backgroundColor: card.back,
-                      borderColor: card.border,
+                      backgroundColor: cardStyle.back,
+                      borderColor: cardStyle.border,
                     }}
                   >
                     <Image
-                      source={card.imageSource}
+                      source={challengeImageSource}
                       contentFit="contain"
                       style={{ height: 57, width: 59 }}
                     />
                   </View>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-2.5 text-center ">
-                    {card.text1}
+                    {titleLines.line1}
                   </Text>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center ">
-                    {card.text2}
+                    {titleLines.line2}
                   </Text>
 
                   <View className="flex-row justify-between items-center"></View>
@@ -264,7 +408,7 @@ const UserRewards = () => {
                     <View className="px-2.5 py-0.5 bg-[#DDF1FF]  -ml-2.5 -z-10 rounded-r-[40px]">
                       {/*bg-[#DDF1FF]*/}
                       <Text className="text-xs font-proximanova-semibold">
-                        {card.coin}
+                        {rewardTokens}
                       </Text>
                     </View>
                     <FontAwesome6
@@ -275,7 +419,8 @@ const UserRewards = () => {
                     />
                   </View>
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </ScrollView>
 
             {/* redeem rewards */}

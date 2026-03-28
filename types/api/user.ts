@@ -55,8 +55,34 @@ export interface UpdatePreferencesData {
   language?: string;
   timeZone?: string;
   theme?: string;
-  smartAlert: boolean;
-  smartAlertTime: number;
+  smartAlert?: boolean;
+  smartAlertTime?: number;
+  notification?: {
+    enableAll: boolean;
+    general: {
+      enabled: boolean;
+      shiftReminders: boolean;
+      scheduleUpdates: boolean;
+      newAssigned: boolean;
+      shiftCancellation: boolean;
+      managerMessages: boolean;
+    };
+    email: {
+      enabled: boolean;
+      dailyWeeklyReports: boolean;
+      subscriptionPaymentUpdates: boolean;
+      leaveRequestStatus: boolean;
+      shiftCancellation: boolean;
+      importantAnnouncements: boolean;
+    };
+    push: {
+      enabled: boolean;
+      newMessageAlerts: boolean;
+      ratingReviewReceived: boolean;
+      newJobOpportunities: boolean;
+      appUpdatesTips: boolean;
+    };
+  };
 }
 
 export interface AppSettingsData {
@@ -67,6 +93,32 @@ export interface AppSettingsData {
   theme?: string;
   smartAlert?: boolean;
   smartAlertTime?: number;
+  notification?: {
+    enableAll?: boolean;
+    general?: {
+      enabled?: boolean;
+      shiftReminders?: boolean;
+      scheduleUpdates?: boolean;
+      newAssigned?: boolean;
+      shiftCancellation?: boolean;
+      managerMessages?: boolean;
+    };
+    email?: {
+      enabled?: boolean;
+      dailyWeeklyReports?: boolean;
+      subscriptionPaymentUpdates?: boolean;
+      leaveRequestStatus?: boolean;
+      shiftCancellation?: boolean;
+      importantAnnouncements?: boolean;
+    };
+    push?: {
+      enabled?: boolean;
+      newMessageAlerts?: boolean;
+      ratingReviewReceived?: boolean;
+      newJobOpportunities?: boolean;
+      appUpdatesTips?: boolean;
+    };
+  };
   createdAt?: string;
   updatedAt?: string;
 }

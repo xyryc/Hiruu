@@ -1,63 +1,284 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import NotificationPreferencesInput from "@/components/ui/dropdown/NotificationPreferencesInput";
+import { useAuthStore } from "@/stores/authStore";
+import { useProfileStore } from "@/stores/profileStore";
+import { EmailSettings, GeneralSettings, PushSettings } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const defaultGeneral: GeneralSettings = {
+  shiftReminders: true,
+  scheduleUpdates: true,
+  newAssigned: true,
+  shiftCancellation: true,
+  managerMessages: true,
+};
+
+const defaultEmail: EmailSettings = {
+  dailyWeeklyReports: true,
+  subscriptionPaymentUpdates: true,
+  leaveRequestStatus: true,
+  shiftCancellation: true,
+  importantAnnouncements: true,
+};
+
+const defaultPush: PushSettings = {
+  newMessageAlerts: true,
+  ratingReviewReceived: true,
+  newJobOpportunities: true,
+  appUpdatesTips: true,
+};
+
+const allTrue = (record: Record<string, boolean>) =>
+  Object.values(record).every(Boolean);
+
+const anyTrue = (record: Record<string, boolean>) =>
+  Object.values(record).some(Boolean);
+
+const setAllValues = <T extends Record<string, boolean>>(input: T, value: boolean): T =>
+  Object.keys(input).reduce((acc, key) => {
+    (acc as Record<string, boolean>)[key] = value;
+    return acc;
+  }, { ...input });
 
 const NotificationPreferences = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [isAll, setIsAll] = React.useState(false);
-  const [isGeneral, setIsGeneral] = React.useState(false);
-  const [isEmail, setIsEmail] = React.useState(false);
-  const [isPush, setIsPush] = React.useState(false);
+  const user = useAuthStore((state) => state.user as any);
+  const updatePreferences = useProfileStore((state) => state.updatePreferences);
 
-  const [general, setGeneral] = useState({
-    shiftReminders: true,
-    scheduleUpdates: false,
-    newAssigned: false,
-    shiftCancellation: false,
-    managerMessages: false,
-  });
-  const [email, setEmail] = useState({
-    DailyWeeklyReports: true,
-    SubscriptionPaymentUpdates: false,
-    LeaveRequestsStatus: false,
-    ShiftCancellation: false,
-    ImportantAnnouncements: false,
-  });
-  const [push, setPush] = useState({
-    AppUpdatesTips: true,
-    NewJobOpportunities: false,
-    RatingreviewReceived: false,
-    NewMessageAlerts: false,
-    ImportantAnnouncements: false,
-  });
+  const [isAll, setIsAll] = useState(false);
+  const [isGeneral, setIsGeneral] = useState(false);
+  const [isEmail, setIsEmail] = useState(false);
+  const [isPush, setIsPush] = useState(false);
+  const [general, setGeneral] = useState<GeneralSettings>(defaultGeneral);
+  const [email, setEmail] = useState<EmailSettings>(defaultEmail);
+  const [push, setPush] = useState<PushSettings>(defaultPush);
 
-  type GeneralKeys = keyof typeof general;
-  type EmailKeys = keyof typeof email;
-  type PushKeys = keyof typeof push;
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSyncedPayloadRef = useRef<string | null>(null);
+
+  const notificationPayload = useMemo(
+    () => ({
+      enableAll: isAll,
+      general: {
+        enabled: isGeneral,
+        ...general,
+      },
+      email: {
+        enabled: isEmail,
+        ...email,
+      },
+      push: {
+        enabled: isPush,
+        ...push,
+      },
+    }),
+    [email, general, isAll, isEmail, isGeneral, isPush, push]
+  );
+
+  useEffect(() => {
+    const notification = user?.appSettings?.notification || {};
+    const generalFromApi: GeneralSettings = {
+      shiftReminders: Boolean(
+        notification?.general?.shiftReminders ?? defaultGeneral.shiftReminders
+      ),
+      scheduleUpdates: Boolean(
+        notification?.general?.scheduleUpdates ?? defaultGeneral.scheduleUpdates
+      ),
+      newAssigned: Boolean(
+        notification?.general?.newAssigned ?? defaultGeneral.newAssigned
+      ),
+      shiftCancellation: Boolean(
+        notification?.general?.shiftCancellation ?? defaultGeneral.shiftCancellation
+      ),
+      managerMessages: Boolean(
+        notification?.general?.managerMessages ?? defaultGeneral.managerMessages
+      ),
+    };
+
+    const emailFromApi: EmailSettings = {
+      dailyWeeklyReports: Boolean(
+        notification?.email?.dailyWeeklyReports ?? defaultEmail.dailyWeeklyReports
+      ),
+      subscriptionPaymentUpdates: Boolean(
+        notification?.email?.subscriptionPaymentUpdates ??
+          defaultEmail.subscriptionPaymentUpdates
+      ),
+      leaveRequestStatus: Boolean(
+        notification?.email?.leaveRequestStatus ?? defaultEmail.leaveRequestStatus
+      ),
+      shiftCancellation: Boolean(
+        notification?.email?.shiftCancellation ?? defaultEmail.shiftCancellation
+      ),
+      importantAnnouncements: Boolean(
+        notification?.email?.importantAnnouncements ??
+          defaultEmail.importantAnnouncements
+      ),
+    };
+
+    const pushFromApi: PushSettings = {
+      newMessageAlerts: Boolean(
+        notification?.push?.newMessageAlerts ?? defaultPush.newMessageAlerts
+      ),
+      ratingReviewReceived: Boolean(
+        notification?.push?.ratingReviewReceived ?? defaultPush.ratingReviewReceived
+      ),
+      newJobOpportunities: Boolean(
+        notification?.push?.newJobOpportunities ?? defaultPush.newJobOpportunities
+      ),
+      appUpdatesTips: Boolean(
+        notification?.push?.appUpdatesTips ?? defaultPush.appUpdatesTips
+      ),
+    };
+
+    const generalEnabled = Boolean(
+      notification?.general?.enabled ?? anyTrue(generalFromApi)
+    );
+    const emailEnabled = Boolean(
+      notification?.email?.enabled ?? anyTrue(emailFromApi)
+    );
+    const pushEnabled = Boolean(
+      notification?.push?.enabled ?? anyTrue(pushFromApi)
+    );
+    const allEnabled = Boolean(
+      notification?.enableAll ??
+        (generalEnabled && emailEnabled && pushEnabled)
+    );
+
+    setGeneral(generalFromApi);
+    setEmail(emailFromApi);
+    setPush(pushFromApi);
+    setIsGeneral(generalEnabled);
+    setIsEmail(emailEnabled);
+    setIsPush(pushEnabled);
+    setIsAll(allEnabled);
+
+    const initialPayload = {
+      language: String(user?.appSettings?.language || "en"),
+      timeZone: String(user?.appSettings?.timeZone || "UTC"),
+      theme: String(user?.appSettings?.theme || "light"),
+      smartAlert: Boolean(user?.appSettings?.smartAlert),
+      smartAlertTime: Number(user?.appSettings?.smartAlertTime ?? 30),
+      notification: {
+        enableAll: allEnabled,
+        general: { enabled: generalEnabled, ...generalFromApi },
+        email: { enabled: emailEnabled, ...emailFromApi },
+        push: { enabled: pushEnabled, ...pushFromApi },
+      },
+    };
+    lastSyncedPayloadRef.current = JSON.stringify(initialPayload);
+  }, [user?.appSettings]);
+
+  useEffect(() => {
+    const payload = {
+      language: String(user?.appSettings?.language || "en"),
+      timeZone: String(user?.appSettings?.timeZone || "UTC"),
+      theme: String(user?.appSettings?.theme || "light"),
+      smartAlert: Boolean(user?.appSettings?.smartAlert),
+      smartAlertTime: Number(user?.appSettings?.smartAlertTime ?? 30),
+      notification: notificationPayload,
+    };
+
+    const serializedPayload = JSON.stringify(payload);
+    if (lastSyncedPayloadRef.current === serializedPayload) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await updatePreferences(payload);
+        lastSyncedPayloadRef.current = serializedPayload;
+      } catch (error: any) {
+        toast.error(
+          translateApiMessage(error?.message || "Failed to update preferences")
+        );
+      }
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [
+    notificationPayload,
+    updatePreferences,
+    user?.appSettings?.language,
+    user?.appSettings?.smartAlert,
+    user?.appSettings?.smartAlertTime,
+    user?.appSettings?.theme,
+    user?.appSettings?.timeZone,
+  ]);
+
+  type GeneralKeys = keyof GeneralSettings;
+  type EmailKeys = keyof EmailSettings;
+  type PushKeys = keyof PushSettings;
 
   const toggleGeneral = (key: GeneralKeys) => {
-    setGeneral((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setGeneral((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      const generalEnabled = anyTrue(next);
+      setIsGeneral(generalEnabled);
+      setIsAll(generalEnabled && isEmail && isPush);
+      return next;
+    });
   };
+
   const toggleEmail = (key: EmailKeys) => {
-    setEmail((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setEmail((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      const emailEnabled = anyTrue(next);
+      setIsEmail(emailEnabled);
+      setIsAll(isGeneral && emailEnabled && isPush);
+      return next;
+    });
   };
+
   const togglePush = (key: PushKeys) => {
-    setPush((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setPush((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      const pushEnabled = anyTrue(next);
+      setIsPush(pushEnabled);
+      setIsAll(isGeneral && isEmail && pushEnabled);
+      return next;
+    });
+  };
+
+  const handleToggleAll = (next: boolean) => {
+    setIsAll(next);
+    setIsGeneral(next);
+    setIsEmail(next);
+    setIsPush(next);
+    setGeneral((prev) => setAllValues(prev, next));
+    setEmail((prev) => setAllValues(prev, next));
+    setPush((prev) => setAllValues(prev, next));
+  };
+
+  const handleToggleGeneralBlock = (next: boolean) => {
+    setIsGeneral(next);
+    setGeneral((prev) => setAllValues(prev, next));
+    setIsAll(next && isEmail && isPush);
+  };
+
+  const handleToggleEmailBlock = (next: boolean) => {
+    setIsEmail(next);
+    setEmail((prev) => setAllValues(prev, next));
+    setIsAll(isGeneral && next && isPush);
+  };
+
+  const handleTogglePushBlock = (next: boolean) => {
+    setIsPush(next);
+    setPush((prev) => setAllValues(prev, next));
+    setIsAll(isGeneral && isEmail && next);
   };
 
   const generalConfig: { key: GeneralKeys; label: string }[] = [
@@ -67,25 +288,20 @@ const NotificationPreferences = () => {
     { key: "shiftCancellation", label: "Shift Cancellation" },
     { key: "managerMessages", label: "Manager Messages" },
   ];
+
   const emailConfig: { key: EmailKeys; label: string }[] = [
-    { key: "DailyWeeklyReports", label: "Daily/Weekly Reports" },
-    {
-      key: "SubscriptionPaymentUpdates",
-      label: "Subscription Payment Updates",
-    },
-    { key: "LeaveRequestsStatus", label: "Leave Requests Status" },
-    { key: "ShiftCancellation", label: "Shift Cancellation" },
-    { key: "ImportantAnnouncements", label: "Important Announcements" },
+    { key: "dailyWeeklyReports", label: "Daily/Weekly Reports" },
+    { key: "subscriptionPaymentUpdates", label: "Subscription Payment Updates" },
+    { key: "leaveRequestStatus", label: "Leave Request Status" },
+    { key: "shiftCancellation", label: "Shift Cancellation" },
+    { key: "importantAnnouncements", label: "Important Announcements" },
   ];
+
   const pushConfig: { key: PushKeys; label: string }[] = [
-    { key: "AppUpdatesTips", label: "App Updates / Tips" },
-    {
-      key: "NewJobOpportunities",
-      label: "New Job Opportunities",
-    },
-    { key: "RatingreviewReceived", label: "Rating/review Received" },
-    { key: "NewMessageAlerts", label: "App Updates / Tips" },
-    { key: "ImportantAnnouncements", label: "Important Announcements" },
+    { key: "newMessageAlerts", label: "New Message Alerts" },
+    { key: "ratingReviewReceived", label: "Rating/Review Received" },
+    { key: "newJobOpportunities", label: "New Job Opportunities" },
+    { key: "appUpdatesTips", label: "App Updates / Tips" },
   ];
 
   return (
@@ -102,12 +318,13 @@ const NotificationPreferences = () => {
           iconColor={isDark ? "#fff" : "#111"}
         />
       </View>
+
       <ScrollView showsVerticalScrollIndicator={false} className="px-5">
         <View className="flex-row justify-between items-center mt-7">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
             Enable All Notification
           </Text>
-          <ToggleButton setIsOn={setIsAll} isOn={isAll} />
+          <ToggleButton setIsOn={handleToggleAll} isOn={isAll} />
         </View>
 
         <NotificationPreferencesInput
@@ -116,7 +333,7 @@ const NotificationPreferences = () => {
           settings={general}
           toggleSetting={toggleGeneral}
           isToggle={isGeneral}
-          setIsToggle={setIsGeneral}
+          setIsToggle={handleToggleGeneralBlock}
         />
 
         <NotificationPreferencesInput
@@ -125,7 +342,7 @@ const NotificationPreferences = () => {
           settings={email}
           toggleSetting={toggleEmail}
           isToggle={isEmail}
-          setIsToggle={setIsEmail}
+          setIsToggle={handleToggleEmailBlock}
         />
 
         <NotificationPreferencesInput
@@ -134,7 +351,7 @@ const NotificationPreferences = () => {
           settings={push}
           toggleSetting={togglePush}
           isToggle={isPush}
-          setIsToggle={setIsPush}
+          setIsToggle={handleTogglePushBlock}
         />
       </ScrollView>
     </SafeAreaView>
@@ -142,4 +359,3 @@ const NotificationPreferences = () => {
 };
 
 export default NotificationPreferences;
-

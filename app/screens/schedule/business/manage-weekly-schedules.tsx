@@ -1,7 +1,9 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import WeeklyBlockActionsModal from "@/components/ui/modals/WeeklyBlockActionsModal";
 import { useBusinessStore } from "@/stores/businessStore";
+import { CalendarMarkedDates, WeeklyScheduleBlockItem } from "@/types";
 import { formatDate as formatDisplayDate } from "@/utils/date";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -10,19 +12,6 @@ import { ScrollView, Text, View } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-
-type MarkedDates = Record<
-  string,
-  {
-    startingDay?: boolean;
-    endingDay?: boolean;
-    color?: string;
-    textColor?: string;
-    selected?: boolean;
-    selectedColor?: string;
-    selectedTextColor?: string;
-  }
->;
 
 const formatYmdDate = (date: Date) => {
   const year = date.getFullYear();
@@ -56,15 +45,10 @@ const ManageWeeklySchedules = () => {
 
   const [showBlockActions, setShowBlockActions] = useState(false);
   const [isDeletingBlock, setIsDeletingBlock] = useState(false);
-  const [existingBlocks, setExistingBlocks] = useState<
-    Array<{ id: string; startDate: string; endDate: string; name?: string }>
-  >([]);
-  const [selectedBlock, setSelectedBlock] = useState<{
-    id: string;
-    startDate: string;
-    endDate: string;
-    name?: string;
-  } | null>(null);
+  const [existingBlocks, setExistingBlocks] = useState<WeeklyScheduleBlockItem[]>([]);
+  const [selectedBlock, setSelectedBlock] = useState<WeeklyScheduleBlockItem | null>(
+    null
+  );
 
   const businessId = selectedBusinesses[0];
 
@@ -99,7 +83,7 @@ const ManageWeeklySchedules = () => {
   }, [businessId, getWeeklyScheduleBlocks]);
 
   const markedDates = useMemo(() => {
-    const marks: MarkedDates = {};
+    const marks: CalendarMarkedDates = {};
 
     existingBlocks.forEach((block) => {
       const start = toDate(isoToYmd(block.startDate));
@@ -204,11 +188,24 @@ const ManageWeeklySchedules = () => {
 
       <ScrollView className="mx-5 pt-4" showsVerticalScrollIndicator={false}>
         <View className="border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-4">
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-            {selectedBusiness?.name
-              ? `Business Name: ${selectedBusiness.name}`
-              : "No business selected"}
-          </Text>
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 rounded-full overflow-hidden bg-[#E5F4FD] dark:bg-dark-border items-center justify-center">
+              {selectedBusiness?.logo ? (
+                <Image
+                  source={selectedBusiness.logo}
+                  contentFit="cover"
+                  style={{ width: 40, height: 40 }}
+                />
+              ) : (
+                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {selectedBusiness?.name?.slice(0, 1)?.toUpperCase() || "B"}
+                </Text>
+              )}
+            </View>
+            <Text className="flex-1 font-proximanova-semibold text-primary dark:text-dark-primary">
+              {selectedBusiness?.name || "No business selected"}
+            </Text>
+          </View>
           <Text className="mt-3 font-proximanova-regular text-secondary dark:text-dark-secondary text-xs">
             Tap an occupied date range to update or delete its weekly block.
           </Text>

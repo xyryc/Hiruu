@@ -11,6 +11,40 @@ const STORAGE_KEYS = {
   PROFILE_COMPLETE: "profile_complete",
 };
 
+const CV_POLL_INTERVAL_MS = 5000;
+const CV_POLL_TIMEOUT_MS = 180000;
+
+let cvPollInterval: ReturnType<typeof setInterval> | null = null;
+let cvPollTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const clearCvPollers = () => {
+  if (cvPollInterval) {
+    clearInterval(cvPollInterval);
+    cvPollInterval = null;
+  }
+  if (cvPollTimeout) {
+    clearTimeout(cvPollTimeout);
+    cvPollTimeout = null;
+  }
+};
+
+export type CvLayoutStyle = "traditional" | "sidebar-left" | "sidebar-right";
+export type CvBuildStatus = "idle" | "pending" | "completed" | "cancelled" | "timeout" | "failed";
+
+export interface BuildCvPayload {
+  language: string;
+  templateStyle: string;
+  layout: CvLayoutStyle;
+  demo: false;
+}
+
+export interface CvBuildResult {
+  status: "pending" | "completed" | "cancelled";
+  preview?: string;
+  pdf?: string;
+  image?: string;
+}
+
 interface ProfileState {
   isLoading: boolean;
   isLoadingRatingSummary: boolean;
@@ -18,6 +52,10 @@ interface ProfileState {
   isSubmittingRating: boolean;
   error: Error | null;
   isProfileComplete: boolean;
+  isGeneratingCv: boolean;
+  isPollingCv: boolean;
+  cvBuildStatus: CvBuildStatus;
+  cvResult: CvBuildResult | null;
   analyticsSummary: {
     period?: {
       type?: string;
@@ -58,6 +96,10 @@ interface ProfileState {
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
+  startCvBuild: (payload: BuildCvPayload) => Promise<CvBuildResult | null>;
+  pollCvBuildStatus: () => Promise<CvBuildResult | null>;
+  cancelCvBuild: () => Promise<CvBuildResult | null>;
+  resetCvBuildState: () => void;
   getProfile: (forceRefresh?: boolean) => Promise<any>;
   getAnalyticsSummary: () => Promise<any>;
   getMyRatings: () => Promise<any>;
@@ -89,13 +131,17 @@ interface ProfileState {
   clearError: () => void;
 }
 
-export const useProfileStore = create<ProfileState>((set) => ({
+export const useProfileStore = create<ProfileState>((set, get) => ({
   isLoading: false,
   isLoadingRatingSummary: false,
   isLoadingAnalyticsSummary: false,
   isSubmittingRating: false,
   error: null,
   isProfileComplete: false,
+  isGeneratingCv: false,
+  isPollingCv: false,
+  cvBuildStatus: "idle",
+  cvResult: null,
   analyticsSummary: null,
   ratingsResponse: null,
   ratingSummary: null,
@@ -153,6 +199,195 @@ export const useProfileStore = create<ProfileState>((set) => ({
       set({ isLoading: false, error: finalError });
       throw finalError;
     }
+  },
+
+  startCvBuild: async (payload: BuildCvPayload) => {
+    clearCvPollers();
+    set({
+      isGeneratingCv: true,
+      isPollingCv: false,
+      cvBuildStatus: "pending",
+      cvResult: null,
+      error: null,
+    });
+
+    try {
+      const response = await axiosInstance.post("/ai-engine/build-cv", payload);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to start CV generation");
+      }
+
+      const status = String(result?.data?.status || "pending").toLowerCase();
+      const normalizedStatus =
+        status === "completed"
+          ? "completed"
+          : status === "cancelled"
+            ? "cancelled"
+            : "pending";
+
+      const cvResult: CvBuildResult = {
+        status: normalizedStatus as CvBuildResult["status"],
+        preview: result?.data?.preview,
+        pdf: result?.data?.pdf,
+        image: result?.data?.image,
+      };
+
+      set({
+        isGeneratingCv: normalizedStatus === "pending",
+        cvBuildStatus: normalizedStatus as CvBuildStatus,
+        cvResult:
+          normalizedStatus === "completed" || normalizedStatus === "cancelled"
+            ? cvResult
+            : null,
+      });
+
+      return cvResult;
+    } catch (error) {
+      const finalError =
+        error instanceof Error ? error : new Error("Failed to start CV generation");
+      set({
+        isGeneratingCv: false,
+        isPollingCv: false,
+        cvBuildStatus: "failed",
+        error: finalError,
+      });
+      throw finalError;
+    }
+  },
+
+  pollCvBuildStatus: async (): Promise<CvBuildResult | null> => {
+    const currentState = get();
+    if (currentState.isPollingCv) {
+      return currentState.cvResult;
+    }
+
+    set({ isPollingCv: true, error: null });
+
+    return new Promise<CvBuildResult | null>((resolve, reject) => {
+      const finish = (nextState: Partial<ProfileState>, result?: CvBuildResult | null) => {
+        clearCvPollers();
+        set({
+          isPollingCv: false,
+          isGeneratingCv: false,
+          ...nextState,
+        });
+        resolve(result ?? null);
+      };
+
+      const fail = (error: Error) => {
+        clearCvPollers();
+        set({
+          isPollingCv: false,
+          isGeneratingCv: false,
+          cvBuildStatus: "failed",
+          error,
+        });
+        reject(error);
+      };
+
+      const checkStatus = async () => {
+        try {
+          const response = await axiosInstance.get("/ai-engine/build-cv");
+          const result = response?.data;
+
+          if (!result?.success) {
+            throw new Error(result?.message || "Failed to fetch CV status");
+          }
+
+          const status = String(result?.data?.status || "pending").toLowerCase();
+          const cvResult: CvBuildResult = {
+            status:
+              status === "completed"
+                ? "completed"
+                : status === "cancelled"
+                  ? "cancelled"
+                  : "pending",
+            preview: result?.data?.preview,
+            pdf: result?.data?.pdf,
+            image: result?.data?.image,
+          };
+
+          if (cvResult.status === "completed") {
+            finish({ cvBuildStatus: "completed", cvResult }, cvResult);
+            return;
+          }
+
+          if (cvResult.status === "cancelled") {
+            finish({ cvBuildStatus: "cancelled", cvResult }, cvResult);
+            return;
+          }
+
+          set({
+            cvBuildStatus: "pending",
+            cvResult: null,
+          });
+        } catch (error) {
+          const finalError =
+            error instanceof Error ? error : new Error("Failed to fetch CV status");
+          fail(finalError);
+        }
+      };
+
+      cvPollTimeout = setTimeout(() => {
+        clearCvPollers();
+        set({
+          isPollingCv: false,
+          isGeneratingCv: false,
+          cvBuildStatus: "timeout",
+        });
+        resolve(null);
+      }, CV_POLL_TIMEOUT_MS);
+
+      void checkStatus();
+      cvPollInterval = setInterval(() => {
+        void checkStatus();
+      }, CV_POLL_INTERVAL_MS);
+    });
+  },
+
+  cancelCvBuild: async () => {
+    clearCvPollers();
+    set({ isPollingCv: false, isGeneratingCv: false, error: null });
+
+    try {
+      const response = await axiosInstance.delete("/ai-engine/build-cv");
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to cancel CV generation");
+      }
+
+      const cvResult: CvBuildResult = {
+        status: "cancelled",
+      };
+
+      set({
+        cvBuildStatus: "cancelled",
+        cvResult,
+      });
+
+      return cvResult;
+    } catch (error) {
+      const finalError =
+        error instanceof Error ? error : new Error("Failed to cancel CV generation");
+      set({
+        cvBuildStatus: "failed",
+        error: finalError,
+      });
+      throw finalError;
+    }
+  },
+
+  resetCvBuildState: () => {
+    clearCvPollers();
+    set({
+      isGeneratingCv: false,
+      isPollingCv: false,
+      cvBuildStatus: "idle",
+      cvResult: null,
+    });
   },
 
   getProfile: async (forceRefresh = false) => {

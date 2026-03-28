@@ -2,7 +2,6 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import ShiftTemplateCard from "@/components/ui/cards/ShiftTemplateCard";
 import DeleteConfirmModal from "@/components/ui/modals/DeleteConfirmModal";
 import { useBusinessStore } from "@/stores/businessStore";
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -89,11 +88,6 @@ const SavedShiftTemplate = () => {
           title="Saved Shift template"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
-          components={
-            <TouchableOpacity onPress={() => router.push("/screens/schedule/business/create-template")} className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center">
-              <Ionicons name="documents-outline" size={18} color="black" />
-            </TouchableOpacity>
-          }
         />
 
         <ScrollView
@@ -127,10 +121,22 @@ const SavedShiftTemplate = () => {
               );
             })
           ) : (
-            <View className="py-10 items-center">
-              <Text className="text-sm text-secondary dark:text-dark-secondary">
-                No shift templates found.
+            <View className="py-10 items-center px-4">
+              <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary text-center">
+                You don&apos;t have any shift template yet
               </Text>
+              <Text className="mt-2 text-sm text-secondary dark:text-dark-secondary text-center">
+                Create your first one here.
+              </Text>
+              <TouchableOpacity
+                className="mt-5 bg-[#11293A] rounded-full px-5 py-2.5"
+                activeOpacity={0.85}
+                onPress={() => router.push("/screens/schedule/business/create-template")}
+              >
+                <Text className="font-proximanova-semibold text-sm text-white">
+                  Create Shift Template
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
