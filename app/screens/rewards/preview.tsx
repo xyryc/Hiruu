@@ -5,8 +5,8 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import { Linking, Text, View } from "react-native";
+import Pdf from "react-native-pdf";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WebView } from "react-native-webview";
 import { toast } from "sonner-native";
 
 const Preview = () => {
@@ -56,7 +56,11 @@ const Preview = () => {
       ) : (
         <View className="flex-1 px-5 pb-5">
           <View className="flex-1 overflow-hidden rounded-xl border border-[#EEEEEE]">
-            <WebView source={{ uri: previewUrl }} />
+            <Pdf
+              source={{ uri: previewUrl, cache: true }}
+              style={{ flex: 1, width: "100%" }}
+              onError={() => toast.error("Failed to load PDF preview")}
+            />
           </View>
         </View>
       )}
