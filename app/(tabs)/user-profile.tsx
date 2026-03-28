@@ -585,7 +585,11 @@ const Profile = () => {
 
         <GradientButton
           className="mx-5 mt-3"
-          title={isGeneratingCv || isPollingCv ? "Generating..." : "Generate CV With AI"}
+          title={
+            isGeneratingCv || isPollingCv
+              ? "Generating CV..."
+              : "Generate CV With AI"
+          }
           icon={
             <Ionicons
               name={isGeneratingCv || isPollingCv ? "time-outline" : "sparkles-outline"}
@@ -599,14 +603,11 @@ const Profile = () => {
 
         {cvBuildStatus === "pending" && (
           <View className="mx-5 mt-3">
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              CV generation is in progress...
-            </Text>
             <PrimaryButton
               title="Cancel"
               onPress={handleCancelCv}
               showIcon={false}
-              className="mt-2 bg-[#EF4444] rounded-xl py-3 px-4"
+              className="bg-[#EF4444] py-3 px-4"
             />
           </View>
         )}

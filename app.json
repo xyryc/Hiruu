@@ -6,8 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "notification": {
-      "icon": "./assets/images/icon.png",
-      "color": "#1F7AE0"
+      "icon": "./assets/images/icon.png"
     },
     "scheme": "hiruu",
     "userInterfaceStyle": "light",

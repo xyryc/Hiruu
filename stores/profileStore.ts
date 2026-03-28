@@ -12,7 +12,7 @@ const STORAGE_KEYS = {
 };
 
 const CV_POLL_INTERVAL_MS = 5000;
-const CV_POLL_TIMEOUT_MS = 80000;
+const CV_POLL_TIMEOUT_MS = 180000;
 
 let cvPollInterval: ReturnType<typeof setInterval> | null = null;
 let cvPollTimeout: ReturnType<typeof setTimeout> | null = null;

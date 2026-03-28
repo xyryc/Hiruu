@@ -1,16 +1,14 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
-import ActionCard from "@/components/ui/cards/ActionCard";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
 import LeaveRequestModal from "@/components/ui/modals/LeaveRequestModal";
 import SelectLeaveType, {
-  LEAVE_TYPE_OPTIONS,
   LeaveTypeValue,
 } from "@/components/ui/modals/SelectLeaveType";
 import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
-import { LeaveCreditItem, MyEmploymentItem } from "@/types";
+import { MyEmploymentItem } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -18,16 +16,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-
-const LEAVE_TYPE_TO_CREDIT_KEY: Record<LeaveTypeValue, keyof LeaveCreditItem> = {
-  sick: "sick_leave",
-  personal: "personal_leave",
-  workFromHome: "work_from_home",
-  emergency: "emergency_leave",
-  casual: "casual_leave",
-  unpaid: "unpaid_leave",
-  other: "other_leave",
-};
 
 const RequestLeave = () => {
   const { colorScheme } = useColorScheme();
@@ -44,14 +32,9 @@ const RequestLeave = () => {
   const myEmployments = useJobStore((state) => state.myEmployments);
   const myEmploymentsLoading = useJobStore((state) => state.myEmploymentsLoading);
   const getMyEmployments = useJobStore((state) => state.getMyEmployments);
-  const getMyLeaveCredits = useShiftStore((state) => state.getMyLeaveCredits);
   const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
   const createShiftRequestLoading = useShiftStore(
     (state) => state.createShiftRequestLoading
-  );
-  const leaveCreditsLoading = useShiftStore((state) => state.leaveCreditsLoading);
-  const leaveCredits = useShiftStore((state) =>
-    selectedBusiness ? state.leaveCreditsByBusiness[selectedBusiness] || null : null
   );
 
   useEffect(() => {
@@ -80,41 +63,6 @@ const RequestLeave = () => {
     [myEmployments]
   );
 
-  useEffect(() => {
-    const fetchLeaveCredits = async () => {
-      if (!selectedBusiness) {
-        return;
-      }
-
-      try {
-        const credits = await getMyLeaveCredits(selectedBusiness);
-        // console.log("[RequestLeave] leave credits:", credits);
-      } catch (error: any) {
-        toast.error(
-          translateApiMessage(
-            error?.message || "Failed to fetch leave credits"
-          )
-        );
-      }
-    };
-
-    fetchLeaveCredits();
-  }, [getMyLeaveCredits, selectedBusiness]);
-
-  const selectedLeaveTypeLabel = useMemo(
-    () =>
-      LEAVE_TYPE_OPTIONS.find((item) => item.value === selectedLeaveType)
-        ?.label || "Leave",
-    [selectedLeaveType]
-  );
-
-  const selectedLeaveBalance = useMemo(() => {
-    if (!leaveCredits) return null;
-    const key = LEAVE_TYPE_TO_CREDIT_KEY[selectedLeaveType];
-    const value = leaveCredits[key];
-    return typeof value === "number" ? value : Number(value || 0);
-  }, [leaveCredits, selectedLeaveType]);
-
   const selectedEmployment = useMemo(
     () =>
       (myEmployments || []).find(
@@ -122,23 +70,6 @@ const RequestLeave = () => {
       ) || null,
     [myEmployments, selectedBusiness]
   );
-
-  const leaveBalanceTitle = useMemo(() => {
-    if (!selectedBusiness) {
-      return "Select a business to see leave balance";
-    }
-
-    if (leaveCreditsLoading) {
-      return "Loading leave balance...";
-    }
-
-    return `You have ${selectedLeaveBalance ?? 0} ${selectedLeaveTypeLabel} leave remaining this month`;
-  }, [
-    leaveCreditsLoading,
-    selectedBusiness,
-    selectedLeaveBalance,
-    selectedLeaveTypeLabel,
-  ]);
 
   const durationDays = useMemo(() => {
     const start = new Date(startDate);
@@ -305,17 +236,7 @@ const RequestLeave = () => {
         </View>
         {/* Select business end */}
 
-        {/* Remaining shick leave start */}
-        <View className="mx-5  mt-8">
-          <ActionCard
-            title={leaveBalanceTitle}
-            rightImage={require("@/assets/images/remaining-sick.png")}
-            imageWidth={82}
-            imageHeight={55}
-            background={require("@/assets/images/chessboard-bg.svg")}
-          />
-        </View>
-        {/* Remaining shick leave start */}
+        {/* Submit */}
         <View className="mx-5 mt-5">
           <LeaveRequestModal
             onSubmit={handleSubmitLeaveRequest}
