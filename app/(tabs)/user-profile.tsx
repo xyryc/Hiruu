@@ -1,17 +1,21 @@
 import DynamicBackground from "@/components/layout/DynamicBackground";
-import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
+import GradientButton from "@/components/ui/buttons/GradientButton";
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import SmallButton from "@/components/ui/buttons/SmallButton";
 import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import {
   FontAwesome6,
   Ionicons,
@@ -20,29 +24,39 @@ import {
   SimpleLineIcons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const Profile = () => {
   const [showText, setShowText] = useState(false);
-  const [selectedIssue, setSelectedIssue] = useState("");
+  const [selectedIssue, setSelectedIssue] = useState("traditional");
   const [profileData, setProfileData] = useState<any>(null);
   const issues = [
-    { label: "Missed Punch", value: "Missed Punch" },
-    { label: "Late arrival", value: "Late arrival" },
-    { label: "Early Departure", value: "Early Departure" },
-    { label: "Forget to Tap", value: "Forget to Tap" },
-    { label: "Network Issues", value: "Network Issues" },
+    { label: "traditional", value: "traditional" },
+    { label: "sidebar-left", value: "sidebar-left" },
+    { label: "sidebar-right", value: "sidebar-right" },
   ];
   const [isOn, setIsOn] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
+  const user = useAuthStore((state) => state.user);
   const { setSelectedBusinesses } = useBusinessStore();
-  const { updateProfile, getProfile, getAnalyticsSummary, analyticsSummary } =
-    useProfileStore();
+  const {
+    updateProfile,
+    getProfile,
+    getAnalyticsSummary,
+    analyticsSummary,
+    startCvBuild,
+    pollCvBuildStatus,
+    cancelCvBuild,
+    isGeneratingCv,
+    isPollingCv,
+    cvBuildStatus,
+    cvResult,
+  } = useProfileStore();
   const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
   const jobProfile = useJobStore((state) => state.jobProfile);
   const { refreshAt } = useLocalSearchParams<{ refreshAt?: string }>();
@@ -80,14 +94,14 @@ const Profile = () => {
   useFocusEffect(
     React.useCallback(() => {
       getMyJobProfile().catch(() => null);
-      return () => {};
+      return () => { };
     }, [getMyJobProfile])
   );
 
   useFocusEffect(
     React.useCallback(() => {
       getAnalyticsSummary().catch(() => null);
-      return () => {};
+      return () => { };
     }, [getAnalyticsSummary])
   );
 
@@ -144,6 +158,66 @@ const Profile = () => {
         social: previousSocial,
       }));
       toast.error(error?.message || "Failed to update socials");
+    }
+  };
+
+  const handleGenerateCv = async () => {
+    try {
+      const layout = (selectedIssue || "traditional") as
+        | "traditional"
+        | "sidebar-left"
+        | "sidebar-right";
+
+      const payload = {
+        language: String((user as any)?.appSettings?.language || "en"),
+        templateStyle: "modern-1",
+        layout,
+        demo: false as const,
+      };
+
+      const startResult = await startCvBuild(payload);
+      if (startResult?.status === "completed") {
+        toast.success("CV generated successfully");
+        return;
+      }
+
+      const pollResult = await pollCvBuildStatus();
+      if (pollResult?.status === "completed") {
+        toast.success("CV generated successfully");
+      } else if (useProfileStore.getState().cvBuildStatus === "timeout") {
+        toast.error("CV generation is taking longer than expected");
+      }
+    } catch (error: any) {
+      toast.error(translateApiMessage(error?.message || "Failed to generate CV"));
+    }
+  };
+
+  const handleCancelCv = async () => {
+    try {
+      await cancelCvBuild();
+      toast.success(translateApiMessage("ai_engine_cv_cancelled"));
+    } catch (error: any) {
+      toast.error(translateApiMessage(error?.message || "Failed to cancel CV generation"));
+    }
+  };
+
+  const handleOpenCvPreview = (type: "pdf" | "image", url?: string) => {
+    if (!url) return;
+    router.push({
+      pathname: "/screens/rewards/preview",
+      params: {
+        type,
+        url,
+      },
+    });
+  };
+
+  const handleDownloadCv = async (url?: string) => {
+    if (!url) return;
+    try {
+      await Linking.openURL(url);
+    } catch {
+      toast.error("Unable to open download link");
     }
   };
   return (
@@ -467,23 +541,6 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
 
-        <View className="mx-5 mt-6 flex-row justify-between items-center">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Options for export
-          </Text>
-          <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" />
-        </View>
-
-        <View className="mx-5 mt-4">
-          <Dropdown
-            // label="Select Style"
-            placeholder="Select Style"
-            options={issues}
-            value={selectedIssue}
-            onSelect={setSelectedIssue}
-          />
-        </View>
-
         {/* Contact Us On */}
         <View className="flex-row items-center gap-2.5 mt-6 mx-5">
           <DynamicBackground
@@ -496,7 +553,7 @@ const Profile = () => {
           </DynamicBackground>
 
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Contact Us On
+            Contact Me On
           </Text>
         </View>
 
@@ -507,9 +564,95 @@ const Profile = () => {
           hideEmpty
           canEdit={false}
         />
+
+        {/* generate cv */}
+        <View className="mx-5 mt-6 flex-row justify-between items-center">
+          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+            Options for export
+          </Text>
+
+          {/* <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" /> */}
+        </View>
+
+        <View className="mx-5 mt-4">
+          <Dropdown
+            placeholder="Select Style"
+            options={issues}
+            value={selectedIssue}
+            onSelect={setSelectedIssue}
+          />
+        </View>
+
+        <GradientButton
+          className="mx-5 mt-3"
+          title={isGeneratingCv || isPollingCv ? "Generating..." : "Generate CV With AI"}
+          icon={
+            <Ionicons
+              name={isGeneratingCv || isPollingCv ? "time-outline" : "sparkles-outline"}
+              size={18}
+              color="#FFFFFF"
+            />
+          }
+          disabled={isGeneratingCv || isPollingCv}
+          onPress={handleGenerateCv}
+        />
+
+        {cvBuildStatus === "pending" && (
+          <View className="mx-5 mt-3">
+            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              CV generation is in progress...
+            </Text>
+            <PrimaryButton
+              title="Cancel"
+              onPress={handleCancelCv}
+              showIcon={false}
+              className="mt-2 bg-[#EF4444] rounded-xl py-3 px-4"
+            />
+          </View>
+        )}
+
+        {cvBuildStatus === "completed" && (cvResult?.pdf || cvResult?.image) && (
+          <View className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3">
+            <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary mb-2">
+              Generated CV
+            </Text>
+
+            {cvResult?.pdf ? (
+              <View className="flex-row justify-between items-center py-2">
+                <TouchableOpacity onPress={() => handleOpenCvPreview("pdf", cvResult.pdf)}>
+                  <Text className="font-proximanova-medium text-[#4FB2F3] underline">
+                    PDF CV
+                  </Text>
+                </TouchableOpacity>
+                <View className="w-28">
+                  <SmallButton
+                    title="Download"
+                    onPress={() => handleDownloadCv(cvResult.pdf)}
+                    className="rounded-xl py-3 px-4"
+                  />
+                </View>
+              </View>
+            ) : null}
+
+            {cvResult?.image ? (
+              <View className="flex-row justify-between items-center py-2">
+                <TouchableOpacity onPress={() => handleOpenCvPreview("image", cvResult.image)}>
+                  <Text className="font-proximanova-medium text-[#4FB2F3] underline">
+                    Image CV
+                  </Text>
+                </TouchableOpacity>
+                <View className="w-28">
+                  <SmallButton
+                    title="Download"
+                    onPress={() => handleDownloadCv(cvResult.image)}
+                    className="rounded-xl py-3 px-4"
+                  />
+                </View>
+              </View>
+            ) : null}
+          </View>
+        )}
       </ScrollView>
-
-
     </View>
   );
 };
