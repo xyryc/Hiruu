@@ -46,13 +46,19 @@ const BusinessJobCard = ({
     if (typeof profile.user.address === "string") {
       address = profile.user.address;
     } else if (typeof profile.user.address === "object") {
-      address = profile.user.address.address || profile.user.address.city || "New York, North Bergen";
+      address = profile.user.address.city || "New York, North Bergen";
     }
   }
 
   const salaryMin = profile?.expectedSalaryMin || 5;
   const salaryMax = profile?.expectedSalaryMax || 10;
-  const salaryType = profile?.preferredSalaryType || "hr";
+  const rawSalaryType = String(profile?.preferredSalaryType || "hourly").toLowerCase();
+  const salaryType =
+    rawSalaryType === "monthly"
+      ? "mo"
+      : rawSalaryType === "hourly"
+        ? "hr"
+        : rawSalaryType;
   const distanceKm = profile?.distanceKm;
 
   // Check if user is open to work from jobProfile

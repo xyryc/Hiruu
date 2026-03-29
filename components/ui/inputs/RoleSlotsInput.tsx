@@ -9,6 +9,19 @@ type RoleSlot = {
   requiredCount: number;
 };
 
+const areRoleSlotsEqual = (a: RoleSlot[], b: RoleSlot[]) => {
+  if (a.length !== b.length) return false;
+
+  return a.every((slot, index) => {
+    const next = b[index];
+    return (
+      slot.roleId === next?.roleId &&
+      slot.roleName === next?.roleName &&
+      slot.requiredCount === next?.requiredCount
+    );
+  });
+};
+
 type RoleSlotsInputProps = {
   titleHeight?: boolean;
   selectedRoleToAdd?: { id: string; name: string } | null;
@@ -76,7 +89,9 @@ const RoleSlotsInput = ({
       roleId: slot.roleId,
       requiredCount: Number(slot.count || 0),
     }));
-    setRoleSlots(mappedSlots);
+    setRoleSlots((prev) =>
+      areRoleSlotsEqual(prev, mappedSlots) ? prev : mappedSlots
+    );
   }, [initialRoleSlots]);
 
   useEffect(() => {

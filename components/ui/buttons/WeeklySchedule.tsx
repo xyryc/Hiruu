@@ -190,10 +190,14 @@ const WeeklySchedule = ({
   business,
   availability,
   onChange,
+  showBusinessHeader,
+  borderless,
 }: {
   business?: boolean;
   availability?: WeeklyAvailabilityItem[];
   onChange?: (availability: WeeklyAvailabilityItem[]) => void;
+  showBusinessHeader?: boolean;
+  borderless?: boolean;
 }) => {
   const initialSchedule = useMemo(
     () => mapAvailabilityToSchedule(availability),
@@ -326,8 +330,14 @@ const WeeklySchedule = ({
   };
 
   return (
-    <View className="bg-white dark:bg-dark-background rounded-xl p-4 border border-[#EEEEEE]">
-      {business && (
+    <View
+      className={
+        borderless
+          ? ""
+          : "bg-white dark:bg-dark-background rounded-xl p-4 border border-[#EEEEEE]"
+      }
+    >
+      {(showBusinessHeader ?? business) && (
         <View className="flex-row justify-between mb-5 rounded-xl">
           <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
             Available Working Days

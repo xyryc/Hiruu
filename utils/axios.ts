@@ -119,6 +119,7 @@ axiosInstance.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const shouldSkipErrorLog = Boolean((error.config as any)?.skipErrorLog);
 
     const isAuthEndpoint = !shouldAttachAuthToken(originalRequest?.url);
 
@@ -208,7 +209,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // Log errors in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && !shouldSkipErrorLog) {
       console.error('API Error:', {
         url: error.config?.url,
         method: error.config?.method,

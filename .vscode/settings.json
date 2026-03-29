@@ -22,10 +22,9 @@
   },
 
   "files.autoSave": "off",
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single",
+  "js/ts.preferences.quoteStyle": "single",
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "amazonQ.telemetry": false,
-  "typescript.autoClosingTags": false
+  "js/ts.autoClosingTags.enabled": false
 }
