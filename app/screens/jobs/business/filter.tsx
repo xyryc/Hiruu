@@ -1,5 +1,4 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import SimpleStatusBadge from "@/components/ui/badges/SimpleStatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
@@ -80,14 +79,22 @@ const FindJobFilters = () => {
   const setBusinessCandidateFilters = useJobStore((state) => state.setBusinessCandidateFilters);
   const storedPreferredRoleIds = normalizeRoleIds(businessCandidateFilters.preferredRoleIds);
   const [verifiedOnly, setVerifiedOnly] = useState(Boolean(businessCandidateFilters.verifiedOnly));
-  const [location, setLocation] = useState<string | null>(
-    businessCandidateFilters.location || null
-  );
   const [locationSearch, setLocationSearch] = useState(
     businessCandidateFilters.location || ""
   );
   const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
-  const [selectedLocationOption, setSelectedLocationOption] = useState<LocationOption | null>(null);
+  const [selectedLocationOption, setSelectedLocationOption] = useState<LocationOption | null>(
+    typeof businessCandidateFilters.location === "string" &&
+      typeof businessCandidateFilters.latitude === "number" &&
+      typeof businessCandidateFilters.longitude === "number"
+      ? {
+        label: businessCandidateFilters.location,
+        value: businessCandidateFilters.location,
+        latitude: businessCandidateFilters.latitude,
+        longitude: businessCandidateFilters.longitude,
+      }
+      : null
+  );
   const [selectedCoords, setSelectedCoords] = useState<{
     latitude: number;
     longitude: number;
@@ -157,6 +164,17 @@ const FindJobFilters = () => {
         : []
   );
   const router = useRouter();
+  const handleSelectLocation = (item: LocationOption) => {
+    const trimmedLabel = item.label.slice(0, ADDRESS_MAX_LENGTH);
+    setLocationSearch(trimmedLabel);
+    setSelectedLocationOption(item);
+    setSelectedCoords({
+      latitude: item.latitude,
+      longitude: item.longitude,
+    });
+    setLocationOptions([item]);
+    setIsLocationFocused(false);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -427,6 +445,10 @@ const FindJobFilters = () => {
 
   const handleApplyFilters = () => {
     const availabilityTypes = selectedBadges.filter(Boolean);
+    const normalizedLocation = locationSearch.trim() || undefined;
+    const hasSelectedCoords =
+      typeof selectedCoords?.latitude === "number" &&
+      typeof selectedCoords?.longitude === "number";
 
     const availableDays = weeklyAvailability
       .filter((item) => item.isOpen)
@@ -448,10 +470,10 @@ const FindJobFilters = () => {
       preferredRoleIds:
         preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
       maxDistanceKm:
-        selectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
-      location: selectedLocationOption?.label || location || undefined,
-      latitude: selectedCoords?.latitude,
-      longitude: selectedCoords?.longitude,
+        hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
+      location: normalizedLocation,
+      latitude: hasSelectedCoords ? selectedCoords.latitude : undefined,
+      longitude: hasSelectedCoords ? selectedCoords.longitude : undefined,
       salaryMax:
         isSalaryRangeTouched &&
           Math.round(salaryRange) > 0 &&
@@ -480,10 +502,10 @@ const FindJobFilters = () => {
           preferredRoleIds:
             preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
           maxDistanceKm:
-            selectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
-          location: selectedLocationOption?.label || location || undefined,
-          latitude: selectedCoords?.latitude,
-          longitude: selectedCoords?.longitude,
+            hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
+          location: normalizedLocation,
+          latitude: hasSelectedCoords ? selectedCoords.latitude : undefined,
+          longitude: hasSelectedCoords ? selectedCoords.longitude : undefined,
           salaryMax:
             isSalaryRangeTouched &&
               Math.round(salaryRange) > 0 &&
@@ -591,10 +613,15 @@ const FindJobFilters = () => {
             onChangeText={(text) => {
               const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
               setLocationSearch(nextText);
+              if (!nextText.trim()) {
+                setSelectedLocationOption(null);
+                setSelectedCoords(null);
+                setLocationOptions([]);
+                return;
+              }
               if (selectedLocationOption && nextText !== selectedLocationOption.label) {
                 setSelectedLocationOption(null);
                 setSelectedCoords(null);
-                setLocation(null);
               }
             }}
             placeholder="Search location"
@@ -610,18 +637,8 @@ const FindJobFilters = () => {
               {locationOptions.map((item, index) => (
                 <TouchableOpacity
                   key={`${item.value}-${index}`}
-                  onPressIn={() => {
-                    const trimmedLabel = item.label.slice(0, ADDRESS_MAX_LENGTH);
-                    setLocation(item.value);
-                    setLocationSearch(trimmedLabel);
-                    setSelectedLocationOption(item);
-                    setSelectedCoords({
-                      latitude: item.latitude,
-                      longitude: item.longitude,
-                    });
-                    setLocationOptions([item]);
-                    setIsLocationFocused(false);
-                  }}
+                  onPressIn={() => handleSelectLocation(item)}
+                  onPress={() => handleSelectLocation(item)}
                   className="px-4 py-3 border-b border-[#F5F5F5]"
                 >
                   <Text className="text-sm text-[#111111]">{item.label}</Text>
@@ -665,7 +682,9 @@ const FindJobFilters = () => {
         </View>
 
         {/* Shift Type */}
+
         {/* The job profile does not include shift preferences, which is causing difficulty in applying filters. Therefore, it has been recommended to address this issue. */}
+
         {/* <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             Shift Preference
@@ -694,7 +713,11 @@ const FindJobFilters = () => {
         </View> */}
 
         {/* Availability*/}
-        <View className="mt-7">
+
+        {/* The job profile does not include shift preferences, which is causing difficulty in applying filters. Therefore, it has been recommended to address this issue. */}
+
+
+        {/* <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             Availability
           </Text>
@@ -711,7 +734,7 @@ const FindJobFilters = () => {
               />
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Salary Range */}
         <View className="py-5 border-b border-gray-100">
