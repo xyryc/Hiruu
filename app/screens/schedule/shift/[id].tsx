@@ -275,7 +275,14 @@ const ShiftDetails = () => {
             <ActionIconCard
               icon={<Feather name="repeat" size={24} color="#4FB2F3" />}
               title="Swap Shift"
-              onPress={() => router.push("/screens/schedule/shift/swap")}
+              onPress={() =>
+                router.push({
+                  pathname: "/screens/schedule/shift/swap",
+                  params: {
+                    businessId: details?.business?.id,
+                  },
+                })
+              }
             // onPress={() => router.push("/(user)/schedule/shift/swap")}
             />
 

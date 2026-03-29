@@ -23,7 +23,6 @@ const TaskCard = ({
   shiftImage,
   teamMembers,
   totalMembers,
-  address,
   city,
   onLoginPress,
   onLogoutPress,
@@ -154,7 +153,7 @@ const TaskCard = ({
           params: { id: String(shiftId) },
         });
       }}
-      className={`flex-1 mr-4 rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"}`}
+      className={`w-[320px] shrink-0 mr-4 rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"}`}
     >
       {/* Status Timer */}
       {hasLiveTimer && (
@@ -164,7 +163,7 @@ const TaskCard = ({
             source={require("@/assets/images/timer-bg.svg")}
             style={{
               width: 244,
-              height: 34,
+              height: 34
             }}
           />
 
@@ -205,7 +204,7 @@ const TaskCard = ({
               height: 80,
               borderRadius: 10,
             }}
-            contentFit="contain"
+            contentFit="cover"
           />
         </View>
 
@@ -230,33 +229,47 @@ const TaskCard = ({
             <View className="flex-row items-center">
               {/* Avatar Stack */}
               <View className="flex-row">
-                {teamMembers.slice(0, 3).map((member, index) => (
-                  <View
-                    key={index}
-                    className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 justify-center items-center"
-                    style={{
-                      marginLeft: index > 0 ? -8 : 0,
-                      zIndex: 10 - index,
-                    }}
-                  >
-                    {typeof member === "string" &&
-                      (member.startsWith("http://") || member.startsWith("https://")) ? (
-                      <Image
-                        source={member}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 999,
-                        }}
-                        contentFit="cover"
-                      />
-                    ) : (
-                      <Text className="text-xs font-proximanova-medium text-gray-600">
-                        {String(member || "?").charAt(0).toUpperCase()}
-                      </Text>
-                    )}
+                {teamMembers.length === 0 ? (
+                  <View className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 justify-center items-center">
+                    <Image
+                      source={require("@/assets/images/placeholder.png")}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 999,
+                      }}
+                      contentFit="cover"
+                    />
                   </View>
-                ))}
+                ) : (
+                  teamMembers.slice(0, 3).map((member, index) => (
+                    <View
+                      key={index}
+                      className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 justify-center items-center"
+                      style={{
+                        marginLeft: index > 0 ? -8 : 0,
+                        zIndex: 10 - index,
+                      }}
+                    >
+                      {typeof member === "string" &&
+                      (member.startsWith("http://") || member.startsWith("https://")) ? (
+                        <Image
+                          source={member}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 999,
+                          }}
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <Text className="text-xs font-proximanova-medium text-gray-600">
+                          {String(member || "?").charAt(0).toUpperCase()}
+                        </Text>
+                      )}
+                    </View>
+                  ))
+                )}
 
                 {teamMembers.length > 3 && (
                   <View
@@ -312,7 +325,7 @@ const TaskCard = ({
             className="font-proximanova-regular text-sm text-primary"
             numberOfLines={2}
           >
-            {address}
+            {city || "City unavailable"}
           </Text>
         </View>
 

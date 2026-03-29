@@ -1,9 +1,8 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import {
-  FontAwesome,
   Ionicons,
   MaterialCommunityIcons,
-  MaterialIcons,
+  MaterialIcons
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -54,11 +53,11 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
           onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
-        <ActionIconCard
+        {/* <ActionIconCard
           icon={<FontAwesome name="users" size={20} color="#4FB2F3" />}
           title="Team Panel"
           onPress={() => router.push("/screens/home/team/manage-team")}
-        />
+        /> */}
 
         <ActionIconCard
           icon={

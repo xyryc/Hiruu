@@ -250,7 +250,7 @@ const SwapRequestAction = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="Badge"
+          title="Swap Request"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />

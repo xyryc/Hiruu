@@ -1,6 +1,21 @@
 import axiosInstance from "@/utils/axios";
 import { create } from "zustand";
 
+export type BusinessColleagueItem = {
+  employmentId: string;
+  userId: string;
+  user?: {
+    id: string;
+    name?: string | null;
+    avatar?: string | null;
+  } | null;
+  role?: {
+    id?: string;
+    systemRoleId?: string;
+    name?: string;
+  } | null;
+};
+
 type ShiftStoreState = {
   myShifts: any[];
   myShiftsLoading: boolean;
@@ -90,6 +105,7 @@ type ShiftStoreState = {
       type?: string;
     }
   ) => Promise<any[]>;
+  getBusinessColleagues: (businessId: string) => Promise<BusinessColleagueItem[]>;
   getShiftAssignmentDetails: (id: string) => Promise<any | null>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
@@ -478,6 +494,28 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         businessShiftRequestsError: message,
         businessShiftRequestsPagination: null,
       });
+      throw new Error(message);
+    }
+  },
+
+  getBusinessColleagues: async (businessId) => {
+    try {
+      if (!businessId) return [];
+      const response = await axiosInstance.get(
+        `/employment/businesses/${businessId}/colleagues`
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to fetch colleagues");
+      }
+
+      return Array.isArray(result?.data) ? result.data : [];
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch colleagues";
       throw new Error(message);
     }
   },
