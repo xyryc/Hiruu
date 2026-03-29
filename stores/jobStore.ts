@@ -135,6 +135,8 @@ type JobProfileFilters = {
   role?: string;
   verifiedOnly?: boolean;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   postcode?: string;
   maxDistanceKm?: number;
   salaryMin?: number;
@@ -851,6 +853,8 @@ export const useJobStore = create<JobState>((set) => ({
         params.isFeatured = query.isPremium;
       }
       if (query.location) params.location = query.location;
+      if (query.latitude !== undefined) params.latitude = query.latitude;
+      if (query.longitude !== undefined) params.longitude = query.longitude;
       if (query.postcode) params.postcode = query.postcode;
       if (query.maxDistanceKm !== undefined) params.maxDistanceKm = query.maxDistanceKm;
       if (query.salaryMin !== undefined) params.salaryMin = query.salaryMin;

@@ -102,10 +102,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] featured profiles response:",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] featured profiles response:",
+      //   JSON.stringify(result, null, 2)
+      // );
       setFeaturedProfiles(
         filterProfilesByFeaturedType(result.data, "featured")
           .filter((profile) =>
@@ -132,10 +132,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] suggested profiles response:",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] suggested profiles response:",
+      //   JSON.stringify(result, null, 2)
+      // );
       setSuggestedProfiles(
         filterProfilesByFeaturedType(result.data, "suggested")
           .filter((profile) =>

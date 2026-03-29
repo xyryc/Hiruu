@@ -6,10 +6,10 @@ import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
 import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
-import { Entypo, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 type WeeklyAvailabilityItem = {
   day: string;
@@ -26,6 +27,20 @@ type WeeklyAvailabilityItem = {
   startTime?: string;
   endTime?: string;
 };
+
+type LocationOption = {
+  label: string;
+  value: string;
+  latitude: number;
+  longitude: number;
+  placeId?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+};
+
+const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
+const ADDRESS_MAX_LENGTH = 200;
 
 const SHIFT_OPTIONS = [
   { label: "Day Shift", value: "day_shift" },
@@ -65,7 +80,37 @@ const FindJobFilters = () => {
   const setBusinessCandidateFilters = useJobStore((state) => state.setBusinessCandidateFilters);
   const storedPreferredRoleIds = normalizeRoleIds(businessCandidateFilters.preferredRoleIds);
   const [verifiedOnly, setVerifiedOnly] = useState(Boolean(businessCandidateFilters.verifiedOnly));
-  const [locationText, setLocationText] = useState(businessCandidateFilters.location || "");
+  const [location, setLocation] = useState<string | null>(
+    businessCandidateFilters.location || null
+  );
+  const [locationSearch, setLocationSearch] = useState(
+    businessCandidateFilters.location || ""
+  );
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
+  const [selectedLocationOption, setSelectedLocationOption] = useState<LocationOption | null>(null);
+  const [selectedCoords, setSelectedCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
+    typeof businessCandidateFilters.latitude === "number" &&
+      typeof businessCandidateFilters.longitude === "number"
+      ? {
+        latitude: businessCandidateFilters.latitude,
+        longitude: businessCandidateFilters.longitude,
+      }
+      : null
+  );
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [isLocationFocused, setIsLocationFocused] = useState(false);
+  const hasShownGeoapifyMissingKey = useRef(false);
+  const [distance, setDistance] = useState(
+    Number.isFinite(Number(businessCandidateFilters.maxDistanceKm))
+      ? Number(businessCandidateFilters.maxDistanceKm)
+      : 25
+  );
+  const [isDistanceTouched, setIsDistanceTouched] = useState(
+    Number.isFinite(Number(businessCandidateFilters.maxDistanceKm))
+  );
   const [salaryRange, setSalaryRange] = useState(
     Number.isFinite(Number(businessCandidateFilters.salaryMax))
       ? Number(businessCandidateFilters.salaryMax)
@@ -73,7 +118,7 @@ const FindJobFilters = () => {
   );
   const [isSalaryRangeTouched, setIsSalaryRangeTouched] = useState(
     Number.isFinite(Number(businessCandidateFilters.salaryMax)) &&
-      Number(businessCandidateFilters.salaryMax) !== 5000
+    Number(businessCandidateFilters.salaryMax) !== 5000
   );
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
@@ -87,28 +132,28 @@ const FindJobFilters = () => {
   >(
     Array.isArray(businessCandidateFilters.experienceRequirements)
       ? businessCandidateFilters.experienceRequirements.map((item, index) => ({
-          roleId: storedPreferredRoleIds[index] || "",
-          roleName: item.role,
-          count: item.minYears,
-        }))
+        roleId: storedPreferredRoleIds[index] || "",
+        roleName: item.role,
+        count: item.minYears,
+      }))
       : []
   );
   const [weeklyAvailability, setWeeklyAvailability] = useState<WeeklyAvailabilityItem[]>(
     Array.isArray(businessCandidateFilters.workingDaySlots) &&
-    businessCandidateFilters.workingDaySlots.length > 0
+      businessCandidateFilters.workingDaySlots.length > 0
       ? businessCandidateFilters.workingDaySlots.map((slot) => ({
-          day: slot.day,
-          isOpen: true,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        }))
+        day: slot.day,
+        isOpen: true,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }))
       : Array.isArray(businessCandidateFilters.availableDays)
         ? businessCandidateFilters.availableDays.map((day) => ({
-            day: String(day),
-            isOpen: true,
-            startTime: "09:00",
-            endTime: "17:00",
-          }))
+          day: String(day),
+          isOpen: true,
+          startTime: "09:00",
+          endTime: "17:00",
+        }))
         : []
   );
   const router = useRouter();
@@ -150,13 +195,112 @@ const FindJobFilters = () => {
   }, [getRoles]);
 
   useEffect(() => {
+    if (!locationSearch || locationSearch.trim().length < 3) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      return;
+    }
+
+    if (!GEOAPIFY_API_KEY) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      if (!hasShownGeoapifyMissingKey.current) {
+        hasShownGeoapifyMissingKey.current = true;
+        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+      }
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      try {
+        setIsSearchingLocation(true);
+        const query = encodeURIComponent(locationSearch.trim());
+        const response = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&limit=8&apiKey=${GEOAPIFY_API_KEY}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Geoapify request failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const features = Array.isArray(result?.features) ? result.features : [];
+        const nextOptions: LocationOption[] = features
+          .map((item: any) => {
+            const props = item?.properties || {};
+            const coordinates = Array.isArray(item?.geometry?.coordinates)
+              ? item.geometry.coordinates
+              : [];
+            const longitude = Number(coordinates[0]);
+            const latitude = Number(coordinates[1]);
+            const label =
+              props.formatted ||
+              [props.address_line1, props.address_line2].filter(Boolean).join(", ");
+
+            if (!label || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+              return null;
+            }
+
+            return {
+              label,
+              value: label,
+              latitude,
+              longitude,
+              placeId:
+                props.place_id ||
+                props.datasource?.raw?.place_id ||
+                props.datasource?.raw?.osm_id?.toString?.(),
+              city: props.city || props.county || props.suburb,
+              state: props.state || props.state_code,
+              country: props.country,
+            };
+          })
+          .filter(Boolean) as LocationOption[];
+
+        const uniqueByLabel = Array.from(
+          new Map(nextOptions.map((item) => [item.label, item])).values()
+        );
+
+        if (selectedLocationOption) {
+          setLocationOptions(
+            Array.from(
+              new Map(
+                [selectedLocationOption, ...uniqueByLabel].map((item) => [
+                  item.label,
+                  item,
+                ])
+              ).values()
+            )
+          );
+        } else {
+          setLocationOptions(uniqueByLabel);
+        }
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+          toast.error("Failed to fetch location suggestions.");
+        }
+      } finally {
+        setIsSearchingLocation(false);
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [locationSearch, selectedLocationOption]);
+
+  useEffect(() => {
     if (!selectedRoleToAdd?.id) return;
 
     const alreadyExists = experienceSlots.some(
       (slot) =>
         slot.roleId === selectedRoleToAdd.id ||
         slot.roleName.trim().toLowerCase() ===
-          selectedRoleToAdd.name.trim().toLowerCase()
+        selectedRoleToAdd.name.trim().toLowerCase()
     );
 
     if (!alreadyExists) {
@@ -234,7 +378,7 @@ const FindJobFilters = () => {
     Array.isArray(businessCandidateFilters.shiftTypes)
       ? businessCandidateFilters.shiftTypes
       : typeof businessCandidateFilters.shiftTypes === "string" &&
-          businessCandidateFilters.shiftTypes.length > 0
+        businessCandidateFilters.shiftTypes.length > 0
         ? businessCandidateFilters.shiftTypes.split(",")
         : []
   );
@@ -270,7 +414,7 @@ const FindJobFilters = () => {
     const initialBadges = Array.isArray(businessCandidateFilters.availabilityTypes)
       ? businessCandidateFilters.availabilityTypes
       : typeof businessCandidateFilters.availabilityTypes === "string" &&
-          businessCandidateFilters.availabilityTypes.length > 0
+        businessCandidateFilters.availabilityTypes.length > 0
         ? businessCandidateFilters.availabilityTypes.split(",")
         : [];
 
@@ -303,11 +447,15 @@ const FindJobFilters = () => {
       verifiedOnly: verifiedOnly ? true : undefined,
       preferredRoleIds:
         preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
-      location: locationText.trim() || undefined,
+      maxDistanceKm:
+        selectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
+      location: selectedLocationOption?.label || location || undefined,
+      latitude: selectedCoords?.latitude,
+      longitude: selectedCoords?.longitude,
       salaryMax:
         isSalaryRangeTouched &&
-        Math.round(salaryRange) > 0 &&
-        Math.round(salaryRange) !== 5000
+          Math.round(salaryRange) > 0 &&
+          Math.round(salaryRange) !== 5000
           ? Math.round(salaryRange)
           : undefined,
       sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
@@ -318,9 +466,9 @@ const FindJobFilters = () => {
       experienceRequirements:
         experienceSlots.length > 0
           ? experienceSlots.map((slot) => ({
-              role: slot.roleName,
-              minYears: slot.count,
-            }))
+            role: slot.roleName,
+            minYears: slot.count,
+          }))
           : undefined,
     });
 
@@ -331,11 +479,15 @@ const FindJobFilters = () => {
           verifiedOnly: verifiedOnly ? true : undefined,
           preferredRoleIds:
             preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
-          location: locationText.trim() || undefined,
+          maxDistanceKm:
+            selectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
+          location: selectedLocationOption?.label || location || undefined,
+          latitude: selectedCoords?.latitude,
+          longitude: selectedCoords?.longitude,
           salaryMax:
             isSalaryRangeTouched &&
-            Math.round(salaryRange) > 0 &&
-            Math.round(salaryRange) !== 5000
+              Math.round(salaryRange) > 0 &&
+              Math.round(salaryRange) !== 5000
               ? Math.round(salaryRange)
               : undefined,
           sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
@@ -346,9 +498,9 @@ const FindJobFilters = () => {
           experienceRequirements:
             experienceSlots.length > 0
               ? experienceSlots.map((slot) => ({
-                  role: slot.roleName,
-                  minYears: slot.count,
-                }))
+                role: slot.roleName,
+                minYears: slot.count,
+              }))
               : undefined,
         },
         null,
@@ -373,7 +525,11 @@ const FindJobFilters = () => {
         onPressBack={() => router.back()}
       />
 
-      <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+      >
         {/* Verified Candidates Only */}
         <View className="mt-7 flex-row justify-between items-center py-5 border border-[#EEEEEE] p-4 rounded-xl">
           <Text className="text-[#4FB2F3] font-proximanova-semibold">
@@ -381,15 +537,13 @@ const FindJobFilters = () => {
           </Text>
           <TouchableOpacity
             onPress={() => setVerifiedOnly(!verifiedOnly)}
-            className={`w-12 h-7 rounded-full p-1 ${
-              verifiedOnly ? "bg-[#34C759]" : "bg-gray-300"
-            }`}
+            className={`w-12 h-7 rounded-full p-1 ${verifiedOnly ? "bg-[#34C759]" : "bg-gray-300"
+              }`}
             style={{ justifyContent: "center" }}
           >
             <View
-              className={`w-5 h-5 rounded-full bg-white ${
-                verifiedOnly ? "self-end" : "self-start"
-              }`}
+              className={`w-5 h-5 rounded-full bg-white ${verifiedOnly ? "self-end" : "self-start"
+                }`}
             />
           </TouchableOpacity>
         </View>
@@ -428,23 +582,91 @@ const FindJobFilters = () => {
             Location
           </Text>
 
-          <View className="flex-row items-center bg-white border border-[#EEEEEE] rounded-lg px-4 py-3">
-            <TextInput
-              value={locationText}
-              onChangeText={setLocationText}
-              placeholder="Location"
-              className="flex-1 font-proximanova-semibold text-sm"
-            />
-            <MaterialCommunityIcons
-              name="crosshairs-gps"
-              size={24}
-              color="#666"
-            />
-          </View>
+          <TextInput
+            value={locationSearch}
+            onFocus={() => setIsLocationFocused(true)}
+            onBlur={() => {
+              setTimeout(() => setIsLocationFocused(false), 250);
+            }}
+            onChangeText={(text) => {
+              const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
+              setLocationSearch(nextText);
+              if (selectedLocationOption && nextText !== selectedLocationOption.label) {
+                setSelectedLocationOption(null);
+                setSelectedCoords(null);
+                setLocation(null);
+              }
+            }}
+            placeholder="Search location"
+            className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
+            autoCapitalize="none"
+            maxLength={ADDRESS_MAX_LENGTH}
+          />
+
+          {isLocationFocused &&
+            locationSearch.trim().length >= 3 &&
+            locationOptions.length > 0 ? (
+            <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
+              {locationOptions.map((item, index) => (
+                <TouchableOpacity
+                  key={`${item.value}-${index}`}
+                  onPressIn={() => {
+                    const trimmedLabel = item.label.slice(0, ADDRESS_MAX_LENGTH);
+                    setLocation(item.value);
+                    setLocationSearch(trimmedLabel);
+                    setSelectedLocationOption(item);
+                    setSelectedCoords({
+                      latitude: item.latitude,
+                      longitude: item.longitude,
+                    });
+                    setLocationOptions([item]);
+                    setIsLocationFocused(false);
+                  }}
+                  className="px-4 py-3 border-b border-[#F5F5F5]"
+                >
+                  <Text className="text-sm text-[#111111]">{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+
+          {isSearchingLocation ? (
+            <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
+              Searching locations...
+            </Text>
+          ) : null}
+
+          {isLocationFocused &&
+            locationSearch.trim().length >= 3 &&
+            !isSearchingLocation &&
+            locationOptions.length === 0 ? (
+            <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
+              No locations found.
+            </Text>
+          ) : null}
+
+
+          <Slider
+            value={distance}
+            onValueChange={(value) => {
+              setDistance(value);
+              setIsDistanceTouched(true);
+            }}
+            minimumValue={0}
+            maximumValue={100}
+            minimumTrackTintColor="#4FB2F3"
+            maximumTrackTintColor="#E5E5E5"
+            thumbTintColor="#EEEEEE"
+            className="mt-1"
+          />
+          <Text className="text-sm font-proximanova-regular text-secondary mt-1">
+            {Math.round(distance)}km Within Selected Area
+          </Text>
         </View>
 
         {/* Shift Type */}
-        <View className="py-5 border-b border-gray-100">
+        {/* The job profile does not include shift preferences, which is causing difficulty in applying filters. Therefore, it has been recommended to address this issue. */}
+        {/* <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             Shift Preference
           </Text>
@@ -469,7 +691,7 @@ const FindJobFilters = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Availability*/}
         <View className="mt-7">
@@ -481,9 +703,8 @@ const FindJobFilters = () => {
               <SimpleStatusBadge
                 key={badge.value}
                 title={badge.label}
-                className={`border ${
-                  isBadgeSelected(badge.value) ? "" : "border-[#EEEEEE]"
-                }`}
+                className={`border ${isBadgeSelected(badge.value) ? "" : "border-[#EEEEEE]"
+                  }`}
                 bgColor={isBadgeSelected(badge.value) ? "#11293A" : "#FFFFFF"}
                 textColor={isBadgeSelected(badge.value) ? "#FFFFFF" : "#111111"}
                 onPress={() => handleBadgePress(badge.value)}
