@@ -1,89 +1,165 @@
-// app/(buyer)/leaderboard.tsx
-import businesses from "@/assets/data/businesses.json";
 import ScreenHeader from "@/components/header/ScreenHeader";
+import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
+import { useAuthStore } from "@/stores/authStore";
+import { useBusinessStore } from "@/stores/businessStore";
+import axiosInstance from "@/utils/axios";
 import { MaterialCommunityIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Performer {
   id: string;
   name: string;
-  avatar: string;
+  avatar?: string | null;
   points: number;
   verified?: boolean;
   rank: number;
 }
 
+interface LeaderboardResponse {
+  period?: {
+    resetAt?: string;
+  };
+  top?: {
+    userId: string;
+    userName?: string;
+    avatar?: string | null;
+    rank: number;
+    points: number;
+  }[];
+  rewards?: {
+    rank: number;
+    coins: number;
+  }[];
+  me?: {
+    userId: string;
+    rank: number | null;
+    points: number;
+    isRanked?: boolean;
+  };
+}
+
 export default function LeaderboardScreen() {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 3,
-    hours: 30,
-    minutes: 60,
-  });
+  const myBusinesses = useBusinessStore((state) => state.myBusinesses);
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const setSelectedBusinesses = useBusinessStore(
+    (state) => state.setSelectedBusinesses
+  );
+  const getMyBusinesses = useBusinessStore((state) => state.getMyBusinesses);
+  const authUser = useAuthStore((state) => state.user);
+  const currentBusinessId = selectedBusinesses?.[0] || null;
   const [showModal, setShowModal] = useState(false);
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardResponse | null>(
+    null
+  );
   const router = useRouter();
 
-  const topPerformers: Performer[] = [
-    {
-      id: "1",
-      name: "Emily Kristine",
-      avatar:
-        "https://upload.wikimedia.org/wikipedia/commons/7/7b/Julian_Assange_at_2025_Cannes_The_Six_Billion_Dollar_Man_Photocall_3_%28cropped%29.jpg",
-      points: 100,
-      verified: true,
-      rank: 1,
-    },
-    {
-      id: "2",
-      name: "Ethan Lert",
-      avatar:
-        "https://upload.wikimedia.org/wikipedia/commons/7/7b/Julian_Assange_at_2025_Cannes_The_Six_Billion_Dollar_Man_Photocall_3_%28cropped%29.jpg",
-      points: 30,
-      rank: 2,
-    },
-    {
-      id: "3",
-      name: "Emily Kristine",
-      avatar:
-        "https://upload.wikimedia.org/wikipedia/commons/7/7b/Julian_Assange_at_2025_Cannes_The_Six_Billion_Dollar_Man_Photocall_3_%28cropped%29.jpg",
-      points: 15,
-      verified: true,
-      rank: 3,
-    },
-  ];
 
-  const currentUser = {
-    name: "You",
-    avatar:
-      "https://upload.wikimedia.org/wikipedia/commons/7/7b/Julian_Assange_at_2025_Cannes_The_Six_Billion_Dollar_Man_Photocall_3_%28cropped%29.jpg",
-    points: 10,
-  };
-
-  // Countdown timer logic
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1 };
-        } else if (prev.hours > 0) {
-          return { ...prev, hours: prev.hours - 1, minutes: 59 };
-        } else if (prev.days > 0) {
-          return { ...prev, days: prev.days - 1, hours: 23, minutes: 59 };
-        }
-        return prev;
-      });
-    }, 60000); // Update every minute
+    getMyBusinesses().catch(() => undefined);
+  }, [getMyBusinesses]);
 
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    if (selectedBusinesses.length > 0) return;
+    const firstBusinessId = myBusinesses?.[0]?.id;
+    if (!firstBusinessId) return;
+    setSelectedBusinesses([firstBusinessId]);
+  }, [myBusinesses, selectedBusinesses, setSelectedBusinesses]);
+
+  useEffect(() => {
+    if (!currentBusinessId) {
+      setLeaderboardData(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadLeaderboard = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/analytics/leaderboard/monthly/${currentBusinessId}`,
+          {
+            params: { limit: 3 },
+          }
+        );
+        const result = response?.data;
+        if (!isMounted) return;
+        setLeaderboardData(result?.data ?? null);
+      } catch {
+        if (!isMounted) return;
+        setLeaderboardData(null);
+      }
+    };
+
+    loadLeaderboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentBusinessId]);
+
+  const displayContent = useMemo(() => {
+    if (selectedBusinesses.length === 0) {
+      return { type: "all" as const, content: "All" };
+    }
+
+    if (selectedBusinesses.length === 1) {
+      const selectedBusiness = (myBusinesses || []).find(
+        (business: any) => business?.id === selectedBusinesses[0]
+      );
+      return {
+        type: "single" as const,
+        content: selectedBusiness
+          ? {
+            name: selectedBusiness.name,
+            logo: selectedBusiness.logo,
+            imageUrl: selectedBusiness.logo,
+          }
+          : undefined,
+      };
+    }
+
+    return {
+      type: "multi" as const,
+      content: `${selectedBusinesses.length} Selected`,
+    };
+  }, [myBusinesses, selectedBusinesses]);
+
+  const topPerformers = useMemo<Performer[]>(() => {
+    return (leaderboardData?.top ?? []).map((item) => ({
+      id: item.userId,
+      name: item.userName || "User",
+      avatar: item.avatar || null,
+      points: item.points ?? 0,
+      rank: item.rank,
+    }));
+  }, [leaderboardData]);
+
+  const currentUser = useMemo(() => {
+    return {
+      name: authUser?.firstName || authUser?.lastName
+        ? `${authUser?.firstName || ""} ${authUser?.lastName || ""}`.trim()
+        : authUser?.email || "You",
+      avatar: authUser?.avatar || null,
+      points: leaderboardData?.me?.points ?? 0,
+    };
+  }, [authUser, leaderboardData]);
+
+  const resetAt = leaderboardData?.period?.resetAt || "2025-12-31T23:01:60";
+  const getRewardCoins = (rank: number) =>
+    leaderboardData?.rewards?.find((item) => item.rank === rank)?.coins ?? 0;
+  const handleLeaderboardBusinessSelection = (ids: string[]) => {
+    const nextBusinessId = ids[0] || currentBusinessId || myBusinesses?.[0]?.id;
+    if (!nextBusinessId) return;
+    setSelectedBusinesses([nextBusinessId]);
+  };
 
   const getRankBadge = (rank: number) => {
     switch (rank) {
@@ -123,14 +199,21 @@ export default function LeaderboardScreen() {
         onPressBack={() => router.back()}
         className="px-4 mt-2.5"
         title="Leaderboard"
+        components={
+          <BusinessSelectionTrigger
+            displayContent={displayContent}
+            onPress={() => setShowModal(true)}
+            compact
+          />
+        }
       />
 
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={businesses}
+        businesses={[]}
         selectedBusinesses={selectedBusinesses}
-        onSelectionChange={setSelectedBusinesses}
+        onSelectionChange={handleLeaderboardBusinessSelection}
       />
 
       <LinearGradient
@@ -149,10 +232,7 @@ export default function LeaderboardScreen() {
             </Text>
 
             {/* countdown timer */}
-            <CountdownTimer
-              targetTime="2025-12-31T23:01:60"
-              className="mb-20"
-            />
+            <CountdownTimer targetTime={resetAt} className="mb-20" />
 
             {/* bars */}
             <View className="absolute bottom-0 inset-x-0 items-center">
@@ -207,7 +287,11 @@ export default function LeaderboardScreen() {
 
                   {/* Avatar */}
                   <Image
-                    source={{ uri: performer.avatar }}
+                    source={
+                      performer.avatar
+                        ? { uri: performer.avatar }
+                        : require("@/assets/images/placeholder.png")
+                    }
                     style={{
                       width: 50,
                       height: 50,
@@ -243,7 +327,7 @@ export default function LeaderboardScreen() {
                       />
                       <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
                         <Text className="text-xs font-proximanova-semibold">
-                          15 token reward
+                          {getRewardCoins(performer.rank)} coin reward
                         </Text>
                       </View>
                     </View>
@@ -274,7 +358,11 @@ export default function LeaderboardScreen() {
         <View className="bg-[#E5F4FD] dark:bg-blue-900/20 border border-[#EEEEEE] rounded-2xl px-4 py-6 flex-row items-center justify-between absolute bottom-0 inset-x-0">
           <View className="flex-row items-center gap-4">
             <Image
-              source={{ uri: currentUser.avatar }}
+              source={
+                currentUser.avatar
+                  ? { uri: currentUser.avatar }
+                  : require("@/assets/images/placeholder.png")
+              }
               style={{
                 width: 50,
                 height: 50,
