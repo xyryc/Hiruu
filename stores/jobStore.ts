@@ -396,13 +396,9 @@ export const useJobStore = create<JobState>((set) => ({
     }
   },
 
-    getPublicRecruitments: async (query = {}) => {
+  getPublicRecruitments: async (query = {}) => {
       try {
         const params = buildRecruitmentQuery(query);
-        console.log(
-          "[JobStore] getPublicRecruitments request params:",
-          JSON.stringify(params, null, 2)
-        );
 
         const response = await axiosInstance.get("/recruitment/public", {
           params,
@@ -884,18 +880,10 @@ export const useJobStore = create<JobState>((set) => ({
         params.workingDaySlots = JSON.stringify(query.workingDaySlots);
       }
       if (query.sortBy) params.sortBy = query.sortBy;
-      console.log(
-        "[JobStore] getJobProfiles request params:",
-        JSON.stringify(params, null, 2)
-      );
       const response = await axiosInstance.get("/job-profile/open-to-work", {
         params,
       });
       const result = response.data;
-      console.log(
-        "[JobStore] getJobProfiles response:",
-        JSON.stringify(result, null, 2)
-      );
 
       const hasError =
         result?.success === false ||

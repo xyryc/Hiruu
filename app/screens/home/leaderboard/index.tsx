@@ -61,6 +61,8 @@ export default function LeaderboardScreen() {
   );
   const router = useRouter();
 
+  console.log('hello', JSON.stringify(authUser, null, 2))
+
 
   useEffect(() => {
     getMyBusinesses().catch(() => undefined);
@@ -144,9 +146,11 @@ export default function LeaderboardScreen() {
 
   const currentUser = useMemo(() => {
     return {
-      name: authUser?.firstName || authUser?.lastName
-        ? `${authUser?.firstName || ""} ${authUser?.lastName || ""}`.trim()
-        : authUser?.email || "You",
+      name:
+        authUser?.name ||
+        (authUser?.firstName || authUser?.lastName
+          ? `${authUser?.firstName || ""} ${authUser?.lastName || ""}`.trim()
+          : authUser?.email || "You"),
       avatar: authUser?.avatar || null,
       points: leaderboardData?.me?.points ?? 0,
     };
@@ -327,7 +331,7 @@ export default function LeaderboardScreen() {
                       />
                       <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
                         <Text className="text-xs font-proximanova-semibold">
-                          {getRewardCoins(performer.rank)} coin reward
+                          {getRewardCoins(performer.rank)} token reward
                         </Text>
                       </View>
                     </View>
@@ -371,9 +375,18 @@ export default function LeaderboardScreen() {
                 borderColor: "#CECECE",
               }}
             />
-            <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-              {currentUser.name}
-            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                {currentUser.name}
+              </Text>
+              {authUser?.isPremium === true ? (
+                <MaterialCommunityIcons
+                  name="crown"
+                  size={16}
+                  color="#4FB2F3"
+                />
+              ) : null}
+            </View>
           </View>
 
           <View className="bg-[#11293A] dark:bg-gray-700 px-3.5 py-2 rounded-full">

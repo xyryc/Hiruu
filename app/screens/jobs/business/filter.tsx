@@ -476,43 +476,6 @@ const FindJobFilters = () => {
           : undefined,
     });
 
-    console.log(
-      "[HiringFilter] applied filters:",
-      JSON.stringify(
-        {
-          verifiedOnly: verifiedOnly ? true : undefined,
-          preferredRoleIds: undefined,
-          role: normalizedRole,
-          maxDistanceKm:
-            hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
-          location: normalizedLocation,
-          latitude: hasSelectedCoords ? selectedCoords.latitude : undefined,
-          longitude: hasSelectedCoords ? selectedCoords.longitude : undefined,
-          salaryMax:
-            isSalaryRangeTouched &&
-              Math.round(salaryRange) > 0 &&
-              Math.round(salaryRange) !== 5000
-              ? Math.round(salaryRange)
-              : undefined,
-          sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
-          availabilityTypes: availabilityTypes.length > 0 ? availabilityTypes : undefined,
-          shiftTypes: selectedShiftTypes.length > 0 ? selectedShiftTypes : undefined,
-          availableDays: availableDays.length > 0 ? availableDays : undefined,
-          workingDaySlots: workingDaySlots.length > 0 ? workingDaySlots : undefined,
-          experienceRequirements:
-            experienceSlots.length > 0
-              ? experienceSlots.map((slot) => ({
-                  roleId: slot.roleId || undefined,
-                  role: slot.roleName,
-                  minYears: slot.count,
-                }))
-              : undefined,
-        },
-        null,
-        2
-      )
-    );
-
     router.back();
   };
 
