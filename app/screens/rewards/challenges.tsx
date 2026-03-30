@@ -195,16 +195,46 @@ const challenges = () => {
                   </View>
 
                   <View className="flex-1">
-                    <View className="flex-row justify-between items-center">
-                      <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mt-2 flex-1 pr-3">
-                        {achievement.title}
-                      </Text>
+                    <View className="flex-row justify-between items-start">
+                      <View className="flex-1 pr-3 mt-2">
+                        <View className="flex-row items-center flex-wrap gap-2">
+                          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                            {achievement.title}
+                          </Text>
+
+                          <View className="flex-row items-center">
+                            <Image
+                              source={require("@/assets/images/hiruu-coin.svg")}
+                              style={{ width: 20, height: 20 }}
+                              contentFit="contain"
+                            />
+                            <View className="px-3 py-1 bg-[#DDF1FF] -ml-2 -z-10 rounded-r-[40px]">
+                              <Text className="text-xs font-proximanova-semibold">
+                                {rewardCoins}
+                              </Text>
+                            </View>
+                          </View>
+
+                          {achievement?.rewardCosmetic ? (
+                            <AutoHideTooltip
+                              message={achievement.rewardCosmetic?.name || "Cosmetic reward"}
+                              duration={3000}
+                            >
+                              <MaterialCommunityIcons
+                                name="palette-outline"
+                                size={18}
+                                color="#4FB2F3"
+                              />
+                            </AutoHideTooltip>
+                          ) : null}
+                        </View>
+                      </View>
 
                       <TouchableOpacity
                         activeOpacity={canClaim ? 0.85 : 1}
                         disabled={!canClaim || isClaiming}
                         onPress={() => handleClaim(achievement)}
-                        className={`top-4 rounded-full ${canClaim && !isClaiming ? "bg-[#11293A]" : "bg-[#8FA7B8]"}`}
+                        className={`mt-2 self-start rounded-full ${canClaim && !isClaiming ? "bg-[#11293A]" : "bg-[#8FA7B8]"}`}
                       >
                         <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
                           {isClaiming ? "Claiming..." : actionLabel}
@@ -212,42 +242,15 @@ const challenges = () => {
                       </TouchableOpacity>
                     </View>
 
-                    {/* <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
+                    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-0.5">
                       {achievement.description}
-                    </Text> */}
+                    </Text>
 
-                    <View className="flex-row items-center mt-2">
-                      <Image
-                        source={require("@/assets/images/hiruu-coin.svg")}
-                        style={{ width: 22, height: 22 }}
-                        contentFit="contain"
-                      />
-                      <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                        <Text className="text-xs font-proximanova-semibold">
-                          {rewardCoins}
-                        </Text>
-                      </View>
-
-                      {achievement?.rewardCosmetic ? (
-                        <AutoHideTooltip
-                          message={achievement.rewardCosmetic?.name || "Cosmetic reward"}
-                          duration={3000}
-                        >
-                          <MaterialCommunityIcons
-                            name="palette-outline"
-                            className="ml-2"
-                            size={20}
-                            color="#4FB2F3"
-                          />
-                        </AutoHideTooltip>
-                      ) : null}
-                    </View>
-
-                    <View className="px-4 mt-3.5 flex-1 flex-row items-center gap-3">
+                    <View className="mt-3.5 flex-row items-center gap-3">
                       <View className="flex-1">
                         <CoinProgressSlider achieved={progress} max={target || 1} />
                       </View>
-                      <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
+                      <Text className="min-w-[40px] text-right font-proximanova-regular text-sm text-primary dark:text-dark-primary">
                         <Text className="text-[#4FB2F3]">{progress}</Text>/{target}
                       </Text>
                     </View>

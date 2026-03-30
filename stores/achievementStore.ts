@@ -84,6 +84,10 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         params: { type },
       });
       const result = response.data;
+      console.log(
+        "[AchievementStore] getAchievements response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (!result?.success) {
         throw new Error(
@@ -145,6 +149,10 @@ export const useAchievementStore = create<AchievementState>((set) => ({
     try {
       const response = await axiosInstance.post(`/achievements/${id}/claim`);
       const result = response.data;
+      console.log(
+        "[AchievementStore] claimAchievement response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (result?.success === false) {
         throw new Error(
