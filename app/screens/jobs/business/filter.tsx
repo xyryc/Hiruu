@@ -1,12 +1,14 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import SimpleStatusBadge from "@/components/ui/badges/SimpleStatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import RoleSelector from "@/components/ui/modals/RoleSelector";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -16,18 +18,331 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type WeeklyAvailabilityItem = {
+  day: string;
+  isOpen: boolean;
+  startTime?: string;
+  endTime?: string;
+};
+
+type LocationOption = {
+  label: string;
+  value: string;
+  latitude: number;
+  longitude: number;
+  placeId?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+};
+
+const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
+const ADDRESS_MAX_LENGTH = 200;
+
+const SHIFT_OPTIONS = [
+  { label: "Day Shift", value: "day_shift" },
+  { label: "Night Shift", value: "night_shift" },
+  { label: "Weekend", value: "weekend" },
+] as const;
+
+const AVAILABILITY_BADGE_OPTIONS = [
+  { label: "Full Time", value: "full_time" },
+  { label: "Part Time", value: "part_time" },
+  { label: "Hourly", value: "hourly" },
+  { label: "Contract", value: "contract" },
+  { label: "Internship", value: "internship" },
+  { label: "On-site", value: "onsite" },
+  { label: "Remote", value: "remote" },
+  { label: "Hybrid", value: "hybrid" },
+] as const;
 
 const FindJobFilters = () => {
-  const [verifiedOnly, setVerifiedOnly] = useState(true);
-  const [postCode, setPostCode] = useState("885522");
-  const [distance, setDistance] = useState(25);
-  const [shiftType, setShiftType] = useState("onsite");
-  const [salaryRange, setSalaryRange] = useState(5000);
-  const [experiences, setExperiences] = useState({
-    cashier: 5,
-    receptionist: 5,
-  });
+  const getRoles = useBusinessStore((state) => state.getRoles);
+  const businessCandidateFilters = useJobStore((state) => state.businessCandidateFilters);
+  const setBusinessCandidateFilters = useJobStore((state) => state.setBusinessCandidateFilters);
+  const [verifiedOnly, setVerifiedOnly] = useState(Boolean(businessCandidateFilters.verifiedOnly));
+  const [locationSearch, setLocationSearch] = useState(
+    businessCandidateFilters.location || ""
+  );
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
+  const [selectedLocationOption, setSelectedLocationOption] = useState<LocationOption | null>(
+    typeof businessCandidateFilters.location === "string" &&
+      typeof businessCandidateFilters.latitude === "number" &&
+      typeof businessCandidateFilters.longitude === "number"
+      ? {
+        label: businessCandidateFilters.location,
+        value: businessCandidateFilters.location,
+        latitude: businessCandidateFilters.latitude,
+        longitude: businessCandidateFilters.longitude,
+      }
+      : null
+  );
+  const [selectedCoords, setSelectedCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
+    typeof businessCandidateFilters.latitude === "number" &&
+      typeof businessCandidateFilters.longitude === "number"
+      ? {
+        latitude: businessCandidateFilters.latitude,
+        longitude: businessCandidateFilters.longitude,
+      }
+      : null
+  );
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [isLocationFocused, setIsLocationFocused] = useState(false);
+  const hasShownGeoapifyMissingKey = useRef(false);
+  const [distance, setDistance] = useState(
+    Number.isFinite(Number(businessCandidateFilters.maxDistanceKm))
+      ? Number(businessCandidateFilters.maxDistanceKm)
+      : 25
+  );
+  const [isDistanceTouched, setIsDistanceTouched] = useState(
+    Number.isFinite(Number(businessCandidateFilters.maxDistanceKm))
+  );
+  const [salaryRange, setSalaryRange] = useState(
+    Number.isFinite(Number(businessCandidateFilters.salaryMax))
+      ? Number(businessCandidateFilters.salaryMax)
+      : 5000
+  );
+  const [isSalaryRangeTouched, setIsSalaryRangeTouched] = useState(
+    Number.isFinite(Number(businessCandidateFilters.salaryMax)) &&
+    Number(businessCandidateFilters.salaryMax) !== 5000
+  );
+  const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [selectedRoleToAdd, setSelectedRoleToAdd] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [addRoleTrigger, setAddRoleTrigger] = useState(0);
+  const [experienceSlots, setExperienceSlots] = useState<
+    { roleId: string; roleName: string; count: number }[]
+  >(
+    Array.isArray(businessCandidateFilters.experienceRequirements)
+      ? businessCandidateFilters.experienceRequirements.map((item) => ({
+        roleId: item.roleId || "",
+        roleName: item.role || "",
+        count: item.minYears,
+      }))
+      : []
+  );
+  const [weeklyAvailability, setWeeklyAvailability] = useState<WeeklyAvailabilityItem[]>(
+    Array.isArray(businessCandidateFilters.workingDaySlots) &&
+      businessCandidateFilters.workingDaySlots.length > 0
+      ? businessCandidateFilters.workingDaySlots.map((slot) => ({
+        day: slot.day,
+        isOpen: true,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      }))
+      : Array.isArray(businessCandidateFilters.availableDays)
+        ? businessCandidateFilters.availableDays.map((day) => ({
+          day: String(day),
+          isOpen: true,
+          startTime: "09:00",
+          endTime: "17:00",
+        }))
+        : []
+  );
   const router = useRouter();
+  const handleSelectLocation = (item: LocationOption) => {
+    const trimmedLabel = item.label.slice(0, ADDRESS_MAX_LENGTH);
+    setLocationSearch(trimmedLabel);
+    setSelectedLocationOption(item);
+    setSelectedCoords({
+      latitude: item.latitude,
+      longitude: item.longitude,
+    });
+    setLocationOptions([item]);
+    setIsLocationFocused(false);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRoles = async () => {
+      try {
+        if (isMounted) {
+          setRolesLoading(true);
+        }
+        const data = await getRoles();
+        if (!isMounted) return;
+
+        const normalized = (Array.isArray(data) ? data : [])
+          .map((item: any) => ({
+            id: item?.id || item?.roleId || item?.role?.id || "",
+            name: item?.name || item?.role?.name || "",
+          }))
+          .filter((item: any) => item.id && item.name);
+
+        setRoleOptions(normalized);
+      } catch {
+        if (isMounted) {
+          setRoleOptions([]);
+        }
+      } finally {
+        if (isMounted) {
+          setRolesLoading(false);
+        }
+      }
+    };
+
+    loadRoles();
+    return () => {
+      isMounted = false;
+    };
+  }, [getRoles]);
+
+  useEffect(() => {
+    if (!locationSearch || locationSearch.trim().length < 3) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      return;
+    }
+
+    if (!GEOAPIFY_API_KEY) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      if (!hasShownGeoapifyMissingKey.current) {
+        hasShownGeoapifyMissingKey.current = true;
+        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+      }
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      try {
+        setIsSearchingLocation(true);
+        const query = encodeURIComponent(locationSearch.trim());
+        const response = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&limit=8&apiKey=${GEOAPIFY_API_KEY}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Geoapify request failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const features = Array.isArray(result?.features) ? result.features : [];
+        const nextOptions: LocationOption[] = features
+          .map((item: any) => {
+            const props = item?.properties || {};
+            const coordinates = Array.isArray(item?.geometry?.coordinates)
+              ? item.geometry.coordinates
+              : [];
+            const longitude = Number(coordinates[0]);
+            const latitude = Number(coordinates[1]);
+            const label =
+              props.formatted ||
+              [props.address_line1, props.address_line2].filter(Boolean).join(", ");
+
+            if (!label || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+              return null;
+            }
+
+            return {
+              label,
+              value: label,
+              latitude,
+              longitude,
+              placeId:
+                props.place_id ||
+                props.datasource?.raw?.place_id ||
+                props.datasource?.raw?.osm_id?.toString?.(),
+              city: props.city || props.county || props.suburb,
+              state: props.state || props.state_code,
+              country: props.country,
+            };
+          })
+          .filter(Boolean) as LocationOption[];
+
+        const uniqueByLabel = Array.from(
+          new Map(nextOptions.map((item) => [item.label, item])).values()
+        );
+
+        if (selectedLocationOption) {
+          setLocationOptions(
+            Array.from(
+              new Map(
+                [selectedLocationOption, ...uniqueByLabel].map((item) => [
+                  item.label,
+                  item,
+                ])
+              ).values()
+            )
+          );
+        } else {
+          setLocationOptions(uniqueByLabel);
+        }
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+          toast.error("Failed to fetch location suggestions.");
+        }
+      } finally {
+        setIsSearchingLocation(false);
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [locationSearch, selectedLocationOption]);
+
+  useEffect(() => {
+    if (!selectedRoleToAdd?.id) return;
+
+    const alreadyExists = experienceSlots.some(
+      (slot) =>
+        slot.roleId === selectedRoleToAdd.id ||
+        slot.roleName.trim().toLowerCase() ===
+        selectedRoleToAdd.name.trim().toLowerCase()
+    );
+
+    if (!alreadyExists) {
+      setAddRoleTrigger((prev) => prev + 1);
+    }
+  }, [experienceSlots, selectedRoleToAdd]);
+
+  useEffect(() => {
+    if (roleOptions.length === 0) return;
+
+    setExperienceSlots((prev) => {
+      const next = prev.map((slot) => {
+        const matchedRole = roleOptions.find(
+          (role) => role.name.trim().toLowerCase() === slot.roleName.trim().toLowerCase()
+        );
+
+        if (!matchedRole) {
+          return slot;
+        }
+
+        if (slot.roleId === matchedRole.id) {
+          return slot;
+        }
+
+        return {
+          ...slot,
+          roleId: matchedRole.id,
+        };
+      });
+
+      const isSame = prev.every(
+        (slot, index) =>
+          slot.roleId === next[index]?.roleId &&
+          slot.roleName === next[index]?.roleName &&
+          slot.count === next[index]?.count
+      );
+
+      return isSame ? prev : next;
+    });
+  }, [roleOptions]);
 
   //   sorty by
   const sortOptions = [
@@ -36,7 +351,23 @@ const FindJobFilters = () => {
     "Highest Rating",
     "Best Fit",
   ];
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const sortValueToLabel: Record<string, string> = {
+    newest: "Newest",
+    most_experience: "Most Experienced",
+    highest_rating: "Highest Rating",
+    best_fit: "Best Fit",
+  };
+  const sortLabelToValue: Record<string, "newest" | "most_experience" | "highest_rating" | "best_fit"> = {
+    Newest: "newest",
+    "Most Experienced": "most_experience",
+    "Highest Rating": "highest_rating",
+    "Best Fit": "best_fit",
+  };
+  const [selectedOption, setSelectedOption] = useState<string | null>(
+    businessCandidateFilters.sortBy
+      ? sortValueToLabel[businessCandidateFilters.sortBy]
+      : null
+  );
 
   const handleOptionPress = (option: string) => {
     setSelectedOption((prev) => (prev === option ? null : option));
@@ -45,46 +376,107 @@ const FindJobFilters = () => {
     return selectedOption === option;
   };
 
-  // shift type
-  const shiftOptions = ["Onsite", "Remote", "Hybrid"];
-  const [selectedShiftOption, setSelectedShiftOption] = useState<string | null>(
-    null
+  const [selectedShiftTypes, setSelectedShiftTypes] = useState<string[]>(
+    Array.isArray(businessCandidateFilters.shiftTypes)
+      ? businessCandidateFilters.shiftTypes
+      : typeof businessCandidateFilters.shiftTypes === "string" &&
+        businessCandidateFilters.shiftTypes.length > 0
+        ? businessCandidateFilters.shiftTypes.split(",")
+        : []
   );
 
-  const handleShiftOptionPress = (option: string) => {
-    setSelectedShiftOption((prev) => (prev === option ? null : option));
+  const handleShiftOptionPress = (value: string) => {
+    setSelectedShiftTypes((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
   };
 
-  const isSelectedShift = (option: string) => {
-    return selectedShiftOption === option;
+  const isSelectedShift = (value: string) => {
+    return selectedShiftTypes.includes(value);
   };
 
-  //   job type
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
-  const badgeOptions = [
-    "Full Time",
-    "Part Time",
-    "Hourly",
-    "Contract",
-    "Freelance",
-    "Internship",
-    "On-site",
-    "Remote",
-    "Hybrid",
-  ];
-  const handleBadgePress = (badgeTitle: string) => {
+  const [showWorkingDays, setShowWorkingDays] = useState(false);
+  const handleBadgePress = (badgeValue: string) => {
     setSelectedBadges((prev) => {
-      if (prev.includes(badgeTitle)) {
-        // Deselect if already selected
-        return prev.filter((title) => title !== badgeTitle);
+      if (prev.includes(badgeValue)) {
+        return prev.filter((value) => value !== badgeValue);
       } else {
-        // Select new badge
-        return [...prev, badgeTitle];
+        return [...prev, badgeValue];
       }
     });
   };
-  const isBadgeSelected = (badgeTitle: string) => {
-    return selectedBadges.includes(badgeTitle);
+  const isBadgeSelected = (badgeValue: string) => {
+    return selectedBadges.includes(badgeValue);
+  };
+
+  useEffect(() => {
+    const initialBadges = Array.isArray(businessCandidateFilters.availabilityTypes)
+      ? businessCandidateFilters.availabilityTypes
+      : typeof businessCandidateFilters.availabilityTypes === "string" &&
+        businessCandidateFilters.availabilityTypes.length > 0
+        ? businessCandidateFilters.availabilityTypes.split(",")
+        : [];
+
+    setSelectedBadges(
+      initialBadges.filter((item): item is string =>
+        AVAILABILITY_BADGE_OPTIONS.some((badge) => badge.value === item)
+      )
+    );
+  }, [businessCandidateFilters.availabilityTypes]);
+
+  const handleApplyFilters = () => {
+    const availabilityTypes = selectedBadges.filter(Boolean);
+    const normalizedLocation = locationSearch.trim() || undefined;
+    const hasSelectedCoords =
+      typeof selectedCoords?.latitude === "number" &&
+      typeof selectedCoords?.longitude === "number";
+    const normalizedRole = experienceSlots[0]?.roleName?.trim() || undefined;
+
+    const availableDays = weeklyAvailability
+      .filter((item) => item.isOpen)
+      .map((item) => item.day.toLowerCase());
+
+    const workingDaySlots = weeklyAvailability
+      .filter((item) => item.isOpen && item.startTime && item.endTime)
+      .map((item) => ({
+        day: item.day.toLowerCase(),
+        startTime: String(item.startTime),
+        endTime: String(item.endTime),
+      }));
+    setBusinessCandidateFilters({
+      verifiedOnly: verifiedOnly ? true : undefined,
+      preferredRoleIds: undefined,
+      role: normalizedRole,
+      maxDistanceKm:
+        hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
+      location: normalizedLocation,
+      latitude: hasSelectedCoords ? selectedCoords.latitude : undefined,
+      longitude: hasSelectedCoords ? selectedCoords.longitude : undefined,
+      salaryMax:
+        isSalaryRangeTouched &&
+          Math.round(salaryRange) > 0 &&
+          Math.round(salaryRange) !== 5000
+          ? Math.round(salaryRange)
+          : undefined,
+      sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
+      availabilityTypes: availabilityTypes.length > 0 ? availabilityTypes : undefined,
+      shiftTypes: selectedShiftTypes.length > 0 ? selectedShiftTypes : undefined,
+      availableDays: availableDays.length > 0 ? availableDays : undefined,
+      workingDaySlots: workingDaySlots.length > 0 ? workingDaySlots : undefined,
+      experienceRequirements:
+        experienceSlots.length > 0
+          ? experienceSlots.map((slot) => ({
+              roleId: slot.roleId || undefined,
+              role: slot.roleName,
+              minYears: slot.count,
+            }))
+          : undefined,
+    });
+
+    router.back();
   };
 
   return (
@@ -95,9 +487,17 @@ const FindJobFilters = () => {
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <ScreenHeader title="Hiring Filter" className="mx-5" />
+      <ScreenHeader
+        title="Hiring Filter"
+        className="mx-5 mt-7"
+        onPressBack={() => router.back()}
+      />
 
-      <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+      >
         {/* Verified Candidates Only */}
         <View className="mt-7 flex-row justify-between items-center py-5 border border-[#EEEEEE] p-4 rounded-xl">
           <Text className="text-[#4FB2F3] font-proximanova-semibold">
@@ -105,15 +505,13 @@ const FindJobFilters = () => {
           </Text>
           <TouchableOpacity
             onPress={() => setVerifiedOnly(!verifiedOnly)}
-            className={`w-12 h-7 rounded-full p-1 ${
-              verifiedOnly ? "bg-[#34C759]" : "bg-gray-300"
-            }`}
+            className={`w-12 h-7 rounded-full p-1 ${verifiedOnly ? "bg-[#34C759]" : "bg-gray-300"
+              }`}
             style={{ justifyContent: "center" }}
           >
             <View
-              className={`w-5 h-5 rounded-full bg-white ${
-                verifiedOnly ? "self-end" : "self-start"
-              }`}
+              className={`w-5 h-5 rounded-full bg-white ${verifiedOnly ? "self-end" : "self-start"
+                }`}
             />
           </TouchableOpacity>
         </View>
@@ -152,22 +550,71 @@ const FindJobFilters = () => {
             Location
           </Text>
 
-          <View className="flex-row items-center bg-white border border-[#EEEEEE] rounded-lg px-4 py-3">
-            <TextInput
-              value={postCode}
-              onChangeText={setPostCode}
-              placeholder="Post Code"
-              className="flex-1 font-proximanova-semibold text-sm"
-            />
-            <MaterialCommunityIcons
-              name="crosshairs-gps"
-              size={24}
-              color="#666"
-            />
-          </View>
+          <TextInput
+            value={locationSearch}
+            onFocus={() => setIsLocationFocused(true)}
+            onBlur={() => {
+              setTimeout(() => setIsLocationFocused(false), 250);
+            }}
+            onChangeText={(text) => {
+              const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
+              setLocationSearch(nextText);
+              if (!nextText.trim()) {
+                setSelectedLocationOption(null);
+                setSelectedCoords(null);
+                setLocationOptions([]);
+                return;
+              }
+              if (selectedLocationOption && nextText !== selectedLocationOption.label) {
+                setSelectedLocationOption(null);
+                setSelectedCoords(null);
+              }
+            }}
+            placeholder="Search location"
+            className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
+            autoCapitalize="none"
+            maxLength={ADDRESS_MAX_LENGTH}
+          />
+
+          {isLocationFocused &&
+            locationSearch.trim().length >= 3 &&
+            locationOptions.length > 0 ? (
+            <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
+              {locationOptions.map((item, index) => (
+                <TouchableOpacity
+                  key={`${item.value}-${index}`}
+                  onPressIn={() => handleSelectLocation(item)}
+                  onPress={() => handleSelectLocation(item)}
+                  className="px-4 py-3 border-b border-[#F5F5F5]"
+                >
+                  <Text className="text-sm text-[#111111]">{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+
+          {isSearchingLocation ? (
+            <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
+              Searching locations...
+            </Text>
+          ) : null}
+
+          {isLocationFocused &&
+            locationSearch.trim().length >= 3 &&
+            !isSearchingLocation &&
+            locationOptions.length === 0 ? (
+            <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
+              No locations found.
+            </Text>
+          ) : null}
+
+
           <Slider
             value={distance}
-            onValueChange={setDistance}
+            onValueChange={(value) => {
+              setDistance(value);
+              setIsDistanceTouched(true);
+            }}
             minimumValue={0}
             maximumValue={100}
             minimumTrackTintColor="#4FB2F3"
@@ -176,70 +623,64 @@ const FindJobFilters = () => {
             className="mt-1"
           />
           <Text className="text-sm font-proximanova-regular text-secondary mt-1">
-            5km From Post Code
+            {Math.round(distance)}km Within Selected Area
           </Text>
-        </View>
-
-        {/* Job Role */}
-        <View className="pt-7">
-          <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Job Role
-          </Text>
-
-          <TextInput
-            placeholder="Bartender"
-            className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-proximanova-regular"
-          />
         </View>
 
         {/* Shift Type */}
-        <View className="py-5 border-b border-gray-100">
+
+        {/* The job profile does not include shift preferences, which is causing difficulty in applying filters. Therefore, it has been recommended to address this issue. */}
+
+        {/* <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Shift Type
+            Shift Preference
           </Text>
 
-          <View className="flex-row gap-2.5">
-            {shiftOptions.map((option) => (
+          <View className="flex-row flex-wrap gap-2.5">
+            {SHIFT_OPTIONS.map((option) => (
               <TouchableOpacity
-                key={option}
+                key={option.value}
                 className="flex-row items-center justify-between gap-1.5"
-                onPress={() => handleShiftOptionPress(option)}
+                onPress={() => handleShiftOptionPress(option.value)}
                 activeOpacity={0.7}
               >
-                {isSelectedShift(option) ? (
+                {isSelectedShift(option.value) ? (
                   <Ionicons name="checkmark-circle" size={24} color="#11293A" />
                 ) : (
                   <Ionicons name="ellipse-outline" size={24} color="#7A7A7A" />
                 )}
 
                 <Text className="text-sm font-proximanova-regular">
-                  {option}
+                  {option.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Availability*/}
-        <View className="mt-7">
+
+        {/* The job profile does not include shift preferences, which is causing difficulty in applying filters. Therefore, it has been recommended to address this issue. */}
+
+
+        {/* <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             Availability
           </Text>
           <View className="flex-row flex-wrap gap-2.5">
-            {badgeOptions.map((badgeTitle) => (
+            {AVAILABILITY_BADGE_OPTIONS.map((badge) => (
               <SimpleStatusBadge
-                key={badgeTitle}
-                title={badgeTitle}
-                className={`border ${
-                  isBadgeSelected(badgeTitle) ? "" : "border-[#EEEEEE]"
-                }`}
-                bgColor={isBadgeSelected(badgeTitle) ? "#11293A" : "#FFFFFF"}
-                textColor={isBadgeSelected(badgeTitle) ? "#FFFFFF" : "#111111"}
-                onPress={() => handleBadgePress(badgeTitle)}
+                key={badge.value}
+                title={badge.label}
+                className={`border ${isBadgeSelected(badge.value) ? "" : "border-[#EEEEEE]"
+                  }`}
+                bgColor={isBadgeSelected(badge.value) ? "#11293A" : "#FFFFFF"}
+                textColor={isBadgeSelected(badge.value) ? "#FFFFFF" : "#111111"}
+                onPress={() => handleBadgePress(badge.value)}
               />
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Salary Range */}
         <View className="py-5 border-b border-gray-100">
@@ -248,7 +689,10 @@ const FindJobFilters = () => {
           </Text>
           <Slider
             value={salaryRange}
-            onValueChange={setSalaryRange}
+            onValueChange={(value) => {
+              setSalaryRange(value);
+              setIsSalaryRangeTouched(true);
+            }}
             minimumValue={0}
             maximumValue={10000}
             minimumTrackTintColor="#4FB2F3"
@@ -270,18 +714,87 @@ const FindJobFilters = () => {
 
         {/* Experience Level */}
         <View className="py-5">
-          <RoleSlotsInput />
+          <Text className="text-base font-proximanova-semibold text-primary mb-3">
+            Experience Level
+          </Text>
+          <Text className="text-sm font-proximanova-regular text-secondary mb-2">
+            Select a role first, then set the minimum years of experience.
+          </Text>
+          <View className="border border-[#EEEEEE] rounded-xl px-3 pt-1 pb-3 bg-white">
+            <Text className="mt-3 text-sm font-proximanova-semibold text-primary">
+              Select Role
+            </Text>
+            <RoleSelector
+              className="mt-1"
+              roles={roleOptions}
+              loading={rolesLoading}
+              selectedRole={selectedRoleToAdd}
+              placeholder="Choose a role"
+              onSelectRole={(role) => setSelectedRoleToAdd(role)}
+            />
+            {selectedRoleToAdd?.name ? (
+              <Text className="text-xs font-proximanova-regular text-[#4FB2F3] mt-1">
+                Selected: {selectedRoleToAdd.name}
+              </Text>
+            ) : null}
+          </View>
+          <RoleSlotsInput
+            titleHeight
+            selectedRoleToAdd={selectedRoleToAdd}
+            addRoleTrigger={addRoleTrigger}
+            initialRoleSlots={experienceSlots}
+            onRoleSlotsChange={setExperienceSlots}
+            onPressAddRole={() => {
+              if (selectedRoleToAdd?.id) {
+                setAddRoleTrigger((prev) => prev + 1);
+              }
+            }}
+          />
         </View>
-        {/* <View className="flex-row justify-between border border-[#eeeeee] items-center p-4 rounded-xl">
-          <Text>Available Working Days</Text>
-          <SimpleLineIcons name="arrow-down" size={16} color="black" />
-        </View> */}
-        <WeeklySchedule business={true} />
+        <View className="pb-5">
+          {!showWorkingDays ? (
+            <View className="flex-row justify-between border border-[#EEEEEE] items-center p-4 rounded-xl">
+              <Text className="text-base font-proximanova-semibold text-primary">
+                Available Working Days
+              </Text>
+              <TouchableOpacity
+                className="h-9 w-9 items-center justify-center"
+                activeOpacity={0.8}
+                onPress={() => setShowWorkingDays(true)}
+              >
+                <Entypo name="chevron-thin-down" size={16} color="black" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="border border-[#EEEEEE] rounded-xl bg-white p-4">
+              <View className="flex-row justify-between items-center mb-5">
+                <Text className="text-xl font-proximanova-semibold text-primary">
+                  Available Working Days
+                </Text>
+                <TouchableOpacity
+                  className="h-9 w-9 items-center justify-center"
+                  activeOpacity={0.8}
+                  onPress={() => setShowWorkingDays(false)}
+                >
+                  <Entypo name="chevron-thin-up" size={16} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <WeeklySchedule
+                business={true}
+                showBusinessHeader={false}
+                borderless
+                availability={weeklyAvailability}
+                onChange={setWeeklyAvailability}
+              />
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       {/* button */}
       <View className="mx-5 pt-5">
-        <PrimaryButton title="Apply Filters" onPress={() => router.back()} />
+        <PrimaryButton title="Apply Filters" onPress={handleApplyFilters} />
       </View>
     </SafeAreaView>
   );

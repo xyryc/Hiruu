@@ -17,7 +17,7 @@ export type RoleChipItem = {
 };
 
 export const DEFAULT_ROLE_CHIPS: RoleChipItem[] = [
-  { name: "Cashier", count: 2, bg: "#E8EDF8", color: "#B8C8E9" },
+  { name: "Cashier ", count: 2, bg: "#E8EDF8", color: "#B8C8E9" },
   { name: "Bartender", count: 1, bg: "#F1EDDF", color: "#D2A80F" },
   { name: "Cleaner", count: 1, bg: "#DCECE1", color: "#32AE53" },
   { name: "Security", count: 1, bg: "#F9E8EA", color: "#DC4B6E" },
@@ -54,7 +54,7 @@ const RoleChip = ({
 }: RoleChipProps) => {
   const randomColorPair =
     ROLE_CHIP_COLOR_PALETTE[
-      getStablePaletteIndex(name, ROLE_CHIP_COLOR_PALETTE.length)
+    getStablePaletteIndex(name, ROLE_CHIP_COLOR_PALETTE.length)
     ];
   const chipBg = bg || randomColorPair.bg;
   const chipTextColor = color || randomColorPair.color;

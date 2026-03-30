@@ -1,19 +1,19 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
+import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import MultiRoleSelector, {
   MultiRoleSelectorItem,
 } from "@/components/ui/inputs/MultiRoleSelector";
-import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import { useBusinessStore } from "@/stores/businessStore";
 import {
   JobProfileData,
   useJobStore,
   WeeklyAvailabilityItem,
 } from "@/stores/jobStore";
-import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -36,12 +36,12 @@ const buildFormState = (profile: JobProfileData | null) => ({
       : "",
   expectedSalaryMin:
     typeof profile?.expectedSalaryMin === "number" ||
-    typeof profile?.expectedSalaryMin === "string"
+      typeof profile?.expectedSalaryMin === "string"
       ? `${profile.expectedSalaryMin}`
       : "",
   expectedSalaryMax:
     typeof profile?.expectedSalaryMax === "number" ||
-    typeof profile?.expectedSalaryMax === "string"
+      typeof profile?.expectedSalaryMax === "string"
       ? `${profile.expectedSalaryMax}`
       : "",
   preferredRoleIds: Array.isArray(profile?.preferredRoleIds)
@@ -173,7 +173,7 @@ const JobProfileEdit = () => {
       };
 
       loadProfile();
-      return () => {};
+      return () => { };
     }, [applyProfileState, getMyJobProfile])
   );
 
@@ -225,7 +225,7 @@ const JobProfileEdit = () => {
       });
 
       toast.success("Job profile updated");
-      router.replace("/screens/profile/user/job-profile");
+      router.back();
     } catch (error: any) {
       toast.error(error?.message || "Failed to update job profile");
     } finally {

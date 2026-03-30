@@ -9,6 +9,13 @@ export type RecruitmentSortBy =
   | "best_fit";
 
 type CsvParam<T extends string = string> = T[] | string;
+type ExperienceRequirementParam =
+  | string
+  | {
+      roleId?: string;
+      role?: string;
+      minYears: number;
+    }[];
 
 export interface RecruitmentFilterQuery {
   page?: number;
@@ -25,7 +32,8 @@ export interface RecruitmentFilterQuery {
   skills?: CsvParam;
   gender?: string;
   experience?: string;
-  experienceLevels?: CsvParam;
+  experienceLevels?: ExperienceRequirementParam;
+  experienceRequirements?: ExperienceRequirementParam;
   ageMin?: number;
   ageMax?: number;
   shiftStartTime?: string;
@@ -41,6 +49,8 @@ export interface RecruitmentFilterQuery {
   isFeatured?: boolean;
   roleIds?: CsvParam;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   maxDistanceKm?: number;
   verifiedOnly?: boolean;
   sortBy?: RecruitmentSortBy;

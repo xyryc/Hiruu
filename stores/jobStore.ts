@@ -83,13 +83,17 @@ type BusinessInvitePayload = {
 
 type AllJobsFilters = Pick<
   RecruitmentFilterQuery,
-  | "shiftType"
+  | "shiftTypes"
   | "jobTypes"
   | "maxSalary"
+  | "experienceRequirements"
   | "location"
+  | "latitude"
+  | "longitude"
   | "maxDistanceKm"
   | "sortBy"
   | "search"
+  | "isFeatured"
   | "page"
   | "limit"
 >;
@@ -128,10 +132,31 @@ type MarkAsReadResponse = {
 type JobProfileFilters = {
   search?: string;
   isPremium?: boolean;
+  isFeatured?: boolean;
   skills?: string;
-  // preferredRoleId?: string;
+  preferredRoleId?: string;
+  preferredRoleIds?: string[] | string;
+  role?: string;
+  verifiedOnly?: boolean;
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  postcode?: string;
+  maxDistanceKm?: number;
+  salaryMin?: number;
+  salaryMax?: number;
+  availabilityTypes?: string[] | string;
+  shiftTypes?: string[] | string;
+  availableDays?: string[] | string;
+  experienceRequirements?: { roleId?: string; role?: string; minYears: number }[];
+  workingDaySlots?: { day: string; startTime: string; endTime: string }[];
+  sortBy?: "newest" | "highest_rating" | "most_experience" | "best_fit";
   page?: number;
   limit?: number;
+};
+
+type BusinessCandidateFilters = Omit<JobProfileFilters, "page" | "limit" | "isPremium" | "isFeatured"> & {
+  verifiedOnly?: boolean;
 };
 
 type JobProfileListResponse = {
@@ -187,8 +212,13 @@ interface JobState {
   myEmploymentsError: string | null;
   error: Error | null;
   allJobsFilters: AllJobsFilters;
+  businessCandidateFilters: BusinessCandidateFilters;
   setAllJobsFilters: (filters: Partial<AllJobsFilters>) => void;
   clearAllJobsFilters: () => void;
+  setBusinessCandidateFilters: (
+    filters: Partial<BusinessCandidateFilters>
+  ) => void;
+  clearBusinessCandidateFilters: () => void;
   applyToRecruitment: (recruitmentId: string) => Promise<any>;
   inviteCandidateToRecruitment: (
     businessId: string,
@@ -251,6 +281,7 @@ export const useJobStore = create<JobState>((set) => ({
   myEmploymentsError: null,
   error: null,
   allJobsFilters: {},
+  businessCandidateFilters: {},
   setAllJobsFilters: (filters) =>
     set((state) => ({
       allJobsFilters: {
@@ -259,6 +290,14 @@ export const useJobStore = create<JobState>((set) => ({
       },
     })),
   clearAllJobsFilters: () => set({ allJobsFilters: { page: 1, limit: 10 } }),
+  setBusinessCandidateFilters: (filters) =>
+    set((state) => ({
+      businessCandidateFilters: {
+        ...state.businessCandidateFilters,
+        ...filters,
+      },
+    })),
+  clearBusinessCandidateFilters: () => set({ businessCandidateFilters: {} }),
 
   applyToRecruitment: async (recruitmentId) => {
     try {
@@ -358,12 +397,12 @@ export const useJobStore = create<JobState>((set) => ({
   },
 
   getPublicRecruitments: async (query = {}) => {
-    try {
-      const params = buildRecruitmentQuery(query);
+      try {
+        const params = buildRecruitmentQuery(query);
 
-      const response = await axiosInstance.get("/recruitment/public", {
-        params,
-      });
+        const response = await axiosInstance.get("/recruitment/public", {
+          params,
+        });
       const result = response.data;
 
       const hasError =
@@ -632,10 +671,10 @@ export const useJobStore = create<JobState>((set) => ({
         params.type = query.type;
       }
 
-      const response = await axiosInstance.get(
-        "/recruitment-application/unreads",
-        { params }
-      );
+      const response = await axiosInstance.get("/recruitment-application/unreads", {
+        params,
+        skipErrorLog: true,
+      } as any);
       const result = response.data;
 
       const hasError =
@@ -653,6 +692,9 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const axiosError = error as AxiosError<any>;
+      if (!axiosError.response) {
+        return EMPTY_UNREAD_COUNTS;
+      }
       const message =
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
@@ -802,8 +844,42 @@ export const useJobStore = create<JobState>((set) => ({
       if (query.limit) params.limit = query.limit;
       if (query.search) params.search = query.search;
       if (query.skills) params.skills = query.skills;
-      // if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
-      if (query.isPremium !== undefined) params.isPremium = query.isPremium;
+      if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
+      if (query.role) params.role = query.role;
+      if (query.verifiedOnly !== undefined) params.verifiedOnly = query.verifiedOnly;
+      if (query.isFeatured !== undefined) params.isFeatured = query.isFeatured;
+      if (query.isPremium !== undefined && typeof params.isFeatured === "undefined") {
+        params.isFeatured = query.isPremium;
+      }
+      if (query.location) params.location = query.location;
+      if (query.latitude !== undefined) params.latitude = query.latitude;
+      if (query.longitude !== undefined) params.longitude = query.longitude;
+      if (query.postcode) params.postcode = query.postcode;
+      if (query.maxDistanceKm !== undefined) params.maxDistanceKm = query.maxDistanceKm;
+      if (query.salaryMin !== undefined) params.salaryMin = query.salaryMin;
+      if (query.salaryMax !== undefined) params.salaryMax = query.salaryMax;
+      if (query.availabilityTypes) {
+        params.availabilityTypes = Array.isArray(query.availabilityTypes)
+          ? query.availabilityTypes.join(",")
+          : query.availabilityTypes;
+      }
+      if (query.shiftTypes) {
+        params.shiftTypes = Array.isArray(query.shiftTypes)
+          ? query.shiftTypes.join(",")
+          : query.shiftTypes;
+      }
+      if (query.availableDays) {
+        params.availableDays = Array.isArray(query.availableDays)
+          ? query.availableDays.join(",")
+          : query.availableDays;
+      }
+      if (query.experienceRequirements && query.experienceRequirements.length > 0) {
+        params.experienceRequirements = JSON.stringify(query.experienceRequirements);
+      }
+      if (query.workingDaySlots && query.workingDaySlots.length > 0) {
+        params.workingDaySlots = JSON.stringify(query.workingDaySlots);
+      }
+      if (query.sortBy) params.sortBy = query.sortBy;
       const response = await axiosInstance.get("/job-profile/open-to-work", {
         params,
       });

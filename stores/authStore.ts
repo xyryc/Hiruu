@@ -23,6 +23,7 @@ const STORAGE_KEYS = {
 
 export interface User {
   id: string;
+  name?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -42,6 +43,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   onboarding?: number;
+  isPremium?: boolean;
 }
 
 interface AuthState {

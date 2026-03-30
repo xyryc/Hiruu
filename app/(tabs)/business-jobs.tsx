@@ -20,11 +20,46 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
+const normalizeRoleIds = (value?: string[] | string) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === "string" && value.length > 0) {
+    return value.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+const matchesPreferredRoleIds = (
+  profile: any,
+  preferredRoleIds?: string[] | string
+) => {
+  const selectedRoleIds = normalizeRoleIds(preferredRoleIds);
+  if (selectedRoleIds.length === 0) return true;
+
+  const profileRoleIds = Array.isArray(profile?.preferredRoleIds)
+    ? profile.preferredRoleIds.filter(Boolean)
+    : [];
+
+  return selectedRoleIds.some((roleId) => profileRoleIds.includes(roleId));
+};
+
+const filterProfilesByFeaturedType = (
+  profiles: any[],
+  type: "featured" | "suggested"
+) => {
+  if (!Array.isArray(profiles)) return [];
+  return profiles.filter((profile) =>
+    type === "featured"
+      ? profile?.isFeatured === true
+      : profile?.isFeatured !== true
+  );
+};
+
 const BusinessJobs = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getJobProfiles = useJobStore((s) => s.getJobProfiles);
-  const { getMyBusinessRoles, selectedBusinesses } = useBusinessStore();
+  const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
+  const { selectedBusinesses } = useBusinessStore();
   const [featuredProfiles, setFeaturedProfiles] = useState<any[]>([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
@@ -59,43 +94,24 @@ const BusinessJobs = () => {
   const filteredSuggestedProfiles = useMemo(() => {
     return suggestedProfiles.filter(profile => !isAlreadyEmployed(profile));
   }, [suggestedProfiles, isAlreadyEmployed]);
-
-
-  const loadBusinessRoleId = useCallback(async () => {
-    if (!currentBusinessId) {
-      return null;
-    }
-
-    try {
-      const roles = await getMyBusinessRoles(currentBusinessId);
-      const normalizedRoles = (Array.isArray(roles) ? roles : [])
-        .map((item: any) => ({
-          id: item?.id || item?.roleId || "",
-          name: item?.role?.name || item?.name || "",
-        }))
-        .filter((item: any) => item?.id);
-
-      const firstRoleId = normalizedRoles[0]?.id || null;
-
-
-
-      return firstRoleId;
-    } catch (error) {
-      console.error("[BusinessJobs] Failed to load business roles:", error);
-      return null;
-    }
-  }, [currentBusinessId, getMyBusinessRoles]);
-
-  const loadFeaturedProfiles = useCallback(async (preferredRoleId?: string | null) => {
+  const loadFeaturedProfiles = useCallback(async () => {
     try {
       setIsLoadingFeatured(true);
       const result = await getJobProfiles({
         page: 1,
         limit: 10,
-        isPremium: true,
-        ...(preferredRoleId ? { preferredRoleId } : {}),
+        ...businessCandidateFilters,
       });
-      setFeaturedProfiles(result.data);
+      // console.log(
+      //   "[BusinessJobs] featured profiles response:",
+      //   JSON.stringify(result, null, 2)
+      // );
+      setFeaturedProfiles(
+        filterProfilesByFeaturedType(result.data, "featured")
+          .filter((profile) =>
+            matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
+          )
+      );
 
 
 
@@ -106,44 +122,39 @@ const BusinessJobs = () => {
     } finally {
       setIsLoadingFeatured(false);
     }
-  }, [getJobProfiles]);
+  }, [businessCandidateFilters, getJobProfiles]);
 
-  const loadSuggestedProfiles = useCallback(async (preferredRoleId?: string | null) => {
+  const loadSuggestedProfiles = useCallback(async () => {
     try {
       setIsLoadingSuggested(true);
       const result = await getJobProfiles({
         page: 1,
         limit: 10,
-        isPremium: false,
-        ...(preferredRoleId ? { preferredRoleId } : {}),
+        ...businessCandidateFilters,
       });
-      setSuggestedProfiles(result.data);
+      // console.log(
+      //   "[BusinessJobs] suggested profiles response:",
+      //   JSON.stringify(result, null, 2)
+      // );
+      setSuggestedProfiles(
+        filterProfilesByFeaturedType(result.data, "suggested")
+          .filter((profile) =>
+            matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
+          )
+      );
     } catch (error: any) {
       setSuggestedProfiles([]);
       toast.error(error?.message || "Failed to load suggested profiles");
     } finally {
       setIsLoadingSuggested(false);
     }
-  }, [getJobProfiles]);
+  }, [businessCandidateFilters, getJobProfiles]);
 
   useFocusEffect(
     useCallback(() => {
-      let isActive = true;
-
-      const loadScreenData = async () => {
-        const preferredRoleId = await loadBusinessRoleId();
-        if (!isActive) return;
-
-        loadFeaturedProfiles(preferredRoleId);
-        loadSuggestedProfiles(preferredRoleId);
-      };
-
-      loadScreenData();
-
-      return () => {
-        isActive = false;
-      };
-    }, [currentBusinessId, loadBusinessRoleId, loadFeaturedProfiles, loadSuggestedProfiles])
+      loadFeaturedProfiles();
+      loadSuggestedProfiles();
+    }, [loadFeaturedProfiles, loadSuggestedProfiles])
   );
 
   return (
@@ -247,7 +258,14 @@ const BusinessJobs = () => {
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
                 Featured Profile
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/jobs/business/all-profiles",
+                    params: { type: "featured" },
+                  })
+                }
+              >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
                   See All
                 </Text>
@@ -278,7 +296,14 @@ const BusinessJobs = () => {
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
                 Suggested Profile
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/jobs/business/all-profiles",
+                    params: { type: "suggested" },
+                  })
+                }
+              >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
                   See All
                 </Text>
