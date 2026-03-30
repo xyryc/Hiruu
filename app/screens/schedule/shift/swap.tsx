@@ -9,7 +9,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
 import { toast } from "sonner-native";
 
 const SwapShiftsRequest = () => {
@@ -37,29 +36,37 @@ const SwapShiftsRequest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [colleagues, setColleagues] = useState<BusinessColleagueItem[]>([]);
 
-  const loadColleagues = useCallback(async () => {
-    if (!resolvedBusinessId) {
-      setColleagues([]);
-      return;
-    }
+  useEffect(() => {
+    let active = true;
 
-    try {
-      setIsLoading(true);
-      const response = await getBusinessColleagues(resolvedBusinessId);
-      setColleagues(Array.isArray(response) ? response : []);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to load colleagues");
-      setColleagues([]);
-    } finally {
-      setIsLoading(false);
-    }
+    const loadColleagues = async () => {
+      if (!resolvedBusinessId) {
+        if (active) setColleagues([]);
+        return;
+      }
+
+      try {
+        if (active) setIsLoading(true);
+        const response = await getBusinessColleagues(resolvedBusinessId);
+        if (active) {
+          setColleagues(Array.isArray(response) ? response : []);
+        }
+      } catch (error: any) {
+        if (active) {
+          toast.error(error?.message || "Failed to load colleagues");
+          setColleagues([]);
+        }
+      } finally {
+        if (active) setIsLoading(false);
+      }
+    };
+
+    loadColleagues();
+
+    return () => {
+      active = false;
+    };
   }, [getBusinessColleagues, resolvedBusinessId]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadColleagues();
-    }, [loadColleagues])
-  );
 
   const filteredColleagues = useMemo(() => {
     const q = search.trim().toLowerCase();

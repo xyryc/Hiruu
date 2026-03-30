@@ -1,18 +1,22 @@
 import HomeHeader from "@/components/header/HomeHeader";
 import WelcomeHeader from "@/components/header/WelcomeHeader";
+import AttendanceSummary from '@/components/layout/AttendanceSummary';
 import BusinessProfile from "@/components/layout/BusinessProfile";
+import BusinessSummary from '@/components/layout/BusinessSummary';
 import EngagementPerks from "@/components/layout/EngagementPerks";
 import FindNewJob from "@/components/layout/FindNewJob";
 import JoinColleague from "@/components/layout/JoinColleague";
 import ProfileProgress from "@/components/layout/ProfileProgress";
 import QuickActionBusiness from '@/components/layout/QuickActionBusiness';
 import QuickActionUser from '@/components/layout/QuickActionUser';
+import TodayShiftsSummary from '@/components/layout/TodayShiftsSummary';
 import TodaysShift from '@/components/layout/TodaysShift';
 import TopPerformer from '@/components/layout/TopPerformer';
 import Widgets from "@/components/layout/Widgets";
+import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,6 +24,23 @@ const UserHome = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const getProfile = useProfileStore((state) => state.getProfile);
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const isUserProfile = (selectedBusinesses?.length || 0) === 0;
+  const isBusinessProfile = !isUserProfile;
+  const hasJoinedAtLeastOneBusiness = useMemo(() => {
+    const employments = Array.isArray(profileData?.user?.employments)
+      ? profileData.user.employments
+      : Array.isArray(profileData?.employments)
+        ? profileData.employments
+        : [];
+
+    return employments.some((employment: any) => {
+      const status = String(employment?.status || "").toLowerCase();
+      const isActive = status ? status === "active" : true;
+      const businessId = employment?.businessId || employment?.business?.id;
+      return Boolean(isActive && businessId);
+    });
+  }, [profileData?.employments, profileData?.user?.employments]);
 
   const loadProfile = useCallback(async () => {
     const result = await getProfile();
@@ -92,8 +113,22 @@ const UserHome = () => {
           <ProfileProgress onboarding={profileData?.onboarding} className='mb-7' />
         )}
 
+        {isBusinessProfile && (
+          <>
+            {/* Business Summary */}
+            <BusinessSummary />
+
+            {/* todays shift summary */}
+            <TodayShiftsSummary />
+
+            {/* Today’s Attendance Summary */}
+            <AttendanceSummary className="mx-5 my-7" />
+          </>
+        )}
+
+
         {/* join your collegues */}
-        <JoinColleague />
+        {!hasJoinedAtLeastOneBusiness && <JoinColleague />}
 
         {/* find new job */}
         <FindNewJob className="mt-7" />
@@ -104,7 +139,7 @@ const UserHome = () => {
         )}
 
         {/* your todays shift */}
-        <TodaysShift className="mt-7" />
+        {isUserProfile && <TodaysShift className="mt-7" />}
 
         {/* quick actions */}
         <QuickActionUser className='mt-7' />
@@ -124,15 +159,6 @@ const UserHome = () => {
         {/* ============== merged ============= */}
         {/* profile progress */}
         {/* <ProfileProgress /> */}
-
-        {/* Business Summary */}
-        {/* <BusinessSummary className="mt-8" /> */}
-
-        {/* Today’s Shifts Summary */}
-        {/* <TodayShiftsSummary /> */}
-
-        {/* Today’s Attendance Summary */}
-        {/* <AttendanceSummary className="mx-5 mt-8" /> */}
 
         {/* See Employee rank on board */}
         {/* <View className="mx-4 mt-7">

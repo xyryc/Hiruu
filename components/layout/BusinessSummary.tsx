@@ -1,35 +1,45 @@
-import { View, Text } from "react-native";
-import React, { useState } from "react";
+import { useBusinessStore } from "@/stores/businessStore";
+import React, { useEffect } from "react";
+import { Text, View } from "react-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
-import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
-import businesses from "@/assets/data/businesses.json";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
+import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
 type BusinessSummaryProps = {
   className?: string;
 };
 
 const BusinessSummary = ({ className }: BusinessSummaryProps) => {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
+  const [showModal, setShowModal] = React.useState(false);
+  const {
+    myBusinesses,
+    selectedBusinesses,
+    setSelectedBusinesses,
+    getMyBusinesses,
+  } = useBusinessStore();
+
+  useEffect(() => {
+    getMyBusinesses().catch(() => undefined);
+  }, [getMyBusinesses]);
 
   // Get display content for header button
   const getDisplayContent = () => {
     if (selectedBusinesses.length === 0) {
       return { type: "all", content: "All" };
     } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = businesses.find(
+      const selectedBusiness = myBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
     }
+    return { type: "multi", content: `${selectedBusinesses.length} Selected` };
   };
 
   const displayContent = getDisplayContent();
 
   return (
-    <View className={`${className} px-4`}>
-      <View className="flex-row justify-between">
+    <View className={`${className} px-4 mb-4`}>
+      <View className="flex-row justify-between items-center">
         <View>
           <Text className="text-xl font-proximanova-semibold">
             Business Summary
@@ -47,7 +57,13 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={businesses}
+        businesses={myBusinesses.map((b) => ({
+          id: b.id,
+          name: b.name,
+          address: b.address,
+          imageUrl: b.logo,
+          logo: b.logo,
+        }))}
         selectedBusinesses={selectedBusinesses}
         onSelectionChange={setSelectedBusinesses}
       />
@@ -67,6 +83,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
+
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
           title="Total Shifts"

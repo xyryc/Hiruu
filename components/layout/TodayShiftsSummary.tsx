@@ -11,6 +11,7 @@ import ShiftsSummaryCard from "../ui/cards/ShiftsSummaryCard";
 
 const TodayShiftsSummary = ({ className }: any) => {
   const teamMembers = ["John", "Jane", "Mike", "Sarah", "Tom"];
+
   return (
     <LinearGradient
       colors={["#4FB2F320", "#4FB2F310"]}
@@ -20,7 +21,7 @@ const TodayShiftsSummary = ({ className }: any) => {
         padding: 15,
         overflow: "hidden",
       }}
-      className="border border-[#4FB2F350] mx-5 mt-8"
+      className="border border-[#4FB2F350] mx-5"
     >
       <View className={className}>
         <Text className="text-xl font-proximanova-semibold text-black">
