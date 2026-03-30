@@ -92,6 +92,14 @@ const UserJobs = () => {
         title="Find Job"
         components={
           <View className="flex-row items-center gap-2.5">
+
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/user/job-profile")}
+              className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
+            >
+              <Ionicons name="add" size={18} color="black" />
+            </TouchableOpacity>
+
             {/* left */}
             <TouchableOpacity
               onPress={() => router.push("/screens/jobs/job-request")}
