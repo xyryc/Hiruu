@@ -1,4 +1,4 @@
-import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
+import HolidayCard from "@/components/ui/cards/HolidayCard";
 import ShiftCard from "@/components/ui/cards/ShiftCard";
 import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
@@ -204,6 +204,10 @@ const BusinessScheduleScreen = () => {
   };
 
   const displayContent = getDisplayContent();
+  const selectedBusiness = useMemo(
+    () => myBusinesses.find((b) => b.id === selectedBusinesses?.[0]),
+    [myBusinesses, selectedBusinesses]
+  );
 
   const to12Hour = (value?: string) => {
     if (!value) return "--:--";
@@ -654,8 +658,24 @@ const BusinessScheduleScreen = () => {
               onMessagePress={() => handleOpenShiftChat(shift)}
             />
           ))
+        ) : selectedBusinesses.length > 0 ? (
+          <HolidayCard
+            shift={{
+              subtitle: "Today is a Holiday, No Shifts Scheduled.",
+              companyLogo: selectedBusiness?.logo,
+              workTime: "--:--",
+            }}
+          />
+
         ) : (
-          <NoShiftsAvailableCard className="mt-4" />
+          <HolidayCard
+            shift={{
+              subtitle: "Today is a Holiday, No Shifts Scheduled.",
+              companyLogo: undefined,
+              workTime: "--:--",
+            }}
+          />
+
         )}
         {isFetchingMore ? (
           <View className="py-4 items-center">

@@ -5,18 +5,19 @@ import { Text, View } from "react-native";
 
 const HolidayCard = ({ shift }) => {
   return (
-    <View>
-      <View className="flex-row items-center justify-center gap-5">
+    <View className="rounded-2xl border border-[#E5F4FD] bg-[#E5F4FD] p-4">
+
+      <View className=" items-center justify-center gap-5">
         <Image
           source={require("@/assets/images/holiday2.svg")}
           style={{
-            width: 128,
-            height: 110,
+            width: "100%",
+            height: 190,
           }}
           contentFit="contain"
         />
 
-        <Text className="font-proximanova-semibold text-primary dark:text-dark-primary w-1/2">
+        <Text className="text-center font-proximanova-semibold text-primary dark:text-dark-primary">
           {shift.subtitle}
         </Text>
       </View>

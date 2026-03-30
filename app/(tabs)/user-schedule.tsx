@@ -1,6 +1,6 @@
 import ShiftHeader from "@/components/header/ShiftHeader";
 import ShiftItem from "@/components/layout/ShiftItem";
-import NoShiftsAvailableCard from "@/components/ui/cards/NoShiftsAvailableCard";
+import HolidayCard from "@/components/ui/cards/HolidayCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useJobStore } from "@/stores/jobStore";
 import { useShiftStore } from "@/stores/shiftStore";
@@ -267,6 +267,12 @@ const ShiftSchedule = () => {
     });
     return Array.from(map.values());
   }, [myEmployments]);
+  const selectedBusinessForFallback = useMemo(() => {
+    if (selectedEmploymentBusinessIds.length === 1) {
+      return modalBusinesses.find((b) => b.id === selectedEmploymentBusinessIds[0]);
+    }
+    return modalBusinesses[0];
+  }, [modalBusinesses, selectedEmploymentBusinessIds]);
 
   // Get display content for header button
   const getDisplayContent = () => {
@@ -319,7 +325,15 @@ const ShiftSchedule = () => {
             />
           ))
         ) : (
-          <NoShiftsAvailableCard className="mt-4" />
+          <View className="mt-4 rounded-2xl border border-[#E5E7EB] bg-white p-4">
+            <HolidayCard
+              shift={{
+                subtitle: "No shifts scheduled for this day.",
+                companyLogo: selectedBusinessForFallback?.logo,
+                workTime: "--:--",
+              }}
+            />
+          </View>
         )}
       </ScrollView>
 
