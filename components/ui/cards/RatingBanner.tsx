@@ -5,15 +5,21 @@ import RatingStar from "./RatingStar";
 
 type RatingBannerProps = {
   averageRating: number;
+  totalRatings?: number;
   onPress?: () => void;
 };
 
-const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
+const RatingBanner = ({ averageRating, totalRatings = 0, onPress }: RatingBannerProps) => {
 
   const safeAverageRating = Number.isFinite(averageRating) ? averageRating : 0;
   const formattedRating = Number.isFinite(averageRating)
     ? Number(averageRating.toFixed(1)).toString()
     : "0";
+  const safeTotalRatings = Number.isFinite(totalRatings) ? Math.max(0, totalRatings) : 0;
+  const ratingSummaryText =
+    safeTotalRatings === 1
+      ? "Rated by 1 user"
+      : `Rated by ${safeTotalRatings} users`;
 
   return (
     <View>
@@ -45,6 +51,9 @@ const RatingBanner = ({ averageRating, onPress }: RatingBannerProps) => {
       <RatingStar rating={safeAverageRating} />
       <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2">
         Based on overall rating
+      </Text>
+      <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1">
+        {ratingSummaryText}
       </Text>
     </View>
   );

@@ -4,6 +4,7 @@ import { useJobStore } from "@/stores/jobStore";
 import { Entypo, Fontisto, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
+import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -337,6 +338,24 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
       )}`
       : "Salary not set";
 
+
+  const hensleNavigateProfile = () => {
+    const userId = profile?.userId || profile?.user?.id;
+
+    if (!userId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId,
+        profileId: profile?.id || "",
+      },
+    });
+  };
+
   return (
     <Modal
       visible={visible}
@@ -365,22 +384,25 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
               ) : null}
 
               {/* image */}
-              <Image
-                source={profileAvatar}
-                style={{
-                  width: 100,
-                  height: 100,
-                  marginHorizontal: "auto",
-                  borderRadius: 999,
-                }}
-                contentFit="cover"
-              />
+              <TouchableOpacity
+                onPress={hensleNavigateProfile}
+              >
+                <Image
+                  source={profileAvatar}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    marginHorizontal: "auto",
+                    borderRadius: 999,
+                  }}
+                  contentFit="cover"
+                />
 
-              {/* name */}
-              <Text className="text-xl text-center font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
-                {profileName}
-              </Text>
-
+                {/* name */}
+                <Text className="text-xl text-center font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
+                  {profileName}
+                </Text>
+              </TouchableOpacity>
               {/* location */}
               <View className="flex-row items-center justify-center mt-2.5 gap-7">
                 <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">

@@ -75,6 +75,8 @@ const EditBusinessProfile = () => {
   const [uploading, setUploading] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [about, setAbout] = useState("");
+  const [isEditingBusinessName, setIsEditingBusinessName] = useState(false);
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [locationSearch, setLocationSearch] = useState("");
@@ -551,9 +553,13 @@ const EditBusinessProfile = () => {
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
                 Business Name
               </Text>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                Edit
-              </Text>
+              <TouchableOpacity
+                onPress={() => setIsEditingBusinessName((prev) => !prev)}
+              >
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {isEditingBusinessName ? "Done" : "Edit"}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View>
@@ -564,6 +570,7 @@ const EditBusinessProfile = () => {
                 autoCapitalize="none"
                 value={businessName}
                 onChangeText={setBusinessName}
+                editable={isEditingBusinessName}
               />
             </View>
 
@@ -645,9 +652,11 @@ const EditBusinessProfile = () => {
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
                 Add a About Business
               </Text>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                Edit
-              </Text>
+              <TouchableOpacity onPress={() => setIsEditingAbout((prev) => !prev)}>
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {isEditingAbout ? "Done" : "Edit"}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View>
@@ -663,6 +672,7 @@ const EditBusinessProfile = () => {
                 style={{ minHeight: 120 }}
                 value={about}
                 onChangeText={setAbout}
+                editable={isEditingAbout}
               />
             </View>
 
