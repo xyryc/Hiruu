@@ -4,28 +4,36 @@ import AttendanceSummary from '@/components/layout/AttendanceSummary';
 import BusinessProfile from "@/components/layout/BusinessProfile";
 import BusinessSummary from '@/components/layout/BusinessSummary';
 import EngagementPerks from "@/components/layout/EngagementPerks";
-import FindNewJob from "@/components/layout/FindNewJob";
+import JobBoardCta from "@/components/layout/JobBoardCta";
 import JoinColleague from "@/components/layout/JoinColleague";
+import PerformanceTrend from '@/components/layout/PerformanceTrend';
 import ProfileProgress from "@/components/layout/ProfileProgress";
 import QuickActionBusiness from '@/components/layout/QuickActionBusiness';
 import QuickActionUser from '@/components/layout/QuickActionUser';
 import TodayShiftsSummary from '@/components/layout/TodayShiftsSummary';
 import TodaysShift from '@/components/layout/TodaysShift';
 import TopPerformer from '@/components/layout/TopPerformer';
+import Widgets from '@/components/layout/Widgets';
+import WorkInsights from '@/components/layout/WorkInsights';
+import ActionCard from '@/components/ui/cards/ActionCard';
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const UserHome = () => {
+  const router = useRouter()
   const [profileData, setProfileData] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const getProfile = useProfileStore((state) => state.getProfile);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isUserProfile = (selectedBusinesses?.length || 0) === 0;
   const isBusinessProfile = !isUserProfile;
+  const isProfileIncomplete = !(profileData?.onboarding >= 5);
+  const hasNoJoinedBusiness = !hasJoinedAtLeastOneBusiness;
   const hasJoinedAtLeastOneBusiness = useMemo(() => {
     const employments = Array.isArray(profileData?.user?.employments)
       ? profileData.user.employments
@@ -107,11 +115,12 @@ const UserHome = () => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        {/* profile progress */}
-        {!(profileData?.onboarding >= 5) && (
+        {/* shared section */}
+        {isProfileIncomplete && (
           <ProfileProgress onboarding={profileData?.onboarding} className='mb-7' />
         )}
 
+        {/* business profile sections */}
         {isBusinessProfile && (
           <>
             {/* Business Summary */}
@@ -122,73 +131,83 @@ const UserHome = () => {
 
             {/* Today’s Attendance Summary */}
             <AttendanceSummary className="mx-5 my-7" />
+
+            {/* rank card */}
+            <ActionCard
+              className="mx-5"
+              title="See employee rank on board"
+              buttonTitle="View"
+              onPress={() => router.push("/screens/home/leaderboard")}
+              rightImage={require("@/assets/images/rank.svg")}
+              imageClass="absolute bottom-0 right-2.5"
+              imageWidth={144}
+              imageHeight={95}
+              background={require("@/assets/images/chessboard-bg.svg")}
+            />
+
+            {/* performance trend */}
+            <PerformanceTrend className="mt-7" />
+
+            {/* Team Insights */}
+            <WorkInsights title="Team Insights" className="mt-7" />
+
+            {/* quick actions */}
+            <QuickActionBusiness className="mt-7" />
+
+            <JobBoardCta
+              className='mt-7'
+              title="Job Board"
+              subtitle="Need more hands? Post  & receiving applicants!"
+              route="/(tabs)/business-jobs"
+            />
+
+            {/* Top performers */}
+            <TopPerformer className="mt-7" />
           </>
         )}
 
+        {/* user profile sections */}
+        {isUserProfile && (
+          <>
+            {hasNoJoinedBusiness && (
+              <>
+                {/* join your collegues */}
+                <JoinColleague />
 
-        {/* join your collegues */}
-        {!hasJoinedAtLeastOneBusiness && <JoinColleague />}
+                {/* find new job */}
+                <JobBoardCta className="mt-7"
+                  title="Find New Job"
+                  subtitle="Explore All Job Listings"
+                  route="/(tabs)/user-jobs"
+                />
+              </>
+            )}
 
-        {/* find new job */}
-        <FindNewJob className="mt-7" />
+            {/* create business */}
+            {(profileData?.ownedBusinesses?.length ?? 0) === 0 && (
+              <BusinessProfile className="mt-7" />
+            )}
 
-        {/* create business */}
-        {(profileData?.ownedBusinesses?.length ?? 0) === 0 && (
-          <BusinessProfile className="mt-7" />
+            {/* your todays shift */}
+            <TodaysShift className="mt-7" />
+
+            {/* quick actions */}
+            <QuickActionUser className='mt-7' />
+
+            {hasJoinedAtLeastOneBusiness && (
+              <>
+                {/* work insights */}
+                <WorkInsights className="mt-7" />
+
+                {/* engagement & perks */}
+                <EngagementPerks className="mt-7" />
+
+                {/* widgets */}
+                <Widgets className="mt-7" />
+              </>
+            )}
+          </>
         )}
-
-        {/* your todays shift */}
-        {isUserProfile && <TodaysShift className="mt-7" />}
-
-        {/* quick actions */}
-        <QuickActionUser className='mt-7' />
-
-        {/* quick actions */}
-        {/* <QuickActionUser className="mt-7" /> */}
-
-        {/* work insights */}
-        {/* <WorkInsights className="mt-7" /> */}
-
-        {/* engagement & perks */}
-        <EngagementPerks className="mt-7" />
-
-        {/* widgets */}
-        {/* <Widgets className="mt-7" /> */}
-
-        {/* ============== merged ============= */}
-        {/* profile progress */}
-        {/* <ProfileProgress /> */}
-
-        {/* See Employee rank on board */}
-        {/* <View className="mx-4 mt-7">
-          <ActionCard
-            onPress={() => router.push("/screens/home/leaderboard")}
-            title="See Employee rank on board"
-            buttonTitle="View"
-            rightImage={require("@/assets/images/rank.svg")}
-            imageClass="absolute bottom-0 right-2.5"
-            imageWidth={144}
-            imageHeight={95}
-            background={require("@/assets/images/chessboard-bg.svg")}
-          />
-        </View> */}
-
-        {/* performance trend */}
-        {/* <PerformanceTrend className="mt-7" /> */}
-
-        {/* quick actions */}
-        {(profileData?.ownedBusinesses?.length) >= 0 && (
-          <QuickActionBusiness className='mt-7' />
-        )}
-
-        {/* Team Insights */}
-        {/* <WorkInsights title="Team Insights" className="mt-7" /> */}
-
-        {/* job Board */}
-        {/* <FindNewJob business={true} className="mt-7" /> */}
-
-        {/* Top performers */}
-        <TopPerformer className="mt-7" />
       </ScrollView>
     </SafeAreaView>
   );

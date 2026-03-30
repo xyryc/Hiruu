@@ -16,11 +16,12 @@ const ActionCard = ({
   backgroundWidth = 100,
   backgroundHeight = 100,
   onPress,
+  className
 }: ActionCardProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row justify-between items-center p-4 bg-[#4FB2F3] rounded-[14px]"
+      className={`${className} flex-row justify-between items-center p-4 bg-[#4FB2F3] rounded-[14px]`}
     >
       <View className="w-8/12">
         <Text className="text-lg font-proximanova-bold text-white">

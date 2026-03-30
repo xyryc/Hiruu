@@ -1,4 +1,5 @@
 import { ImageSource } from "expo-image";
+import type { Href } from "expo-router";
 import { Dispatch, ReactElement, SetStateAction } from "react";
 import { GestureResponderEvent, ViewStyle } from "react-native";
 
@@ -102,12 +103,16 @@ export interface JoinColleagueProps {
   className?: string;
 }
 
-export interface FindNewJobProps {
+export interface JobBoardCtaProps {
   className?: string;
   business?: boolean;
+  title?: string;
+  subtitle?: string;
+  route?: Href;
 }
 
 export interface ActionCardProps {
+  className?: string;
   title: string;
   buttonTitle?: string;
   rightImage: ImageSource;

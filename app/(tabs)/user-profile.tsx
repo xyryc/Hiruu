@@ -1,18 +1,18 @@
 import DynamicBackground from "@/components/layout/DynamicBackground";
+import GradientButton from "@/components/ui/buttons/GradientButton";
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import SmallButton from "@/components/ui/buttons/SmallButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
-import GradientButton from "@/components/ui/buttons/GradientButton";
-import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import SmallButton from "@/components/ui/buttons/SmallButton";
 import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
-import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -372,7 +372,7 @@ const Profile = () => {
         </View>
 
         {hasBio ? (
-          <View className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3">
+          <View className="mx-5 mt-3 rounded-xl p-3">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               {showText ? bioText : shortBio}
               {bioText.length > 140 && (
