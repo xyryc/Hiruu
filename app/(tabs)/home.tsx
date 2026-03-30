@@ -12,7 +12,6 @@ import QuickActionUser from '@/components/layout/QuickActionUser';
 import TodayShiftsSummary from '@/components/layout/TodayShiftsSummary';
 import TodaysShift from '@/components/layout/TodaysShift';
 import TopPerformer from '@/components/layout/TopPerformer';
-import Widgets from "@/components/layout/Widgets";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -154,7 +153,7 @@ const UserHome = () => {
         <EngagementPerks className="mt-7" />
 
         {/* widgets */}
-        <Widgets className="mt-7" />
+        {/* <Widgets className="mt-7" /> */}
 
         {/* ============== merged ============= */}
         {/* profile progress */}

@@ -28,17 +28,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const EMPTY_CHALLENGES: any[] = [];
+
 const UserRewards = () => {
   const screenWidth = Dimensions.get("window").width;
   const [totalTokens, setTotalTokens] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const getBoard = useAchievementStore((state) => state.getBoard);
-  const recentAchievement = useAchievementStore(
-    (state) => state.board?.recentAchievement || null
-  );
-  const standardChallenges = useAchievementStore(
-    (state) => state.board?.standardChallenges || []
-  );
+  const board = useAchievementStore((state) => state.board);
+  const recentAchievement = board?.recentAchievement ?? null;
+  const standardChallenges = board?.standardChallenges ?? EMPTY_CHALLENGES;
   const timezone = usePreferencesStore((state) => state.timezone);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
