@@ -1,6 +1,6 @@
 import { profileService } from "@/services/profileService";
-import axiosInstance from "@/utils/axios";
 import { UpdatePreferencesData, UpdateProfileData } from "@/types";
+import axiosInstance from "@/utils/axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
 import { create } from "zustand";
@@ -435,8 +435,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load analytics summary"
+        axiosError.message ||
+        "Failed to load analytics summary"
       );
       set({ isLoadingAnalyticsSummary: false, error: finalError });
       throw finalError;
@@ -458,8 +458,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load my ratings"
+        axiosError.message ||
+        "Failed to load my ratings"
       );
       set({ isLoading: false, error: finalError });
       throw finalError;
@@ -487,8 +487,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load user ratings"
+        axiosError.message ||
+        "Failed to load user ratings"
       );
       set({ isLoading: false, error: finalError });
       throw finalError;
@@ -516,8 +516,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load business ratings"
+        axiosError.message ||
+        "Failed to load business ratings"
       );
       set({ isLoading: false, error: finalError });
       throw finalError;
@@ -545,8 +545,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load user rating summary"
+        axiosError.message ||
+        "Failed to load user rating summary"
       );
       set({ isLoadingRatingSummary: false, error: finalError });
       throw finalError;
@@ -576,8 +576,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to load business rating summary"
+        axiosError.message ||
+        "Failed to load business rating summary"
       );
       set({ isLoadingRatingSummary: false, error: finalError });
       throw finalError;
@@ -607,8 +607,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to submit business rating"
+        axiosError.message ||
+        "Failed to submit business rating"
       );
       set({ isSubmittingRating: false, error: finalError });
       throw finalError;
@@ -639,8 +639,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const axiosError = error as AxiosError<any>;
       const finalError = new Error(
         axiosError.response?.data?.message ||
-          axiosError.message ||
-          "Failed to submit rating"
+        axiosError.message ||
+        "Failed to submit rating"
       );
       set({ isSubmittingRating: false, error: finalError });
       throw finalError;

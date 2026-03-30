@@ -97,6 +97,7 @@ useEffect(() => {
   const averageRating = Number(
     businessRatingSummary?.averageRating ?? businessData?.rating ?? 0
   );
+  const totalRatings = Number(businessRatingSummary?.totalRatings ?? 0);
   const totalEmployeeCount = Number(
     businessData?._count?.employments ?? businessData?.activeEmployeeCount ?? 0
   );
@@ -325,7 +326,10 @@ useEffect(() => {
               </View>
 
               <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
-                <RatingBanner averageRating={averageRating} />
+                <RatingBanner
+                  averageRating={averageRating}
+                  totalRatings={totalRatings}
+                />
 
                 <View className="flex-row justify-between mt-5">
                   <View>

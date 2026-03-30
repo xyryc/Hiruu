@@ -142,6 +142,16 @@ const Rating = () => {
     return Number((total / ratingItems.length).toFixed(1));
   }, [ratingItems]);
 
+  const totalRatings = useMemo(() => {
+    const paginationTotal = Number(ratingsResponse?.pagination?.total);
+    if (Number.isFinite(paginationTotal) && paginationTotal >= 0) {
+      return paginationTotal;
+    }
+    return ratingItems.length;
+  }, [ratingItems.length, ratingsResponse?.pagination?.total]);
+
+
+
   const canSubmitRating = canRate || (isBusinessRatingView && !isOwnBusinessRatingView);
 
   useEffect(() => {
@@ -212,7 +222,7 @@ const Rating = () => {
           titleClass="text-primary "
           iconColor={isDark ? "#fff" : "#111111"}
         />
-        <RatingBanner averageRating={averageRating} />
+        <RatingBanner averageRating={averageRating} totalRatings={totalRatings} />
 
 
         {/* Ratings and star */}
@@ -233,11 +243,11 @@ const Rating = () => {
             </View>
           ) : ratingItems.length ? (
             ratingItems.map((item: any) => (
-                <RatingCard
-                  key={item.id}
-                  className="mt-8"
-                  image={
-                    isBusinessRatingView
+              <RatingCard
+                key={item.id}
+                className="mt-8"
+                image={
+                  isBusinessRatingView
                     ? item?.raterUser?.avatar || item?.business?.logo || null
                     : item?.business?.logo || item?.raterUser?.avatar || null
                 }
@@ -245,16 +255,16 @@ const Rating = () => {
                   isBusinessRatingView
                     ? item?.raterUser?.name || item?.business?.name || "Unknown"
                     : item?.business?.name || item?.raterUser?.name || "Unknown"
-                  }
-                  time={formatRelativeTime(item?.createdAt)}
-                  rating={Math.max(
-                    0,
-                    Math.min(
-                      5,
-                      Number(Number(item?.overallRating ?? item?.rating ?? 0).toFixed(1))
-                    )
-                  )}
-                />
+                }
+                time={formatRelativeTime(item?.createdAt)}
+                rating={Math.max(
+                  0,
+                  Math.min(
+                    5,
+                    Number(Number(item?.overallRating ?? item?.rating ?? 0).toFixed(1))
+                  )
+                )}
+              />
             ))
           ) : (
             <Text className="mt-8 text-center text-sm text-secondary dark:text-dark-secondary">
