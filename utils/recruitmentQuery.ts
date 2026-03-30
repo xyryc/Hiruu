@@ -71,6 +71,7 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "gender", toTrimmed(params.gender));
   setIfDefined(query, "experience", toTrimmed(params.experience));
   setIfDefined(query, "experienceLevels", toCsv(params.experienceLevels));
+  setIfDefined(query, "experienceRequirements", toCsv(params.experienceRequirements));
   setIfDefined(query, "ageMin", toNumber(params.ageMin));
   setIfDefined(query, "ageMax", toNumber(params.ageMax));
   setIfDefined(query, "shiftStartTime", toTrimmed(params.shiftStartTime));
@@ -86,6 +87,8 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "isFeatured", toBoolean(params.isFeatured));
   setIfDefined(query, "roleIds", toCsv(params.roleIds));
   setIfDefined(query, "location", toTrimmed(params.location));
+  setIfDefined(query, "latitude", toNumber(params.latitude));
+  setIfDefined(query, "longitude", toNumber(params.longitude));
   setIfDefined(query, "maxDistanceKm", toNumber(params.maxDistanceKm));
   setIfDefined(query, "verifiedOnly", toBoolean(params.verifiedOnly));
   setIfDefined(query, "sortBy", toTrimmed(params.sortBy));

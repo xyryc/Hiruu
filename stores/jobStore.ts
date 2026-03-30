@@ -83,13 +83,17 @@ type BusinessInvitePayload = {
 
 type AllJobsFilters = Pick<
   RecruitmentFilterQuery,
-  | "shiftType"
+  | "shiftTypes"
   | "jobTypes"
   | "maxSalary"
+  | "experienceRequirements"
   | "location"
+  | "latitude"
+  | "longitude"
   | "maxDistanceKm"
   | "sortBy"
   | "search"
+  | "isFeatured"
   | "page"
   | "limit"
 >;
@@ -144,7 +148,7 @@ type JobProfileFilters = {
   availabilityTypes?: string[] | string;
   shiftTypes?: string[] | string;
   availableDays?: string[] | string;
-  experienceRequirements?: { role: string; minYears: number }[];
+  experienceRequirements?: { roleId?: string; role?: string; minYears: number }[];
   workingDaySlots?: { day: string; startTime: string; endTime: string }[];
   sortBy?: "newest" | "highest_rating" | "most_experience" | "best_fit";
   page?: number;
@@ -392,13 +396,17 @@ export const useJobStore = create<JobState>((set) => ({
     }
   },
 
-  getPublicRecruitments: async (query = {}) => {
-    try {
-      const params = buildRecruitmentQuery(query);
+    getPublicRecruitments: async (query = {}) => {
+      try {
+        const params = buildRecruitmentQuery(query);
+        console.log(
+          "[JobStore] getPublicRecruitments request params:",
+          JSON.stringify(params, null, 2)
+        );
 
-      const response = await axiosInstance.get("/recruitment/public", {
-        params,
-      });
+        const response = await axiosInstance.get("/recruitment/public", {
+          params,
+        });
       const result = response.data;
 
       const hasError =
@@ -841,11 +849,6 @@ export const useJobStore = create<JobState>((set) => ({
       if (query.search) params.search = query.search;
       if (query.skills) params.skills = query.skills;
       if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
-      if (query.preferredRoleIds) {
-        params.preferredRoleIds = Array.isArray(query.preferredRoleIds)
-          ? query.preferredRoleIds.join(",")
-          : query.preferredRoleIds;
-      }
       if (query.role) params.role = query.role;
       if (query.verifiedOnly !== undefined) params.verifiedOnly = query.verifiedOnly;
       if (query.isFeatured !== undefined) params.isFeatured = query.isFeatured;
@@ -874,9 +877,13 @@ export const useJobStore = create<JobState>((set) => ({
           ? query.availableDays.join(",")
           : query.availableDays;
       }
+      if (query.experienceRequirements && query.experienceRequirements.length > 0) {
+        params.experienceRequirements = JSON.stringify(query.experienceRequirements);
+      }
+      if (query.workingDaySlots && query.workingDaySlots.length > 0) {
+        params.workingDaySlots = JSON.stringify(query.workingDaySlots);
+      }
       if (query.sortBy) params.sortBy = query.sortBy;
-      // Backend currently rejects these JSON-string query params with 400 validation errors,
-      // so keep them out of the request until the server-side contract is aligned.
       console.log(
         "[JobStore] getJobProfiles request params:",
         JSON.stringify(params, null, 2)
@@ -885,6 +892,10 @@ export const useJobStore = create<JobState>((set) => ({
         params,
       });
       const result = response.data;
+      console.log(
+        "[JobStore] getJobProfiles response:",
+        JSON.stringify(result, null, 2)
+      );
 
       const hasError =
         result?.success === false ||

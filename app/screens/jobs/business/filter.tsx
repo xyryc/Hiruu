@@ -58,26 +58,10 @@ const AVAILABILITY_BADGE_OPTIONS = [
   { label: "Hybrid", value: "hybrid" },
 ] as const;
 
-const normalizeRoleIds = (value?: string[] | string) => {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string" && item.length > 0);
-  }
-
-  if (typeof value === "string" && value.length > 0) {
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-};
-
 const FindJobFilters = () => {
   const getRoles = useBusinessStore((state) => state.getRoles);
   const businessCandidateFilters = useJobStore((state) => state.businessCandidateFilters);
   const setBusinessCandidateFilters = useJobStore((state) => state.setBusinessCandidateFilters);
-  const storedPreferredRoleIds = normalizeRoleIds(businessCandidateFilters.preferredRoleIds);
   const [verifiedOnly, setVerifiedOnly] = useState(Boolean(businessCandidateFilters.verifiedOnly));
   const [locationSearch, setLocationSearch] = useState(
     businessCandidateFilters.location || ""
@@ -138,9 +122,9 @@ const FindJobFilters = () => {
     { roleId: string; roleName: string; count: number }[]
   >(
     Array.isArray(businessCandidateFilters.experienceRequirements)
-      ? businessCandidateFilters.experienceRequirements.map((item, index) => ({
-        roleId: storedPreferredRoleIds[index] || "",
-        roleName: item.role,
+      ? businessCandidateFilters.experienceRequirements.map((item) => ({
+        roleId: item.roleId || "",
+        roleName: item.role || "",
         count: item.minYears,
       }))
       : []
@@ -449,6 +433,7 @@ const FindJobFilters = () => {
     const hasSelectedCoords =
       typeof selectedCoords?.latitude === "number" &&
       typeof selectedCoords?.longitude === "number";
+    const normalizedRole = experienceSlots[0]?.roleName?.trim() || undefined;
 
     const availableDays = weeklyAvailability
       .filter((item) => item.isOpen)
@@ -461,14 +446,10 @@ const FindJobFilters = () => {
         startTime: String(item.startTime),
         endTime: String(item.endTime),
       }));
-    const preferredRoleIds = experienceSlots
-      .map((slot) => slot.roleId)
-      .filter((roleId) => roleOptions.some((role) => role.id === roleId));
-
     setBusinessCandidateFilters({
       verifiedOnly: verifiedOnly ? true : undefined,
-      preferredRoleIds:
-        preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
+      preferredRoleIds: undefined,
+      role: normalizedRole,
       maxDistanceKm:
         hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
       location: normalizedLocation,
@@ -488,9 +469,10 @@ const FindJobFilters = () => {
       experienceRequirements:
         experienceSlots.length > 0
           ? experienceSlots.map((slot) => ({
-            role: slot.roleName,
-            minYears: slot.count,
-          }))
+              roleId: slot.roleId || undefined,
+              role: slot.roleName,
+              minYears: slot.count,
+            }))
           : undefined,
     });
 
@@ -499,8 +481,8 @@ const FindJobFilters = () => {
       JSON.stringify(
         {
           verifiedOnly: verifiedOnly ? true : undefined,
-          preferredRoleIds:
-            preferredRoleIds.length > 0 ? preferredRoleIds : undefined,
+          preferredRoleIds: undefined,
+          role: normalizedRole,
           maxDistanceKm:
             hasSelectedCoords && isDistanceTouched ? Math.round(distance) : undefined,
           location: normalizedLocation,
@@ -520,9 +502,10 @@ const FindJobFilters = () => {
           experienceRequirements:
             experienceSlots.length > 0
               ? experienceSlots.map((slot) => ({
-                role: slot.roleName,
-                minYears: slot.count,
-              }))
+                  roleId: slot.roleId || undefined,
+                  role: slot.roleName,
+                  minYears: slot.count,
+                }))
               : undefined,
         },
         null,
@@ -543,7 +526,7 @@ const FindJobFilters = () => {
       {/* Header */}
       <ScreenHeader
         title="Hiring Filter"
-        className="mx-5"
+        className="mx-5 mt-7"
         onPressBack={() => router.back()}
       />
 

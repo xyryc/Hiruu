@@ -58,10 +58,13 @@ const AllJobs = () => {
     search?: string;
     page?: string;
     limit?: string;
-    shiftType?: string;
+    shiftTypes?: string;
+    experienceRequirements?: string;
     jobTypes?: string;
     maxSalary?: string;
     location?: string;
+    latitude?: string;
+    longitude?: string;
     maxDistanceKm?: string;
     sortBy?: RecruitmentSortBy;
   }>();
@@ -92,10 +95,13 @@ const AllJobs = () => {
               ? false
               : undefined,
         search: undefined,
-        shiftType: undefined,
+        shiftTypes: undefined,
+        experienceRequirements: undefined,
         jobTypes: undefined,
         maxSalary: undefined,
         location: undefined,
+        latitude: undefined,
+        longitude: undefined,
         maxDistanceKm: undefined,
         sortBy: undefined,
       });
@@ -103,10 +109,13 @@ const AllJobs = () => {
     }
 
     const routeFilters: Partial<RecruitmentFilterQuery> = {
-      shiftType: parseStringParam(params.shiftType),
+      shiftTypes: parseStringParam(params.shiftTypes),
+      experienceRequirements: parseStringParam(params.experienceRequirements),
       jobTypes: parseStringParam(params.jobTypes),
       maxSalary: parseNumberParam(params.maxSalary),
       location: parseStringParam(params.location),
+      latitude: parseNumberParam(params.latitude),
+      longitude: parseNumberParam(params.longitude),
       maxDistanceKm: parseNumberParam(params.maxDistanceKm),
       sortBy: parseStringParam(params.sortBy) as RecruitmentSortBy | undefined,
       isFeatured:
@@ -128,10 +137,13 @@ const AllJobs = () => {
       setAllJobsFilters(routeFilters);
     }
   }, [
-    params.shiftType,
+    params.shiftTypes,
+    params.experienceRequirements,
     params.jobTypes,
     params.maxSalary,
     params.location,
+    params.latitude,
+    params.longitude,
     params.maxDistanceKm,
     params.sortBy,
     jobsType,
@@ -144,19 +156,25 @@ const AllJobs = () => {
 
   const normalizedFilters = useMemo<RecruitmentFilterQuery>(() => {
     return {
-      shiftType: allJobsFilters.shiftType,
+      shiftTypes: allJobsFilters.shiftTypes,
+      experienceRequirements: allJobsFilters.experienceRequirements,
       jobTypes: allJobsFilters.jobTypes,
       maxSalary: allJobsFilters.maxSalary,
       location: allJobsFilters.location,
+      latitude: allJobsFilters.latitude,
+      longitude: allJobsFilters.longitude,
       maxDistanceKm: allJobsFilters.maxDistanceKm,
       sortBy: allJobsFilters.sortBy,
       isFeatured: allJobsFilters.isFeatured,
     };
   }, [
-    allJobsFilters.shiftType,
+    allJobsFilters.shiftTypes,
+    allJobsFilters.experienceRequirements,
     allJobsFilters.jobTypes,
     allJobsFilters.maxSalary,
     allJobsFilters.location,
+    allJobsFilters.latitude,
+    allJobsFilters.longitude,
     allJobsFilters.maxDistanceKm,
     allJobsFilters.sortBy,
     allJobsFilters.isFeatured,
@@ -242,10 +260,15 @@ const AllJobs = () => {
                 from: "all-jobs",
                 page: String(page),
                 limit: String(limit),
-                shiftType: String(normalizedFilters.shiftType ?? ""),
+                shiftTypes: String(normalizedFilters.shiftTypes ?? ""),
+                experienceRequirements: String(
+                  normalizedFilters.experienceRequirements ?? ""
+                ),
                 jobTypes: String(normalizedFilters.jobTypes ?? ""),
                 maxSalary: String(normalizedFilters.maxSalary ?? ""),
                 location: String(normalizedFilters.location ?? ""),
+                latitude: String(normalizedFilters.latitude ?? ""),
+                longitude: String(normalizedFilters.longitude ?? ""),
                 maxDistanceKm: String(normalizedFilters.maxDistanceKm ?? ""),
                 sortBy: String(normalizedFilters.sortBy ?? ""),
                 type: String(jobsType ?? ""),
