@@ -202,8 +202,8 @@ const Profile = () => {
 
   const handleOpenCvPreview = (type: "pdf" | "image", url?: string) => {
     if (!url) return;
-    router.push({
-      pathname: "/screens/rewards/preview",
+      router.push({
+      pathname: "/screens/profile/cv-preview",
       params: {
         type,
         url,
