@@ -1,10 +1,9 @@
-import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
-import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
+import { chatService } from "@/services/chatService";
 import { useJobStore } from "@/stores/jobStore";
 import {
   Feather,
@@ -42,6 +41,7 @@ const UserProfilePreview = () => {
   const [selectedIssue, setSelectedIssue] = useState("");
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const issues = [
     { label: "Missed Punch", value: "Missed Punch" },
     { label: "Late arrival", value: "Late arrival" },
@@ -69,6 +69,7 @@ const UserProfilePreview = () => {
       try {
         setIsLoading(true);
         const result = await getJobProfileByUserId(userId);
+        console.log("[UserProfilePreview] api response:", result);
         if (isMounted) {
           setProfile(result);
         }
@@ -150,6 +151,33 @@ const UserProfilePreview = () => {
       });
     } catch {
       Alert.alert("Error", "Could not share profile");
+    }
+  };
+
+  const handleMessagePress = async () => {
+    const participantId = profile?.userId || profile?.user?.id;
+    if (!participantId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      setIsCreatingChat(true);
+      const result = await chatService.createDirectChat(participantId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
@@ -382,23 +410,6 @@ const UserProfilePreview = () => {
           </View>
         </View>
 
-        <View className="mx-5 mt-8 flex-row justify-between items-center">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Options for export
-          </Text>
-          <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" />
-        </View>
-
-        <View className="mx-5 mt-4">
-          <Dropdown
-            // label="Select Style"
-            placeholder="Select Style"
-            options={issues}
-            value={selectedIssue}
-            onSelect={setSelectedIssue}
-          />
-        </View>
-
         {/* Employee Info */}
         <View className="flex-row items-center gap-2.5 mt-8 mx-5">
           <View className="h-8 w-8 bg-[#E5F4FD] rounded-full flex-row justify-center items-center">
@@ -408,26 +419,28 @@ const UserProfilePreview = () => {
             Employee Info
           </Text>
         </View>
+
         <View className="flex-row justify-between items-center mx-5 mt-4 p-2.5 bg-[#4FB2F3] rounded-xl">
           <View className="flex-row items-center gap-2.5">
             <View>
               <Image
-                source={require("@/assets/images/adaptive-icon.png")}
+                source={profile.user.avatar}
                 contentFit="contain"
-                style={{ height: 40, width: 40 }}
+                style={{ height: 40, width: 40, borderRadius: 99 }}
               />
             </View>
             <Text className="font-proximanova-bold text-white">
               {profile?.user?.name || "User"}
             </Text>
           </View>
-          <View className="h-10 w-10 bg-white rounded-full flex-row items-center justify-center">
-            {profile?.user?.avatar ? (
-              <Image
-                source={profile.user.avatar}
-                contentFit="cover"
-                style={{ height: 32, width: 32, borderRadius: 999 }}
-              />
+
+          <TouchableOpacity
+            onPress={handleMessagePress}
+            disabled={isCreatingChat}
+            className="h-10 w-10 bg-white rounded-full flex-row items-center justify-center"
+          >
+            {isCreatingChat ? (
+              <ActivityIndicator size="small" color="#4FB2F3" />
             ) : (
               <Image
                 source={require("@/assets/images/messages-fill.svg")}
@@ -435,7 +448,7 @@ const UserProfilePreview = () => {
                 style={{ height: 22, width: 22 }}
               />
             )}
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Contact Us On */}
@@ -448,7 +461,8 @@ const UserProfilePreview = () => {
           </Text>
         </View>
 
-        <ConnectSocials />
+
+        <ConnectSocials className='mx-5 mt-3.5' canEdit={false} />
       </ScrollView>
     </View>
   );

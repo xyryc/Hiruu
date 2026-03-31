@@ -3,6 +3,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import {
   Entypo,
   FontAwesome,
+  Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
   SimpleLineIcons
@@ -328,7 +329,7 @@ const JobCard = ({
                 title="Apply Now"
                 onPress={() => setShowModal(true)}
               />
-            ) : null}
+            ) : <Ionicons name="information-circle-outline" size={20} color="#7A7A7A" />}
           </View>
         </>
       )}
