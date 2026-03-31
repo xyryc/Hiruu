@@ -236,8 +236,8 @@ const AppBootstrap = () => {
     return (
       <ServerStatusScreen
         message={message}
-        onReload={() => {
-          void checkHealthNow();
+        onReload={async () => {
+          await checkHealthNow();
         }}
       />
     );
