@@ -35,9 +35,6 @@ const defaultPush: PushSettings = {
   appUpdatesTips: true,
 };
 
-const allTrue = (record: Record<string, boolean>) =>
-  Object.values(record).every(Boolean);
-
 const anyTrue = (record: Record<string, boolean>) =>
   Object.values(record).some(Boolean);
 

@@ -1,11 +1,11 @@
 import { AntDesign } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 const RatingProgress = ({ rating }: { rating: number }) => {
   const ratings = rating * 20;
-  const [progress, setProgress] = useState(0);
+  const progress = 0;
 
   // Color mapping based on progress
   const getTintColor = (fill: number) => {

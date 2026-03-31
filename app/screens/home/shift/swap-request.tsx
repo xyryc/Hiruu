@@ -306,10 +306,10 @@ const SwapRequestAction = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => setFilter(item.toLowerCase())}
-                  className={`py-2 px-4 border-1 border-[#EEEEEE] text-white rounded-full ${filter == item.toLowerCase() ? " bg-[#11293A]" : ""} `}
+                  className={`py-2 px-4 border-1 border-[#EEEEEE] text-white rounded-full ${filter === item.toLowerCase() ? " bg-[#11293A]" : ""} `}
                 >
                   <Text
-                    className={`text-center capitalize text-sm font-proximanova-semibold ${filter == item.toLowerCase() ? "text-white dark:text-dark-primary" : "dark:text-dark-primary text-primary"}`}
+                    className={`text-center capitalize text-sm font-proximanova-semibold ${filter === item.toLowerCase() ? "text-white dark:text-dark-primary" : "dark:text-dark-primary text-primary"}`}
                   >
                     {item} ({getFilterCount(item.toLowerCase())})
                   </Text>

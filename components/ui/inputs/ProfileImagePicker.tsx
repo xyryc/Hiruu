@@ -78,7 +78,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       if (!result.canceled && result.assets[0]) {
         onImageChange(result.assets[0].uri);
       }
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to open camera");
     } finally {
       setIsLoading(false);
@@ -101,7 +101,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       if (!result.canceled && result.assets[0]) {
         onImageChange(result.assets[0].uri);
       }
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to open image library");
     } finally {
       setIsLoading(false);

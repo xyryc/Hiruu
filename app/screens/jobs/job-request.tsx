@@ -1,8 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobRequestCard from "@/components/ui/cards/JobRequestCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
-import useUnreadApplications from "@/hooks/useUnreadApplications";
-import { walletService } from "@/services/walletService";
+import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -33,7 +32,6 @@ const JobRequest = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [walletCoins, setWalletCoins] = useState<number>(0);
   const limit = 10;
 
   const { markAsRead } = useUnreadApplications({
@@ -76,26 +74,15 @@ const JobRequest = () => {
     [getMyApplications]
   );
 
-  const loadWallet = useCallback(async () => {
-    try {
-      const result = await walletService.getWallet();
-      const coins = Number(result?.data?.coins ?? result?.data?.wallet?.coins ?? 0);
-      setWalletCoins(Number.isFinite(coins) ? coins : 0);
-    } catch {
-      // Keep previous value if wallet fetch fails.
-    }
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
       loadApplications(1, false);
-      loadWallet();
 
       // Mark all as read when user opens this screen (don't update UI)
       markAsRead().catch((err) => {
         console.error("Failed to mark as read:", err);
       });
-    }, [loadApplications, loadWallet, markAsRead])
+    }, [loadApplications, markAsRead])
   );
 
   const sourceFiltered = useMemo(() => {

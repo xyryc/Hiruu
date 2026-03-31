@@ -1,6 +1,6 @@
 import { CountdownTimerProps, TimeLeft } from "@/types";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({
@@ -16,7 +16,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     total: 0,
   });
 
-  const calculateTimeLeft = (): TimeLeft => {
+  const calculateTimeLeft = useCallback((): TimeLeft => {
     const target = new Date(targetTime).getTime();
     const now = new Date().getTime();
     const difference = target - now;
@@ -32,7 +32,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
       seconds: Math.floor((difference / 1000) % 60),
       total: difference,
     };
-  };
+  }, [targetTime]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -47,7 +47,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
     setTimeLeft(calculateTimeLeft());
 
     return () => clearInterval(timer);
-  }, [targetTime]);
+  }, [calculateTimeLeft, onComplete]);
 
   const totalHours = timeLeft.total / (1000 * 60 * 60);
   const isExpired = timeLeft.total <= 0;

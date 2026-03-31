@@ -1,4 +1,4 @@
-﻿import ScreenHeader from "@/components/header/ScreenHeader";
+import ScreenHeader from "@/components/header/ScreenHeader";
 import GradientButton from "@/components/ui/buttons/GradientButton";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";

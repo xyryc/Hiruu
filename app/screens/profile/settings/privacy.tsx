@@ -22,7 +22,7 @@ const Privacy = () => {
     useCallback(() => {
       const loadPrivacyPolicy = async () => {
         try {
-          const data = await getPrivacyPolicy();
+          await getPrivacyPolicy();
         } catch (error) {
           console.error("privacy-policy error:", error);
         }

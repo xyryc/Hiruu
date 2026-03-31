@@ -28,13 +28,13 @@ interface MessageProps {
     isSent: boolean;
     status?: string;
     avatar: any;
-    media?: Array<{
+    media?: {
       id: string;
       uri: string;
       previewType: "image" | "video";
       name?: string;
       thumbnailUrl?: string;
-    }>;
+    }[];
     call?: {
       type: "audio" | "video";
       status: string;

@@ -76,7 +76,7 @@ const WeeklyScheduleApply = () => {
   }>();
   const isEditMode = params.mode === "edit";
   const [existingBlocks, setExistingBlocks] = useState<
-    Array<{ id: string; startDate: string; endDate: string; name?: string }>
+    { id: string; startDate: string; endDate: string; name?: string }[]
   >([]);
 
   const [selectedStartDate, setSelectedStartDate] = useState("");

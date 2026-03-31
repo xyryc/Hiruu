@@ -9,7 +9,7 @@ import * as MediaLibrary from "expo-media-library";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -42,8 +42,10 @@ const QrGenerate = () => {
   } = useBusinessStore();
 
 
-  const generatedeepLinkUrl = async () => {
-    const businessId = selectedBusinesses[0] || userBusiness?.id;
+  const selectedBusinessId = selectedBusinesses[0];
+
+  const generatedeepLinkUrl = useCallback(async () => {
+    const businessId = selectedBusinessId || userBusiness?.id;
     if (!businessId) return;
 
     try {
@@ -65,11 +67,16 @@ const QrGenerate = () => {
       setBusinessName(business?.name || userBusiness?.name || "");
       setBusinessLogoUrl(business?.logo || userBusiness?.logo || "");
     } catch {}
-  }
+  }, [
+    generateBusinessCode,
+    getBusinessProfile,
+    selectedBusinessId,
+    userBusiness,
+  ]);
 
   useEffect(() => {
-    generatedeepLinkUrl()
-  }, [selectedBusinesses[0], userBusiness?.id])
+    void generatedeepLinkUrl();
+  }, [generatedeepLinkUrl, selectedBusinessId, userBusiness?.id]);
 
 
   // Create a deep link URL instead of JSON

@@ -17,7 +17,7 @@ export const AnimatedThemeToggle = () => {
       duration: 300,
       useNativeDriver: false,
     }).start();
-  }, [isDark]);
+  }, [animatedValue, isDark]);
 
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");

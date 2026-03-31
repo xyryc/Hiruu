@@ -1,6 +1,5 @@
 import { View, Text } from "react-native";
 import React, { ReactNode } from "react";
-import { Ionicons } from "@expo/vector-icons";
 
 type TShiftsSummaryCardProps = {
   icon?: ReactNode;

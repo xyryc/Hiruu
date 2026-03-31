@@ -282,7 +282,7 @@ const EditBusinessProfile = () => {
         } else {
           setCoverImage(result.assets[0].uri);
         }
-      } catch (error) {
+      } catch {
         Alert.alert("Error", "Failed to upload image");
       } finally {
         setUploading(false);

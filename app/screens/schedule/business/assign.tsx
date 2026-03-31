@@ -133,7 +133,7 @@ const Assign = () => {
       const email = item?.user?.email?.toLowerCase?.() || "";
       return name.includes(q) || email.includes(q);
     });
-  }, [search, selectedRoleDetail]);
+  }, [search, selectedRoleDetail, selectedRoleId]);
 
   const isAssignEnabled = useMemo(() => {
     if (tabs.length === 0) return false;

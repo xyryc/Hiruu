@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Dimensions, Text, View } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
 const { width } = Dimensions.get("window");
 
 const WorkHoursChart = () => {
-  const [selectedBar, setSelectedBar] = useState<any>(null);
   const months = ["March", "April", "May", "June", "July", "August"];
   const barData = [
     {

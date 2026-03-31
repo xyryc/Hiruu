@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
 import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
-import useUnreadApplications from "@/hooks/useUnreadApplications";
+import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";

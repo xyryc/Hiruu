@@ -43,8 +43,7 @@ const LeaveRequest = () => {
   const loadRequests = useCallback(async () => {
     if (!businessId) return;
     try {
-      const response = await getBusinessShiftRequests(businessId);
-      // console.log("[LeaveRequest] business shift requests:", response);
+      await getBusinessShiftRequests(businessId);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load leave requests");
     }

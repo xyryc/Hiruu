@@ -10,7 +10,7 @@ export const ToggleButton = ({ isOn, setIsOn, title, className }: any) => {
       duration: 250,
       useNativeDriver: false,
     }).start();
-  }, [isOn]);
+  }, [animatedValue, isOn]);
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],

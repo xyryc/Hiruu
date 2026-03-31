@@ -122,7 +122,7 @@ const Preferences = () => {
     useCallback(() => {
       const loadJobProfile = async () => {
         try {
-          const data = await getMyJobProfile();
+          await getMyJobProfile();
           // console.log(
           //   "weekly schedule integration check:",
           //   data?.weeklyAvailability ?? null
@@ -152,7 +152,7 @@ const Preferences = () => {
         await updateMyJobProfile({
           weeklyAvailability: pendingAvailability,
         });
-      } catch (error) {
+      } catch {
         console.error("weekly schedule autosave error:", error);
       }
     }, 700);

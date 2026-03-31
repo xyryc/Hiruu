@@ -21,7 +21,7 @@ const Terms = () => {
     useCallback(() => {
       const loadTermsAndConditions = async () => {
         try {
-          const data = await getTermsAndConditions();
+          await getTermsAndConditions();
         } catch (error) {
           console.error("terms-and-conditions error:", error);
         }

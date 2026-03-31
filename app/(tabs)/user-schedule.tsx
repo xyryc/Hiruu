@@ -190,8 +190,7 @@ const ShiftSchedule = () => {
 
   const loadShifts = useCallback(async () => {
     try {
-      const response = await fetchMyShifts(selectedDate);
-      // console.log("[UserSchedule] raw api response:", response);
+      await fetchMyShifts(selectedDate);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load shifts");
     }

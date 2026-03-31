@@ -38,7 +38,7 @@ const formatYmd = (value: Date) => {
 const TokenActivity = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const topTabs: Array<"all" | TransactionType> = ["all", "earned", "spent"];
+  const topTabs: ("all" | TransactionType)[] = ["all", "earned", "spent"];
   const [isTabs, setIsTabs] = useState<"all" | TransactionType>("all");
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
   const [isCalendarModalVisible, setCalendarModalVisible] = useState(false);
@@ -141,7 +141,7 @@ const TokenActivity = () => {
   useFocusEffect(
     useCallback(() => {
       loadTransactions(isTabs);
-    }, [isTabs, loadTransactions, reportMonth])
+    }, [isTabs, loadTransactions])
   );
 
   const filteredTransactions = useMemo(() => {

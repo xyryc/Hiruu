@@ -40,8 +40,7 @@ const EmployeeListScreen = () => {
   const resolvedBusinessId = params.businessId || selectedBusinesses[0];
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
-  const [failedAvatars, setFailedAvatars] = useState<Record<string, boolean>>({});
-  const [roles, setRoles] = useState<Array<{ id: string; name: string }>>([]);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [roleModalVisible, setRoleModalVisible] = useState(false);
   const [selectedAssignRole, setSelectedAssignRole] = useState<string | null>(null);

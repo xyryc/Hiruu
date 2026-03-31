@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
 import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
-import useUnreadApplications from "@/hooks/useUnreadApplications";
+import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";

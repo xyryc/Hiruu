@@ -1,8 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import { Image } from "expo-image";
 import CoinProgressSlider from "../inputs/CoinProgressSlider";
-import BadgeModal from "../modals/BadgeModal";
 
 type TBadgeCardWithSlider = {
   img: string;

@@ -6,10 +6,7 @@ import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const RedeemTokens = () => {
   const img = require("@/assets/images/reward/premium.svg");
@@ -79,7 +76,6 @@ const RedeemTokens = () => {
       router.push("/screens/rewards/nameplate");
     }
   };
-  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView

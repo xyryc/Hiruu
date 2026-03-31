@@ -34,7 +34,7 @@ export const UnreadBadge = ({
         };
 
         fetchUnreadCount();
-    }, [scope, businessId, type]);
+    }, [scope, businessId, type, getUnreadCount]);
 
     if (isLoading || unreadCount === 0) {
         return null;

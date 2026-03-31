@@ -21,10 +21,9 @@ import { toast } from "sonner-native";
 const QrScanner = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
-  const [facing, setFacing] = useState<CameraType>("back");
+  const facing: CameraType = "back";
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [flashMode, setFlashMode] = useState<"off" | "on" | "auto">("off");
@@ -36,7 +35,7 @@ const QrScanner = () => {
     if (permission && !permission.granted) {
       requestPermission();
     }
-  }, [permission]);
+  }, [permission, requestPermission]);
 
   const handleBarCodeScanned = ({
     type,

@@ -38,19 +38,9 @@ const UserProfilePreview = () => {
   const params = useLocalSearchParams<PreviewParams>();
   const getJobProfileByUserId = useJobStore((s) => s.getJobProfileByUserId);
   const [showText, setShowText] = useState(false);
-  const [selectedIssue, setSelectedIssue] = useState("");
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
-  const issues = [
-    { label: "Missed Punch", value: "Missed Punch" },
-    { label: "Late arrival", value: "Late arrival" },
-    { label: "Early Departure", value: "Early Departure" },
-    { label: "Forget to Tap", value: "Forget to Tap" },
-    { label: "Network Issues", value: "Network Issues" },
-  ];
-
-  const [isOn, setIsOn] = useState(false);
   const userId = typeof params.userId === "string" ? params.userId : "";
   const businessId =
     typeof params.businessId === "string" ? params.businessId : "";

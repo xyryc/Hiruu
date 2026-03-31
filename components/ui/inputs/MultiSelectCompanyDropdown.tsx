@@ -3,7 +3,7 @@ import { Companies, Company, MultiSelectCompanyDropdownProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -27,30 +27,14 @@ const MultiSelectCompanyDropdown = ({
 }: MultiSelectCompanyDropdownProps) => {
   const { fetchBusinesses, createCompanyManual } = useBusinessStore();
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
   const [isAddingCompany, setIsAddingCompany] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [manualCompanyName, setManualCompanyName] = useState("");
   const [manualCompanyLogo, setManualCompanyLogo] = useState<any>(null);
 
-  // Fetch companies when component mounts
-  useEffect(() => {
-    loadCompanies();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadCompanies(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const loadCompanies = async (query = "") => {
-    setIsLoadingCompanies(true);
+  const loadCompanies = useCallback(async (query = "") => {
     try {
       const businesses = await fetchBusinesses(query);
 
@@ -65,10 +49,21 @@ const MultiSelectCompanyDropdown = ({
     } catch (error) {
       console.error("Failed to load companies:", error);
       toast.error("Failed to load companies. Please try again.");
-    } finally {
-      setIsLoadingCompanies(false);
     }
-  };
+  }, [fetchBusinesses]);
+
+  // Fetch companies when component mounts
+  useEffect(() => {
+    void loadCompanies();
+  }, [loadCompanies]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadCompanies(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [loadCompanies, searchQuery]);
 
   const filteredCompanies = companies;
 

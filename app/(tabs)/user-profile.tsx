@@ -39,7 +39,6 @@ const Profile = () => {
     { label: "sidebar-left", value: "sidebar-left" },
     { label: "sidebar-right", value: "sidebar-right" },
   ];
-  const [isOn, setIsOn] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const { setSelectedBusinesses } = useBusinessStore();

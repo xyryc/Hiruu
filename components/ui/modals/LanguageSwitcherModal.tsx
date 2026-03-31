@@ -1,7 +1,7 @@
 import { saveLanguage } from "@/utils/i18n";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,9 +11,8 @@ const LanguageSwitcherModal = ({ visible, onClose }: any) => {
     onClose(); // Close the modal
   };
 
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
   const currentLanguage = i18n.language;
-  const [modalVisible, setModalVisible] = useState(false);
 
   const languages = [
     { code: "en", name: "English", nativeName: "English" },
@@ -22,7 +21,7 @@ const LanguageSwitcherModal = ({ visible, onClose }: any) => {
 
   const changeLanguage = async (languageCode: string) => {
     await saveLanguage(languageCode);
-    setModalVisible(false);
+    onClose();
   };
 
   return (

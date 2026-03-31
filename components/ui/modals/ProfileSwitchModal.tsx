@@ -27,7 +27,6 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
   onSelectBusinessProfile,
 }) => {
   const [profile, setProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
   const getProfile = useProfileStore((state) => state.getProfile);
   const {
     myBusinesses,
@@ -43,17 +42,12 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 
     const loadData = async () => {
       try {
-        setProfileLoading(true);
         const result = await getProfile();
         if (isMounted) {
           setProfile(result.data);
         }
       } catch {
         // keep modal usable even if profile fetch fails
-      } finally {
-        if (isMounted) {
-          setProfileLoading(false);
-        }
       }
 
       getMyBusinesses(true).catch(() => undefined);

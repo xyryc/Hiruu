@@ -109,8 +109,6 @@ const ShiftDetails = () => {
   const locationText = details?.business?.address?.address || "-";
   const assignedByName = details?.assignedBy?.name || "-";
   const assignedByAvatar = details?.assignedBy?.avatar;
-  const noteText = details?.notes;
-
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"

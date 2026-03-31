@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -81,14 +81,14 @@ const Verify = () => {
   const phoneNumber = typeof params.phoneNumber === "string" ? params.phoneNumber : "";
   const countryCode = typeof params.countryCode === "string" ? params.countryCode : "+1";
 
-  const getVerificationType = () => {
+  const getVerificationType = useCallback(() => {
     const hasEmail = Boolean(email);
     const hasPhone = Boolean(phoneNumber);
 
     if (hasEmail && hasPhone) return "both" as const;
     if (hasPhone) return "phone" as const;
     return "email" as const;
-  };
+  }, [email, phoneNumber]);
 
   useEffect(() => {
     if (source !== "login") return;
@@ -99,7 +99,7 @@ const Verify = () => {
       const message = error instanceof Error ? error.message : t("common.error");
       toast.error(message);
     });
-  }, [requestVerifyAccount, source]);
+  }, [getVerificationType, requestVerifyAccount, source]);
 
   const handleVerify = async () => {
     if (!isOtpComplete) return;

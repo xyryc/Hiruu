@@ -23,19 +23,6 @@ const OTPInput = ({ otp, setOtp }: any) => {
     }
   };
 
-  //   @ts-ignore
-  const isOtpComplete = otp.every((digit) => digit !== "");
-
-  const handleVerify = () => {
-    if (isOtpComplete) {
-      const otpCode = otp.join("");
-    }
-  };
-
-  const handleResendOtp = () => {
-    // Add resend OTP logic here
-  };
-
   return (
     <View className="flex-row justify-between px-2">
       {otp.map(

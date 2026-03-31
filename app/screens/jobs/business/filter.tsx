@@ -41,12 +41,6 @@ type LocationOption = {
 const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
 const ADDRESS_MAX_LENGTH = 200;
 
-const SHIFT_OPTIONS = [
-  { label: "Day Shift", value: "day_shift" },
-  { label: "Night Shift", value: "night_shift" },
-  { label: "Weekend", value: "weekend" },
-] as const;
-
 const AVAILABILITY_BADGE_OPTIONS = [
   { label: "Full Time", value: "full_time" },
   { label: "Part Time", value: "part_time" },
@@ -376,7 +370,7 @@ const FindJobFilters = () => {
     return selectedOption === option;
   };
 
-  const [selectedShiftTypes, setSelectedShiftTypes] = useState<string[]>(
+  const [selectedShiftTypes] = useState<string[]>(
     Array.isArray(businessCandidateFilters.shiftTypes)
       ? businessCandidateFilters.shiftTypes
       : typeof businessCandidateFilters.shiftTypes === "string" &&
@@ -385,32 +379,8 @@ const FindJobFilters = () => {
         : []
   );
 
-  const handleShiftOptionPress = (value: string) => {
-    setSelectedShiftTypes((prev) =>
-      prev.includes(value)
-        ? prev.filter((item) => item !== value)
-        : [...prev, value]
-    );
-  };
-
-  const isSelectedShift = (value: string) => {
-    return selectedShiftTypes.includes(value);
-  };
-
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [showWorkingDays, setShowWorkingDays] = useState(false);
-  const handleBadgePress = (badgeValue: string) => {
-    setSelectedBadges((prev) => {
-      if (prev.includes(badgeValue)) {
-        return prev.filter((value) => value !== badgeValue);
-      } else {
-        return [...prev, badgeValue];
-      }
-    });
-  };
-  const isBadgeSelected = (badgeValue: string) => {
-    return selectedBadges.includes(badgeValue);
-  };
 
   useEffect(() => {
     const initialBadges = Array.isArray(businessCandidateFilters.availabilityTypes)

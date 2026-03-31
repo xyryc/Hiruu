@@ -1,4 +1,4 @@
-﻿import ScreenHeader from "@/components/header/ScreenHeader";
+import ScreenHeader from "@/components/header/ScreenHeader";
 import SettingsCard from "@/components/ui/cards/SettingsCard";
 import ConfirmActionModal from "@/components/ui/modals/ConfirmActionModal";
 import { ActiveSubscriptionItem, billingService } from "@/services/billingService";

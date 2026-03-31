@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
+import React, { useEffect } from "react";
+import { View } from "react-native";
 import { Image } from "expo-image";
 import Animated, {
   useAnimatedStyle,
@@ -26,7 +26,7 @@ export default function CoinProgressSlider({
   useEffect(() => {
     progressWidth.value = withTiming(percentage, { duration: 800 });
     coinPosition.value = withTiming(percentage, { duration: 800 });
-  }, [percentage]);
+  }, [coinPosition, percentage, progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: `${progressWidth.value}%`,

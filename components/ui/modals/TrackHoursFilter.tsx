@@ -32,7 +32,7 @@ const TrackHoursFilter = ({ visible, onClose }: any) => {
     },
   ];
 
-  const [isSelectTime, setIsSelectTime] = useState<Number>(0);
+  const [isSelectTime, setIsSelectTime] = useState<number>(0);
 
   const handleSelected = (index: number) => {
     setIsSelectTime(index);

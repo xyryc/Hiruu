@@ -32,7 +32,7 @@ const SocialAuth = () => {
       }
 
       const credential = GoogleAuthProvider.credential(idToken);
-      const userCredential = await signInWithCredential(auth, credential);
+      await signInWithCredential(auth, credential);
 
     } catch (e) {
       console.error("GOOGLE_SIGNIN_ERROR:", e);

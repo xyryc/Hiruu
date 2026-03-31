@@ -15,7 +15,6 @@ const JoinInvitation = () => {
   const businessName = params.business as string;
   const code = params.code as string;
   const employeeName = params.employee as string;
-  const invitationType = params.type as string;
 
   const handleJoinBusiness = () => {
     // Handle joining the business
