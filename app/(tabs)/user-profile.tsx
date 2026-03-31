@@ -20,7 +20,6 @@ import {
   FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
-  MaterialIcons,
   SimpleLineIcons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -245,7 +244,11 @@ const Profile = () => {
               Profile
             </Text>
 
-            <MaterialIcons name="arrow-drop-down" size={30} color="black" />
+            <Ionicons
+              name={isProfileSwitchOpen ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="black"
+            />
           </TouchableOpacity>
 
           <ProfileSwitchModal

@@ -615,7 +615,7 @@ const BusinessSetup = () => {
               onBlur={() => {
                 setTimeout(() => setIsLocationFocused(false), 250);
               }}
-            onChangeText={(text) => {
+              onChangeText={(text) => {
                 const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
                 setLocationSearch(nextText);
                 if (selectedLocationOption && nextText !== selectedLocationOption.label) {
@@ -630,8 +630,8 @@ const BusinessSetup = () => {
             />
 
             {isLocationFocused &&
-            locationSearch.trim().length >= 3 &&
-            locationOptions.length > 0 ? (
+              locationSearch.trim().length >= 3 &&
+              locationOptions.length > 0 ? (
               <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
                 {locationOptions.map((item, index) => (
                   <TouchableOpacity
@@ -658,9 +658,9 @@ const BusinessSetup = () => {
               </Text>
             ) : null}
             {isLocationFocused &&
-            locationSearch.trim().length >= 3 &&
-            !isSearchingLocation &&
-            locationOptions.length === 0 ? (
+              locationSearch.trim().length >= 3 &&
+              !isSearchingLocation &&
+              locationOptions.length === 0 ? (
               <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
                 No locations found.
               </Text>
@@ -689,7 +689,7 @@ const BusinessSetup = () => {
               Connect Your Socials
             </Text>
 
-            <ConnectSocials />
+            <ConnectSocials canEdit={true} />
           </View>
 
           {/* button */}
@@ -701,9 +701,6 @@ const BusinessSetup = () => {
             loading={isLoading}
           />
         </ScrollView>
-
-
-
       </LinearGradient>
     </SafeAreaView>
   );

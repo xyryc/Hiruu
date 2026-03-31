@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import SmallButton from "../buttons/SmallButton";
 
@@ -91,15 +91,37 @@ const ConnectSocials = ({
   hideEmpty?: boolean;
   canEdit?: boolean;
 }) => {
+  const [localLinks, setLocalLinks] = useState<SocialLinks>(value || {});
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
   const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
+  const isControlled = typeof value !== "undefined";
+  const links = useMemo(
+    () => (isControlled ? (value || {}) : localLinks),
+    [isControlled, localLinks, value]
+  );
+
+  useEffect(() => {
+    if (!isControlled) return;
+    setLocalLinks(value || {});
+  }, [isControlled, value]);
+
+  const updateLinks = (next: SocialLinks) => {
+    if (!isControlled) {
+      setLocalLinks(next);
+    } else {
+      // Keep local mirror in sync for immediate UI feedback.
+      setLocalLinks(next);
+    }
+    onChange?.(next);
+  };
+
   const visibleItems = hideEmpty
-    ? SOCIAL_ITEMS.filter((item) => Boolean(value?.[item.id]))
+    ? SOCIAL_ITEMS.filter((item) => Boolean(links?.[item.id]))
     : SOCIAL_ITEMS;
 
   const startLink = (id: string) => {
     const key = id as SocialKey;
-    const currentValue = value?.[key] || "";
+    const currentValue = links?.[key] || "";
     setEditingValues((prev) => ({ ...prev, [id]: currentValue }));
     setInputErrors((prev) => {
       const next = { ...prev };
@@ -126,7 +148,7 @@ const ConnectSocials = ({
     const normalized = normalizeSocialLink(key, rawValue);
     if (!normalized) return;
 
-    onChange?.({ ...(value || {}), [key]: normalized });
+    updateLinks({ ...(links || {}), [key]: normalized });
     setEditingValues((prev) => {
       const next = { ...prev };
       delete next[id];
@@ -141,7 +163,7 @@ const ConnectSocials = ({
 
   const removeLink = (id: string) => {
     const key = id as SocialKey;
-    onChange?.({ ...(value || {}), [key]: "" });
+    updateLinks({ ...(links || {}), [key]: "" });
     setEditingValues((prev) => {
       const next = { ...prev };
       delete next[id];
@@ -194,7 +216,7 @@ const ConnectSocials = ({
 
       {visibleItems.map((item, index) => {
         const isEditing = Object.prototype.hasOwnProperty.call(editingValues, item.id);
-        const linkedValue = value?.[item.id] || "";
+        const linkedValue = links?.[item.id] || "";
         const inputValue = editingValues[item.id] || "";
 
         return (

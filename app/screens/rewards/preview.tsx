@@ -57,7 +57,7 @@ const Preview = () => {
         <View className="flex-1 px-5 pb-5">
           <View className="flex-1 overflow-hidden rounded-xl border border-[#EEEEEE]">
             <Pdf
-              source={{ uri: previewUrl, cache: true }}
+              source={{ uri: previewUrl, cache: false }}
               style={{ flex: 1, width: "100%" }}
               onError={() => toast.error("Failed to load PDF preview")}
             />

@@ -13,8 +13,7 @@ import {
   FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
-  MaterialIcons,
-  SimpleLineIcons,
+  SimpleLineIcons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -22,6 +21,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  Linking,
   ScrollView,
   Share,
   Text,
@@ -198,6 +198,34 @@ const BusinessProfile = () => {
     }
   };
 
+  const handleOpenBusinessLocation = useCallback(async () => {
+    const address = String(businessData?.address?.address || "").trim();
+    const latitude = Number(businessData?.address?.latitude);
+    const longitude = Number(businessData?.address?.longitude);
+
+    const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+    const query = hasCoordinates
+      ? `${latitude},${longitude}`
+      : address;
+
+    if (!query) {
+      toast.error("Location unavailable");
+      return;
+    }
+
+    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    try {
+      const canOpen = await Linking.canOpenURL(mapUrl);
+      if (!canOpen) {
+        toast.error("Unable to open maps");
+        return;
+      }
+      await Linking.openURL(mapUrl);
+    } catch {
+      toast.error("Unable to open maps");
+    }
+  }, [businessData?.address?.address, businessData?.address?.latitude, businessData?.address?.longitude]);
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
@@ -212,7 +240,12 @@ const BusinessProfile = () => {
           <Text className="font-proximanova-bold text-2xl text-primary dark:text-dark-primary">
             Profile
           </Text>
-          <MaterialIcons name="arrow-drop-down" size={30} color="black" />
+
+          <Ionicons
+            name={isProfileSwitchOpen ? "chevron-up" : "chevron-down"}
+            size={20}
+            color="black"
+          />
         </TouchableOpacity>
 
         <View className="flex-row gap-1.5 items-center justify-center">
@@ -309,13 +342,17 @@ const BusinessProfile = () => {
             ) : null}
           </View>
 
-          <View className="flex-row items-center gap-1">
+          <TouchableOpacity
+            onPress={handleOpenBusinessLocation}
+            className="flex-row items-center gap-1"
+            activeOpacity={0.7}
+          >
             <EvilIcons name="location" size={18} color="black" />
 
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               {businessData?.address?.address || "Location unavailable"}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Tabs */}
