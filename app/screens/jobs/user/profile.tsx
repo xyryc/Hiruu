@@ -92,7 +92,9 @@ const JobProfile = () => {
   );
   const companyRatingLabel = Number(companyRatingValue.toFixed(1)).toString();
   const locationLabel =
-    job?.business?.address?.address || "Unknown Location";
+    job?.business?.address?.state ||
+    job?.business?.address?.address ||
+    "Unknown Location";
 
 
   const roleName = job?.role?.role?.name || "Bartender";
@@ -126,54 +128,6 @@ const JobProfile = () => {
     : null;
 
   const socials = useMemo(() => job?.business?.social || {}, [job?.business?.social]);
-
-  useEffect(() => {
-    if (!job) return;
-
-    console.log(
-      "[UserJobProfile] screen data:",
-      JSON.stringify(
-        {
-          route: { businessId, recruitmentId },
-          job,
-          companyName,
-          companyLogo,
-          locationLabel,
-          roleName,
-          aboutRole,
-          genderLabel,
-          experienceLabel,
-          ageLabel,
-          shiftLabel,
-          salaryLabel,
-          managerName,
-          managerAvatar,
-          distanceLabel,
-          socials,
-        },
-        null,
-        2
-      )
-    );
-  }, [
-    aboutRole,
-    ageLabel,
-    businessId,
-    companyLogo,
-    companyName,
-    distanceLabel,
-    experienceLabel,
-    genderLabel,
-    job,
-    locationLabel,
-    managerAvatar,
-    managerName,
-    recruitmentId,
-    roleName,
-    salaryLabel,
-    shiftLabel,
-    socials,
-  ]);
 
   const handleShare = async () => {
     try {

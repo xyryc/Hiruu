@@ -397,12 +397,12 @@ export const useJobStore = create<JobState>((set) => ({
   },
 
   getPublicRecruitments: async (query = {}) => {
-      try {
-        const params = buildRecruitmentQuery(query);
+    try {
+      const params = buildRecruitmentQuery(query);
 
-        const response = await axiosInstance.get("/recruitment/public", {
-          params,
-        });
+      const response = await axiosInstance.get("/recruitment/public", {
+        params,
+      });
       const result = response.data;
 
       const hasError =
