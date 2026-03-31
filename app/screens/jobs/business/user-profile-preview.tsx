@@ -184,14 +184,23 @@ const UserProfilePreview = () => {
   if (isLoading) {
     return (
       <View className="flex-1 bg-white dark:bg-dark-background">
-        <SafeAreaView>
-          <View className="flex-row justify-between items-center mt-5 mx-5">
+        <SafeAreaView className="bg-[#E5F4FD] rounded-b-xl">
+          <View className="flex-row justify-between items-center mt-5 mx-5 mb-4">
             <TouchableOpacity onPress={handleBack}>
               <Feather className="p-2" name="arrow-left" size={24} color="black" />
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleShare()}>
+              <Ionicons
+                className="p-2"
+                name="share-outline"
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
-        <View className="flex-1 items-center justify-center">
+
+        <View className="pt-6 items-center">
           <ActivityIndicator size="small" color="#4FB2F3" />
         </View>
       </View>
