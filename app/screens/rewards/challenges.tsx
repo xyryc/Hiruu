@@ -53,7 +53,7 @@ const getChallengeActionLabel = (achievement: AchievementItem) => {
   return "In Progress";
 };
 
-const challenges = () => {
+const Challenges = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isActive, setIsActive] = useState("One-Time");
@@ -286,4 +286,4 @@ const challenges = () => {
   );
 };
 
-export default challenges;
+export default Challenges;

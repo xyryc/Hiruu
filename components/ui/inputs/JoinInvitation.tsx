@@ -57,7 +57,7 @@ const JoinInvitation = () => {
         </Text>
 
         <Text className="text-base font-proximanova-regular text-secondary dark:text-dark-secondary text-center mb-8">
-          You've been invited to join as an employee
+          You&apos;ve been invited to join as an employee
         </Text>
 
         {/* Invitation Card */}
@@ -119,7 +119,7 @@ const JoinInvitation = () => {
         {/* Benefits Section */}
         <View className="mb-8">
           <Text className="text-lg font-proximanova-semibold text-primary dark:text-dark-primary mb-4">
-            What you'll get:
+            What you&apos;ll get:
           </Text>
 
           <View className="space-y-3">
@@ -128,7 +128,7 @@ const JoinInvitation = () => {
                 <Ionicons name="checkmark" size={16} color="white" />
               </View>
               <Text className="flex-1 text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-                Access to {businessName}'s employee dashboard
+                Access to {businessName}&apos;s employee dashboard
               </Text>
             </View>
 

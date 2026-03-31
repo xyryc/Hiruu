@@ -112,7 +112,7 @@ const LeaderboardInfo = () => {
             How to Earn Points
           </Text>
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
-            Want to be a Top Performer this month? Here's how you collect points
+            Want to be a Top Performer this month? Here&apos;s how you collect points
             based on your shift activity
           </Text>
         </View>

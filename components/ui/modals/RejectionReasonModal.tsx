@@ -108,7 +108,7 @@ const RejectionReasonModal = () => {
                   </Text>
                   <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
                     I need to attend my sister’s wedding ceremony in Chicago.
-                    travel arrangements have been made, and I'll be back to work
+                    travel arrangements have been made, and I&apos;ll be back to work
                     on Monday{" "}
                   </Text>
                 </View>

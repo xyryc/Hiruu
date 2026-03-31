@@ -26,7 +26,7 @@ class ErrorBoundary extends React.Component {
             Oops! Something went wrong
           </Text>
           <Text className="text-sm font-proximanova-regular text-secondary mt-2 text-center">
-            We're sorry for the inconvenience
+            We&apos;re sorry for the inconvenience
           </Text>
           <TouchableOpacity
             onPress={() => this.setState({ hasError: false, error: null })}

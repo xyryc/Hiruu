@@ -202,7 +202,7 @@ const Verify = () => {
 
           {/* Resend OTP */}
           <View className="mt-6 flex-row justify-center">
-            <Text className="text-sm text-[#7D7D7D]">Didn't receive the code? </Text>
+            <Text className="text-sm text-[#7D7D7D]">Didn&apos;t receive the code? </Text>
             <TouchableOpacity onPress={handleResendOTP} disabled={isLoading}>
               <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
                 Resend OTP

@@ -35,7 +35,7 @@ const WelcomeHeader = ({
             👋 Hello, {name || "User"}
           </Text>
           <Text className="font-proximanova-semibold">
-            Ready for today's task?
+            Ready for today&apos;s task?
           </Text>
         </View>
       </View>

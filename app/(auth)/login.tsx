@@ -353,7 +353,7 @@ const Login = () => {
 
           {/* Already have account */}
           <View className="flex-row mx-auto">
-            <Text className="text-sm">Don't have an account?</Text>
+            <Text className="text-sm">Don&apos;t have an account?</Text>
 
             <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
               <Text className="text-sm font-proximanova-semibold underline px-2">

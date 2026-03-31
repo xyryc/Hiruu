@@ -15,7 +15,7 @@ import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const refer = () => {
+const Refer = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -171,5 +171,5 @@ const refer = () => {
   );
 };
 
-export default refer;
+export default Refer;
 
