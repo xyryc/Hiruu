@@ -957,6 +957,7 @@ export const useBusinessStore = create<BusinessState>()(
       if (payload.countryCode) formData.append("countryCode", payload.countryCode);
       if (payload.email) formData.append("email", payload.email);
       if (payload.website) formData.append("website", payload.website);
+      appendSocialToFormData(formData, payload.social);
 
       if (payload.logo) {
         const logoFile = {

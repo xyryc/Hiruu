@@ -340,6 +340,7 @@ const BusinessSetup = () => {
   const [about, setAbout] = useState("");
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
+  const [socialLinks, setSocialLinks] = useState<any>({});
 
   const getPhonePayload = () => {
     const trimmed = phoneNumber.trim();
@@ -400,6 +401,7 @@ const BusinessSetup = () => {
       countryCode: phonePayload.countryCode,
       email: email.trim(),
       website: website.trim(),
+      social: socialLinks,
       logo: profileImage,
       coverPhoto: coverImage,
     };
@@ -689,7 +691,11 @@ const BusinessSetup = () => {
               Connect Your Socials
             </Text>
 
-            <ConnectSocials canEdit={true} />
+            <ConnectSocials
+              value={socialLinks}
+              onChange={(next) => setSocialLinks((prev: any) => ({ ...prev, ...next }))}
+              canEdit={true}
+            />
           </View>
 
           {/* button */}
