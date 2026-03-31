@@ -97,7 +97,7 @@ const UserProfilePreview = () => {
     if (!address) return "Location unavailable";
     if (typeof address === "string") return address;
     if (typeof address === "object") {
-      return address?.address || address?.city || address?.country || "Location unavailable";
+      return address?.city || address?.country || address?.address || "Location unavailable";
     }
 
     return "Location unavailable";
