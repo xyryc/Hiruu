@@ -739,6 +739,31 @@ const ChatScreen = () => {
     void handleStartCall("video");
   }, [handleStartCall]);
 
+  const handleSeeProfile = useCallback(() => {
+    if (!actualRoomId || !user?.id) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    const participants = Array.isArray(roomDetails?.participants)
+      ? roomDetails.participants
+      : [];
+    const otherParticipant = participants.find(
+      (participant: any) => participant?.userId && participant.userId !== user.id
+    );
+    const targetUserId = otherParticipant?.userId || otherParticipant?.user?.id;
+
+    if (!targetUserId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: { userId: String(targetUserId) },
+    });
+  }, [actualRoomId, roomDetails?.participants, router, user?.id]);
+
   const scrollToBottom = useCallback((animated: boolean) => {
     const list = messagesListRef.current;
     if (!list) return;
@@ -860,6 +885,7 @@ const ChatScreen = () => {
             isOnline={chatIsOnline}
             onAudioCallPress={handleStartAudioCall}
             onVideoCallPress={handleStartVideoCall}
+            onSeeProfilePress={handleSeeProfile}
             isStartingAudioCall={startingAudioCall}
             isStartingVideoCall={startingVideoCall}
           />

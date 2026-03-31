@@ -1,5 +1,7 @@
 import { chatService } from "@/services/chatService";
+import { callService } from "@/services/callService";
 import { BusinessJobCardProps } from "@/types";
+import { translateApiMessage } from "@/utils/apiMessages";
 import {
   FontAwesome,
   Ionicons,
@@ -33,10 +35,15 @@ const BusinessJobCard = ({
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isCreatingCall, setIsCreatingCall] = useState(false);
 
   // Extract profile data
   const userName = profile?.user?.name || "Md Talath Un Nabi Anik";
-  const userAvatar = profile?.user?.avatar || "https://images.squarespace-cdn.com/content/v1/5521b031e4b06ebe90178744/1560360135937-3XYVZ3124L1YL2FOASSQ/headshots-linkedin-photographer.jpg";
+  const userAvatarUri =
+    typeof profile?.user?.avatar === "string" ? profile.user.avatar.trim() : "";
+  const userAvatarSource = userAvatarUri
+    ? { uri: userAvatarUri }
+    : require("@/assets/images/placeholder.png");
   const headline = profile?.headline || "Cashier";
   const isPremium = profile?.isPremium || false;
 
@@ -96,6 +103,44 @@ const BusinessJobCard = ({
     }
   };
 
+  const handleCallClick = async () => {
+    const participantId = profile?.userId || profile?.user?.id;
+
+    if (!participantId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      setIsCreatingCall(true);
+      const roomResult = await chatService.createDirectChat(participantId);
+      const roomId = roomResult?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      const response = await callService.initiateAudioCall(roomId);
+      const callData = response?.data;
+      const callId =
+        callData?.id || callData?.callId || callData?.call?.id || null;
+
+      if (!callId) {
+        throw new Error("Call started but call id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/audio-call",
+        params: { callId, roomId, mode: "outgoing", callType: "audio" },
+      });
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message || error?.message || "Failed to start call";
+      toast.error(typeof apiMessage === "string" ? translateApiMessage(apiMessage) : apiMessage);
+    } finally {
+      setIsCreatingCall(false);
+    }
+  };
+
   const handleViewProfile = () => {
     const userId = profile?.userId || profile?.user?.id;
 
@@ -130,7 +175,7 @@ const BusinessJobCard = ({
         <View className="flex-row items-center gap-2.5 p-1 z-10">
           {/* profile image */}
           <Image
-            source={userAvatar}
+            source={userAvatarSource}
             style={{
               width: 40,
               height: 40,
@@ -270,12 +315,18 @@ const BusinessJobCard = ({
               }}
             />
 
-            <View
+            <Pressable
+              onPress={handleCallClick}
+              disabled={isCreatingChat || isCreatingCall}
               className={`h-10 w-10 rounded-full flex-row items-center justify-center
              ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}`}
             >
-              <Ionicons name="call" size={20} color="#4FB2F3" />
-            </View>
+              {isCreatingCall ? (
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              ) : (
+                <Ionicons name="call" size={20} color="#4FB2F3" />
+              )}
+            </Pressable>
           </View>
 
           {/* right */}
