@@ -7,7 +7,11 @@ import React from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const SwapRequestModal = ({ visible, onClose }: SwapShiftModalProps) => {
+const SwapRequestModal = ({
+  visible,
+  onClose,
+  selectedCount = 0,
+}: SwapShiftModalProps) => {
   const handleDone = () => {
     onClose();
   };
@@ -42,8 +46,8 @@ const SwapRequestModal = ({ visible, onClose }: SwapShiftModalProps) => {
 
             <TitleHeader
               className="mt-5"
-              title="Swap Request Sent to 4 Members"
-              subtitle="We’ll update you as soon as someone accepts."
+              title={`Swap Request Sent to ${selectedCount} ${selectedCount === 1 ? "Member" : "Members"}`}
+              subtitle="We'll update you as soon as someone accepts."
             />
           </SafeAreaView>
         </View>

@@ -131,6 +131,13 @@ type ShiftStoreState = {
           overtimeRate: number;
           reason: string;
         }
+      | {
+          employmentId: string;
+          type: "shift_swap";
+          shiftAssignmentId: string;
+          targetEmploymentIds: string[];
+          reason?: string;
+        }
   ) => Promise<any>;
   approveBusinessShiftRequest: (
     businessId: string,

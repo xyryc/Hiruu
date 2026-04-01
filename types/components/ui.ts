@@ -157,6 +157,7 @@ export interface BusinessSelectionModalProps {
 export interface SwapShiftModalProps {
   visible: boolean;
   onClose: () => void;
+  selectedCount?: number;
 }
 
 export interface QuickActionProps {

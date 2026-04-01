@@ -3,6 +3,7 @@ import StatusBadge from "@/components/ui/badges/StatusBadge";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ActionIconCard from "@/components/ui/cards/ActionIconCard";
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
+import { chatService } from "@/services/chatService";
 import { useShiftStore } from "@/stores/shiftStore";
 import {
   AntDesign,
@@ -19,6 +20,7 @@ import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const ShiftDetails = () => {
   const router = useRouter();
@@ -109,6 +111,31 @@ const ShiftDetails = () => {
   const locationText = details?.business?.address?.address || "-";
   const assignedByName = details?.assignedBy?.name || "-";
   const assignedByAvatar = details?.assignedBy?.avatar;
+  const assignedById = details?.assignedBy?.id;
+
+  const handleOpenAssignedByChat = async () => {
+    if (!assignedById) {
+      toast.error("Assigned user is unavailable for chat");
+      return;
+    }
+
+    try {
+      const result = await chatService.createDirectChat(assignedById);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    }
+  };
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -278,6 +305,8 @@ const ShiftDetails = () => {
                   pathname: "/screens/schedule/shift/swap",
                   params: {
                     businessId: details?.business?.id,
+                    shiftAssignmentId: shiftId || details?.id,
+                    employmentId: details?.employmentId,
                   },
                 })
               }
@@ -322,9 +351,12 @@ const ShiftDetails = () => {
               </Text>
             </View>
 
-            <View className="bg-[#f5f5f5] border-[0.5px] border-[#FFFFFF00] rounded-full p-2">
-              <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
-            </View>
+            <TouchableOpacity
+              onPress={handleOpenAssignedByChat}
+              className="w-10 h-10 bg-[#f5f5f5] items-center justify-center rounded-full"
+            >
+              <Ionicons name="chatbubbles" size={18} color="#4FB2F3" />
+            </TouchableOpacity>
           </View>
         </View>
 

@@ -22,14 +22,28 @@ import { toast } from "sonner-native";
 
 const SwapShiftsRequest = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<{ businessId?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    businessId?: string | string[];
+    shiftAssignmentId?: string | string[];
+    employmentId?: string | string[];
+  }>();
   const businessIdFromParams = Array.isArray(params.businessId)
     ? params.businessId[0]
     : params.businessId;
+  const shiftAssignmentIdFromParams = Array.isArray(params.shiftAssignmentId)
+    ? params.shiftAssignmentId[0]
+    : params.shiftAssignmentId;
+  const employmentIdFromParams = Array.isArray(params.employmentId)
+    ? params.employmentId[0]
+    : params.employmentId;
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const resolvedBusinessId = businessIdFromParams || selectedBusinesses?.[0] || "";
 
   const getBusinessColleagues = useShiftStore((state) => state.getBusinessColleagues);
+  const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
+  const createShiftRequestLoading = useShiftStore(
+    (state) => state.createShiftRequestLoading
+  );
   const [showModal, setShowModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -87,6 +101,30 @@ const SwapShiftsRequest = () => {
         ? prev.filter((id) => id !== employmentId)
         : [...prev, employmentId]
     );
+  };
+
+  const handleSendRequest = async () => {
+    if (!employmentIdFromParams || !shiftAssignmentIdFromParams) {
+      toast.error("Missing shift context for swap request");
+      return;
+    }
+
+    if (!selectedUsers.length) {
+      toast.error("Please select at least one colleague");
+      return;
+    }
+
+    try {
+      await createShiftRequest({
+        employmentId: employmentIdFromParams,
+        type: "shift_swap",
+        shiftAssignmentId: shiftAssignmentIdFromParams,
+        targetEmploymentIds: selectedUsers,
+      });
+      setShowModal(true);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to submit swap request");
+    }
   };
 
   return (
@@ -177,11 +215,20 @@ const SwapShiftsRequest = () => {
         <PrimaryButton
           className="mx-5"
           title="Send Request"
-          onPress={() => setShowModal(true)}
+          onPress={handleSendRequest}
+          loading={createShiftRequestLoading}
+          disabled={createShiftRequestLoading}
         />
       </View>
 
-      <SwapRequestModal visible={showModal} onClose={() => setShowModal(false)} />
+      <SwapRequestModal
+        visible={showModal}
+        onClose={() => {
+          setShowModal(false);
+          router.back();
+        }}
+        selectedCount={selectedUsers.length}
+      />
     </SafeAreaView>
   );
 };
