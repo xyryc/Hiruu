@@ -59,7 +59,7 @@ const UserProfilePreview = () => {
       try {
         setIsLoading(true);
         const result = await getJobProfileByUserId(userId);
-        console.log("[UserProfilePreview] api response:", result);
+        console.log("[UserProfilePreview] =========== api response:", JSON.stringify(result, null, 2));
         if (isMounted) {
           setProfile(result);
         }
@@ -98,8 +98,8 @@ const UserProfilePreview = () => {
     if (typeof address === "string") return address;
     if (typeof address === "object") {
       return (
-        address?.state ||
         address?.city ||
+        address?.state ||
         address?.address ||
         address?.country ||
         "Location unavailable"
@@ -456,18 +456,22 @@ const UserProfilePreview = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Contact Us On */}
-        <View className="flex-row items-center gap-2.5 mt-8 mx-5">
+        {/* Contact Me On */}
+        <View className="flex-row items-center gap-2.5 mt-6 mx-5">
           <View className="h-8 w-8 bg-[#E5F4FD] rounded-full flex-row justify-center items-center">
             <Ionicons name="call-outline" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Contact Us On
+            Contact Me On
           </Text>
         </View>
 
-
-        <ConnectSocials className='mx-5 mt-3.5' canEdit={false} />
+        <ConnectSocials
+          className="mx-5 my-4"
+          value={profile?.user?.social || {}}
+          hideEmpty
+          canEdit={false}
+        />
       </ScrollView>
     </View>
   );
