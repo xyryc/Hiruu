@@ -284,7 +284,11 @@ useEffect(() => {
               <EvilIcons name="location" size={18} color="black" />
 
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {businessData?.address?.state || "Location unavailable"}
+                {businessData?.address?.state ||
+                  businessData?.address?.city ||
+                  businessData?.address?.address ||
+                  businessData?.address?.country ||
+                  "Location unavailable"}
               </Text>
             </View>
           </View>

@@ -1,3 +1,4 @@
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
@@ -5,8 +6,10 @@ import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
+import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import EditBadgeModal from "@/components/ui/modals/EditBadgeModal";
 import InterestModal from "@/components/ui/modals/InterestModal";
+import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { Companies, Company } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -31,6 +34,9 @@ import {
 } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
+const DEFAULT_PROFILE_COLOR = "#E5F4FD";
+const DEFAULT_GRADIENT_COLORS: [string, string] = ["#E5F4FD", "#FFFFFF"];
+
 const Edit = () => {
   const [isBadgeVisible, setIsBadgeVisible] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -48,9 +54,18 @@ const Edit = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
   const [socialLinks, setSocialLinks] = useState<any>({});
+  const [pickerType, setPickerType] = useState<"solid" | "gradient">("solid");
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [profileColor, setProfileColor] = useState(DEFAULT_PROFILE_COLOR);
+  const [gradientColors, setGradientColors] =
+    useState<[string, string]>(DEFAULT_GRADIENT_COLORS);
+  const user = useAuthStore((state) => state.user);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const getProfile = useProfileStore((state) => state.getProfile);
   const syncExperiences = useProfileStore((state) => state.syncExperiences);
+  const setLocalProfileAppearance = useProfileStore(
+    (state) => state.setLocalProfileAppearance
+  );
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -109,6 +124,35 @@ const Edit = () => {
     };
   }, [getProfile]);
 
+  useEffect(() => {
+    const appearance = user?.profileAppearance;
+    if (!appearance) return;
+
+    setPickerType(appearance.pickerType === "gradient" ? "gradient" : "solid");
+    setProfileColor(appearance.profileColor || DEFAULT_PROFILE_COLOR);
+    setGradientColors(
+      Array.isArray(appearance.gradientColors) &&
+        appearance.gradientColors.length >= 2
+        ? [
+            String(appearance.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
+            String(appearance.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
+          ]
+        : DEFAULT_GRADIENT_COLORS
+    );
+  }, [user?.profileAppearance]);
+
+  const handleColorSelect = (color: string | string[]) => {
+    if (Array.isArray(color)) {
+      setGradientColors([
+        String(color[0] || DEFAULT_GRADIENT_COLORS[0]),
+        String(color[1] || DEFAULT_GRADIENT_COLORS[1]),
+      ]);
+      return;
+    }
+
+    setProfileColor(color);
+  };
+
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
@@ -128,6 +172,11 @@ const Edit = () => {
       };
 
       const result = await updateProfile(payload);
+      await setLocalProfileAppearance({
+        pickerType,
+        profileColor,
+        gradientColors,
+      });
       await syncExperiences(
         Array.from(uniqueExperienceDrafts.values()),
         Array.isArray(profileData?.experiences) ? profileData.experiences : []
@@ -153,16 +202,31 @@ const Edit = () => {
       className="flex-1 bg-white"
       edges={["left", "right", "bottom"]}
     >
-      <ScreenHeader
+      <DynamicBackground
+        className="rounded-b-2xl mb-6 overflow-hidden"
         style={{
           paddingTop: insets.top + 10,
         }}
-        className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-6 mb-6"
-        onPressBack={() => router.back()}
-        title="Edit Profile"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111"}
-      />
+        pickerType={pickerType}
+        profileColor={profileColor}
+        gradientColors={gradientColors}
+      >
+        <ScreenHeader
+          className="px-4 pb-6"
+          onPressBack={() => router.back()}
+          title="Edit Profile"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111"}
+          components={
+            <TouchableOpacity
+              onPress={() => setShowColorPicker(true)}
+              className="h-10 w-10 bg-white rounded-full items-center justify-center"
+            >
+              <Ionicons name="brush-outline" size={20} color="black" />
+            </TouchableOpacity>
+          }
+        />
+      </DynamicBackground>
 
       <ScrollView>
         <View className="mx-5">
@@ -193,9 +257,14 @@ const Edit = () => {
         <View>
           <View className="mx-5 flex-row justify-between mt-8 items-center">
             <View className="flex-row gap-2.5 items-center">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center ">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
                 <FontAwesome6 name="id-badge" size={14} color="black" />
-              </View>
+              </DynamicBackground>
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
                 Badge
               </Text>
@@ -219,13 +288,18 @@ const Edit = () => {
         <View>
           <View className="flex-row justify-between items-center mx-5 mt-8 ">
             <View className="flex-row gap-2.5">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
                 <MaterialCommunityIcons
                   name="file-document-check-outline"
                   size={16}
                   color="black"
                 />
-              </View>
+              </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                 Short Intro
               </Text>
@@ -261,13 +335,18 @@ const Edit = () => {
         <View>
           <View className="flex-row justify-between items-center mx-5 mt-8 ">
             <View className="flex-row gap-2.5">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
                 <MaterialCommunityIcons
                   name="file-document-check-outline"
                   size={16}
                   color="black"
                 />
-              </View>
+              </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                 Experience
               </Text>
@@ -290,13 +369,18 @@ const Edit = () => {
         <View>
           <View className="flex-row justify-between items-center mx-5 mt-8 ">
             <View className="flex-row gap-2.5">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
                 <MaterialCommunityIcons
                   name="file-document-check-outline"
                   size={16}
                   color="black"
                 />
-              </View>
+              </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                 Interests
               </Text>
@@ -330,9 +414,14 @@ const Edit = () => {
         {/* Contact Us On */}
         <View className="flex-row justify-between items-center mx-5 mt-8 ">
           <View className="flex-row gap-2.5">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+            <DynamicBackground
+              className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+              pickerType={pickerType}
+              profileColor={profileColor}
+              gradientColors={gradientColors}
+            >
               <Ionicons name="call-outline" size={16} color="black" />
-            </View>
+            </DynamicBackground>
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
               Contact Us On
             </Text>
@@ -358,6 +447,15 @@ const Edit = () => {
           className='mx-5 my-10'
         />
       </ScrollView>
+      <ColorPickerModal
+        pickerType={pickerType}
+        setPickerType={setPickerType}
+        visible={showColorPicker}
+        onClose={() => setShowColorPicker(false)}
+        onSelectColor={handleColorSelect}
+        initialColor={profileColor}
+        initialGradientColors={gradientColors}
+      />
     </SafeAreaView>
   );
 };

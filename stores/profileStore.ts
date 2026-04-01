@@ -4,7 +4,7 @@ import axiosInstance from "@/utils/axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
 import { create } from "zustand";
-import { useAuthStore } from "./authStore";
+import { useAuthStore, type User } from "./authStore";
 
 const STORAGE_KEYS = {
   USER: "auth_user",
@@ -126,6 +126,7 @@ interface ProfileState {
     comment: string;
   }) => Promise<any>;
   syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
+  setLocalProfileAppearance: (appearance: NonNullable<User["profileAppearance"]>) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
   clearError: () => void;
@@ -395,7 +396,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     try {
       const response = await profileService.getProfile({ forceRefresh });
-      const updatedUser = response.data;
+      const currentUser = useAuthStore.getState().user;
+      const updatedUser = {
+        ...currentUser,
+        ...response.data,
+      };
 
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
       useAuthStore.getState().setUser(updatedUser as any);
@@ -410,6 +415,19 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ isLoading: false, error: finalError });
       throw finalError;
     }
+  },
+
+  setLocalProfileAppearance: async (appearance) => {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser) return;
+
+    const updatedUser = {
+      ...currentUser,
+      profileAppearance: appearance,
+    };
+
+    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+    useAuthStore.getState().setUser(updatedUser as any);
   },
 
   getAnalyticsSummary: async () => {
