@@ -9,7 +9,6 @@ import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
-import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
 import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
@@ -61,13 +60,18 @@ const Profile = () => {
   const insets = useSafeAreaInsets();
 
   // color
-  const [pickerType, setPickerType] = useState<"solid" | "gradient">("solid");
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [profileColor, setProfileColor] = useState("#E5F4FD");
-  const [gradientColors, setGradientColors] = useState<[string, string]>([
-    "#E5F4FD",
-    "#fff",
-  ]);
+  const pickerType =
+    user?.profileAppearance?.pickerType === "gradient" ? "gradient" : "solid";
+  const profileColor =
+    user?.profileAppearance?.profileColor || "#E5F4FD";
+  const gradientColors: [string, string] =
+    Array.isArray(user?.profileAppearance?.gradientColors) &&
+    user.profileAppearance.gradientColors.length >= 2
+      ? [
+          String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
+          String(user.profileAppearance.gradientColors[1] || "#fff"),
+        ]
+      : ["#E5F4FD", "#fff"];
 
   const loadProfile = React.useCallback(async () => {
     try {
@@ -102,18 +106,6 @@ const Profile = () => {
       return () => { };
     }, [getAnalyticsSummary])
   );
-
-  const handleColorSelect = (color: string | string[]) => {
-    if (Array.isArray(color)) {
-      // Handle gradient
-      // console.log("Selected gradient:", color);
-      //@ts-ignore
-      setGradientColors(color);
-    } else {
-      // Handle solid color
-      setProfileColor(color);
-    }
-  };
 
   const bioText =
     typeof profileData?.bio === "string" ? profileData.bio.trim() : "";
@@ -220,7 +212,7 @@ const Profile = () => {
   };
   return (
     <View className="flex-1 bg-white dark:bg-dark-background">
-      <StatusBar style="dark" backgroundColor="#E5F4FD" translucent={false} />
+      <StatusBar style="dark" backgroundColor={profileColor} translucent={false} />
 
       <DynamicBackground
         className="rounded-b-xl pb-3 overflow-hidden"
@@ -271,24 +263,6 @@ const Profile = () => {
 
 
           <View className="flex-row gap-1.5 items-center justify-center">
-            {/* color picker */}
-            <TouchableOpacity
-              onPress={() => setShowColorPicker(true)}
-              className="h-10 w-10 bg-white rounded-full items-center justify-center"
-            >
-              <Ionicons name="brush-outline" size={20} color="black" />
-            </TouchableOpacity>
-
-            {/* color picker modal */}
-            <ColorPickerModal
-              pickerType={pickerType}
-              setPickerType={setPickerType}
-              visible={showColorPicker}
-              onClose={() => setShowColorPicker(false)}
-              onSelectColor={handleColorSelect}
-              initialColor={profileColor}
-            />
-
             {/* user edit screen */}
             <TouchableOpacity
               onPress={() => router.push("/screens/profile/user/edit-profile")}

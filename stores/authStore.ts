@@ -44,6 +44,11 @@ export interface User {
   updatedAt: string;
   onboarding?: number;
   isPremium?: boolean;
+  profileAppearance?: {
+    pickerType: "solid" | "gradient";
+    profileColor: string;
+    gradientColors: [string, string];
+  };
 }
 
 interface AuthState {
