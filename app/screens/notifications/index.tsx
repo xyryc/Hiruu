@@ -152,6 +152,18 @@ const resolveNotificationTitle = (item: NotificationItem) => {
     return rawTitle || "Shift reminder";
   }
 
+  if (item.type === "coins_earned") {
+    const rewardCoins = Number((metadata as any)?.rewardCoins);
+    const rank = Number((metadata as any)?.rank);
+
+    if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
+      if (Number.isFinite(rank) && rank > 0) {
+        return `You earned ${rewardCoins} coins (Rank #${rank})`;
+      }
+      return `You earned ${rewardCoins} coins`;
+    }
+  }
+
   const raw = String(item.title || "").trim();
   if (!raw) return "Notification";
 
@@ -191,6 +203,27 @@ const resolveNotificationBody = (item: NotificationItem) => {
       return `Your shift starts in ${smartAlertMinutes} minutes.`;
     }
     return "Your shift starts soon.";
+  }
+
+  if (item.type === "coins_earned") {
+    const rewardCoins = Number((metadata as any)?.rewardCoins);
+    const rank = Number((metadata as any)?.rank);
+    const periodType = String((metadata as any)?.periodType || "").trim().toLowerCase();
+    const periodLabel =
+      periodType === "monthly"
+        ? "monthly"
+        : periodType === "weekly"
+          ? "weekly"
+          : periodType === "daily"
+            ? "daily"
+            : "leaderboard";
+
+    if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
+      if (Number.isFinite(rank) && rank > 0) {
+        return `You ranked #${rank} on the ${periodLabel} leaderboard and earned ${rewardCoins} coins.`;
+      }
+      return `You earned ${rewardCoins} coins from the ${periodLabel} leaderboard.`;
+    }
   }
 
   if (translated) return translated;

@@ -18,7 +18,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,

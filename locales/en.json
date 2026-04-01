@@ -110,6 +110,7 @@
     "ai_engine_cv_cancelled": "CV generation cancelled.",
     "all_notifications_marked_as_read_successfully": "All notifications read.",
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Business owners cannot join their own business using an invitation code.",
+    "business_owner_role_is_system_locked": "Business owner role is system locked.",
     "attendance_shift_assignment_not_found_or_access_denied": "Shift assignment not found or access denied.",
     "weekly_block_created_successfully": "Weekly block created successfully.",
     "weekly_block_updated_successfully": "Weekly block updated successfully.",
@@ -146,6 +147,8 @@
     "leave_rejected_body": "Your leave request has been rejected.",
     "achievement_unlocked_title": "Achievement unlocked",
     "achievement_unlocked_body": "You unlocked a new achievement.",
+    "coins_earned_title": "Coins earned",
+    "coins_earned_body": "You earned coins from the leaderboard.",
     "business_announcement_title": "Business update",
     "business_announcement_body": "There is a new update from your business.",
     "recruitment_has_applications": "This job cannot be deleted because it already has applications."

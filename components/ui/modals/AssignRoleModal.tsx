@@ -1,5 +1,6 @@
 import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { router } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
@@ -22,6 +23,7 @@ const AssignRoleModal: React.FC<any> = ({
   loading = false,
   onApply,
   applying = false,
+  emptyStateText = "No roles found.",
 }) => {
   return (
     <Modal
@@ -43,13 +45,17 @@ const AssignRoleModal: React.FC<any> = ({
 
           <SafeAreaView edges={["bottom"]}>
             {/* Header */}
-            <View className="px-6 pt-7 pb-3 flex-row justify-between">
+            <View className="px-6 pt-7 pb-3 flex-row justify-between items-center">
               <Text className="font-proximanova-bold text-xl" numberOfLines={1}>
                 Assign Role
               </Text>
-              <View className="h-10 w-10 bg-[#eeeeee] rounded-full flex-row items-center justify-center">
+
+              {/* create role button */}
+              <TouchableOpacity
+                onPress={() => router.push("/screens/schedule/business/create-role")}
+                className="h-10 w-10 bg-[#eeeeee] rounded-full flex-row items-center justify-center">
                 <Feather name="edit" size={16} color="black" />
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Search Bar */}
@@ -73,6 +79,12 @@ const AssignRoleModal: React.FC<any> = ({
                 <View className="py-8 items-center justify-center">
                   <ActivityIndicator size="small" color="#4FB2F3" />
                   <Text className="mt-2 text-sm text-secondary">Loading roles...</Text>
+                </View>
+              ) : assignRole.length === 0 ? (
+                <View className="py-8 items-center justify-center px-4">
+                  <Text className="text-sm text-secondary text-center mb-4">
+                    {emptyStateText}
+                  </Text>
                 </View>
               ) : (
                 assignRole.map((role: any) => (
@@ -109,7 +121,7 @@ const AssignRoleModal: React.FC<any> = ({
               title={applying ? "Applying..." : "Apply"}
               className="mx-5 mb-5"
               onPress={onApply}
-              disabled={loading || applying}
+              disabled={loading || applying || assignRole.length === 0}
             />
           </SafeAreaView>
         </View>

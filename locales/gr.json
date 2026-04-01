@@ -111,6 +111,7 @@
     "ai_engine_cv_cancelled": "Η δημιουργία βιογραφικού ακυρώθηκε.",
     "all_notifications_marked_as_read_successfully": "Όλες οι ειδοποιήσεις διαβάστηκαν.",
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Οι ιδιοκτήτες επιχειρήσεων δεν μπορούν να συμμετάσχουν στη δική τους επιχείρηση με κωδικό πρόσκλησης.",
+    "business_owner_role_is_system_locked": "Ο ρόλος ιδιοκτήτη επιχείρησης είναι κλειδωμένος από το σύστημα.",
     "attendance_shift_assignment_not_found_or_access_denied": "Η ανάθεση βάρδιας δεν βρέθηκε ή δεν έχετε πρόσβαση.",
     "weekly_block_created_successfully": "Το εβδομαδιαίο μπλοκ δημιουργήθηκε με επιτυχία.",
     "weekly_block_updated_successfully": "Το εβδομαδιαίο μπλοκ ενημερώθηκε με επιτυχία.",
@@ -146,6 +147,8 @@
     "leave_rejected_body": "Το αίτημα άδειάς σου απορρίφθηκε.",
     "achievement_unlocked_title": "Ξεκλείδωσες επίτευγμα",
     "achievement_unlocked_body": "Ξεκλείδωσες ένα νέο επίτευγμα.",
+    "coins_earned_title": "Κέρδισες νομίσματα",
+    "coins_earned_body": "Κέρδισες νομίσματα από τον πίνακα κατάταξης.",
     "business_announcement_title": "Ενημέρωση επιχείρησης",
     "business_announcement_body": "Υπάρχει νέα ενημέρωση από την επιχείρησή σου.",
     "recruitment_has_applications": "Αυτή η θέση δεν μπορεί να διαγραφεί επειδή έχει ήδη αιτήσεις."

@@ -128,8 +128,16 @@ const EmployeeListScreen = () => {
     try {
       setRolesLoading(true);
       const roleList = await getMyBusinessRoles(resolvedBusinessId);
+      console.log("[EmployeeList] roleList:", roleList);
       const mappedRoles = (Array.isArray(roleList) ? roleList : [])
-        .filter((role: any) => role?.id && role?.role?.name && !role?.isDeleted)
+        .filter(
+          (role: any) =>
+            role?.id &&
+            role?.role?.name &&
+            !role?.isDeleted &&
+            !role?.isSystemLocked &&
+            role?.role?.name?.toLowerCase?.() !== "owner"
+        )
         .map((role: any) => ({
           id: role.id,
           name: role.role.name,
@@ -244,6 +252,7 @@ const EmployeeListScreen = () => {
         visible={roleModalVisible}
         onClose={() => setRoleModalVisible(false)}
         assignRole={roles}
+        emptyStateText="No roles found on this business."
         loading={rolesLoading}
         onApply={handleApplyRole}
         applying={assigningRole}
