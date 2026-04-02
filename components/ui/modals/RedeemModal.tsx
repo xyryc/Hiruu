@@ -13,6 +13,7 @@ const RedeemModal = ({
   totalTokens = 0,
   coinPrice = 0,
   isOwned = false,
+  isEquipped = false,
   ownedExpiry = null,
   onConfirm,
   confirming = false,
@@ -25,12 +26,11 @@ const RedeemModal = ({
     <Modal
       visible={visible}
       animationType="fade"
-      transparent={true}
+      transparent
       onRequestClose={onClose}
     >
       <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
         <View className="bg-white rounded-t-3xl">
-          {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
             <TouchableOpacity onPress={handleDone}>
               <View className="bg-[#000] rounded-full p-2.5">
@@ -39,20 +39,15 @@ const RedeemModal = ({
             </TouchableOpacity>
           </View>
 
-          {/* Modal Content */}
-          <ScrollView
-            className="px-5 py-7"
-          >
+          <ScrollView className="px-5 py-7">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary text-center">
               Ready to Redeem?
             </Text>
+
             <View className="flex-row items-center mx-auto mt-3">
               <Image
                 source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
+                style={{ width: 22, height: 22 }}
                 contentFit="contain"
               />
               <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
@@ -65,36 +60,30 @@ const RedeemModal = ({
               Please confirm to proceed.
             </Text>
 
-            {/* name plate */}
             {namePlate ? (
               <View className="mt-5">{namePlate}</View>
             ) : (
               <View className="bg-[#EFF9FF] rounded-xl p-2 w-full flex-row items-center -z-40 mt-5">
                 <Image
-                  source={data.img}
+                  source={data?.img}
                   contentFit="contain"
                   style={{ width: 60, height: 60, margin: 15 }}
                 />
                 <View className="-z-30">
                   <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                    {data.title}
+                    {data?.title}
                   </Text>
                   <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary text-sm mt-2.5">
-                    {data.subtitle}
+                    {data?.subtitle}
                   </Text>
-                  <View className="flex-row items-center mt-3  -z-20">
+                  <View className="flex-row items-center mt-3 -z-20">
                     <Image
                       source={require("@/assets/images/hiruu-coin.svg")}
-                      style={{
-                        width: 22,
-                        height: 22,
-                      }}
+                      style={{ width: 22, height: 22 }}
                       contentFit="contain"
                     />
                     <View className="px-4 py-1 bg-[#ffffff] -ml-3 -z-10 rounded-r-[40px]">
-                      <Text className="text-xs font-proximanova-semibold">
-                        {data.coin}
-                      </Text>
+                      <Text className="text-xs font-proximanova-semibold">{data?.coin}</Text>
                     </View>
                   </View>
                 </View>
@@ -103,7 +92,6 @@ const RedeemModal = ({
 
             <View className="flex-row gap-1.5 items-center mt-4">
               <Ionicons name="trail-sign" size={14} color="#4FB2F3" />
-
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                 Featured profile nameplate
               </Text>
@@ -131,23 +119,29 @@ const RedeemModal = ({
 
             {isOwned ? (
               <Text className="font-proximanova-semibold text-sm text-[#2E9B50] text-center mt-5">
-                {ownedExpiry
-                  ? `You already own this nameplate • Expires ${new Date(ownedExpiry).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}`
-                  : "You already own this nameplate"}
+                {isEquipped
+                  ? "This nameplate is already equipped"
+                  : ownedExpiry
+                    ? `You already own this nameplate • Expires ${new Date(
+                      ownedExpiry
+                    ).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}`
+                    : "You already own this nameplate"}
               </Text>
-            ) : (
+            ) : null}
+
+            {!isOwned || !isEquipped ? (
               <PrimaryButton
-                title="Confirm & Apply"
+                title={isOwned ? "Apply Nameplate" : "Confirm & Apply"}
                 className="mt-5"
                 onPress={onConfirm}
                 loading={confirming}
                 disabled={confirming}
               />
-            )}
+            ) : null}
           </ScrollView>
         </View>
       </BlurView>

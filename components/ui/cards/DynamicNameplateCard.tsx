@@ -28,6 +28,7 @@ type DynamicNameplatePreview = {
   coins?: string | number;
   locked?: boolean;
   isOwnedActive?: boolean;
+  isEquipped?: boolean;
   expiresAt?: string | null;
 };
 
@@ -216,9 +217,14 @@ const DynamicNameplateCard = ({
 
               <View className="absolute right-0 bottom-0 flex-row">
                 {preview?.isOwnedActive ? (
-                  <View className="rounded-full px-2.5 py-1 bg-white">
-                    <Text className="text-xs font-proximanova-semibold text-black">
-                      Owned
+                  <View
+                    className="rounded-full px-2.5 py-1 bg-white"
+                  >
+                    <Text
+                      className={`text-xs font-proximanova-semibold ${preview?.isEquipped ? "text-[#2D6EEA]" : "text-[#2E9B50]"
+                        }`}
+                    >
+                      {preview?.isEquipped ? "Equipped" : "Owned"}
                     </Text>
                   </View>
                 ) : (

@@ -45,8 +45,10 @@ const Nameplate = () => {
   const cosmeticsStoreItems = useRewardStore((state) => state.cosmeticsStoreItems);
   const cosmeticsStoreLoading = useRewardStore((state) => state.cosmeticsStoreLoading);
   const isPurchasingCosmetic = useRewardStore((state) => state.isPurchasingCosmetic);
+  const isEquippingNameplate = useRewardStore((state) => state.isEquippingNameplate);
   const fetchCosmeticsStore = useRewardStore((state) => state.fetchCosmeticsStore);
   const purchaseCosmetic = useRewardStore((state) => state.purchaseCosmetic);
+  const equipNameplate = useRewardStore((state) => state.equipNameplate);
   const user = useAuthStore((state) => state.user as any);
 
   const highlightParam = useMemo(() => {
@@ -111,15 +113,31 @@ const Nameplate = () => {
     setModalVisible(true);
   };
 
-  const handleConfirmPurchase = useCallback(async () => {
+  const handleConfirmAction = useCallback(async () => {
     const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
-    if (!selectedNameplateId || selectedItem?.isOwnedActive) return;
+    if (!selectedNameplateId || !selectedItem) return;
 
     try {
-      const result = await purchaseCosmetic(selectedNameplateId);
-      const nextBalance = Number(result?.newBalance ?? 0);
-      if (Number.isFinite(nextBalance)) {
-        setTotalTokens(nextBalance);
+      if (selectedItem?.isOwnedActive) {
+        if (selectedItem?.isEquipped) {
+          toast.success("This nameplate is already equipped");
+          setModalVisible(false);
+          return;
+        }
+
+        const result = await equipNameplate(selectedNameplateId);
+        toast.success(
+          translateApiMessage(result?.message || "Nameplate equipped successfully")
+        );
+      } else {
+        const result = await purchaseCosmetic(selectedNameplateId);
+        const nextBalance = Number(result?.newBalance ?? 0);
+        if (Number.isFinite(nextBalance)) {
+          setTotalTokens(nextBalance);
+        }
+        toast.success(
+          translateApiMessage(result?.message || "Purchase successful")
+        );
       }
 
       setModalVisible(false);
@@ -131,20 +149,19 @@ const Nameplate = () => {
         limit: 100,
         append: false,
       });
-
-      toast.success("Purchase successful");
     } catch (error: any) {
       toast.error(
-        translateApiMessage(error?.message || "Failed to purchase nameplate")
+        translateApiMessage(error?.message || "Failed to update nameplate")
       );
     }
   }, [
+    cosmeticsStoreItems,
+    equipNameplate,
     fetchCosmeticsStore,
     highlightParam,
     purchaseCosmetic,
-    cosmeticsStoreItems,
-    selectedNameplateIndex,
     selectedNameplateId,
+    selectedNameplateIndex,
   ]);
 
   const { colorScheme } = useColorScheme();
@@ -174,11 +191,10 @@ const Nameplate = () => {
     };
   }, [user]);
 
+  const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
+
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={["left", "right", "bottom"]}
-    >
+    <SafeAreaView className="flex-1 bg-white" edges={["left", "right", "bottom"]}>
       <View className="bg-[#E5F4FD] rounded-b-2xl pt-10 px-5 -z-30">
         <ScreenHeader
           className="my-4"
@@ -190,10 +206,7 @@ const Nameplate = () => {
             <View className="flex-row items-center -z-20">
               <Image
                 source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 32,
-                  height: 32,
-                }}
+                style={{ width: 32, height: 32 }}
                 contentFit="contain"
               />
               <View className="px-4 py-2 bg-white -ml-3 -z-10 rounded-r-[40px]">
@@ -226,9 +239,7 @@ const Nameplate = () => {
       <ScrollView
         className="bg-white px-5"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 40,
-        }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-secondary mt-8">
           Note: Premium Required: Only premium users can use nameplates.
@@ -256,13 +267,12 @@ const Nameplate = () => {
                   {item?.name || "Nameplate"}
                 </Text>
 
-                {item?.isOwnedActive ? (
+                {item?.isOwnedActive && (
                   <Text className="text-xs text-secondary dark:text-dark-secondary">
                     {formatExpiryLabel(item?.expiresAt)}
                   </Text>
-                ) : null}
+                )}
               </View>
-
 
               <DynamicNameplateCard
                 metadata={item?.metadata}
@@ -273,6 +283,7 @@ const Nameplate = () => {
                       : 0,
                   locked: !item?.isOwnedActive,
                   isOwnedActive: Boolean(item?.isOwnedActive),
+                  isEquipped: Boolean(item?.isEquipped),
                   expiresAt: item?.expiresAt ?? null,
                 }}
               />
@@ -281,28 +292,24 @@ const Nameplate = () => {
         )}
       </ScrollView>
 
-      {(() => {
-        const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
-        return (
-          <RedeemModal
-            namePlate={
-              <DynamicNameplateCard
-                metadata={cosmeticsStoreItems[selectedNameplateIndex]?.metadata}
-                mode="redeem"
-                preview={profilePreviewData}
-              />
-            }
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            coinPrice={selectedCoinPrice}
-            totalTokens={totalTokens}
-            isOwned={Boolean(selectedItem?.isOwnedActive)}
-            ownedExpiry={selectedItem?.expiresAt ?? null}
-            onConfirm={handleConfirmPurchase}
-            confirming={isPurchasingCosmetic && !selectedItem?.isOwnedActive}
+      <RedeemModal
+        namePlate={
+          <DynamicNameplateCard
+            metadata={selectedItem?.metadata}
+            mode="redeem"
+            preview={profilePreviewData}
           />
-        );
-      })()}
+        }
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        coinPrice={selectedCoinPrice}
+        totalTokens={totalTokens}
+        isOwned={Boolean(selectedItem?.isOwnedActive)}
+        isEquipped={Boolean(selectedItem?.isEquipped)}
+        ownedExpiry={selectedItem?.expiresAt ?? null}
+        onConfirm={handleConfirmAction}
+        confirming={isPurchasingCosmetic || isEquippingNameplate}
+      />
     </SafeAreaView>
   );
 };

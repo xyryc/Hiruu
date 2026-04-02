@@ -133,6 +133,7 @@ type RewardStoreState = {
   cosmeticsStoreLoading: boolean;
   cosmeticsStoreLoadingMore: boolean;
   isPurchasingCosmetic: boolean;
+  isEquippingNameplate: boolean;
   cosmeticsStoreError: string | null;
   cosmeticsStorePagination: Pagination;
   fetchCosmeticsStore: (params?: {
@@ -145,6 +146,11 @@ type RewardStoreState = {
   purchaseCosmetic: (id: string) => Promise<{
     ownership: any;
     newBalance: number;
+    message?: string;
+  }>;
+  equipNameplate: (id: string) => Promise<{
+    appearance: any;
+    message?: string;
   }>;
   clearCosmeticsStoreError: () => void;
 };
@@ -154,6 +160,7 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
   cosmeticsStoreLoading: false,
   cosmeticsStoreLoadingMore: false,
   isPurchasingCosmetic: false,
+  isEquippingNameplate: false,
   cosmeticsStoreError: null,
   cosmeticsStorePagination: null,
 
@@ -238,6 +245,7 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
       return {
         ownership: result?.data?.ownership,
         newBalance: Number(result?.data?.newBalance ?? 0),
+        message: result?.message,
       };
     } catch (error: any) {
       const message =
@@ -247,6 +255,43 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
 
       set({
         isPurchasingCosmetic: false,
+        cosmeticsStoreError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  equipNameplate: async (id) => {
+    if (!id) {
+      throw new Error("Nameplate id is required");
+    }
+
+    try {
+      set({ isEquippingNameplate: true, cosmeticsStoreError: null });
+
+      const response = await axiosInstance.patch("/cosmetics/appearance", {
+        equippedNameplate: id,
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to equip nameplate");
+      }
+
+      set({ isEquippingNameplate: false });
+
+      return {
+        appearance: result?.data?.appearance,
+        message: result?.message,
+      };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to equip nameplate";
+
+      set({
+        isEquippingNameplate: false,
         cosmeticsStoreError: message,
       });
       throw new Error(message);
