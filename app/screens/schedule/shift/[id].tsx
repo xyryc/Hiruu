@@ -70,6 +70,7 @@ const ShiftDetails = () => {
   }, [details?.status]);
 
   const shiftTitle = details?.shiftTemplate?.name || "Shift";
+  const isCompletedShift = String(details?.status || "").toLowerCase() === "completed";
   const shiftStartIso = details?.startsAt;
   const shiftEndIso = details?.endsAt;
   const showCountdown = Boolean(
@@ -297,21 +298,23 @@ const ShiftDetails = () => {
               }
             />
 
-            <ActionIconCard
-              icon={<Feather name="repeat" size={24} color="#4FB2F3" />}
-              title="Swap Shift"
-              onPress={() =>
-                router.push({
-                  pathname: "/screens/schedule/shift/swap",
-                  params: {
-                    businessId: details?.business?.id,
-                    shiftAssignmentId: shiftId || details?.id,
-                    employmentId: details?.employmentId,
-                  },
-                })
-              }
-            // onPress={() => router.push("/(user)/schedule/shift/swap")}
-            />
+            {!isCompletedShift ? (
+              <ActionIconCard
+                icon={<Feather name="repeat" size={24} color="#4FB2F3" />}
+                title="Swap Shift"
+                onPress={() =>
+                  router.push({
+                    pathname: "/screens/schedule/shift/swap",
+                    params: {
+                      businessId: details?.business?.id,
+                      shiftAssignmentId: shiftId || details?.id,
+                      employmentId: details?.employmentId,
+                    },
+                  })
+                }
+              // onPress={() => router.push("/(user)/schedule/shift/swap")}
+              />
+            ) : null}
 
             <ActionIconCard
               icon={<Ionicons name="document-text" size={24} color="#4FB2F3" />}
