@@ -1,58 +1,14 @@
-import { AntDesign, Entypo, FontAwesome6 } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import React, { useState } from "react";
+import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PrimaryButton from "../buttons/PrimaryButton";
-import SelectDropdown from "../dropdown/SelectDropdown";
 
-interface Option {
-  label: string;
-  value: string;
-}
-
-const RedeemModal = ({ visible, onClose, data, namePlate }: any) => {
-  const leaveTypes = [
-    {
-      label: "Sick Leave",
-      value: "sick",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Personal Leave",
-      value: "personal",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Work From Home",
-      value: "wfh",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-    {
-      label: "Emergency Leave",
-      value: "emergency",
-      avatar:
-        "https://i.pinimg.com/736x/16/6f/73/166f73ab4a3d7657e67b4ec1246cc2d6.jpg",
-    },
-  ];
-
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-
-  const options: Option[] = [
-    { label: "6 hours – 1,000 Tokens", value: "6 hours – 1,000 Tokens" },
-    { label: "12 hours – 2,000 Tokens", value: "12 hours – 2,000 Tokens" },
-    { label: "24 hours – 3,000 Tokens", value: "24 hours – 3,000 Tokens" },
-    { label: "42 hours – 4,200 Tokens", value: "42 hours – 4,200 Tokens" },
-  ];
-
+const RedeemModal = ({ visible, onClose, data, namePlate, totalTokens = 0 }: any) => {
   const handleDone = () => {
-    onClose();
+    onClose?.();
   };
-
-  const [selectedLeave, setSelectedLeave] = useState<string>("");
 
   return (
     <Modal
@@ -89,12 +45,11 @@ const RedeemModal = ({ visible, onClose, data, namePlate }: any) => {
                 contentFit="contain"
               />
               <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-xs font-proximanova-semibold">540</Text>
+                <Text className="text-xs font-proximanova-semibold">{totalTokens}</Text>
               </View>
             </View>
 
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary text-center mt-2.5">
-              {" "}
               This action will use your tokens to unlock the selected reward.
               Please confirm to proceed.
             </Text>
@@ -103,7 +58,7 @@ const RedeemModal = ({ visible, onClose, data, namePlate }: any) => {
             {namePlate ? (
               <View className="mt-5">{namePlate}</View>
             ) : (
-              <View className="bg-[#EFF9FF]  rounded-xl p-2 w-full flex-row items-center -z-40 mt-5">
+              <View className="bg-[#EFF9FF] rounded-xl p-2 w-full flex-row items-center -z-40 mt-5">
                 <Image
                   source={data.img}
                   contentFit="contain"
@@ -135,114 +90,30 @@ const RedeemModal = ({ visible, onClose, data, namePlate }: any) => {
               </View>
             )}
 
-            {data.tag !== "premium" && (
-              <View className="mt-4">
-                <SelectDropdown
-                  label="Select User"
-                  placeholder="Select a user to gift"
-                  options={leaveTypes}
-                  value={selectedLeave}
-                  onSelect={(value: any) => setSelectedLeave(value)}
-                />
-              </View>
-            )}
+            <View className="flex-row gap-1.5 items-center mt-4">
+              <Ionicons name="trail-sign" size={14} color="#4FB2F3" />
 
-            <View className="flex-row gap-1.5 items-center">
-              <FontAwesome6
-                name="crown"
-                className="top-1"
-                size={15}
-                color="#4FB2F3"
-              />
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-4">
-                {data.listitle}
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                Featured profile nameplate
               </Text>
             </View>
 
-            <View className="bg-white rounded-lg ">
+            <View className="bg-white rounded-lg ml-4">
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                {" "}
-                1. {data.list1}
+                1. Get Featured badge on your profile
               </Text>
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                {" "}
-                2. {data.list2}
+                2. Increases visibility in job search & referrals
               </Text>
-              {data.list3 && (
-                <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  {" "}
-                  3. {data.list3}
-                </Text>
-              )}
-              {data.list4 && (
-                <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  {" "}
-                  4. {data.list4}
-                </Text>
-              )}
-              {data.lilst5 && (
-                <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  {" "}
-                  5. {data.list5}
-                </Text>
-              )}
-              {data.list6 && (
-                <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  {" "}
-                  6. {data.list6}
-                </Text>
-              )}
-            </View>
-
-            {data.tag === "me" && (
-              <View className="mt-4 mx-1">
-                {options.map((option, index) => (
-                  <TouchableOpacity
-                    onPress={() => setSelectedOption(option.value)}
-                    key={index}
-                    className="flex-row gap-2.5 mt-1.5"
-                  >
-                    <View
-                      className={`h-4 w-4 rounded-full border-2 ${selectedOption === option.value ? "border-[#4FB2F3]" : "border-[#7A7A7A80]"} `}
-                    >
-                      <View
-                        className={`${selectedOption === option.value ? "bg-[#4FB2F3] h-2 w-2 rounded-full m-auto" : ""}`}
-                      ></View>
-                    </View>
-                    <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            <View className="flex-row gap-4 items-center">
-              {data.tag === "gift" && (
-                <>
-                  <AntDesign
-                    name="warning"
-                    className="top-2"
-                    size={20}
-                    color="red"
-                  />
-                  <Text className="font-proximanova-regular text-sm text-[#F34F4F] mt-5">
-                    Please select a friend before sending the gift
-                  </Text>
-                </>
-              )}
-              {data.tag === "me" && (
-                <>
-                  <AntDesign
-                    name="warning"
-                    className="top-2"
-                    size={20}
-                    color="red"
-                  />
-                  <Text className="font-proximanova-regular text-sm text-[#F34F4F] mt-5">
-                    You don’t have enough tokens to redeem this reward
-                  </Text>
-                </>
-              )}
+              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
+                3. Attracts more opportunities from businesses
+              </Text>
+              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
+                4. Token Cost: 200 Tokens
+              </Text>
+              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
+                5. Current Token Balance: {totalTokens} Tokens
+              </Text>
             </View>
 
             <PrimaryButton title="Confirm & Apply" className="mt-5" />

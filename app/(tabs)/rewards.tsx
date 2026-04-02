@@ -237,7 +237,6 @@ const UserRewards = () => {
               </Text>
 
               <View className="flex-row items-center justify-center mt-1 gap-2.5">
-
                 <View>
                   <Image
                     source={require("@/assets/images/hiruu-coin.svg")}
@@ -365,59 +364,59 @@ const UserRewards = () => {
                     ? { uri: challenge.icon.trim() }
                     : fallbackChallengeImage;
                 return (
-                <TouchableOpacity
-                  key={challenge?.id || String(index)}
-                  style={{
-                    width: screenWidth * 0.3,
-                  }}
-                  className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
-                  onPress={() => router.push("/screens/rewards/challenges")}
-                >
-                  <View
-                    className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl"
+                  <TouchableOpacity
+                    key={challenge?.id || String(index)}
                     style={{
-                      backgroundColor: cardStyle.back,
-                      borderColor: cardStyle.border,
+                      width: screenWidth * 0.3,
                     }}
+                    className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
+                    onPress={() => router.push("/screens/rewards/challenges")}
                   >
-                    <Image
-                      source={challengeImageSource}
-                      contentFit="contain"
-                      style={{ height: 57, width: 59 }}
-                    />
-                  </View>
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-2.5 text-center ">
-                    {titleLines.line1}
-                  </Text>
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center ">
-                    {titleLines.line2}
-                  </Text>
-
-                  <View className="flex-row justify-between items-center"></View>
-
-                  <View className="flex-row items-center justify-between gap-2 mt-2">
-                    <Image
-                      source={require("@/assets/images/hiruu-coin.svg")}
+                    <View
+                      className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl"
                       style={{
-                        width: 22,
-                        height: 22,
+                        backgroundColor: cardStyle.back,
+                        borderColor: cardStyle.border,
                       }}
-                      contentFit="contain"
-                    />
-                    <View className="px-2.5 py-0.5 bg-[#DDF1FF]  -ml-2.5 -z-10 rounded-r-[40px]">
-                      {/*bg-[#DDF1FF]*/}
-                      <Text className="text-xs font-proximanova-semibold">
-                        {rewardTokens}
-                      </Text>
+                    >
+                      <Image
+                        source={challengeImageSource}
+                        contentFit="contain"
+                        style={{ height: 57, width: 59 }}
+                      />
                     </View>
-                    <FontAwesome6
-                      name="crown"
-                      className="ml-0.5"
-                      size={15}
-                      color="#4FB2F3"
-                    />
-                  </View>
-                </TouchableOpacity>
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-2.5 text-center ">
+                      {titleLines.line1}
+                    </Text>
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center ">
+                      {titleLines.line2}
+                    </Text>
+
+                    <View className="flex-row justify-between items-center"></View>
+
+                    <View className="flex-row items-center justify-between gap-2 mt-2">
+                      <Image
+                        source={require("@/assets/images/hiruu-coin.svg")}
+                        style={{
+                          width: 22,
+                          height: 22,
+                        }}
+                        contentFit="contain"
+                      />
+                      <View className="px-2.5 py-0.5 bg-[#DDF1FF]  -ml-2.5 -z-10 rounded-r-[40px]">
+                        {/*bg-[#DDF1FF]*/}
+                        <Text className="text-xs font-proximanova-semibold">
+                          {rewardTokens}
+                        </Text>
+                      </View>
+                      <FontAwesome6
+                        name="crown"
+                        className="ml-0.5"
+                        size={15}
+                        color="#4FB2F3"
+                      />
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>

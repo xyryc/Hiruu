@@ -1,13 +1,15 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
+import { walletService } from "@/services/walletService";
 import { useAuthStore } from "@/stores/authStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { translateApiMessage } from "@/utils/apiMessages";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -25,6 +27,7 @@ const Nameplate = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNameplateIndex, setSelectedNameplateIndex] = useState(0);
   const [isActive, setIsActive] = useState<TabType>("limited time");
+  const [totalTokens, setTotalTokens] = useState(0);
   const [data, setData] = useState({
     listitle: "",
     list1: "",
@@ -42,6 +45,16 @@ const Nameplate = () => {
     if (isActive === "featured") return "featured" as const;
     return "" as const;
   }, [isActive]);
+
+  const loadWallet = useCallback(async () => {
+    try {
+      const result = await walletService.getWallet();
+      const nextTokens = Number(result?.data?.coins ?? result?.data?.wallet?.coins);
+      setTotalTokens(Number.isFinite(nextTokens) ? nextTokens : 0);
+    } catch {
+      setTotalTokens(0);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -71,21 +84,26 @@ const Nameplate = () => {
     };
   }, [fetchCosmeticsStore, highlightParam]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadWallet();
+    }, [loadWallet])
+  );
+
   const modalHandle = (item: any, index: number) => {
     const tokenCost =
       typeof item?.coinPrice === "number" && Number.isFinite(item.coinPrice)
         ? item.coinPrice
         : 0;
 
-    setModalVisible(true);
     setSelectedNameplateIndex(index);
     setData({
-      listitle: "Gift Premium for a month:",
-      list1:
-        "Send 1 month of premium access to another user. They'll receive all premium benefits instantly",
+      listitle: "Featured profile nameplate",
+      list1: "Get Featured badge on your profile",
       list2: `Token Cost: ${tokenCost} Tokens`,
-      list3: "Current Token Balance: 540 Tokens",
+      list3: `Current Token Balance: ${totalTokens} Tokens`,
     });
+    setModalVisible(true);
   };
 
   const { colorScheme } = useColorScheme();
@@ -138,7 +156,7 @@ const Nameplate = () => {
                 contentFit="contain"
               />
               <View className="px-4 py-2 bg-white -ml-3 -z-10 rounded-r-[40px]">
-                <Text className="text-sm font-proximanova-semibold">540</Text>
+                <Text className="text-sm font-proximanova-semibold">{totalTokens}</Text>
               </View>
             </View>
           }
@@ -147,17 +165,15 @@ const Nameplate = () => {
           {tabs.map((tab, index) => (
             <TouchableOpacity
               key={index}
-              className={`w-1/3 pb-2 ${
-                isActive === tab ? "border-[#11293A] border-b-2" : "border-b-hairline"
-              }`}
+              className={`w-1/3 pb-2 ${isActive === tab ? "border-[#11293A] border-b-2" : "border-b-hairline"
+                }`}
               onPress={() => setIsActive(tab)}
             >
               <Text
-                className={`text-center ${
-                  isActive === tab
-                    ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary"
-                    : "font-proximanova-regular text-secondary dark:text-dark-secondary"
-                }`}
+                className={`text-center ${isActive === tab
+                  ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary"
+                  : "font-proximanova-regular text-secondary dark:text-dark-secondary"
+                  }`}
               >
                 <Text className="capitalize">{tab}</Text>
               </Text>
@@ -190,7 +206,7 @@ const Nameplate = () => {
         ) : (
           cosmeticsStoreItems.map((item, index) => (
             <TouchableOpacity
-              key={item.id}
+              key={item?.id || String(index)}
               onPress={() => modalHandle(item, index)}
               className={index === 0 ? "mt-8" : "mt-5"}
             >
@@ -215,6 +231,7 @@ const Nameplate = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         data={data}
+        totalTokens={totalTokens}
       />
     </SafeAreaView>
   );
