@@ -26,14 +26,9 @@ type TabType = (typeof tabs)[number];
 const Nameplate = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNameplateIndex, setSelectedNameplateIndex] = useState(0);
+  const [selectedCoinPrice, setSelectedCoinPrice] = useState(0);
   const [isActive, setIsActive] = useState<TabType>("limited time");
   const [totalTokens, setTotalTokens] = useState(0);
-  const [data, setData] = useState({
-    listitle: "",
-    list1: "",
-    list2: "",
-    list3: "",
-  });
 
   const cosmeticsStoreItems = useRewardStore((state) => state.cosmeticsStoreItems);
   const cosmeticsStoreLoading = useRewardStore((state) => state.cosmeticsStoreLoading);
@@ -91,18 +86,13 @@ const Nameplate = () => {
   );
 
   const modalHandle = (item: any, index: number) => {
-    const tokenCost =
+    const coinPrice =
       typeof item?.coinPrice === "number" && Number.isFinite(item.coinPrice)
         ? item.coinPrice
         : 0;
 
+    setSelectedCoinPrice(coinPrice);
     setSelectedNameplateIndex(index);
-    setData({
-      listitle: "Featured profile nameplate",
-      list1: "Get Featured badge on your profile",
-      list2: `Token Cost: ${tokenCost} Tokens`,
-      list3: `Current Token Balance: ${totalTokens} Tokens`,
-    });
     setModalVisible(true);
   };
 
@@ -214,7 +204,15 @@ const Nameplate = () => {
                 {item?.name || "Nameplate"}
               </Text>
 
-              <DynamicNameplateCard metadata={item?.metadata} />
+              <DynamicNameplateCard
+                metadata={item?.metadata}
+                preview={{
+                  coins:
+                    typeof item?.coinPrice === "number" && Number.isFinite(item.coinPrice)
+                      ? item.coinPrice
+                      : 0,
+                }}
+              />
             </TouchableOpacity>
           ))
         )}
@@ -230,7 +228,7 @@ const Nameplate = () => {
         }
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        data={data}
+        coinPrice={selectedCoinPrice}
         totalTokens={totalTokens}
       />
     </SafeAreaView>

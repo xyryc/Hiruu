@@ -5,7 +5,14 @@ import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PrimaryButton from "../buttons/PrimaryButton";
 
-const RedeemModal = ({ visible, onClose, data, namePlate, totalTokens = 0 }: any) => {
+const RedeemModal = ({
+  visible,
+  onClose,
+  data,
+  namePlate,
+  totalTokens = 0,
+  coinPrice = 0,
+}: any) => {
   const handleDone = () => {
     onClose?.();
   };
@@ -109,7 +116,7 @@ const RedeemModal = ({ visible, onClose, data, namePlate, totalTokens = 0 }: any
                 3. Attracts more opportunities from businesses
               </Text>
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                4. Token Cost: 200 Tokens
+                4. Coin Price: {coinPrice} Tokens
               </Text>
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
                 5. Current Token Balance: {totalTokens} Tokens
