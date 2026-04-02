@@ -26,13 +26,16 @@ type TabType = (typeof tabs)[number];
 const Nameplate = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNameplateIndex, setSelectedNameplateIndex] = useState(0);
+  const [selectedNameplateId, setSelectedNameplateId] = useState("");
   const [selectedCoinPrice, setSelectedCoinPrice] = useState(0);
   const [isActive, setIsActive] = useState<TabType>("limited time");
   const [totalTokens, setTotalTokens] = useState(0);
 
   const cosmeticsStoreItems = useRewardStore((state) => state.cosmeticsStoreItems);
   const cosmeticsStoreLoading = useRewardStore((state) => state.cosmeticsStoreLoading);
+  const isPurchasingCosmetic = useRewardStore((state) => state.isPurchasingCosmetic);
   const fetchCosmeticsStore = useRewardStore((state) => state.fetchCosmeticsStore);
+  const purchaseCosmetic = useRewardStore((state) => state.purchaseCosmetic);
   const user = useAuthStore((state) => state.user as any);
 
   const highlightParam = useMemo(() => {
@@ -91,10 +94,44 @@ const Nameplate = () => {
         ? item.coinPrice
         : 0;
 
+    setSelectedNameplateId(item?.id || "");
     setSelectedCoinPrice(coinPrice);
     setSelectedNameplateIndex(index);
     setModalVisible(true);
   };
+
+  const handleConfirmPurchase = useCallback(async () => {
+    if (!selectedNameplateId) return;
+
+    try {
+      const result = await purchaseCosmetic(selectedNameplateId);
+      const nextBalance = Number(result?.newBalance ?? 0);
+      if (Number.isFinite(nextBalance)) {
+        setTotalTokens(nextBalance);
+      }
+
+      setModalVisible(false);
+
+      await fetchCosmeticsStore({
+        type: "nameplate",
+        highlight: highlightParam,
+        page: 1,
+        limit: 100,
+        append: false,
+      });
+
+      toast.success("Purchase successful");
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(error?.message || "Failed to purchase nameplate")
+      );
+    }
+  }, [
+    fetchCosmeticsStore,
+    highlightParam,
+    purchaseCosmetic,
+    selectedNameplateId,
+  ]);
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -230,6 +267,8 @@ const Nameplate = () => {
         onClose={() => setModalVisible(false)}
         coinPrice={selectedCoinPrice}
         totalTokens={totalTokens}
+        onConfirm={handleConfirmPurchase}
+        confirming={isPurchasingCosmetic}
       />
     </SafeAreaView>
   );

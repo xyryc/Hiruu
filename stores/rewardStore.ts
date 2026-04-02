@@ -132,6 +132,7 @@ type RewardStoreState = {
   cosmeticsStoreItems: CosmeticStoreItem[];
   cosmeticsStoreLoading: boolean;
   cosmeticsStoreLoadingMore: boolean;
+  isPurchasingCosmetic: boolean;
   cosmeticsStoreError: string | null;
   cosmeticsStorePagination: Pagination;
   fetchCosmeticsStore: (params?: {
@@ -141,6 +142,10 @@ type RewardStoreState = {
     limit?: number;
     append?: boolean;
   }) => Promise<CosmeticStoreItem[]>;
+  purchaseCosmetic: (id: string) => Promise<{
+    ownership: any;
+    newBalance: number;
+  }>;
   clearCosmeticsStoreError: () => void;
 };
 
@@ -148,6 +153,7 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
   cosmeticsStoreItems: [],
   cosmeticsStoreLoading: false,
   cosmeticsStoreLoadingMore: false,
+  isPurchasingCosmetic: false,
   cosmeticsStoreError: null,
   cosmeticsStorePagination: null,
 
@@ -206,6 +212,41 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
       set({
         cosmeticsStoreLoading: false,
         cosmeticsStoreLoadingMore: false,
+        cosmeticsStoreError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  purchaseCosmetic: async (id) => {
+    if (!id) {
+      throw new Error("Cosmetic id is required");
+    }
+
+    try {
+      set({ isPurchasingCosmetic: true, cosmeticsStoreError: null });
+
+      const response = await axiosInstance.post(`/cosmetics/store/${id}/purchase`);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to purchase cosmetic");
+      }
+
+      set({ isPurchasingCosmetic: false });
+
+      return {
+        ownership: result?.data?.ownership,
+        newBalance: Number(result?.data?.newBalance ?? 0),
+      };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to purchase cosmetic";
+
+      set({
+        isPurchasingCosmetic: false,
         cosmeticsStoreError: message,
       });
       throw new Error(message);

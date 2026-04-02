@@ -12,6 +12,8 @@ const RedeemModal = ({
   namePlate,
   totalTokens = 0,
   coinPrice = 0,
+  onConfirm,
+  confirming = false,
 }: any) => {
   const handleDone = () => {
     onClose?.();
@@ -123,7 +125,13 @@ const RedeemModal = ({
               </Text>
             </View>
 
-            <PrimaryButton title="Confirm & Apply" className="mt-5" />
+            <PrimaryButton
+              title="Confirm & Apply"
+              className="mt-5"
+              onPress={onConfirm}
+              loading={confirming}
+              disabled={confirming}
+            />
           </ScrollView>
         </View>
       </BlurView>
