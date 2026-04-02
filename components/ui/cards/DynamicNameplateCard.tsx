@@ -1,19 +1,46 @@
 import { NameplateMetadataV2, SizeValue } from "@/stores/rewardStore";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleProp, View, ViewStyle } from "react-native";
+import {
+  DimensionValue,
+  ImageStyle as RNImageStyle,
+  StyleProp,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
+
+type DynamicNameplatePreview = {
+  availabilityLabel?: string;
+  remainingTime?: string;
+  avatarUrl?: string | null;
+  title?: string;
+  coins?: string | number;
+  locked?: boolean;
+};
 
 type DynamicNameplateCardProps = {
   metadata?: NameplateMetadataV2 | null;
   className?: string;
   style?: StyleProp<ViewStyle>;
+  showPreview?: boolean;
+  preview?: DynamicNameplatePreview;
 };
 
-const toStyleSize = (value?: SizeValue | null) => {
+const toStyleSize = (value?: SizeValue | null): DimensionValue | undefined => {
   // API sends mixed size values (number or string), RN style accepts both.
   if (typeof value === "number") return value;
-  if (typeof value === "string") return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "auto") return "auto";
+    if (trimmed.endsWith("%")) {
+      return trimmed as `${number}%`;
+    }
+    const parsed = Number(trimmed);
+    if (Number.isFinite(parsed)) return parsed;
+  }
   return undefined;
 };
 
@@ -21,6 +48,8 @@ const DynamicNameplateCard = ({
   metadata,
   className,
   style,
+  showPreview = true,
+  preview,
 }: DynamicNameplateCardProps) => {
   const border = metadata?.border;
   const background = metadata?.background;
@@ -30,6 +59,7 @@ const DynamicNameplateCard = ({
     : [];
 
   const borderRadius = border?.radius ?? 12;
+  const accentColor = border?.color || "#4FB2F3";
 
   // Border width comes from API per side, so we map each side explicitly.
   const rootStyle: ViewStyle = {
@@ -44,7 +74,15 @@ const DynamicNameplateCard = ({
     minHeight: 120,
   };
 
-  const gradientColors = background?.gradient?.colors || [];
+  const gradientColorList = background?.gradient?.colors;
+  const gradientColors =
+    gradientColorList && gradientColorList.length >= 2
+      ? ([
+        gradientColorList[0],
+        gradientColorList[1],
+        ...gradientColorList.slice(2),
+      ] as [string, string, ...string[]])
+      : null;
 
   const content = (
     <View className={`min-h-[120px] ${className || ""}`} style={style}>
@@ -69,7 +107,7 @@ const DynamicNameplateCard = ({
 
       {/* Overlay layer(s), usually decorative assets from metadata */}
       {overlays.map((overlay, index) => {
-        const overlayStyle: ViewStyle = {
+        const overlayStyle: RNImageStyle = {
           position: "absolute",
           top: toStyleSize(overlay?.position?.top),
           right: toStyleSize(overlay?.position?.right),
@@ -94,7 +132,7 @@ const DynamicNameplateCard = ({
           );
         }
 
-        return <View key={`shape-${index}`} style={overlayStyle} />;
+        return <View key={`shape-${index}`} style={overlayStyle as ViewStyle} />;
       })}
 
       {/* Main icon layer, positioned by metadata */}
@@ -115,13 +153,107 @@ const DynamicNameplateCard = ({
           }}
         />
       ) : null}
+
+      {showPreview ? (
+        <>
+          {/* Top timer */}
+          <View className="absolute top-0 inset-x-0 items-center z-30">
+            <Image
+              source={require("@/assets/images/timer-bg.svg")}
+              style={{
+                width: 227,
+                height: 34,
+              }}
+              contentFit="contain"
+            />
+
+            <View className="absolute top-0 inset-x-0 items-center">
+              <View className="flex-row items-center gap-1.5 py-2">
+                <Text className="text-sm font-proximanova-regular">
+                  {preview?.availabilityLabel || "Available for"}
+                </Text>
+
+                <View className="flex-row items-center">
+                  <MaterialCommunityIcons
+                    name="timer-sand"
+                    size={16}
+                    color={accentColor}
+                  />
+                  <Text className="font-proximanova-bold" style={{ color: accentColor }}>
+                    {preview?.remainingTime || "1d, 10h"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View className="px-4 pb-4 pt-11 flex-row items-center gap-2 rounded-2xl z-20">
+            {/* Profile image */}
+            <Image
+              source={
+                preview?.avatarUrl
+                  ? { uri: preview.avatarUrl }
+                  : require("@/assets/images/reward/user.svg")
+              }
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 999,
+              }}
+              contentFit="cover"
+            />
+
+            {/* Name + lock + coins */}
+            <View className="flex-row items-center justify-center gap-6">
+              <View
+                className="h-3.5 w-36 rounded-[30px] items-center justify-center"
+                style={{ backgroundColor: accentColor }}
+              >
+                {preview?.title ? (
+                  <Text numberOfLines={1} className="px-2 text-[10px] text-white">
+                    {preview.title}
+                  </Text>
+                ) : null}
+              </View>
+
+              <View className="flex-row gap-1.5 items-center">
+                {preview?.locked === false ? null : (
+                  <MaterialIcons
+                    className="bg-white/40 p-1.5 rounded-full"
+                    name="lock"
+                    size={14}
+                    color="black"
+                  />
+                )}
+
+                <View className="flex-row items-center">
+                  <Image
+                    source={require("@/assets/images/hiruu-coin.svg")}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      zIndex: 20,
+                    }}
+                    contentFit="contain"
+                  />
+                  <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
+                    <Text className="text-xs font-proximanova-semibold">
+                      {preview?.coins ?? "05"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </>
+      ) : null}
     </View>
   );
 
   return (
     <View style={rootStyle}>
       {/* Background layer: gradient when provided, otherwise plain color/transparent */}
-      {background?.type === "gradient" && gradientColors.length > 0 ? (
+      {background?.type === "gradient" && gradientColors ? (
         <LinearGradient
           colors={gradientColors}
           start={
