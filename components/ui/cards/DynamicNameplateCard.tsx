@@ -1,5 +1,10 @@
 import { NameplateMetadataV2, SizeValue } from "@/stores/rewardStore";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import {
+  MaterialCommunityIcons,
+  MaterialIcons,
+  Octicons,
+  SimpleLineIcons,
+} from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -16,7 +21,10 @@ type DynamicNameplatePreview = {
   availabilityLabel?: string;
   remainingTime?: string;
   avatarUrl?: string | null;
-  title?: string;
+  name?: string;
+  location?: string;
+  rating?: number | string;
+  isVerified?: boolean;
   coins?: string | number;
   locked?: boolean;
 };
@@ -25,7 +33,7 @@ type DynamicNameplateCardProps = {
   metadata?: NameplateMetadataV2 | null;
   className?: string;
   style?: StyleProp<ViewStyle>;
-  showPreview?: boolean;
+  mode?: "shop" | "redeem";
   preview?: DynamicNameplatePreview;
 };
 
@@ -48,7 +56,7 @@ const DynamicNameplateCard = ({
   metadata,
   className,
   style,
-  showPreview = true,
+  mode = "shop",
   preview,
 }: DynamicNameplateCardProps) => {
   const border = metadata?.border;
@@ -154,7 +162,7 @@ const DynamicNameplateCard = ({
         />
       ) : null}
 
-      {showPreview ? (
+      {mode === "shop" ? (
         <>
           {/* Top timer */}
           <View className="absolute top-0 inset-x-0 items-center z-30">
@@ -190,63 +198,105 @@ const DynamicNameplateCard = ({
           <View className="px-4 pb-4 pt-11 flex-row items-center gap-2 rounded-2xl z-20">
             {/* Profile image */}
             <Image
-              source={
-                preview?.avatarUrl
-                  ? { uri: preview.avatarUrl }
-                  : require("@/assets/images/reward/user.svg")
-              }
+              source={require("@/assets/images/reward/user.svg")}
               style={{
                 width: 50,
                 height: 50,
                 borderRadius: 999,
+                marginRight: 10,
               }}
               contentFit="cover"
             />
 
-            {/* Name + lock + coins */}
-            <View className="flex-row items-center justify-center gap-6">
-              <View
-                className="h-3.5 w-36 rounded-[30px] items-center justify-center"
-                style={{ backgroundColor: accentColor }}
-              >
-                {preview?.title ? (
-                  <Text numberOfLines={1} className="px-2 text-[10px] text-white">
-                    {preview.title}
-                  </Text>
-                ) : null}
-              </View>
+            {/* Profile details */}
+            <View className="flex-1 relative">
+              <View className="h-3.5 w-36 rounded-[30px]" style={{ backgroundColor: accentColor }} />
 
-              <View className="flex-row gap-1.5 items-center">
-                {preview?.locked === false ? null : (
-                  <MaterialIcons
-                    className="bg-white/40 p-1.5 rounded-full"
-                    name="lock"
-                    size={14}
-                    color="black"
-                  />
-                )}
-
-                <View className="flex-row items-center">
-                  <Image
-                    source={require("@/assets/images/hiruu-coin.svg")}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      zIndex: 20,
-                    }}
-                    contentFit="contain"
-                  />
-                  <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
-                    <Text className="text-xs font-proximanova-semibold">
-                      {preview?.coins ?? "05"}
-                    </Text>
+              <View className="absolute right-0 bottom-0 flex-row">
+                <View className="flex-row gap-1.5 items-center">
+                  {preview?.locked === false ? null : (
+                    <MaterialIcons
+                      className="bg-white/40 p-1.5 rounded-full"
+                      name="lock"
+                      size={14}
+                      color="black"
+                    />
+                  )}
+                  <View className="flex-row items-center">
+                    <Image
+                      source={require("@/assets/images/hiruu-coin.svg")}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        zIndex: 20,
+                      }}
+                      contentFit="contain"
+                    />
+                    <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
+                      <Text className="text-xs font-proximanova-semibold">
+                        {preview?.coins ?? "05"}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
         </>
-      ) : null}
+      ) : (
+        <View className="absolute inset-0 px-4 flex-row items-center rounded-2xl z-20">
+          <View className='rounded-full mr-2.5 p-1'
+            style={{
+              borderColor: border?.color || "transparent",
+              borderWidth: 2,
+              borderRadius: "100%"
+            }}
+          >
+            <Image
+              source={
+                preview?.avatarUrl
+                  ? { uri: preview.avatarUrl }
+                  : require("@/assets/images/reward/user.svg")
+              }
+              style={{
+                width: 78,
+                height: 78,
+                borderRadius: 999,
+
+              }}
+              contentFit="cover"
+            />
+          </View>
+
+          <View className="max-w-[70%] items-start">
+            <View className="flex-row items-center gap-1.5 mb-1.5">
+              <Text
+                numberOfLines={1}
+                className="font-proximanova-semibold text-sm text-primary"
+              >
+                {preview?.name || "User"}
+              </Text>
+              {preview?.isVerified === false ? null : (
+                <MaterialIcons name="verified" size={16} color="#4F83F3" />
+              )}
+            </View>
+
+            <View className="flex-row items-center gap-1 mb-1.5">
+              <SimpleLineIcons name="location-pin" size={12} color="black" />
+              <Text numberOfLines={1} className="font-proximanova-regular text-xs text-primary text-center">
+                {preview?.location || "Location unavailable"}
+              </Text>
+            </View>
+
+            <View className="flex-row gap-1 px-2 py-1 bg-white/40 rounded-md">
+              <Octicons name="star-fill" size={12} color="#F1C400" />
+              <Text className="font-proximanova-semibold text-xs text-primary">
+                {preview?.rating ?? "0.0"}/5
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 

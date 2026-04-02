@@ -74,14 +74,10 @@ const RedeemModal = ({ visible, onClose, data, namePlate }: any) => {
 
           {/* Modal Content */}
           <ScrollView
-            className="h-[70%] px-5 py-7"
-            contentContainerStyle={{
-              paddingBottom: 80,
-            }}
+            className="px-5 py-7"
           >
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary text-center">
-              {" "}
-              Ready to Redeem?{" "}
+              Ready to Redeem?
             </Text>
             <View className="flex-row items-center mx-auto mt-3">
               <Image

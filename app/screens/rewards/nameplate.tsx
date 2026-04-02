@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
+import { useAuthStore } from "@/stores/authStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Image } from "expo-image";
@@ -34,6 +35,7 @@ const Nameplate = () => {
   const cosmeticsStoreItems = useRewardStore((state) => state.cosmeticsStoreItems);
   const cosmeticsStoreLoading = useRewardStore((state) => state.cosmeticsStoreLoading);
   const fetchCosmeticsStore = useRewardStore((state) => state.fetchCosmeticsStore);
+  const user = useAuthStore((state) => state.user as any);
 
   const highlightParam = useMemo(() => {
     if (isActive === "limited time") return "limited" as const;
@@ -88,6 +90,30 @@ const Nameplate = () => {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const profilePreviewData = useMemo(() => {
+    const location =
+      user?.address?.address ||
+      user?.address?.city ||
+      user?.address?.state ||
+      user?.address?.country ||
+      "Location unavailable";
+
+    const numericRating = Number(user?.rating ?? 0);
+    const safeRating = Number.isFinite(numericRating) ? numericRating.toFixed(1) : "0.0";
+
+    return {
+      avatarUrl: user?.avatar || null,
+      name: user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "User",
+      location,
+      rating: safeRating,
+      isVerified: true,
+      coins: "05",
+      locked: true,
+      availabilityLabel: "Available for",
+      remainingTime: "1d, 10h",
+    };
+  }, [user]);
 
   return (
     <SafeAreaView
@@ -179,7 +205,13 @@ const Nameplate = () => {
       </ScrollView>
 
       <RedeemModal
-        namePlate={<DynamicNameplateCard metadata={cosmeticsStoreItems[selectedNameplateIndex]?.metadata} />}
+        namePlate={
+          <DynamicNameplateCard
+            metadata={cosmeticsStoreItems[selectedNameplateIndex]?.metadata}
+            mode="redeem"
+            preview={profilePreviewData}
+          />
+        }
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         data={data}
