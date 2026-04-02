@@ -27,6 +27,8 @@ type DynamicNameplatePreview = {
   isVerified?: boolean;
   coins?: string | number;
   locked?: boolean;
+  isOwnedActive?: boolean;
+  expiresAt?: string | null;
 };
 
 type DynamicNameplateCardProps = {
@@ -213,32 +215,40 @@ const DynamicNameplateCard = ({
               <View className="h-3.5 w-36 rounded-[30px]" style={{ backgroundColor: accentColor }} />
 
               <View className="absolute right-0 bottom-0 flex-row">
-                <View className="flex-row gap-1.5 items-center">
-                  {preview?.locked === false ? null : (
-                    <MaterialIcons
-                      className="bg-white/40 p-1.5 rounded-full"
-                      name="lock"
-                      size={14}
-                      color="black"
-                    />
-                  )}
-                  <View className="flex-row items-center">
-                    <Image
-                      source={require("@/assets/images/hiruu-coin.svg")}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        zIndex: 20,
-                      }}
-                      contentFit="contain"
-                    />
-                    <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
-                      <Text className="text-xs font-proximanova-semibold">
-                        {preview?.coins ?? "05"}
-                      </Text>
+                {preview?.isOwnedActive ? (
+                  <View className="rounded-full px-2.5 py-1 bg-white">
+                    <Text className="text-xs font-proximanova-semibold text-black">
+                      Owned
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="flex-row gap-1.5 items-center">
+                    {preview?.locked === false ? null : (
+                      <MaterialIcons
+                        className="bg-white/40 p-1.5 rounded-full"
+                        name="lock"
+                        size={14}
+                        color="black"
+                      />
+                    )}
+                    <View className="flex-row items-center">
+                      <Image
+                        source={require("@/assets/images/hiruu-coin.svg")}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          zIndex: 20,
+                        }}
+                        contentFit="contain"
+                      />
+                      <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
+                        <Text className="text-xs font-proximanova-semibold">
+                          {preview?.coins ?? "05"}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                )}
               </View>
             </View>
           </View>

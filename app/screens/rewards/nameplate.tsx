@@ -23,6 +23,17 @@ import { toast } from "sonner-native";
 const tabs = ["limited time", "featured", "all"] as const;
 type TabType = (typeof tabs)[number];
 
+const formatExpiryLabel = (expiresAt?: string | null) => {
+  if (!expiresAt) return "Owned";
+  const date = new Date(expiresAt);
+  if (Number.isNaN(date.getTime())) return "Owned";
+  return `Owned • Expires ${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+};
+
 const Nameplate = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNameplateIndex, setSelectedNameplateIndex] = useState(0);
@@ -101,7 +112,8 @@ const Nameplate = () => {
   };
 
   const handleConfirmPurchase = useCallback(async () => {
-    if (!selectedNameplateId) return;
+    const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
+    if (!selectedNameplateId || selectedItem?.isOwnedActive) return;
 
     try {
       const result = await purchaseCosmetic(selectedNameplateId);
@@ -130,6 +142,8 @@ const Nameplate = () => {
     fetchCosmeticsStore,
     highlightParam,
     purchaseCosmetic,
+    cosmeticsStoreItems,
+    selectedNameplateIndex,
     selectedNameplateId,
   ]);
 
@@ -237,9 +251,18 @@ const Nameplate = () => {
               onPress={() => modalHandle(item, index)}
               className={index === 0 ? "mt-8" : "mt-5"}
             >
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-                {item?.name || "Nameplate"}
-              </Text>
+              <View className="flex-row items-center justify-between mb-2.5">
+                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {item?.name || "Nameplate"}
+                </Text>
+
+                {item?.isOwnedActive ? (
+                  <Text className="text-xs text-secondary dark:text-dark-secondary">
+                    {formatExpiryLabel(item?.expiresAt)}
+                  </Text>
+                ) : null}
+              </View>
+
 
               <DynamicNameplateCard
                 metadata={item?.metadata}
@@ -248,6 +271,9 @@ const Nameplate = () => {
                     typeof item?.coinPrice === "number" && Number.isFinite(item.coinPrice)
                       ? item.coinPrice
                       : 0,
+                  locked: !item?.isOwnedActive,
+                  isOwnedActive: Boolean(item?.isOwnedActive),
+                  expiresAt: item?.expiresAt ?? null,
                 }}
               />
             </TouchableOpacity>
@@ -255,21 +281,28 @@ const Nameplate = () => {
         )}
       </ScrollView>
 
-      <RedeemModal
-        namePlate={
-          <DynamicNameplateCard
-            metadata={cosmeticsStoreItems[selectedNameplateIndex]?.metadata}
-            mode="redeem"
-            preview={profilePreviewData}
+      {(() => {
+        const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
+        return (
+          <RedeemModal
+            namePlate={
+              <DynamicNameplateCard
+                metadata={cosmeticsStoreItems[selectedNameplateIndex]?.metadata}
+                mode="redeem"
+                preview={profilePreviewData}
+              />
+            }
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            coinPrice={selectedCoinPrice}
+            totalTokens={totalTokens}
+            isOwned={Boolean(selectedItem?.isOwnedActive)}
+            ownedExpiry={selectedItem?.expiresAt ?? null}
+            onConfirm={handleConfirmPurchase}
+            confirming={isPurchasingCosmetic && !selectedItem?.isOwnedActive}
           />
-        }
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        coinPrice={selectedCoinPrice}
-        totalTokens={totalTokens}
-        onConfirm={handleConfirmPurchase}
-        confirming={isPurchasingCosmetic}
-      />
+        );
+      })()}
     </SafeAreaView>
   );
 };

@@ -12,6 +12,8 @@ const RedeemModal = ({
   namePlate,
   totalTokens = 0,
   coinPrice = 0,
+  isOwned = false,
+  ownedExpiry = null,
   onConfirm,
   confirming = false,
 }: any) => {
@@ -117,21 +119,35 @@ const RedeemModal = ({
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
                 3. Attracts more opportunities from businesses
               </Text>
+              {!isOwned ? (
+                <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
+                  4. Coin Price: {coinPrice} Tokens
+                </Text>
+              ) : null}
               <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                4. Coin Price: {coinPrice} Tokens
-              </Text>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                5. Current Token Balance: {totalTokens} Tokens
+                {!isOwned ? "5" : "4"}. Current Token Balance: {totalTokens} Tokens
               </Text>
             </View>
 
-            <PrimaryButton
-              title="Confirm & Apply"
-              className="mt-5"
-              onPress={onConfirm}
-              loading={confirming}
-              disabled={confirming}
-            />
+            {isOwned ? (
+              <Text className="font-proximanova-semibold text-sm text-[#2E9B50] text-center mt-5">
+                {ownedExpiry
+                  ? `You already own this nameplate • Expires ${new Date(ownedExpiry).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}`
+                  : "You already own this nameplate"}
+              </Text>
+            ) : (
+              <PrimaryButton
+                title="Confirm & Apply"
+                className="mt-5"
+                onPress={onConfirm}
+                loading={confirming}
+                disabled={confirming}
+              />
+            )}
           </ScrollView>
         </View>
       </BlurView>
