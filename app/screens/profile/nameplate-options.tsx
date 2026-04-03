@@ -123,34 +123,40 @@ const YourNamePlates = () => {
             <ActivityIndicator size="large" color="#4FB2F3" />
           </View>
         ) : (
-          <View className="mt-3 gap-3">
+          <View className="mt-4 gap-3">
             {nameplateItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                className="relative"
-                onPress={() => setSelected(item.cosmeticId)}
-                activeOpacity={0.9}
-              >
-                <DynamicNameplateCard
-                  metadata={item?.cosmetic?.metadata || undefined}
-                  mode="redeem"
-                  preview={{
-                    avatarUrl: user?.avatar || null,
-                    name: user?.name || "User",
-                    location: profileAddress || "Location unavailable",
-                    rating: user?.rating ?? 0,
-                    isVerified: Boolean(user?.isEmailVerified),
-                  }}
-                />
+              <View>
+                <Text className='text-base font-proximanova-semibold mb-2.5'>{item?.cosmetic?.name}</Text>
 
-                <View className="absolute top-14 right-3 bg-white/90 rounded-full">
-                  <Ionicons
-                    name={selected === item.cosmeticId ? "radio-button-on" : "radio-button-off"}
-                    size={22}
-                    color="#11293A"
+
+                <TouchableOpacity
+                  key={item.id}
+                  className="relative"
+                  onPress={() => setSelected(item.cosmeticId)}
+                  activeOpacity={0.9}
+                >
+                  <DynamicNameplateCard
+                    metadata={item?.cosmetic?.metadata || undefined}
+                    mode="redeem"
+                    preview={{
+                      avatarUrl: user?.avatar || null,
+                      name: user?.name || "User",
+                      location: profileAddress || "Location unavailable",
+                      rating: user?.rating ?? 0,
+                      isVerified: Boolean(user?.isEmailVerified),
+                    }}
                   />
-                </View>
-              </TouchableOpacity>
+
+                  <View className="absolute top-14 right-3 bg-white/90 rounded-full">
+                    <Ionicons
+                      name={selected === item.cosmeticId ? "radio-button-on" : "radio-button-off"}
+                      size={22}
+                      color="#11293A"
+                    />
+                  </View>
+                </TouchableOpacity>
+
+              </View>
             ))}
           </View>
         )}
