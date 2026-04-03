@@ -3,8 +3,8 @@ import GradientButton from "@/components/ui/buttons/GradientButton";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import SmallButton from "@/components/ui/buttons/SmallButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
+import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
-import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
@@ -66,11 +66,11 @@ const Profile = () => {
     user?.profileAppearance?.profileColor || "#E5F4FD";
   const gradientColors: [string, string] =
     Array.isArray(user?.profileAppearance?.gradientColors) &&
-    user.profileAppearance.gradientColors.length >= 2
+      user.profileAppearance.gradientColors.length >= 2
       ? [
-          String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
-          String(user.profileAppearance.gradientColors[1] || "#fff"),
-        ]
+        String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
+        String(user.profileAppearance.gradientColors[1] || "#fff"),
+      ]
       : ["#E5F4FD", "#fff"];
 
   const loadProfile = React.useCallback(async () => {
@@ -128,6 +128,12 @@ const Profile = () => {
     return `${Math.round(value)}%`;
   };
   const analyticsMetrics = analyticsSummary?.metrics;
+  const equippedNameplate = profileData?.appearance?.nameplate;
+  const profileAddress =
+    profileData?.address?.address ||
+    [profileData?.address?.city, profileData?.address?.country]
+      .filter(Boolean)
+      .join(", ");
 
   const handleSocialLinksChange = async (nextSocial: Record<string, string>) => {
     const previousSocial = profileData?.social || {};
@@ -193,7 +199,7 @@ const Profile = () => {
 
   const handleOpenCvPreview = (type: "pdf" | "image", url?: string) => {
     if (!url) return;
-      router.push({
+    router.push({
       pathname: "/screens/profile/cv-preview",
       params: {
         type,
@@ -293,12 +299,19 @@ const Profile = () => {
           onPress={() => router.push("/screens/profile/rating")}
           className="mx-5 mt-3.5"
         >
-          <NamePlateCard
-            variant="variant4"
-            name={profileData?.name || profileData?.email || "User"}
-            address={profileData?.address?.address || "Location unavailable"}
-            profileImage={profileData?.avatar || require("@/assets/images/placeholder.png")}
-          />
+          {equippedNameplate?.metadata ? (
+            <DynamicNameplateCard
+              metadata={equippedNameplate.metadata}
+              mode="redeem"
+              preview={{
+                avatarUrl: profileData?.avatar,
+                name: profileData?.name,
+                location: profileAddress,
+                rating: profileData?.rating ?? 0,
+                isVerified: Boolean(profileData?.isEmailVerified),
+              }}
+            />
+          ) : null}
         </TouchableOpacity>
 
         {/* Badge item */}

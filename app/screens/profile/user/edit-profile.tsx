@@ -1,8 +1,8 @@
-import DynamicBackground from "@/components/layout/DynamicBackground";
 import ScreenHeader from "@/components/header/ScreenHeader";
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
-import NamePlateCard from "@/components/ui/cards/NamePlateCard";
+import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
@@ -69,6 +69,12 @@ const Edit = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const equippedNameplate = profileData?.appearance?.nameplate;
+  const profileAddress =
+    profileData?.address?.address ||
+    [profileData?.address?.city, profileData?.address?.country]
+      .filter(Boolean)
+      .join(", ");
 
   useEffect(() => {
     let isMounted = true;
@@ -134,9 +140,9 @@ const Edit = () => {
       Array.isArray(appearance.gradientColors) &&
         appearance.gradientColors.length >= 2
         ? [
-            String(appearance.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
-            String(appearance.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
-          ]
+          String(appearance.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
+          String(appearance.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
+        ]
         : DEFAULT_GRADIENT_COLORS
     );
   }, [user?.profileAppearance]);
@@ -234,6 +240,7 @@ const Edit = () => {
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
               Your Nameplate
             </Text>
+
             <TouchableOpacity
               onPress={() => router.push("/screens/profile/nameplate-options")}
             >
@@ -242,15 +249,21 @@ const Edit = () => {
               </Text>
             </TouchableOpacity>
           </View>
-          <NamePlateCard
-            variant="variant5"
-            name={profileData?.name || profileData?.email || "User"}
-            address={profileData?.address?.address || "Location unavailable"}
-            profileImage={
-              profileData?.avatar ||
-              require("@/assets/images/placeholder.png")
-            }
-          />
+
+          {/* equipped nameplate */}
+          {equippedNameplate?.metadata ? (
+            <DynamicNameplateCard
+              metadata={equippedNameplate.metadata}
+              mode="redeem"
+              preview={{
+                avatarUrl: profileData?.avatar,
+                name: profileData?.name,
+                location: profileAddress,
+                rating: profileData?.rating ?? 0,
+                isVerified: Boolean(profileData?.isEmailVerified),
+              }}
+            />
+          ) : null}
         </View>
 
         {/* Badge item */}
