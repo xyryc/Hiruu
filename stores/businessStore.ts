@@ -50,7 +50,10 @@ interface BusinessState {
     payload: any
   ) => Promise<any>;
   createHoliday: (businessId: string, payload: any) => Promise<any>;
-  getBusinessHolidays: (businessId: string) => Promise<any[]>;
+  getBusinessHolidays: (
+    businessId: string,
+    params?: { dateFrom?: string; dateTo?: string }
+  ) => Promise<any[]>;
   deleteHoliday: (businessId: string, holidayId: string) => Promise<any>;
   createWeeklyScheduleBlock: (businessId: string, payload: any) => Promise<any>;
   updateWeeklyScheduleBlock: (
@@ -496,10 +499,16 @@ export const useBusinessStore = create<BusinessState>()(
     }
   },
 
-  getBusinessHolidays: async (businessId) => {
+  getBusinessHolidays: async (businessId, params) => {
     try {
-      const response = await axiosInstance.get(`/holidays/business/${businessId}`);
+      const response = await axiosInstance.get(`/holidays/business/${businessId}`, {
+        params,
+      });
       const result = response.data;
+      console.log(
+        "[BusinessStore] getBusinessHolidays response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (!result.success) {
         const errorMsg =

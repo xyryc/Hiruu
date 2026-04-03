@@ -97,6 +97,16 @@ const Calendar = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const getMonthRange = (date: Date) => {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+    return {
+      dateFrom: toDateKey(start),
+      dateTo: toDateKey(end),
+    };
+  };
+
   const handleMonthSelect = (monthIndex: number) => {
     setCurrentViewDate(new Date(currentYear, monthIndex, 1));
     setShowPicker(false);
@@ -133,6 +143,22 @@ const Calendar = () => {
       return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
     });
   }, [holidays, currentMonth, currentYear]);
+
+  console.log(
+    "[BusinessHolidayCalendar] visibleHolidays:",
+    JSON.stringify(
+      {
+        currentYear,
+        currentMonth,
+        totalHolidays: holidays.length,
+        visibleCount: visibleHolidays.length,
+        visibleIds: visibleHolidays.map((item) => item.id),
+        visibleTypes: visibleHolidays.map((item) => item.type),
+      },
+      null,
+      2
+    )
+  );
 
   const markedDates = Array.from(holidayDaySet).reduce<Record<string, any>>(
     (acc, day) => {
@@ -220,7 +246,11 @@ const Calendar = () => {
 
     try {
       setHolidaysLoading(true);
-      const data = await getBusinessHolidays(selectedBusinessId);
+      const { dateFrom, dateTo } = getMonthRange(currentViewDate);
+      const data = await getBusinessHolidays(selectedBusinessId, {
+        dateFrom,
+        dateTo,
+      });
       setHolidays(Array.isArray(data) ? data : []);
     } catch (error: any) {
       const message = error?.response?.data?.message || error?.message;
@@ -229,7 +259,7 @@ const Calendar = () => {
     } finally {
       setHolidaysLoading(false);
     }
-  }, [getBusinessHolidays, selectedBusinessId]);
+  }, [currentViewDate, getBusinessHolidays, selectedBusinessId]);
 
   useFocusEffect(
     useCallback(() => {
