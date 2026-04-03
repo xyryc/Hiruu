@@ -817,7 +817,9 @@ export const useJobStore = create<JobState>((set) => ({
       const data = (result?.data ?? null) as JobProfileData | null;
       set((state) => ({
         jobProfile: data
-          ? data
+          ? state.jobProfile
+            ? { ...state.jobProfile, ...data }
+            : data
           : state.jobProfile
             ? { ...state.jobProfile, ...payload }
             : null,
