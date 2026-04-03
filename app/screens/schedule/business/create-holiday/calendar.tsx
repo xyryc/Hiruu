@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { ICountry } from "react-native-international-phone-number";
 import { DateData, Calendar as RNCalendar } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -33,7 +34,12 @@ const Calendar = () => {
   const delImg = require("@/assets/images/holiday-modal.svg");
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const { selectedBusinesses, getBusinessHolidays, deleteHoliday } = useBusinessStore();
+  const {
+    selectedBusinesses,
+    getBusinessHolidays,
+    deleteHoliday,
+    importPublicHolidays,
+  } = useBusinessStore();
   const selectedBusinessId = selectedBusinesses?.[0];
 
   const [currentViewDate, setCurrentViewDate] = useState(new Date()); // Currently viewing month/year
@@ -45,6 +51,7 @@ const Calendar = () => {
   const [deletingHolidayId, setDeletingHolidayId] = useState<string | null>(null);
   const [isModal, setIsModal] = useState(false);
   const [isHolidayModal, setIsHolidayModal] = useState(false);
+  const [isImportingHolidays, setIsImportingHolidays] = useState(false);
 
   const data = {
     title: "Do You Want to Delete This Holiday?",
@@ -291,6 +298,44 @@ const Calendar = () => {
     }
   }, [deleteHoliday, deletingHolidayId, selectedBusinessId]);
 
+  const handleImportPublicHolidays = useCallback(
+    async (country: ICountry) => {
+      if (!selectedBusinessId) {
+        toast.error("Please select a business first.");
+        return;
+      }
+
+      const countryCode = country?.cca2?.toLowerCase();
+      if (!countryCode) {
+        toast.error("Please select a country.");
+        return;
+      }
+
+      try {
+        setIsImportingHolidays(true);
+        const result = await importPublicHolidays(selectedBusinessId, {
+          country: countryCode,
+        });
+        await fetchHolidays();
+        toast.success(
+          translateApiMessage(
+            result?.message || "public_holidays_imported_successfully"
+          )
+        );
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to import public holidays";
+        toast.error(translateApiMessage(message));
+        throw error;
+      } finally {
+        setIsImportingHolidays(false);
+      }
+    },
+    [fetchHolidays, importPublicHolidays, selectedBusinessId]
+  );
+
   const renderHolidaysCard = (item: HolidayItem) => {
     const holidayDate = new Date(item.date);
     const year = holidayDate.getFullYear();
@@ -302,7 +347,7 @@ const Calendar = () => {
         key={item.id}
         className="mt-4 border border-[#EEEEEE] p-4 rounded-2xl flex-row justify-between items-center"
       >
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 flex-1 min-w-0">
           {/* calender card */}
           <View className="border border-[#E5F4FD] rounded-[10px] ">
             <Text className="font-proximanova-regular text-xs text-secondary dark:text-dark-secondary text-center py-1 px-3 bg-[#E5F4FD] rounded-t-[10px]">
@@ -316,8 +361,11 @@ const Calendar = () => {
             </Text>
           </View>
           {/* details */}
-          <View className="">
-            <Text className="font-proximanova-bold text-primary dark:text-dark-primary mt-2">
+          <View className="flex-1 min-w-0 pr-3">
+            <Text
+              numberOfLines={2}
+              className="font-proximanova-bold text-primary dark:text-dark-primary mt-2"
+            >
               {item.title}
             </Text>
             <Text className="font-proximanova-regular text-xs text-secondary dark:text-dark-secondary mt-3 capitalize">
@@ -328,7 +376,7 @@ const Calendar = () => {
             </Text>
           </View>
         </View>
-        <View>
+        <View className="ml-2">
           <TouchableOpacity
             onPress={() => {
               setDeletingHolidayId(item.id);
@@ -479,6 +527,8 @@ const Calendar = () => {
           <ImportHolidayModal
             visible={isHolidayModal}
             onClose={() => setIsHolidayModal(false)}
+            onImport={handleImportPublicHolidays}
+            isImporting={isImportingHolidays}
           />
         </ScrollView>
       </KeyboardAvoidingView>
