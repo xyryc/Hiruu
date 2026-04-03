@@ -111,6 +111,7 @@
     "all_notifications_marked_as_read_successfully": "All notifications read.",
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Business owners cannot join their own business using an invitation code.",
     "exceptions_premium_access_required": "Premium access is required.",
+    "appearance_updated_successfully": "Appearance updated successfully.",
     "business_owner_role_is_system_locked": "Business owner role is system locked.",
     "attendance_shift_assignment_not_found_or_access_denied": "Shift assignment not found or access denied.",
     "weekly_block_created_successfully": "Weekly block created successfully.",

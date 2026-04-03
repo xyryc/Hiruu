@@ -65,14 +65,16 @@ const BusinessSetup = () => {
   // profile and cover photo
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingType, setUploadingType] = useState<"profile" | "cover" | null>(
+    null,
+  );
 
   const handleImageSelection = async (
     type: "profile" | "cover",
     result: ImagePicker.ImagePickerResult,
   ) => {
     if (!result.canceled && result.assets[0]) {
-      setUploading(true);
+      setUploadingType(type);
 
       try {
         // Simulate upload process
@@ -86,7 +88,7 @@ const BusinessSetup = () => {
       } catch {
         Alert.alert("Error", "Failed to upload image");
       } finally {
-        setUploading(false);
+        setUploadingType(null);
       }
     }
   };
@@ -137,7 +139,7 @@ const BusinessSetup = () => {
   };
 
   const showImagePickerOptions = (type: "profile" | "cover") => {
-    if (uploading) return;
+    if (uploadingType) return;
 
     Alert.alert(
       `${type === "profile" ? "Profile" : "Cover"} Photo`,
@@ -447,7 +449,7 @@ const BusinessSetup = () => {
           {/* Profile Photo */}
           <View className="items-center">
             <View className="bg-[#ffffff] h-[119px] w-[119px] flex-row justify-center items-center rounded-full relative">
-              {uploading ? (
+              {uploadingType === "profile" ? (
                 <View className="h-32 w-32 rounded-full bg-gray-200 items-center justify-center">
                   <ActivityIndicator size="large" color="#4FB2F3" />
                 </View>
@@ -462,7 +464,7 @@ const BusinessSetup = () => {
                 />
               )}
 
-              {!uploading && (
+              {uploadingType !== "profile" && (
                 <TouchableOpacity
                   onPress={() => showImagePickerOptions("profile")}
                   className="h-8 w-8 border border-[#EEEEEE] bg-white rounded-full absolute bottom-2 right-2 flex-row justify-center items-center"
@@ -472,7 +474,7 @@ const BusinessSetup = () => {
               )}
             </View>
             <Text className="pt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary text-center">
-              {uploading
+              {uploadingType === "profile"
                 ? "Uploading..."
                 : profileImage
                   ? "Change profile photo"
@@ -486,7 +488,7 @@ const BusinessSetup = () => {
               {coverImage ? "Cover Photo" : "Upload Cover Photo"}
             </Text>
             <View className="relative">
-              {uploading ? (
+              {uploadingType === "cover" ? (
                 <View className="w-full h-32 bg-gray-200 rounded-xl items-center justify-center">
                   <ActivityIndicator size="large" color="#4FB2F3" />
                   <Text className="text-gray-500 mt-2">Uploading...</Text>
