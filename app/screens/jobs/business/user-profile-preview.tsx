@@ -5,6 +5,7 @@ import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
+import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
 import {
   Feather,
@@ -42,6 +43,7 @@ const UserProfilePreview = () => {
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const currentUser = useAuthStore((state) => state.user);
   const userId = typeof params.userId === "string" ? params.userId : "";
   const businessId =
     typeof params.businessId === "string" ? params.businessId : "";
@@ -139,6 +141,11 @@ const UserProfilePreview = () => {
 
     return `${min ?? max}${type ? ` /${type}` : ""}`;
   }, [profile]);
+
+  const isOwnProfile = useMemo(() => {
+    const previewUserId = profile?.userId || profile?.user?.id;
+    return Boolean(previewUserId && currentUser?.id && previewUserId === currentUser.id);
+  }, [currentUser?.id, profile?.user?.id, profile?.userId]);
 
   const handleShare = async () => {
     try {
@@ -330,12 +337,16 @@ const UserProfilePreview = () => {
             Experience
           </Text>
         </View>
+
         <ExperienceCard
           focus
           className="mt-8 mx-5"
           companyName={profile?.user?.name || "Profile"}
           position={profile?.headline || "Role not specified"}
-          companyLogo={profile?.user?.avatar}
+          companyLogo={
+            profile?.user?.avatar ||
+            require("@/assets/images/placeholder.png")
+          }
           isVerified
           isCurrent={Boolean(profile?.isOpenToWork)}
         />
@@ -444,8 +455,11 @@ const UserProfilePreview = () => {
           <View className="flex-row items-center gap-2.5">
             <View>
               <Image
-                source={profile.user.avatar}
-                contentFit="contain"
+                source={
+                  profile?.user?.avatar ||
+                  require("@/assets/images/placeholder.png")
+                }
+                contentFit="cover"
                 style={{ height: 40, width: 40, borderRadius: 99 }}
               />
             </View>
@@ -454,21 +468,23 @@ const UserProfilePreview = () => {
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={handleMessagePress}
-            disabled={isCreatingChat}
-            className="h-10 w-10 bg-white rounded-full flex-row items-center justify-center"
-          >
-            {isCreatingChat ? (
-              <ActivityIndicator size="small" color="#4FB2F3" />
-            ) : (
-              <Image
-                source={require("@/assets/images/messages-fill.svg")}
-                contentFit="contain"
-                style={{ height: 22, width: 22 }}
-              />
-            )}
-          </TouchableOpacity>
+          {!isOwnProfile ? (
+            <TouchableOpacity
+              onPress={handleMessagePress}
+              disabled={isCreatingChat}
+              className="h-10 w-10 bg-white rounded-full flex-row items-center justify-center"
+            >
+              {isCreatingChat ? (
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              ) : (
+                <Image
+                  source={require("@/assets/images/messages-fill.svg")}
+                  contentFit="contain"
+                  style={{ height: 22, width: 22 }}
+                />
+              )}
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* Contact Me On */}
