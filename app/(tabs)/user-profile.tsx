@@ -1,4 +1,5 @@
 import DynamicBackground from "@/components/layout/DynamicBackground";
+import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import GradientButton from "@/components/ui/buttons/GradientButton";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import SmallButton from "@/components/ui/buttons/SmallButton";
@@ -311,7 +312,15 @@ const Profile = () => {
                 isVerified: Boolean(profileData?.isEmailVerified),
               }}
             />
-          ) : null}
+          ) : (
+            <BasicNameplateCard
+              avatarUrl={profileData?.avatar}
+              name={profileData?.name}
+              location={profileAddress}
+              rating={profileData?.rating ?? 0}
+              isVerified={Boolean(profileData?.isEmailVerified)}
+            />
+          )}
         </TouchableOpacity>
 
         {/* Badge item */}

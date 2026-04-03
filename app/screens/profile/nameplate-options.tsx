@@ -125,12 +125,11 @@ const YourNamePlates = () => {
         ) : (
           <View className="mt-4 gap-3">
             {nameplateItems.map((item) => (
-              <View>
+              <View key={item?.id || item?.cosmeticId || item?.cosmetic?.id}>
                 <Text className='text-base font-proximanova-semibold mb-2.5'>{item?.cosmetic?.name}</Text>
 
 
                 <TouchableOpacity
-                  key={item.id}
                   className="relative"
                   onPress={() => setSelected(item.cosmeticId)}
                   activeOpacity={0.9}

@@ -1,6 +1,7 @@
 import BadgeCard from "@/components/ui/cards/BadgeCard";
+import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
+import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
-import NamePlateCard from "@/components/ui/cards/NamePlateCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
@@ -247,16 +248,30 @@ const UserProfilePreview = () => {
           }
           className="mx-5 mt-3.5"
         >
-          <NamePlateCard
-            variant="variant4"
-            name={profile?.user?.name || "User"}
-            address={profileAddress}
-            profileImage={
-              profile?.user?.avatar ||
-              "https://images.squarespace-cdn.com/content/v1/5521b031e4b06ebe90178744/1560360135937-3XYVZ3124L1YL2FOASSQ/headshots-linkedin-photographer.jpg"
-            }
-          />
+          {/* dynamic nameplate, equipped */}
+          {profile?.user?.appearance?.nameplate?.metadata ? (
+            <DynamicNameplateCard
+              metadata={profile.user.appearance.nameplate.metadata}
+              mode="redeem"
+              preview={{
+                avatarUrl: profile?.user?.avatar || null,
+                name: profile?.user?.name || "User",
+                location: profileAddress || "Location unavailable",
+                rating: profile?.user?.rating ?? 0,
+                isVerified: true,
+              }}
+            />
+          ) : (
+            <BasicNameplateCard
+              avatarUrl={profile?.user?.avatar || null}
+              name={profile?.user?.name || "User"}
+              location={profileAddress || "Location unavailable"}
+              rating={profile?.user?.rating ?? 0}
+              isVerified
+            />
+          )}
         </TouchableOpacity>
+
         {/* Badge item */}
         <View className="mx-5 flex-row justify-between mt-5 items-center">
           <View className="flex-row gap-2.5 items-center">

@@ -2,6 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import DynamicBackground from "@/components/layout/DynamicBackground";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
+import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
@@ -264,7 +265,15 @@ const Edit = () => {
                 isVerified: Boolean(profileData?.isEmailVerified),
               }}
             />
-          ) : null}
+          ) : (
+            <BasicNameplateCard
+              avatarUrl={profileData?.avatar}
+              name={profileData?.name}
+              location={profileAddress}
+              rating={profileData?.rating ?? 0}
+              isVerified={Boolean(profileData?.isEmailVerified)}
+            />
+          )}
         </View>
 
         {/* Badge item */}
