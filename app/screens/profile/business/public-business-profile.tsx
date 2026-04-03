@@ -2,6 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
 import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingProgress from "@/components/ui/cards/RatingProgress";
+import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -73,7 +74,7 @@ const PublicBusinessProfile = () => {
     }
   }, [businessId, getBusinessRatingSummary]);
 
-useEffect(() => {
+  useEffect(() => {
     loadBusiness();
     loadRatingSummary();
   }, [loadBusiness, loadRatingSummary]);
@@ -197,6 +198,8 @@ useEffect(() => {
       ].filter((item) => Boolean(item.value)),
     [businessData]
   );
+  const socialLinks = businessData?.social || {};
+  const hasSocialLinks = Object.values(socialLinks).some((value) => Boolean(value));
 
   return (
     <SafeAreaView
@@ -497,30 +500,16 @@ useEffect(() => {
                 </View>
               </View>
 
-              <View className="mx-5 my-4 border border-[#EEEEEE] rounded-2xl px-4 py-3">
-                {contactItems.length > 0 ? (
-                  contactItems.map((item, index) => (
-                    <View
-                      key={item.key}
-                      className={`${index > 0 ? "mt-3 pt-3 border-t border-[#EEEEEE]" : ""}`}
-                    >
-                      <View className="flex-row items-center gap-2">
-                        {item.icon}
-                        <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                          {item.label}
-                        </Text>
-                      </View>
-                      <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                        {item.value}
-                      </Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    No contact information available.
-                  </Text>
-                )}
-              </View>
+
+
+              {hasSocialLinks ? (
+                <ConnectSocials
+                  className="mx-5 mb-4 mt-4"
+                  value={socialLinks}
+                  hideEmpty
+                  canEdit={false}
+                />
+              ) : null}
             </View>
           ) : (
             <View className="mx-5">

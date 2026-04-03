@@ -747,6 +747,10 @@ export const useBusinessStore = create<BusinessState>()(
     try {
       const response = await axiosInstance.get(`/business/public/${businessId}`);
       const result = response.data;
+      console.log(
+        "[BusinessStore] getPublicBusinessProfile response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (!result.success) {
         const errorMsg =
