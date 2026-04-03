@@ -1,13 +1,14 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
+import { useBusinessStore } from "@/stores/businessStore";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   ScrollView,
   Text,
@@ -16,213 +17,160 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type TeamMember = {
+  id: string;
+  userId: string;
+  name: string;
+  role: string;
+  profilePic: string | null;
+  workHourPeriod: string | null;
+  workHourAmount: number | null;
+  location: string;
+};
 
 const assignRole = [
-  {
-    id: "1",
-    name: "Employee",
-  },
-  {
-    id: "2",
-    name: "Manager",
-  },
-  {
-    id: "3",
-    name: "HR / Recruiter",
-  },
-  {
-    id: "4",
-    name: "Shift Supervisor",
-  },
-  {
-    id: "5",
-    name: "Auditor",
-  },
+  { id: "1", name: "Employee" },
+  { id: "2", name: "Manager" },
+  { id: "3", name: "HR / Recruiter" },
+  { id: "4", name: "Shift Supervisor" },
+  { id: "5", name: "Auditor" },
 ];
 
+const formatWorkHourPeriod = (period?: string | null) => {
+  if (!period) return "Not set";
+  return period.charAt(0).toUpperCase() + period.slice(1);
+};
+
+const formatWorkHourAmount = (amount?: number | null) => {
+  if (typeof amount !== "number" || Number.isNaN(amount)) return "Not set";
+  return `${amount} hrs`;
+};
+
 const ManageTeamPanel = () => {
-  const [selectedTab, setSelectedTab] = useState("Team Member(50)");
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedAssignRole, setSelectedAssignRole] = useState();
+  const [selectedAssignRole, setSelectedAssignRole] = useState<string>();
   const [showWorkingHourSettingsModal, setShowWorkingHourSettingsModal] =
     useState(false);
-  const filterOptions = [
-    { label: "All", value: "all", count: 50 },
-    { label: "Manager", value: "manager", count: 1 },
-    { label: "Cashier", value: "cashier", count: 2 },
-    { label: "Bartender", value: "bartender", count: 1 },
-  ];
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const { selectedBusinesses, getBusinessEmployees } = useBusinessStore();
+  const params = useLocalSearchParams<{ businessId?: string }>();
+  const resolvedBusinessId = params.businessId || selectedBusinesses[0];
 
-  // Team members data
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Amid Hazelwood",
-      role: "Cashier",
-      profilePic: "https://i.pravatar.cc/150?img=33",
-      shiftTime: "6:00 AM - 2:00 PM",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 2,
-      name: "Barhen Mehta",
-      role: "Bartender",
-      profilePic: "https://i.pravatar.cc/150?img=12",
-      shiftTime: "6:00 AM - 2:00 PM",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 3,
-      name: "Priya Mehta",
-      role: "Housekeeping",
-      profilePic: "https://i.pravatar.cc/150?img=45",
-      shiftTime: "6:00 AM - 2:00 PM",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 4,
-      name: "John Smith",
-      role: "Manager",
-      profilePic: "https://i.pravatar.cc/150?img=68",
-      shiftTime: "9:00 AM - 5:00 PM",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 5,
-      name: "Sarah Johnson",
-      role: "Cashier",
-      profilePic: "https://i.pravatar.cc/150?img=23",
-      shiftTime: "2:00 PM - 10:00 PM",
-      location: "New York, North Bergen",
-    },
-  ];
+  useEffect(() => {
+    if (!resolvedBusinessId) {
+      setTeamMembers([]);
+      return;
+    }
 
-  // Joining requests data
-  const joiningRequests = [
-    {
-      id: 1,
-      name: "Housekeeping Staff",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Helped close the store",
-      hotel: "Hotel Paradise",
-      status: "pending",
-      profilePic: "https://i.pravatar.cc/150?img=56",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 4,
-      name: "Housekeeping Staff",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Helped close the store",
-      hotel: "Hotel Paradise",
-      status: "pending",
-      profilePic: "https://i.pravatar.cc/150?img=50",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 5,
-      name: "Housekeeping Staff",
-      date: "12 Jun, 2025",
-      start: "9:00 PM",
-      end: "12:00 PM",
-      reason: "Helped close the store",
-      hotel: "Hotel Paradise",
-      status: "pending",
-      profilePic: "https://i.pravatar.cc/150?img=36",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 2,
-      name: "Security Guard",
-      date: "13 Jun, 2025",
-      start: "10:00 PM",
-      end: "1:00 AM",
-      reason: "Extra shift due to safety concerns",
-      hotel: "City View Hotel",
-      status: "pending",
-      profilePic: "https://i.pravatar.cc/150?img=14",
-      location: "New York, North Bergen",
-    },
-    {
-      id: 3,
-      name: "Chef Assistant",
-      date: "14 Jun, 2025",
-      start: "8:00 PM",
-      end: "11:00 PM",
-      reason: "Overtime to prepare extra meals",
-      hotel: "Gourmet Inn",
-      status: "pending",
-      profilePic: "https://i.pravatar.cc/150?img=28",
-      location: "New York, North Bergen",
-    },
-  ];
+    let isMounted = true;
+    const loadEmployees = async () => {
+      try {
+        setLoading(true);
+        const source = await getBusinessEmployees(resolvedBusinessId);
+        const mapped = (Array.isArray(source) ? source : [])
+          .map((item: any) => {
+            const user = item?.user;
+            if (!item?.id || !user?.id) return null;
 
-  const menuItems = [
-    {
-      id: 1,
-      title: "Create Role",
-      icon: "create-outline",
-      onPress: () => {
-        // router.push("/create-role");
-      },
-    },
-    {
-      id: 2,
-      title: "Create Template",
-      icon: "document-text-outline",
-      onPress: () => {
-        // console.log("Navigate to Create Template");
-        router.push("/screens/schedule/business/create-template");
-      },
-    },
-    {
-      id: 3,
-      title: "Weekly Schedule",
-      icon: "calendar-outline",
-      onPress: () => {
-        router.push("/screens/schedule/business/weekly-schedule");
-      },
-    },
-    {
-      id: 4,
-      title: "Saved Shift Template",
-      icon: "document-attach-outline",
-      onPress: () => {
-        router.push("/screens/schedule/business/saved-shift-template");
-      },
-    },
-  ];
+            const address = user?.address;
+            const location =
+              typeof address === "string"
+                ? address
+                : address?.address ||
+                [address?.city, address?.country].filter(Boolean).join(", ");
 
-  const pendingData = joiningRequests.filter(
-    (item) => item.status === "pending"
-  ).length;
+            return {
+              id: String(item.id),
+              userId: String(user.id),
+              name: user?.name || "N/A",
+              role: item?.role?.role?.name || item?.role?.name || "Not assigned",
+              profilePic: user?.avatar || null,
+              workHourPeriod:
+                typeof item?.workHourPeriod === "string"
+                  ? item.workHourPeriod
+                  : null,
+              workHourAmount:
+                typeof item?.workHourAmount === "number" &&
+                Number.isFinite(item.workHourAmount)
+                  ? item.workHourAmount
+                  : null,
+              location: location || "Location unavailable",
+            } as TeamMember;
+          })
+          .filter(Boolean) as TeamMember[];
 
-  const filteredTeamMembers = teamMembers.filter((member) => {
-    const matchesFilter =
-      filter === "all" || member.role.toLowerCase() === filter;
-    const matchesSearch =
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+        if (isMounted) {
+          setTeamMembers(mapped);
+        }
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load team members");
+        if (isMounted) {
+          setTeamMembers([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
 
-  const renderTeamMember = ({ item }: any) => (
+    loadEmployees();
+    return () => {
+      isMounted = false;
+    };
+  }, [resolvedBusinessId, getBusinessEmployees]);
+
+  const filterOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const member of teamMembers) {
+      const key = member.role.toLowerCase();
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+
+    const roleFilters = Array.from(counts.entries()).map(([value, count]) => ({
+      label: value
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      value,
+      count,
+    }));
+
+    return [{ label: "All", value: "all", count: teamMembers.length }, ...roleFilters];
+  }, [teamMembers]);
+
+  const filteredTeamMembers = useMemo(
+    () =>
+      teamMembers.filter((member) => {
+        const memberRole = member.role.toLowerCase();
+        const matchesFilter = filter === "all" || memberRole === filter;
+        const q = searchQuery.toLowerCase();
+        const matchesSearch =
+          member.name.toLowerCase().includes(q) ||
+          memberRole.includes(q) ||
+          member.location.toLowerCase().includes(q);
+        return matchesFilter && matchesSearch;
+      }),
+    [filter, searchQuery, teamMembers]
+  );
+
+  const renderTeamMember = ({ item }: { item: TeamMember }) => (
     <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4">
       <View className="flex-row items-start justify-between ">
-        <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-3 flex-1">
           <Image
-            source={item.profilePic}
+            source={item.profilePic || require("@/assets/images/placeholder.png")}
             contentFit="cover"
             style={{ width: 42, height: 42, borderRadius: 24 }}
           />
-          <View>
+          <View className="flex-1">
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
               {item.name}
             </Text>
@@ -247,15 +195,25 @@ const ManageTeamPanel = () => {
 
       <View>
         <View className="flex-row justify-between mt-4">
-          <Text className="text-secondary dark:text-dark-secondary  text-sm font-proximanova-regular">
-            Shift Time:
+          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
+            Work Hour Period:
           </Text>
           <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
-            {item.shiftTime}
+            {formatWorkHourPeriod(item.workHourPeriod)}
           </Text>
         </View>
+
         <View className="flex-row justify-between mt-2.5">
-          <Text className="text-secondary dark:text-dark-secondary  text-sm font-proximanova-regular">
+          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
+            Work Hour Amount:
+          </Text>
+          <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
+            {formatWorkHourAmount(item.workHourAmount)}
+          </Text>
+        </View>
+
+        <View className="flex-row justify-between mt-2.5">
+          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
             Location:
           </Text>
           <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
@@ -271,8 +229,19 @@ const ManageTeamPanel = () => {
       />
 
       <View className=" mt-2.5 flex-row items-center justify-between">
-        {/* view profile */}
-        <TouchableOpacity className="flex-row items-center gap-1">
+        <TouchableOpacity
+          className="flex-row items-center gap-1"
+          onPress={() =>
+            router.push({
+              pathname: "/screens/jobs/business/user-profile-preview",
+              params: {
+                userId: item.userId,
+                ...(resolvedBusinessId ? { businessId: resolvedBusinessId } : {}),
+                canRate: "true",
+              },
+            })
+          }
+        >
           <Text className="text-[#4FB2F3] text-sm font-proximanova-semibold">
             View Profile
           </Text>
@@ -280,7 +249,6 @@ const ManageTeamPanel = () => {
         </TouchableOpacity>
 
         <View className="flex-row items-center gap-4">
-          {/* working hour */}
           <TouchableOpacity
             onPress={() => setShowWorkingHourSettingsModal(true)}
             className="p-1"
@@ -288,7 +256,6 @@ const ManageTeamPanel = () => {
             <AntDesign name="field-time" size={24} color="black" />
           </TouchableOpacity>
 
-          {/* manage role */}
           <TouchableOpacity
             onPress={() => setShowModal(true)}
             className="bg-[#11293A] px-5 py-2 rounded-full"
@@ -302,70 +269,6 @@ const ManageTeamPanel = () => {
     </View>
   );
 
-  const renderJoiningRequest = ({ item }: any) => (
-    <View className="mt-4 mx-5 border border-[#EEEEEE] mb-3 rounded-xl p-4 bg-white dark:bg-dark-secondary">
-      {/* Header with Profile */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center gap-2.5 flex-1">
-          <Image
-            source={item.profilePic}
-            contentFit="contain"
-            style={{ width: 42, height: 42, borderRadius: 100 }}
-          />
-          <View className="flex-1">
-            <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-              {item.name}
-            </Text>
-            <Text className="text-secondary dark:text-dark-secondary  text-sm mt-1.5">
-              {item.location}
-            </Text>
-          </View>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <TouchableOpacity className=" w-10 h-10 rounded-full flex-row justify-center items-center bg-[#E5F4FD]">
-            <Image
-              source={require("@/assets/images/messages-fill.svg")}
-              contentFit="contain"
-              style={{ width: 20, height: 20 }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Entypo name="dots-three-vertical" size={18} color="#666" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* dotate line */}
-      <Image
-        source={require("@/assets/images/dotted-line.svg")}
-        contentFit="contain"
-        style={{ width: 360, height: 2, marginTop: 10 }}
-      />
-
-      <View className="flex-row  justify-between mt-2.5 items-center">
-        {/* View Profile Link */}
-        <TouchableOpacity className="">
-          <Text className="text-[#4FB2F3] font-proximanova-semibold text-base text-center">
-            View Profile →
-          </Text>
-        </TouchableOpacity>
-
-        {/* Action Buttons */}
-        <View className="flex-row gap-3 ">
-          <TouchableOpacity className="bg-[#F34F4F] h-10 w-10 flex-row justify-center items-center rounded-full">
-            <Ionicons name="close" size={20} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity className="bg-[#292D32] h-10 w-10 flex-row justify-center items-center rounded-full">
-            <Ionicons name="checkmark" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
-
   return (
     <SafeAreaView
       className="flex-1 bg-white"
@@ -375,119 +278,87 @@ const ManageTeamPanel = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="Team Panel(50)"
+          title={`Team Panel(${teamMembers.length})`}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
-        {/* Tabs */}
-        <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
-          {["Team Member(50)", "Joining Request"].map((tab) => (
-            <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
-              key={tab}
-              onPress={() => setSelectedTab(tab)}
-            >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center  ${selectedTab === tab ? "font-proximanova-semibold dark:text-dark-primary text-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"}`}
-                >
-                  {tab}
-                </Text>
-                {selectedTab === tab && (
-                  <View className="bg-[#4FB2F3] px-2 py-1 rounded-full">
-                    <Text className="text-[#FFFFFF] font-proximanova-semibold text-sm  ">
-                      {pendingData}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
-      {/* Content */}
-      <View className="flex-1">
-        {/* Search Bar */}
-        <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 mt-5">
+
+      <View>
+        <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 my-5">
           <EvilIcons name="search" size={24} color="#666" />
           <TextInput
             placeholder="Search here..."
-            className="flex-1 ml-2 py-1.5 text-gray-700 dark:text-dark-primary"
+            className="ml-2 py-1.5 text-gray-700 dark:text-dark-primary"
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#999"
           />
         </View>
 
-        {/* Filter Buttons */}
-        <View>
-          {selectedTab === "Team Member(50)" && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingVertical: 16,
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            alignItems: "center",
+          }}
+        >
+          {filterOptions.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              onPress={() => setFilter(option.value)}
+              className={`px-4 py-1 rounded-full mb-4 mr-2 border ${filter === option.value
+                ? "bg-[#11293A] border-[#11293A]"
+                : "bg-white dark:bg-dark-background border-[#EEEEEE]"
+                }`}
+              style={{
+                flexShrink: 0,
+                maxWidth: 180,
+                minHeight: 30,
+                justifyContent: "center",
               }}
             >
-              {filterOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => setFilter(option.value)}
-                  className={`px-4 py-2 rounded-full mr-2 border ${
-                    filter === option.value
-                      ? "bg-[#11293A] border-[#11293A]"
-                      : "bg-white dark:bg-dark-background border-[#EEEEEE]"
+              <Text
+                className={`font-proximanova-regular text-sm ${filter === option.value
+                  ? "text-white font-proximanova-semibold"
+                  : "text-primary dark:text-dark-primary"
                   }`}
-                >
-                  <Text
-                    className={`font-proximanova-regular text-sm ${
-                      filter === option.value
-                        ? "text-white font-proximanova-semibold"
-                        : "text-primary dark:text-dark-primary"
-                    }`}
-                  >
-                    {option.label} ({option.count})
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-        {/* List */}
-        {selectedTab === "Team Member(50)" ? (
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {option.label} ({option.count})
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#4FB2F3" />
+          </View>
+        ) : (
           <FlatList
             data={filteredTeamMembers}
             renderItem={renderTeamMember}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <FlatList
-            data={joiningRequests}
-            renderItem={renderJoiningRequest}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="flex-1 items-center justify-center mt-20">
+                <Text className="text-secondary dark:text-dark-secondary">
+                  No team members found.
+                </Text>
+              </View>
+            }
           />
         )}
       </View>
-
-      {/* Floating Add Button */}
-
-      <AnimatedFABMenu
-        menuItems={menuItems}
-        fabColor="#11293A"
-        menuItemColor="#11293A"
-      />
 
       <WorkingHourSettingsModal
         visible={showWorkingHourSettingsModal}
         onClose={() => setShowWorkingHourSettingsModal(false)}
       />
-
-      {/* hapiness bar */}
 
       <AssignRoleModal
         visible={showModal}
