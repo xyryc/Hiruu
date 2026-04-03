@@ -100,7 +100,7 @@ interface ProfileState {
   pollCvBuildStatus: () => Promise<CvBuildResult | null>;
   cancelCvBuild: () => Promise<CvBuildResult | null>;
   resetCvBuildState: () => void;
-  getProfile: (forceRefresh?: boolean) => Promise<any>;
+  getProfile: () => Promise<any>;
   getAnalyticsSummary: () => Promise<any>;
   getMyRatings: () => Promise<any>;
   getRatingsByUserId: (userId: string) => Promise<any>;
@@ -391,11 +391,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     });
   },
 
-  getProfile: async (forceRefresh = false) => {
+  getProfile: async () => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await profileService.getProfile({ forceRefresh });
+      const response = await profileService.getProfile();
       const currentUser = useAuthStore.getState().user;
       const updatedUser = {
         ...currentUser,

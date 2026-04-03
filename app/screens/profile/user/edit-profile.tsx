@@ -18,9 +18,10 @@ import {
   Ionicons,
   MaterialCommunityIcons
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -76,59 +77,59 @@ const Edit = () => {
       .filter(Boolean)
       .join(", ");
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadProfile = async () => {
-      try {
-        const result = await getProfile();
-        if (isMounted) {
-          setProfileData(result.data);
-          setShortIntro(result.data?.bio || "");
-          if (Array.isArray(result.data?.interest)) {
-            setSelectedInterests(result.data.interest);
-          }
-          if (Array.isArray(result.data?.experiences)) {
-            const mappedExperiences: Companies[] = result.data.experiences.map(
-              (exp: any) => ({
-                companyId: exp.companyId,
-                companyName: exp?.company?.name || "Company",
-                logo: exp?.company?.logo || undefined,
-                startDate: exp.startDate || "",
-                endDate: exp.endDate || "",
-                position: exp.position || "",
-                description: exp.description || "",
-                isCurrent: Boolean(exp.isCurrent),
-              })
-            );
-
-            const companyMap = new Map<string, Company>();
-            mappedExperiences.forEach((exp) => {
-              if (!companyMap.has(exp.companyId)) {
-                companyMap.set(exp.companyId, {
-                  id: exp.companyId,
-                  name: exp.companyName || "Company",
-                });
-              }
-            });
-
-            setWorkExperiences(mappedExperiences);
-            setSelectedCompanies(Array.from(companyMap.values()));
-          }
-          if (result.data?.social && typeof result.data.social === "object") {
-            setSocialLinks(result.data.social);
-          }
-        }
-      } catch {
-        // Silent fail to keep edit screen stable.
+  const loadProfile = useCallback(async () => {
+    try {
+      const result = await getProfile();
+      setProfileData(result.data);
+      setShortIntro(result.data?.bio || "");
+      if (Array.isArray(result.data?.interest)) {
+        setSelectedInterests(result.data.interest);
       }
-    };
+      if (Array.isArray(result.data?.experiences)) {
+        const mappedExperiences: Companies[] = result.data.experiences.map(
+          (exp: any) => ({
+            companyId: exp.companyId,
+            companyName: exp?.company?.name || "Company",
+            logo: exp?.company?.logo || undefined,
+            startDate: exp.startDate || "",
+            endDate: exp.endDate || "",
+            position: exp.position || "",
+            description: exp.description || "",
+            isCurrent: Boolean(exp.isCurrent),
+          })
+        );
 
-    loadProfile();
-    return () => {
-      isMounted = false;
-    };
+        const companyMap = new Map<string, Company>();
+        mappedExperiences.forEach((exp) => {
+          if (!companyMap.has(exp.companyId)) {
+            companyMap.set(exp.companyId, {
+              id: exp.companyId,
+              name: exp.companyName || "Company",
+            });
+          }
+        });
+
+        setWorkExperiences(mappedExperiences);
+        setSelectedCompanies(Array.from(companyMap.values()));
+      }
+      if (result.data?.social && typeof result.data.social === "object") {
+        setSocialLinks(result.data.social);
+      }
+    } catch {
+      // Silent fail to keep edit screen stable.
+    }
   }, [getProfile]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+      return () => { };
+    }, [loadProfile])
+  );
 
   useEffect(() => {
     const appearance = user?.profileAppearance;
@@ -187,7 +188,7 @@ const Edit = () => {
         Array.from(uniqueExperienceDrafts.values()),
         Array.isArray(profileData?.experiences) ? profileData.experiences : []
       );
-      await getProfile(true);
+      await getProfile();
 
       const messageKey = result?.message || "profile_updated_successfully";
       toast.success(translateApiMessage(messageKey));
