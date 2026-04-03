@@ -128,14 +128,32 @@ type Pagination = {
   hasPrev: boolean;
 } | null;
 
+export type CosmeticInventoryItem = {
+  id: string;
+  userId: string;
+  cosmeticId: string;
+  acquiredAt?: string;
+  coinsPaid?: number | null;
+  entitlementSource?: string;
+  isActive?: boolean;
+  expiresAt?: string | null;
+  deactivatedAt?: string | null;
+  metadata?: unknown;
+  cosmetic?: CosmeticStoreItem | null;
+  isEquipped?: boolean;
+};
+
 type RewardStoreState = {
   cosmeticsStoreItems: CosmeticStoreItem[];
   cosmeticsStoreLoading: boolean;
   cosmeticsStoreLoadingMore: boolean;
+  cosmeticsInventoryItems: CosmeticInventoryItem[];
+  cosmeticsInventoryLoading: boolean;
   isPurchasingCosmetic: boolean;
   isEquippingNameplate: boolean;
   cosmeticsStoreError: string | null;
   cosmeticsStorePagination: Pagination;
+  cosmeticsInventoryPagination: Pagination;
   fetchCosmeticsStore: (params?: {
     type?: CosmeticStoreType;
     highlight?: CosmeticHighlight;
@@ -143,12 +161,18 @@ type RewardStoreState = {
     limit?: number;
     append?: boolean;
   }) => Promise<CosmeticStoreItem[]>;
+  fetchCosmeticsInventory: (params?: {
+    type?: CosmeticStoreType;
+    page?: number;
+    limit?: number;
+    append?: boolean;
+  }) => Promise<CosmeticInventoryItem[]>;
   purchaseCosmetic: (id: string) => Promise<{
     ownership: any;
     newBalance: number;
     message?: string;
   }>;
-  equipNameplate: (id: string) => Promise<{
+  equipNameplate: (id?: string | null) => Promise<{
     appearance: any;
     message?: string;
   }>;
@@ -159,10 +183,13 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
   cosmeticsStoreItems: [],
   cosmeticsStoreLoading: false,
   cosmeticsStoreLoadingMore: false,
+  cosmeticsInventoryItems: [],
+  cosmeticsInventoryLoading: false,
   isPurchasingCosmetic: false,
   isEquippingNameplate: false,
   cosmeticsStoreError: null,
   cosmeticsStorePagination: null,
+  cosmeticsInventoryPagination: null,
 
   fetchCosmeticsStore: async (params) => {
     const page = params?.page ?? 1;
@@ -225,6 +252,66 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
     }
   },
 
+  fetchCosmeticsInventory: async (params) => {
+    const page = params?.page ?? 1;
+    const shouldAppend = Boolean(params?.append || page > 1);
+
+    try {
+      set({
+        cosmeticsInventoryLoading: !shouldAppend,
+        cosmeticsStoreLoadingMore: shouldAppend,
+        cosmeticsStoreError: null,
+      });
+
+      const response = await axiosInstance.get("/cosmetics/inventory", {
+        params: {
+          type: params?.type ?? "nameplate",
+          page,
+          limit: params?.limit ?? 10,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load cosmetics inventory");
+      }
+
+      const incoming = Array.isArray(result?.data) ? result.data : [];
+      const previous = shouldAppend ? get().cosmeticsInventoryItems : [];
+      const merged = shouldAppend
+        ? [
+            ...previous,
+            ...incoming.filter(
+              (item: CosmeticInventoryItem) =>
+                !previous.some((prev) => prev?.id === item?.id)
+            ),
+          ]
+        : incoming;
+
+      set({
+        cosmeticsInventoryItems: merged,
+        cosmeticsInventoryPagination: result?.pagination || null,
+        cosmeticsInventoryLoading: false,
+        cosmeticsStoreLoadingMore: false,
+        cosmeticsStoreError: null,
+      });
+
+      return merged;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load cosmetics inventory";
+
+      set({
+        cosmeticsInventoryLoading: false,
+        cosmeticsStoreLoadingMore: false,
+        cosmeticsStoreError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
   purchaseCosmetic: async (id) => {
     if (!id) {
       throw new Error("Cosmetic id is required");
@@ -262,15 +349,11 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
   },
 
   equipNameplate: async (id) => {
-    if (!id) {
-      throw new Error("Nameplate id is required");
-    }
-
     try {
       set({ isEquippingNameplate: true, cosmeticsStoreError: null });
 
       const response = await axiosInstance.patch("/cosmetics/appearance", {
-        equippedNameplate: id,
+        equippedNameplate: id ?? null,
       });
       const result = response?.data;
 
@@ -278,7 +361,21 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
         throw new Error(result?.message || "Failed to equip nameplate");
       }
 
-      set({ isEquippingNameplate: false });
+      const selectedId = id ?? null;
+      const nextInventory = get().cosmeticsInventoryItems.map((item) => ({
+        ...item,
+        isEquipped: item?.cosmeticId === selectedId,
+      }));
+      const nextStoreItems = get().cosmeticsStoreItems.map((item) => ({
+        ...item,
+        isEquipped: item?.id === selectedId,
+      }));
+
+      set({
+        isEquippingNameplate: false,
+        cosmeticsInventoryItems: nextInventory,
+        cosmeticsStoreItems: nextStoreItems,
+      });
 
       return {
         appearance: result?.data?.appearance,

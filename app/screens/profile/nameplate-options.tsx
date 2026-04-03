@@ -1,22 +1,71 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import BlankNamePlateCard from "@/components/ui/cards/BlankNamePlateCard";
+import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
+import { useAuthStore } from "@/stores/authStore";
+import { useRewardStore } from "@/stores/rewardStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const YourNamePlates = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const user = useAuthStore((state) => state.user);
+  const {
+    cosmeticsInventoryItems,
+    cosmeticsInventoryLoading,
+    isEquippingNameplate,
+    fetchCosmeticsInventory,
+    equipNameplate,
+  } = useRewardStore();
   const [selected, setSelected] = useState("none");
+
+  const profileAddress =
+    user?.address?.address ||
+    [user?.address?.city, user?.address?.country].filter(Boolean).join(", ");
+
+  const nameplateItems = useMemo(
+    () =>
+      cosmeticsInventoryItems.filter(
+        (item) => item?.cosmetic?.type === "nameplate" && item?.cosmetic?.metadata
+      ),
+    [cosmeticsInventoryItems]
+  );
+
+  useEffect(() => {
+    fetchCosmeticsInventory({ type: "nameplate", page: 1 }).catch(() => null);
+  }, [fetchCosmeticsInventory]);
+
+  useEffect(() => {
+    const equipped = nameplateItems.find((item) => item?.isEquipped);
+    setSelected(equipped?.cosmeticId || "none");
+  }, [nameplateItems]);
+
+  const handleApply = async () => {
+    try {
+      await equipNameplate(selected === "none" ? null : selected);
+      toast.success(translateApiMessage("appearance_updated_successfully"));
+      router.back();
+    } catch (error: any) {
+      toast.error(translateApiMessage(error?.message || "UNKNOWN_ERROR"));
+    }
+  };
 
   return (
     <SafeAreaView
@@ -68,52 +117,51 @@ const YourNamePlates = () => {
           />
         </TouchableOpacity>
 
-        <View className="mt-4">
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-            Style Advisor
-          </Text>
-          <BlankNamePlateCard
-            variant="variant4"
-            isSelected={selected === "variant4"}
-            onPress={() => setSelected("variant4")}
-          />
-        </View>
+        {/* dynamic nameplate cards */}
+        {cosmeticsInventoryLoading ? (
+          <View className="py-8 items-center justify-center">
+            <ActivityIndicator size="large" color="#4FB2F3" />
+          </View>
+        ) : (
+          <View className="mt-3 gap-3">
+            {nameplateItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                className="relative"
+                onPress={() => setSelected(item.cosmeticId)}
+                activeOpacity={0.9}
+              >
+                <DynamicNameplateCard
+                  metadata={item?.cosmetic?.metadata || undefined}
+                  mode="redeem"
+                  preview={{
+                    avatarUrl: user?.avatar || null,
+                    name: user?.name || "User",
+                    location: profileAddress || "Location unavailable",
+                    rating: user?.rating ?? 0,
+                    isVerified: Boolean(user?.isEmailVerified),
+                  }}
+                />
 
-        <View className="mt-4">
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-            Caffeine Commander
-          </Text>
-          <BlankNamePlateCard
-            variant="variant2"
-            isSelected={selected === "variant2"}
-            onPress={() => setSelected("variant2")}
-          />
-        </View>
-
-        <View className="mt-4">
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-            Checkout Champion
-          </Text>
-          <BlankNamePlateCard
-            variant="variant3"
-            isSelected={selected === "variant3"}
-            onPress={() => setSelected("variant3")}
-          />
-        </View>
-
-        <View className="mt-4">
-          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-            Fryer Fiend
-          </Text>
-          <BlankNamePlateCard
-            variant="variant5"
-            isSelected={selected === "variant5"}
-            onPress={() => setSelected("variant5")}
-          />
-        </View>
+                <View className="absolute top-14 right-3 bg-white/90 rounded-full">
+                  <Ionicons
+                    name={selected === item.cosmeticId ? "radio-button-on" : "radio-button-off"}
+                    size={22}
+                    color="#11293A"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
-      <PrimaryButton title="Apply" className="mx-5 mt-3" />
+      <PrimaryButton
+        title="Apply"
+        className="mx-5 mt-3"
+        onPress={handleApply}
+        loading={isEquippingNameplate}
+      />
     </SafeAreaView>
   );
 };
