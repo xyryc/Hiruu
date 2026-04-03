@@ -28,7 +28,6 @@ const AssignRoleModal: React.FC<any> = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >

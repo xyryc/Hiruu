@@ -1089,16 +1089,23 @@ export const useBusinessStore = create<BusinessState>()(
 
       if (!result.success) {
         const errorMsg =
-          result.error?.message ||
-          result.message?.code ||
+          result?.message ||
+          result?.error?.message ||
           "Failed to assign business role";
         throw new Error(errorMsg);
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      const axiosError = error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message ||
+        axiosError.response?.data?.error?.message ||
+        axiosError.message ||
+        "Failed to assign business role";
+
       console.error("Assign business role error:", error);
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 

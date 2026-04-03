@@ -1,7 +1,9 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
+import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -30,14 +32,6 @@ type TeamMember = {
   location: string;
 };
 
-const assignRole = [
-  { id: "1", name: "Employee" },
-  { id: "2", name: "Manager" },
-  { id: "3", name: "HR / Recruiter" },
-  { id: "4", name: "Shift Supervisor" },
-  { id: "5", name: "Auditor" },
-];
-
 const formatWorkHourPeriod = (period?: string | null) => {
   if (!period) return "Not set";
   return period.charAt(0).toUpperCase() + period.slice(1);
@@ -57,9 +51,23 @@ const ManageTeamPanel = () => {
     useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [selectedEmploymentId, setSelectedEmploymentId] = useState<string | null>(
+    null
+  );
+  const [assigningRole, setAssigningRole] = useState(false);
+  const [creatingChatForUserId, setCreatingChatForUserId] = useState<string | null>(
+    null
+  );
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const { selectedBusinesses, getBusinessEmployees } = useBusinessStore();
+  const {
+    selectedBusinesses,
+    getBusinessEmployees,
+    getMyBusinessRoles,
+    assignBusinessRoleToEmployment,
+  } = useBusinessStore();
   const params = useLocalSearchParams<{ businessId?: string }>();
   const resolvedBusinessId = params.businessId || selectedBusinesses[0];
 
@@ -98,7 +106,7 @@ const ManageTeamPanel = () => {
                   : null,
               workHourAmount:
                 typeof item?.workHourAmount === "number" &&
-                Number.isFinite(item.workHourAmount)
+                  Number.isFinite(item.workHourAmount)
                   ? item.workHourAmount
                   : null,
               location: location || "Location unavailable",
@@ -110,7 +118,9 @@ const ManageTeamPanel = () => {
           setTeamMembers(mapped);
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load team members");
+        toast.error(
+          translateApiMessage(error?.message || "Failed to load team members")
+        );
         if (isMounted) {
           setTeamMembers([]);
         }
@@ -161,113 +171,215 @@ const ManageTeamPanel = () => {
     [filter, searchQuery, teamMembers]
   );
 
-  const renderTeamMember = ({ item }: { item: TeamMember }) => (
-    <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4">
-      <View className="flex-row items-start justify-between ">
-        <View className="flex-row items-center gap-3 flex-1">
-          <Image
-            source={item.profilePic || require("@/assets/images/placeholder.png")}
-            contentFit="cover"
-            style={{ width: 42, height: 42, borderRadius: 24 }}
-          />
-          <View className="flex-1">
-            <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-              {item.name}
+  const openRoleModal = async (employmentId: string) => {
+    setSelectedEmploymentId(employmentId);
+    setShowModal(true);
+    setSelectedAssignRole(undefined);
+
+    if (!resolvedBusinessId) return;
+
+    try {
+      setRolesLoading(true);
+      const roleList = await getMyBusinessRoles(resolvedBusinessId);
+      const mappedRoles = (Array.isArray(roleList) ? roleList : [])
+        .filter(
+          (role: any) =>
+            role?.id &&
+            role?.role?.name &&
+            !role?.isDeleted &&
+            !role?.isSystemLocked &&
+            role?.role?.name?.toLowerCase?.() !== "owner"
+        )
+        .map((role: any) => ({
+          id: role.id,
+          name: role.role.name,
+        }));
+      setRoles(mappedRoles);
+    } catch (error: any) {
+      toast.error(translateApiMessage(error?.message || "Failed to load role list"));
+      setRoles([]);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  const handleApplyRole = async () => {
+    if (!resolvedBusinessId || !selectedEmploymentId || !selectedAssignRole) {
+      toast.error(translateApiMessage("Please select a role."));
+      return;
+    }
+
+    const selectedRole = roles.find((role) => role.id === selectedAssignRole);
+    const nextRoleName = selectedRole?.name || "Not assigned";
+    const previousTeam = teamMembers;
+
+    setTeamMembers((prev) =>
+      prev.map((member) =>
+        member.id === selectedEmploymentId ? { ...member, role: nextRoleName } : member
+      )
+    );
+
+    try {
+      setAssigningRole(true);
+      const result = await assignBusinessRoleToEmployment(
+        resolvedBusinessId,
+        selectedEmploymentId,
+        selectedAssignRole
+      );
+      toast.success(translateApiMessage(result?.message || "business_role_assigned"));
+      setShowModal(false);
+    } catch (error: any) {
+      setTeamMembers(previousTeam);
+      toast.error(translateApiMessage(error?.message || "Failed to assign role"));
+    } finally {
+      setAssigningRole(false);
+    }
+  };
+
+  const handleMessagePress = async (participantId: string) => {
+    if (!participantId) {
+      toast.error(translateApiMessage("User information is unavailable"));
+      return;
+    }
+
+    try {
+      setCreatingChatForUserId(participantId);
+      const result = await chatService.createDirectChat(participantId);
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(translateApiMessage(error?.message || "Failed to start chat"));
+    } finally {
+      setCreatingChatForUserId(null);
+    }
+  };
+
+  const renderTeamMember = ({ item }: { item: TeamMember }) => {
+    const isOwnerRole = item.role.trim().toLowerCase() === "owner";
+    return (
+      <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4">
+        <View className="flex-row items-start justify-between ">
+          <View className="flex-row items-center gap-3 flex-1">
+            <Image
+              source={item.profilePic || require("@/assets/images/placeholder.png")}
+              contentFit="cover"
+              style={{ width: 42, height: 42, borderRadius: 24 }}
+            />
+            <View className="flex-1">
+              <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
+                {item.name}
+              </Text>
+              <Text className="text-sm text-secondary dark:text-dark-secondary">
+                {item.role}
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row items-center gap-2">
+            {!isOwnerRole ? (
+              <TouchableOpacity
+                onPress={() => handleMessagePress(item.userId)}
+                disabled={creatingChatForUserId === item.userId}
+                className=" w-10 h-10 rounded-full flex-row justify-center items-center bg-[#E5F4FD]"
+              >
+                {creatingChatForUserId === item.userId ? (
+                  <ActivityIndicator size="small" color="#4FB2F3" />
+                ) : (
+                  <Image
+                    source={require("@/assets/images/messages-fill.svg")}
+                    contentFit="contain"
+                    style={{ width: 20, height: 20 }}
+                  />
+                )}
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity onPress={() => setShowWorkingHourSettingsModal(true)}>
+              <Entypo name="dots-three-vertical" size={18} color="#666" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View>
+          <View className="flex-row justify-between mt-4">
+            <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
+              Work Hours (Amount/Period)
             </Text>
-            <Text className="text-sm text-secondary dark:text-dark-secondary">
-              {item.role}
+            <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-semibold">
+              {formatWorkHourAmount(item.workHourAmount)} / {formatWorkHourPeriod(item.workHourPeriod)}
+            </Text>
+          </View>
+
+          <View className="flex-row justify-between mt-2.5">
+            <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
+              Location:
+            </Text>
+            <Text
+              className="text-primary dark:text-dark-primary text-sm font-proximanova-regular"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{ maxWidth: "60%", textAlign: "right" }}
+            >
+              {item.location}
             </Text>
           </View>
         </View>
-        <View className="flex-row items-center gap-2">
-          <TouchableOpacity className=" w-10 h-10 rounded-full flex-row justify-center items-center bg-[#E5F4FD]">
-            <Image
-              source={require("@/assets/images/messages-fill.svg")}
-              contentFit="contain"
-              style={{ width: 20, height: 20 }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Entypo name="dots-three-vertical" size={18} color="#666" />
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      <View>
-        <View className="flex-row justify-between mt-4">
-          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
-            Work Hour Period:
-          </Text>
-          <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
-            {formatWorkHourPeriod(item.workHourPeriod)}
-          </Text>
-        </View>
+        <Image
+          source={require("@/assets/images/dotted-line.svg")}
+          contentFit="contain"
+          style={{ width: "100%", height: 2, marginTop: 15 }}
+        />
 
-        <View className="flex-row justify-between mt-2.5">
-          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
-            Work Hour Amount:
-          </Text>
-          <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
-            {formatWorkHourAmount(item.workHourAmount)}
-          </Text>
-        </View>
-
-        <View className="flex-row justify-between mt-2.5">
-          <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
-            Location:
-          </Text>
-          <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-regular">
-            {item.location}
-          </Text>
-        </View>
-      </View>
-
-      <Image
-        source={require("@/assets/images/dotted-line.svg")}
-        contentFit="contain"
-        style={{ width: 360, height: 2, marginTop: 15 }}
-      />
-
-      <View className=" mt-2.5 flex-row items-center justify-between">
-        <TouchableOpacity
-          className="flex-row items-center gap-1"
-          onPress={() =>
-            router.push({
-              pathname: "/screens/jobs/business/user-profile-preview",
-              params: {
-                userId: item.userId,
-                ...(resolvedBusinessId ? { businessId: resolvedBusinessId } : {}),
-                canRate: "true",
-              },
-            })
-          }
-        >
-          <Text className="text-[#4FB2F3] text-sm font-proximanova-semibold">
-            View Profile
-          </Text>
-          <Ionicons name="arrow-forward" size={16} color="#4FB2F3" />
-        </TouchableOpacity>
-
-        <View className="flex-row items-center gap-4">
+        <View className=" mt-2.5 flex-row items-center justify-between">
           <TouchableOpacity
-            onPress={() => setShowWorkingHourSettingsModal(true)}
-            className="p-1"
+            className="flex-row items-center gap-1"
+            onPress={() =>
+              router.push({
+                pathname: "/screens/jobs/business/user-profile-preview",
+                params: {
+                  userId: item.userId,
+                  ...(resolvedBusinessId ? { businessId: resolvedBusinessId } : {}),
+                  canRate: "true",
+                },
+              })
+            }
           >
-            <AntDesign name="field-time" size={24} color="black" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setShowModal(true)}
-            className="bg-[#11293A] px-5 py-2 rounded-full"
-          >
-            <Text className="text-[#ffffff] text-sm font-proximanova-semibold">
-              Manage Role
+            <Text className="text-[#4FB2F3] text-sm font-proximanova-semibold">
+              View Profile
             </Text>
+            <Ionicons name="arrow-forward" size={16} color="#4FB2F3" />
           </TouchableOpacity>
+
+          <View className="flex-row items-center gap-4">
+            <TouchableOpacity
+              onPress={() => setShowWorkingHourSettingsModal(true)}
+              className="p-1"
+            >
+              <AntDesign name="field-time" size={24} color="black" />
+            </TouchableOpacity>
+
+            {!isOwnerRole ? (
+              <TouchableOpacity
+                onPress={() => openRoleModal(item.id)}
+                className="bg-[#11293A] px-5 py-2 rounded-full"
+              >
+                <Text className="text-[#ffffff] text-sm font-proximanova-semibold">
+                  Manage Role
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView
@@ -363,7 +475,11 @@ const ManageTeamPanel = () => {
       <AssignRoleModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        assignRole={assignRole}
+        assignRole={roles}
+        emptyStateText="No roles found on this business."
+        loading={rolesLoading}
+        onApply={handleApplyRole}
+        applying={assigningRole}
         selectedAssignRole={selectedAssignRole}
         setSelectedAssignRole={setSelectedAssignRole}
       />

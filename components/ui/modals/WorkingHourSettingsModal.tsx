@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../buttons/PrimaryButton";
-import TimePicker from "../inputs/TimePicker";
 
 const hourLimitData = [
   {
@@ -14,12 +13,13 @@ const hourLimitData = [
     name: "monthly",
   },
   {
-    name: "per-day",
+    name: "daily",
   },
 ];
 
 const WorkingHourSettingsModal: React.FC<any> = ({ visible, onClose }) => {
   const [selectCheck, setSelectCheck] = useState("");
+
   return (
     <Modal
       visible={visible}
@@ -73,11 +73,9 @@ const WorkingHourSettingsModal: React.FC<any> = ({ visible, onClose }) => {
                 </View>
               </View>
 
-              {/* time picker */}
+              {/* time input */}
               <View className="flex-row justify-between items-center mt-5 gap-2.5">
-                <TimePicker title="Min" />
 
-                <TimePicker title="mix" />
               </View>
 
               <PrimaryButton title="Apply" className="mt-6" />
