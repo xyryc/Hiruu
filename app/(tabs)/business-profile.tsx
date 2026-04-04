@@ -464,7 +464,7 @@ const BusinessProfile = () => {
             </View>
 
             {/* Team & Overview */}
-            <View className="mx-5 mt-8 flex-row gap-2.5">
+            <View className="mx-5 mt-8 flex-row gap-2.5 mb-4">
               <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
                 <Ionicons name="person-outline" size={18} color="black" />
               </View>
@@ -476,26 +476,19 @@ const BusinessProfile = () => {
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: "/screens/profile/business/employee-list",
-                  params: { businessId },
-                });
-              }}
-              className="flex-row justify-between items-center px-4 py-3 mx-5 my-4 border border-[#eeeeee] rounded-xl">
-              <View className="flex-row gap-2">
-                <Feather name="users" size={18} color="black" />
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Total Employee
+            <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
+              <View className="flex-row justify-between items-center p-2">
+                <View className="flex-row gap-2">
+                  <Feather name="users" size={16} color="black" />
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    Total Employee
+                  </Text>
+                </View>
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  {String(totalEmployeeCount).padStart(2, "0")}
                 </Text>
               </View>
-              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {String(totalEmployeeCount).padStart(2, "0")}
-              </Text>
-            </TouchableOpacity>
 
-            <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
               <View className="flex-row justify-between items-center p-2">
                 <View className="flex-row gap-2">
                   <MaterialCommunityIcons
