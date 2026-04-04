@@ -4,9 +4,18 @@ import { BarChart } from "react-native-gifted-charts";
 
 const { width } = Dimensions.get("window");
 
-const WorkHoursChart = () => {
-  const months = ["March", "April", "May", "June", "July", "August"];
-  const barData = [
+type WorkPatternPoint = {
+  date: string;
+  workedHours: number;
+  completedShifts?: number;
+};
+
+type WorkHoursChartProps = {
+  workPattern?: WorkPatternPoint[];
+};
+
+const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
+  const fallbackBarData = [
     {
       value: 5,
       label: "01\nMon",
@@ -72,6 +81,52 @@ const WorkHoursChart = () => {
     },
   ];
 
+  const hasPattern = Array.isArray(workPattern) && workPattern.length > 0;
+
+  const barData = hasPattern
+    ? workPattern.map((item, index) => {
+        const dateValue = new Date(item.date);
+        const dayLabel = Number.isNaN(dateValue.getTime())
+          ? `D${index + 1}`
+          : dateValue.toLocaleDateString("en-US", { weekday: "short" });
+        const dateLabel = Number.isNaN(dateValue.getTime())
+          ? String(index + 1).padStart(2, "0")
+          : String(dateValue.getDate()).padStart(2, "0");
+        const hours = Number(item.workedHours || 0);
+
+        return {
+          value: hours,
+          label: `${dateLabel}\n${dayLabel}`,
+          frontColor: "#93C5FD",
+          gradientColor: "#BFDBFE",
+          date: dateLabel,
+          day: dayLabel,
+          hours,
+        };
+      })
+    : fallbackBarData;
+
+  const monthHeaders = hasPattern
+    ? Array.from(
+        new Set(
+          workPattern
+            .map((item) => {
+              const dateValue = new Date(item.date);
+              if (Number.isNaN(dateValue.getTime())) return null;
+              return dateValue.toLocaleDateString("en-US", { month: "long" });
+            })
+            .filter(Boolean) as string[]
+        )
+      ).slice(0, 6)
+    : ["March", "April", "May", "June", "July", "August"];
+
+  const chartMax = Math.max(
+    6,
+    ...barData.map((item: any) =>
+      Number.isFinite(Number(item?.value)) ? Number(item.value) : 0
+    )
+  );
+
   const renderTooltip = (item: any) => {
     return (
       <View className="bg-[#E5F4FD] py-1.5 px-3 rounded-full">
@@ -86,7 +141,7 @@ const WorkHoursChart = () => {
     <View>
       {/* Month Headers */}
       <View className="flex-row justify-between mb-6">
-        {months.map((month, index) => (
+        {monthHeaders.map((month, index) => (
           <Text
             key={index}
             className="text-sm font-proximanova-regular text-primary dark:text-dark-primary"
@@ -125,7 +180,7 @@ const WorkHoursChart = () => {
         renderTooltip={renderTooltip}
         initialSpacing={10}
         endSpacing={10}
-        maxValue={18}
+        maxValue={chartMax}
         stepValue={6}
         yAxisLabelPrefix=""
         yAxisLabelSuffix=" Hr"

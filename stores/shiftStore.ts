@@ -67,6 +67,27 @@ type ShiftStoreState = {
   rejectShiftRequestError: string | null;
   createShiftReportLoading: boolean;
   createShiftReportError: string | null;
+  getTrackHoursAnalytics: (params?: {
+    startDate?: string;
+    endDate?: string;
+  }) => Promise<{
+    status?: string;
+    period?: {
+      startDate?: string;
+      endDate?: string;
+      totalDays?: number;
+    };
+    summary?: {
+      totalHours?: number;
+      completedShifts?: number;
+      overHours?: number;
+    };
+    workPattern?: Array<{
+      date: string;
+      workedHours: number;
+      completedShifts: number;
+    }>;
+  } | null>;
   fetchMyShifts: (date?: string) => Promise<any[]>;
   fetchHomeShifts: (businessIds?: string[]) => Promise<any[]>;
   fetchBusinessAssignments: (
@@ -770,6 +791,32 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         createShiftReportLoading: false,
         createShiftReportError: message,
       });
+      throw new Error(message);
+    }
+  },
+
+  getTrackHoursAnalytics: async (params) => {
+    try {
+      const response = await axiosInstance.get("/analytics/track-hours", {
+        params: {
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to load track hours analytics"
+        );
+      }
+
+      return result?.data || null;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load track hours analytics";
       throw new Error(message);
     }
   },

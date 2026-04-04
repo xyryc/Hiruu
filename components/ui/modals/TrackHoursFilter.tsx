@@ -4,29 +4,53 @@ import React, { useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const TrackHoursFilter = ({ visible, onClose }: any) => {
+export type TrackHoursTimeframe =
+  | "all_time"
+  | "this_week"
+  | "this_month"
+  | "last_six_month"
+  | "this_year";
+
+type TrackHoursFilterProps = {
+  visible: boolean;
+  onClose: () => void;
+  onSelectTimeframe?: (timeframe: TrackHoursTimeframe) => void;
+  selectedTimeframe?: TrackHoursTimeframe;
+};
+
+const TrackHoursFilter = ({
+  visible,
+  onClose,
+  onSelectTimeframe,
+  selectedTimeframe,
+}: TrackHoursFilterProps) => {
   const handleDone = () => {
     onClose();
   };
 
   const timefreameData = [
     {
+      key: "all_time" as const,
       name: "all time",
       id: 1,
     },
     {
+      key: "this_week" as const,
       name: "this week",
       id: 2,
     },
     {
+      key: "this_month" as const,
       name: "this month",
       id: 3,
     },
     {
+      key: "last_six_month" as const,
       name: "last six month",
       id: 4,
     },
     {
+      key: "this_year" as const,
       name: "this year",
       id: 5,
     },
@@ -34,11 +58,10 @@ const TrackHoursFilter = ({ visible, onClose }: any) => {
 
   const [isSelectTime, setIsSelectTime] = useState<number>(0);
 
-  const handleSelected = (index: number) => {
+  const handleSelected = (index: number, timeframe: TrackHoursTimeframe) => {
     setIsSelectTime(index);
-    setTimeout(() => {
-      onClose();
-    }, 500);
+    onSelectTimeframe?.(timeframe);
+    onClose();
   };
 
   return (
@@ -73,15 +96,27 @@ const TrackHoursFilter = ({ visible, onClose }: any) => {
                 <View className="">
                   {timefreameData.map((item, index) => (
                     <TouchableOpacity
-                      onPress={() => handleSelected(index)}
+                      onPress={() => handleSelected(index, item.key)}
                       key={index}
                       className={`items-center py-2.5 ${index === 0 || "border-t border-[#EEEEEE]"}`}
                     >
                       <View
-                        className={`  py-3 px-5  ${isSelectTime === index ? "bg-[#4FB2F3] rounded-full" : ""} `}
+                        className={`py-3 px-5 ${
+                          (selectedTimeframe
+                            ? selectedTimeframe === item.key
+                            : isSelectTime === index)
+                            ? "bg-[#4FB2F3] rounded-full"
+                            : ""
+                        }`}
                       >
                         <Text
-                          className={`capitalize text-center font-proximanova-semibold  ${isSelectTime === index ? "text-white " : "text-primary dark:text-dark-primary"} `}
+                          className={`capitalize text-center font-proximanova-semibold ${
+                            (selectedTimeframe
+                              ? selectedTimeframe === item.key
+                              : isSelectTime === index)
+                              ? "text-white "
+                              : "text-primary dark:text-dark-primary"
+                          }`}
                         >
                           {item.name}
                         </Text>

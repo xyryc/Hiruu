@@ -5,7 +5,10 @@ import ActionCard from "@/components/ui/cards/ActionCard";
 import ShiftLogCard from "@/components/ui/cards/ShiftLogCard";
 import TaskCard from "@/components/ui/cards/TaskCard";
 import WorkHoursChart from "@/components/ui/cards/WorkHourChart";
-import TrackHoursFilter from "@/components/ui/modals/TrackHoursFilter";
+import TrackHoursFilter, {
+  TrackHoursTimeframe,
+} from "@/components/ui/modals/TrackHoursFilter";
+import { useShiftStore } from "@/stores/shiftStore";
 import {
   Entypo,
   Feather,
@@ -14,9 +17,65 @@ import {
 } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+const formatDateParam = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getDateRangeByTimeframe = (
+  timeframe: TrackHoursTimeframe
+): { startDate?: string; endDate?: string } => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (timeframe === "all_time") return {};
+
+  if (timeframe === "this_month") {
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return {
+      startDate: formatDateParam(start),
+      endDate: formatDateParam(end),
+    };
+  }
+
+  if (timeframe === "this_week") {
+    const day = today.getDay(); // 0 = Sunday
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const start = new Date(today);
+    start.setDate(today.getDate() - diffToMonday);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return {
+      startDate: formatDateParam(start),
+      endDate: formatDateParam(end),
+    };
+  }
+
+  if (timeframe === "last_six_month") {
+    const start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return {
+      startDate: formatDateParam(start),
+      endDate: formatDateParam(end),
+    };
+  }
+
+  // this_year
+  const start = new Date(today.getFullYear(), 0, 1);
+  const end = new Date(today.getFullYear(), 11, 31);
+  return {
+    startDate: formatDateParam(start),
+    endDate: formatDateParam(end),
+  };
+};
 
 const TrackHours = () => {
   const handleLogin = () => {
@@ -25,6 +84,83 @@ const TrackHours = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isModal, setIsModal] = useState(false);
+  const [selectedTimeframe, setSelectedTimeframe] =
+    useState<TrackHoursTimeframe>("all_time");
+  const getTrackHoursAnalytics = useShiftStore((s) => s.getTrackHoursAnalytics);
+  const [summary, setSummary] = useState<{
+    totalHours: number;
+    completedShifts: number;
+    overHours: number;
+  }>({
+    totalHours: 0,
+    completedShifts: 0,
+    overHours: 0,
+  });
+  const [workPattern, setWorkPattern] = useState<
+    Array<{ date: string; workedHours: number; completedShifts: number }>
+  >([]);
+
+  const loadTrackHours = useCallback(
+    async (timeframe: TrackHoursTimeframe) => {
+      try {
+        const analytics = await getTrackHoursAnalytics(
+          getDateRangeByTimeframe(timeframe)
+        );
+
+        if (!analytics) return;
+
+        setSummary({
+          totalHours:
+            typeof analytics?.summary?.totalHours === "number"
+              ? analytics.summary.totalHours
+              : 0,
+          completedShifts:
+            typeof analytics?.summary?.completedShifts === "number"
+              ? analytics.summary.completedShifts
+              : 0,
+          overHours:
+            typeof analytics?.summary?.overHours === "number"
+              ? analytics.summary.overHours
+              : 0,
+        });
+
+        setWorkPattern(
+          Array.isArray(analytics?.workPattern)
+            ? analytics.workPattern.map((item: any) => ({
+              date: String(item?.date || ""),
+              workedHours:
+                typeof item?.workedHours === "number" ? item.workedHours : 0,
+              completedShifts:
+                typeof item?.completedShifts === "number"
+                  ? item.completedShifts
+                  : 0,
+            }))
+            : []
+        );
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load track hours");
+      }
+    },
+    [getTrackHoursAnalytics]
+  );
+
+  useEffect(() => {
+    void loadTrackHours(selectedTimeframe);
+  }, [loadTrackHours, selectedTimeframe]);
+
+  const handleSelectTimeframe = (timeframe: TrackHoursTimeframe) => {
+    setSelectedTimeframe(timeframe);
+  };
+
+  const totalHoursLabel = useMemo(
+    () => `${Number(summary.totalHours || 0).toFixed(0)}h`,
+    [summary.totalHours]
+  );
+
+  const overHoursLabel = useMemo(
+    () => `${Number(summary.overHours || 0).toFixed(0)}h`,
+    [summary.overHours]
+  );
 
   return (
     <SafeAreaView
@@ -76,7 +212,7 @@ const TrackHours = () => {
                   Total Hours
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  32h 45m
+                  {totalHoursLabel}
                 </Text>
               </View>
 
@@ -88,10 +224,10 @@ const TrackHours = () => {
 
                 {/* Text Labels */}
                 <Text className="mt-1.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Total Hours
+                  Completed Shift
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  32h 45m
+                  {summary.completedShifts}
                 </Text>
               </View>
 
@@ -103,10 +239,10 @@ const TrackHours = () => {
 
                 {/* Text Labels */}
                 <Text className="mt-1.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Total Hours
+                  Over Hours
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  32h 45m
+                  {overHoursLabel}
                 </Text>
               </View>
             </View>
@@ -203,13 +339,13 @@ const TrackHours = () => {
               Your Work Pattern
             </Text>
 
-            <WorkHoursChart />
+            <WorkHoursChart workPattern={workPattern} />
           </View>
 
           {/* token */}
           <View className="mt-8">
             <ActionCard
-              title="Shows  Earned  Tokens  This  Week !"
+              title="Shows Earned Tokens This Week"
               buttonTitle="View"
               rightImage={require("@/assets/images/engagement.svg")}
               imageClass="right-4.5 -bottom-5"
@@ -223,7 +359,12 @@ const TrackHours = () => {
           </View>
         </View>
 
-        <TrackHoursFilter visible={isModal} onClose={() => setIsModal(false)} />
+        <TrackHoursFilter
+          visible={isModal}
+          onClose={() => setIsModal(false)}
+          selectedTimeframe={selectedTimeframe}
+          onSelectTimeframe={handleSelectTimeframe}
+        />
       </ScrollView>
     </SafeAreaView>
   );
