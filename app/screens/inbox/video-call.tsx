@@ -11,7 +11,7 @@ const VideoCallScreen = () => {
     joining,
     callStatusText,
     participantsCount,
-    remoteVideoUid,
+    remoteVideoUids,
     cameraOff,
     localJoinedAgora,
     RemoteVideoView,
@@ -36,7 +36,7 @@ const VideoCallScreen = () => {
       <StatusBar barStyle="light-content" />
 
       <VideoCallStage
-        remoteVideoUid={remoteVideoUid}
+        remoteVideoUids={remoteVideoUids}
         cameraOff={cameraOff}
         localJoinedAgora={localJoinedAgora}
         RemoteVideoView={RemoteVideoView}

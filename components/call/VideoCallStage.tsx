@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 import { RenderModeType, VideoSourceType } from "react-native-agora";
 
 type Props = {
-  remoteVideoUid: number | null;
+  remoteVideoUids: number[];
   cameraOff: boolean;
   localJoinedAgora: boolean;
   RemoteVideoView: any;
@@ -11,23 +11,45 @@ type Props = {
 };
 
 const VideoCallStage = ({
-  remoteVideoUid,
+  remoteVideoUids,
   cameraOff,
   localJoinedAgora,
   RemoteVideoView,
   LocalVideoView,
 }: Props) => {
+  const remoteCount = remoteVideoUids.length;
+  const columns = remoteCount <= 1 ? 1 : remoteCount <= 4 ? 2 : 3;
+  const rows = Math.max(1, Math.ceil(remoteCount / columns));
+  const tileWidth = `${100 / columns}%` as const;
+  const tileHeight = `${100 / rows}%` as const;
+
   return (
     <View className="absolute inset-0">
-      {remoteVideoUid !== null ? (
-        <RemoteVideoView
-          canvas={{
-            uid: remoteVideoUid,
-            renderMode: RenderModeType.RenderModeHidden,
-            sourceType: VideoSourceType.VideoSourceRemote,
-          }}
-          style={{ flex: 1 }}
-        />
+      {remoteCount > 0 ? (
+        <View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap" }}>
+          {remoteVideoUids.map((uid) => (
+            <View
+              key={uid}
+              style={{
+                width: tileWidth,
+                height: tileHeight,
+                borderWidth: 0.5,
+                borderColor: "rgba(255,255,255,0.25)",
+                overflow: "hidden",
+                backgroundColor: "#000000",
+              }}
+            >
+              <RemoteVideoView
+                canvas={{
+                  uid,
+                  renderMode: RenderModeType.RenderModeHidden,
+                  sourceType: VideoSourceType.VideoSourceRemote,
+                }}
+                style={{ flex: 1 }}
+              />
+            </View>
+          ))}
+        </View>
       ) : (
         <View className="flex-1 items-center justify-center bg-black">
           <Text className="font-proximanova-regular text-[#CBD5E1]">Waiting for video...</Text>

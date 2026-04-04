@@ -61,7 +61,7 @@ export const useCallSession = () => {
   const [callType, setCallType] = useState<"audio" | "video">(initialCallType);
   const [cameraOff, setCameraOff] = useState(initialCallType !== "video");
   const [localJoinedAgora, setLocalJoinedAgora] = useState(false);
-  const [remoteVideoUid, setRemoteVideoUid] = useState<number | null>(null);
+  const [remoteVideoUids, setRemoteVideoUids] = useState<number[]>([]);
 
   const hasLeftRef = useRef(false);
   const hasClosedRef = useRef(false);
@@ -151,7 +151,7 @@ export const useCallSession = () => {
       agoraEngineRef.current = null;
       joinedAgoraChannelRef.current = false;
       remoteUidsRef.current.clear();
-      setRemoteVideoUid(null);
+      setRemoteVideoUids([]);
       setLocalJoinedAgora(false);
     }
   };
@@ -227,8 +227,8 @@ export const useCallSession = () => {
           const parsedRemoteUid = Number(remoteUid || 0);
           if (!parsedRemoteUid) return;
           remoteUidsRef.current.add(parsedRemoteUid);
+          setRemoteVideoUids(Array.from(remoteUidsRef.current));
           if (isVideoCall) {
-            setRemoteVideoUid(parsedRemoteUid);
             engine.muteRemoteVideoStream?.(parsedRemoteUid, false);
             engine.setupRemoteVideo?.({
               uid: parsedRemoteUid,
@@ -249,7 +249,7 @@ export const useCallSession = () => {
           const parsedRemoteUid = Number(remoteUid || 0);
           if (!parsedRemoteUid) return;
           remoteUidsRef.current.delete(parsedRemoteUid);
-          setRemoteVideoUid((prev) => (prev === parsedRemoteUid ? null : prev));
+          setRemoteVideoUids(Array.from(remoteUidsRef.current));
           if (remoteUidsRef.current.size === 0) setRemoteJoined(false);
           setParticipantsCount(Math.max(1, remoteUidsRef.current.size + 1));
         },
@@ -467,10 +467,6 @@ export const useCallSession = () => {
             setRemoteJoined(true);
             setJoining(false);
           }
-
-          if (status === "declined" || status === "missed" || status === "left") {
-            closeCallScreen();
-          }
         };
 
         const closeOnRemoteLeave = (payload: any) => {
@@ -478,7 +474,7 @@ export const useCallSession = () => {
           const eventCallId = payload?.callId;
           if (!mounted || !participantId || participantId === user.id) return;
           if (eventCallId && eventCallId !== callId) return;
-          closeCallScreen();
+          // Count is derived from participant snapshots/polling.
         };
 
         onParticipantLeft = closeOnRemoteLeave;
@@ -696,7 +692,7 @@ export const useCallSession = () => {
     joining,
     callStatusText,
     participantsCount,
-    remoteVideoUid,
+    remoteVideoUids,
     cameraOff,
     localJoinedAgora,
     RemoteVideoView,
