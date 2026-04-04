@@ -262,6 +262,40 @@ class ChatService {
       throw new Error(error?.message || "Failed to open support chat");
     }
   }
+
+  async blockUser(userId: string): Promise<any> {
+    try {
+      const response = await axiosInstance.post("/users/block", { userId });
+      const result = response.data;
+
+      if (!this.isApiSuccess(result)) {
+        throw new Error(result?.message || "Failed to block user");
+      }
+
+      return result;
+    } catch (error: any) {
+      throw new Error(
+        error?.response?.data?.message || error?.message || "Failed to block user"
+      );
+    }
+  }
+
+  async unblockUser(userId: string): Promise<any> {
+    try {
+      const response = await axiosInstance.post("/users/unblock", { userId });
+      const result = response.data;
+
+      if (!this.isApiSuccess(result)) {
+        throw new Error(result?.message || "Failed to unblock user");
+      }
+
+      return result;
+    } catch (error: any) {
+      throw new Error(
+        error?.response?.data?.message || error?.message || "Failed to unblock user"
+      );
+    }
+  }
 }
 
 export const chatService = new ChatService();

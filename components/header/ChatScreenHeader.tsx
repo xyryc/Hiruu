@@ -10,6 +10,9 @@ interface ChatScreenHeaderProps {
   onAudioCallPress?: () => void;
   onVideoCallPress?: () => void;
   onSeeProfilePress?: () => void;
+  onToggleBlockUserPress?: () => void;
+  isBlocked?: boolean;
+  isTogglingBlockUser?: boolean;
   isStartingAudioCall?: boolean;
   isStartingVideoCall?: boolean;
 }
@@ -21,6 +24,9 @@ const ChatScreenHeader = ({
   onAudioCallPress,
   onVideoCallPress,
   onSeeProfilePress,
+  onToggleBlockUserPress,
+  isBlocked = false,
+  isTogglingBlockUser = false,
   isStartingAudioCall = false,
   isStartingVideoCall = false,
 }: ChatScreenHeaderProps) => {
@@ -65,7 +71,7 @@ const ChatScreenHeader = ({
         <TouchableOpacity
           className="w-10 h-10 items-center justify-center rounded-full bg-[#F5F5F5] border-[0.5px] border-[#B2B1B165]"
           onPress={onAudioCallPress}
-          disabled={isStartingAudioCall}
+          disabled={isStartingAudioCall || isBlocked}
         >
           {isStartingAudioCall ? (
             <ActivityIndicator size="small" color="#111111" />
@@ -77,7 +83,7 @@ const ChatScreenHeader = ({
         <TouchableOpacity
           className="w-10 h-10 items-center justify-center rounded-full bg-[#F5F5F5] border-[0.5px] border-[#b2b1b165]"
           onPress={onVideoCallPress}
-          disabled={isStartingVideoCall}
+          disabled={isStartingVideoCall || isBlocked}
         >
           {isStartingVideoCall ? (
             <ActivityIndicator size="small" color="#111111" />
@@ -92,9 +98,9 @@ const ChatScreenHeader = ({
           </TouchableOpacity>
 
           {showMenu ? (
-            <View className="absolute top-8 right-0 z-50 w-44 rounded-xl bg-white shadow-sm">
+            <View className="absolute top-8 right-0 z-50 w-44 rounded-xl bg-white shadow-sm border border-gray-200">
               <TouchableOpacity
-                className="px-4 py-3 border-b-hairline"
+                className="px-4 py-3 border-b border-gray-200"
                 onPress={() => {
                   setShowMenu(false);
                   onSeeProfilePress?.();
@@ -105,9 +111,22 @@ const ChatScreenHeader = ({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="px-4 py-3 border-b-hairline">
+              <TouchableOpacity
+                className="px-4 py-3 border-b border-gray-200"
+                onPress={() => {
+                  setShowMenu(false);
+                  onToggleBlockUserPress?.();
+                }}
+                disabled={!onToggleBlockUserPress || isTogglingBlockUser}
+              >
                 <Text className="text-sm font-proximanova-regular text-primary">
-                  Block user
+                  {isTogglingBlockUser
+                    ? isBlocked
+                      ? "Unblocking..."
+                      : "Blocking..."
+                    : isBlocked
+                      ? "Unblock user"
+                      : "Block user"}
                 </Text>
               </TouchableOpacity>
 

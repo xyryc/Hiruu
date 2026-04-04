@@ -152,6 +152,8 @@
     "achievement_unlocked_body": "You unlocked a new achievement.",
     "coins_earned_title": "Coins earned",
     "coins_earned_body": "You earned coins from the leaderboard.",
+    "chat_user_blocked_successfully": "User blocked successfully.",
+    "chat_user_unblocked_successfully": "User unblocked successfully.",
     "business_announcement_title": "Business update",
     "business_announcement_body": "There is a new update from your business.",
     "recruitment_has_applications": "This job cannot be deleted because it already has applications."

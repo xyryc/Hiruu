@@ -8,7 +8,7 @@ class SocketService {
     private isConnecting: boolean = false;
     private isCallsConnecting: boolean = false;
 
-    async connect(): Promise<Socket> {
+    async connect(): Promise<Socket | null> {
         // Return existing connection
         if (this.socket?.connected) {
             return this.socket;
@@ -19,7 +19,7 @@ class SocketService {
             // Wait for existing connection attempt
             return new Promise((resolve) => {
                 const checkInterval = setInterval(() => {
-                    if (!this.isConnecting && this.socket) {
+                    if (!this.isConnecting) {
                         clearInterval(checkInterval);
                         resolve(this.socket);
                     }
@@ -69,7 +69,7 @@ class SocketService {
         } catch (error) {
             console.error('❌ Failed to connect socket:', error);
             this.isConnecting = false;
-            throw error;
+            return null;
         }
     }
 
@@ -95,7 +95,7 @@ class SocketService {
         return this.socket?.connected || false;
     }
 
-    async connectCalls(): Promise<Socket> {
+    async connectCalls(): Promise<Socket | null> {
         if (this.callsSocket?.connected) {
             return this.callsSocket;
         }
@@ -103,7 +103,7 @@ class SocketService {
         if (this.isCallsConnecting) {
             return new Promise((resolve) => {
                 const checkInterval = setInterval(() => {
-                    if (!this.isCallsConnecting && this.callsSocket) {
+                    if (!this.isCallsConnecting) {
                         clearInterval(checkInterval);
                         resolve(this.callsSocket);
                     }
@@ -147,7 +147,8 @@ class SocketService {
             return this.callsSocket;
         } catch (error) {
             this.isCallsConnecting = false;
-            throw error;
+            console.error('Calls socket connection failed:', error);
+            return null;
         }
     }
 

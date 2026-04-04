@@ -59,6 +59,7 @@ const ChatScreen = () => {
   const [chatAvatar, setChatAvatar] = useState<string | null>(null);
   const [chatIsOnline, setChatIsOnline] = useState<boolean | undefined>(undefined);
   const [roomDetails, setRoomDetails] = useState<any>(null);
+  const [isBlockingUser, setIsBlockingUser] = useState(false);
   const messagesListRef = useRef<FlatList<any> | null>(null);
   const previousMessageCountRef = useRef(0);
   const didInitialScrollRef = useRef(false);
@@ -194,6 +195,32 @@ const ChatScreen = () => {
     if (roomType === "business_group") return false;
     return Boolean(linkedRecruitment);
   }, [linkedRecruitment, roomDetails?.type]);
+
+  const targetParticipantUserId = useMemo(() => {
+    const participants = Array.isArray(roomDetails?.participants)
+      ? roomDetails.participants
+      : [];
+    const otherParticipant = participants.find(
+      (participant: any) => participant?.userId && participant.userId !== user?.id
+    );
+    return otherParticipant?.userId || otherParticipant?.user?.id || null;
+  }, [roomDetails?.participants, user?.id]);
+
+  const canBlockUser = useMemo(() => {
+    return String(roomDetails?.type || "").toLowerCase() === "direct" && Boolean(targetParticipantUserId);
+  }, [roomDetails?.type, targetParticipantUserId]);
+
+  const blockStatus = useMemo(() => {
+    return roomDetails?.blockStatus || null;
+  }, [roomDetails?.blockStatus]);
+
+  const isBlocked = useMemo(() => {
+    return Boolean(blockStatus?.isBlocked);
+  }, [blockStatus?.isBlocked]);
+
+  const blockedByMe = useMemo(() => {
+    return String(blockStatus?.status || "").toLowerCase() === "sent";
+  }, [blockStatus?.status]);
 
   // IMPORTANT: Always call useChat hook unconditionally
   // Pass empty string if roomId not ready yet
@@ -764,6 +791,48 @@ const ChatScreen = () => {
     });
   }, [actualRoomId, roomDetails?.participants, router, user?.id]);
 
+  const handleToggleBlockUser = useCallback(async () => {
+    if (!targetParticipantUserId) {
+      toast.error("User information is unavailable");
+      return;
+    }
+
+    try {
+      setIsBlockingUser(true);
+      const result = blockedByMe
+        ? await chatService.unblockUser(String(targetParticipantUserId))
+        : await chatService.blockUser(String(targetParticipantUserId));
+      toast.success(
+        translateApiMessage(
+          result?.message ||
+          (blockedByMe
+            ? "chat_user_unblocked_successfully"
+            : "chat_user_blocked_successfully")
+        )
+      );
+
+      setRoomDetails((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          blockStatus: blockedByMe
+            ? { status: "none", isBlocked: false, targetUserId: targetParticipantUserId }
+            : { status: "sent", isBlocked: true, targetUserId: targetParticipantUserId },
+        };
+      });
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+          error?.message ||
+          (blockedByMe ? "Failed to unblock user" : "Failed to block user")
+        )
+      );
+    } finally {
+      setIsBlockingUser(false);
+    }
+  }, [blockedByMe, targetParticipantUserId]);
+
   const scrollToBottom = useCallback((animated: boolean) => {
     const list = messagesListRef.current;
     if (!list) return;
@@ -886,8 +955,11 @@ const ChatScreen = () => {
             onAudioCallPress={handleStartAudioCall}
             onVideoCallPress={handleStartVideoCall}
             onSeeProfilePress={handleSeeProfile}
+            onToggleBlockUserPress={canBlockUser ? handleToggleBlockUser : undefined}
+            isBlocked={isBlocked}
             isStartingAudioCall={startingAudioCall}
             isStartingVideoCall={startingVideoCall}
+            isTogglingBlockUser={isBlockingUser}
           />
 
           {/* Connection Status */}
@@ -898,6 +970,15 @@ const ChatScreen = () => {
               </Text>
             </View>
           )}
+          {isBlocked ? (
+            <View className="bg-[#FEF3C7] px-4 py-2">
+              <Text className="text-xs text-[#92400E] text-center font-proximanova-regular">
+                {blockedByMe
+                  ? "You blocked this user. Unblock to continue chatting."
+                  : "You cannot send messages in this chat."}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Job Card */}
           {shouldShowJobCard ? (
@@ -976,7 +1057,7 @@ const ChatScreen = () => {
             onTyping={handleTyping}
             onStopTyping={handleStopTyping}
             isSending={sending}
-            disabled={!connected}
+            disabled={!connected || isBlocked}
           />
         </View>
       </KeyboardAvoidingView>
