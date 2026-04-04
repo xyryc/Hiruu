@@ -92,6 +92,7 @@
     "shift_template_deleted_successfully": "Το πρότυπο βάρδιας διαγράφηκε με επιτυχία.",
     "cannot_delete_shift_template_with_existing_assignments": "Αυτό το πρότυπο βάρδιας δεν μπορεί να διαγραφεί επειδή έχει ήδη αναθέσεις.",
     "profile_updated_successfully": "Το προφίλ ενημερώθηκε με επιτυχία.",
+    "employment_updated_successfully": "Η απασχόληση ενημερώθηκε με επιτυχία.",
     "preferences_updated_successfully": "Οι προτιμήσεις ενημερώθηκαν με επιτυχία.",
     "active_subscription_retrieved_successfully": "Η ενεργή συνδρομή ανακτήθηκε με επιτυχία.",
     "subscription_cancelled_successfully": "Η συνδρομή ακυρώθηκε με επιτυχία.",

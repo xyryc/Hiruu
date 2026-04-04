@@ -4,6 +4,7 @@ import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettings
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -49,6 +50,15 @@ const ManageTeamPanel = () => {
   const [selectedAssignRole, setSelectedAssignRole] = useState<string>();
   const [showWorkingHourSettingsModal, setShowWorkingHourSettingsModal] =
     useState(false);
+  const [selectedWorkingHourEmploymentId, setSelectedWorkingHourEmploymentId] =
+    useState<string | null>(null);
+  const [selectedWorkingHourPeriod, setSelectedWorkingHourPeriod] = useState<
+    string | null
+  >(null);
+  const [selectedWorkingHourAmount, setSelectedWorkingHourAmount] = useState<
+    number | null
+  >(null);
+  const [updatingWorkHours, setUpdatingWorkHours] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
@@ -236,6 +246,83 @@ const ManageTeamPanel = () => {
     }
   };
 
+  const openWorkingHourModal = (item: TeamMember) => {
+    setSelectedWorkingHourEmploymentId(item.id);
+    setSelectedWorkingHourPeriod(item.workHourPeriod);
+    setSelectedWorkingHourAmount(item.workHourAmount);
+    setShowWorkingHourSettingsModal(true);
+  };
+
+  const handleApplyWorkingHours = async (payload: {
+    workHourPeriod: string | null;
+    workHourAmount: number | null;
+  }) => {
+    if (!selectedWorkingHourEmploymentId) {
+      toast.error(translateApiMessage("Employee information is unavailable"));
+      return;
+    }
+    if (!payload.workHourPeriod || payload.workHourAmount == null) {
+      toast.error(translateApiMessage("Please provide work hour period and amount."));
+      return;
+    }
+
+    const previousTeam = teamMembers;
+    setTeamMembers((prev) =>
+      prev.map((member) =>
+        member.id === selectedWorkingHourEmploymentId
+          ? {
+              ...member,
+              workHourPeriod: payload.workHourPeriod,
+              workHourAmount: payload.workHourAmount,
+            }
+          : member
+      )
+    );
+
+    try {
+      setUpdatingWorkHours(true);
+      const response = await axiosInstance.put(
+        `/employment/employees/${selectedWorkingHourEmploymentId}`,
+        payload
+      );
+      const result = response?.data;
+
+      const updatedEmployment = result?.data;
+      if (updatedEmployment?.id) {
+        setTeamMembers((prev) =>
+          prev.map((member) =>
+            member.id === String(updatedEmployment.id)
+              ? {
+                  ...member,
+                  workHourPeriod:
+                    typeof updatedEmployment?.workHourPeriod === "string"
+                      ? updatedEmployment.workHourPeriod
+                      : member.workHourPeriod,
+                  workHourAmount:
+                    typeof updatedEmployment?.workHourAmount === "number" &&
+                    Number.isFinite(updatedEmployment.workHourAmount)
+                      ? updatedEmployment.workHourAmount
+                      : member.workHourAmount,
+                }
+              : member
+          )
+        );
+      }
+
+      toast.success(
+        translateApiMessage(result?.message || "employment_updated_successfully")
+      );
+      setShowWorkingHourSettingsModal(false);
+    } catch (error: any) {
+      setTeamMembers(previousTeam);
+      toast.error(
+        translateApiMessage(error?.response?.data?.message || error?.message)
+      );
+    } finally {
+      setUpdatingWorkHours(false);
+    }
+  };
+
   const handleMessagePress = async (participantId: string) => {
     if (!participantId) {
       toast.error(translateApiMessage("User information is unavailable"));
@@ -300,7 +387,7 @@ const ManageTeamPanel = () => {
                 )}
               </TouchableOpacity>
             ) : null}
-            <TouchableOpacity onPress={() => setShowWorkingHourSettingsModal(true)}>
+            <TouchableOpacity onPress={() => openWorkingHourModal(item)}>
               <Entypo name="dots-three-vertical" size={18} color="#666" />
             </TouchableOpacity>
           </View>
@@ -359,7 +446,7 @@ const ManageTeamPanel = () => {
 
           <View className="flex-row items-center gap-4">
             <TouchableOpacity
-              onPress={() => setShowWorkingHourSettingsModal(true)}
+              onPress={() => openWorkingHourModal(item)}
               className="p-1"
             >
               <AntDesign name="field-time" size={24} color="black" />
@@ -470,6 +557,10 @@ const ManageTeamPanel = () => {
       <WorkingHourSettingsModal
         visible={showWorkingHourSettingsModal}
         onClose={() => setShowWorkingHourSettingsModal(false)}
+        initialPeriod={selectedWorkingHourPeriod}
+        initialAmount={selectedWorkingHourAmount}
+        onApply={handleApplyWorkingHours}
+        applying={updatingWorkHours}
       />
 
       <AssignRoleModal
