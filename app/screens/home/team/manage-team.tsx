@@ -349,6 +349,22 @@ const ManageTeamPanel = () => {
     }
   };
 
+  const openUserProfile = (userId: string) => {
+    if (!userId) {
+      toast.error(translateApiMessage("Employee information is unavailable"));
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId,
+        ...(resolvedBusinessId ? { businessId: resolvedBusinessId } : {}),
+        canRate: resolvedBusinessId ? "true" : "false",
+      },
+    });
+  };
+
   const renderTeamMember = ({ item }: { item: TeamMember }) => {
     const isOwnerRole = item.role.trim().toLowerCase() === "owner";
     return (
@@ -427,16 +443,7 @@ const ManageTeamPanel = () => {
         <View className=" mt-2.5 flex-row items-center justify-between">
           <TouchableOpacity
             className="flex-row items-center gap-1"
-            onPress={() =>
-              router.push({
-                pathname: "/screens/jobs/business/user-profile-preview",
-                params: {
-                  userId: item.userId,
-                  ...(resolvedBusinessId ? { businessId: resolvedBusinessId } : {}),
-                  canRate: "true",
-                },
-              })
-            }
+            onPress={() => openUserProfile(item.userId)}
           >
             <Text className="text-[#4FB2F3] text-sm font-proximanova-semibold">
               View Profile
