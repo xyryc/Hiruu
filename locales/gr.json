@@ -154,6 +154,8 @@
     "coins_earned_body": "Κέρδισες νομίσματα από τον πίνακα κατάταξης.",
     "chat_user_blocked_successfully": "Ο χρήστης αποκλείστηκε με επιτυχία.",
     "chat_user_unblocked_successfully": "Η άρση αποκλεισμού χρήστη ολοκληρώθηκε με επιτυχία.",
+    "chat_chat_room_hard_deleted_successfully": "Η συνομιλία διαγράφηκε με επιτυχία.",
+    "chat_you_are_not_a_participant_in_this_chat_room": "Δεν είστε συμμετέχων σε αυτή τη συνομιλία.",
     "business_announcement_title": "Ενημέρωση επιχείρησης",
     "business_announcement_body": "Υπάρχει νέα ενημέρωση από την επιχείρησή σου.",
     "recruitment_has_applications": "Αυτή η θέση δεν μπορεί να διαγραφεί επειδή έχει ήδη αιτήσεις."

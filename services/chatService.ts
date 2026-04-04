@@ -8,6 +8,8 @@ export interface ChatUploadMedia {
 }
 
 class ChatService {
+  private roomDeletedListeners = new Set<(roomId: string) => void>();
+
   private extractRoomId(payload: any): string {
     return (
       payload?.id ||
@@ -263,6 +265,19 @@ class ChatService {
     }
   }
 
+  onRoomDeleted(callback: (roomId: string) => void): () => void {
+    this.roomDeletedListeners.add(callback);
+    return () => {
+      this.roomDeletedListeners.delete(callback);
+    };
+  }
+
+  private emitRoomDeleted(roomId: string) {
+    for (const listener of this.roomDeletedListeners) {
+      listener(roomId);
+    }
+  }
+
   async blockUser(userId: string): Promise<any> {
     try {
       const response = await axiosInstance.post("/users/block", { userId });
@@ -293,6 +308,25 @@ class ChatService {
     } catch (error: any) {
       throw new Error(
         error?.response?.data?.message || error?.message || "Failed to unblock user"
+      );
+    }
+  }
+
+  async hardDeleteChatRoom(roomId: string): Promise<any> {
+    try {
+      const response = await axiosInstance.delete(`/chat/rooms/${roomId}/hard-delete`);
+      const result = response.data;
+
+      if (!this.isApiSuccess(result)) {
+        throw new Error(result?.message || "Failed to delete conversation");
+      }
+
+      this.emitRoomDeleted(roomId);
+
+      return result;
+    } catch (error: any) {
+      throw new Error(
+        error?.response?.data?.message || error?.message || "Failed to delete conversation"
       );
     }
   }

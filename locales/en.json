@@ -154,6 +154,8 @@
     "coins_earned_body": "You earned coins from the leaderboard.",
     "chat_user_blocked_successfully": "User blocked successfully.",
     "chat_user_unblocked_successfully": "User unblocked successfully.",
+    "chat_chat_room_hard_deleted_successfully": "Conversation deleted successfully.",
+    "chat_you_are_not_a_participant_in_this_chat_room": "You are not a participant in this chat room.",
     "business_announcement_title": "Business update",
     "business_announcement_body": "There is a new update from your business.",
     "recruitment_has_applications": "This job cannot be deleted because it already has applications."

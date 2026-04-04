@@ -47,6 +47,14 @@ const ChatList = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = chatService.onRoomDeleted((deletedRoomId) => {
+      setRooms((prev) => prev.filter((room) => room?.id !== deletedRoomId));
+    });
+
+    return unsubscribe;
+  }, []);
+
   const filteredRooms = useMemo(() => {
     return rooms.filter((room) =>
       isActive === "group" ? room.type !== "direct" : room.type === "direct"

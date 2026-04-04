@@ -11,8 +11,10 @@ interface ChatScreenHeaderProps {
   onVideoCallPress?: () => void;
   onSeeProfilePress?: () => void;
   onToggleBlockUserPress?: () => void;
+  onDeleteConversationPress?: () => void;
   isBlocked?: boolean;
   isTogglingBlockUser?: boolean;
+  isDeletingConversation?: boolean;
   isStartingAudioCall?: boolean;
   isStartingVideoCall?: boolean;
 }
@@ -25,8 +27,10 @@ const ChatScreenHeader = ({
   onVideoCallPress,
   onSeeProfilePress,
   onToggleBlockUserPress,
+  onDeleteConversationPress,
   isBlocked = false,
   isTogglingBlockUser = false,
+  isDeletingConversation = false,
   isStartingAudioCall = false,
   isStartingVideoCall = false,
 }: ChatScreenHeaderProps) => {
@@ -130,9 +134,18 @@ const ChatScreenHeader = ({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="px-4 py-3">
+              <TouchableOpacity
+                className="px-4 py-3"
+                onPress={() => {
+                  setShowMenu(false);
+                  onDeleteConversationPress?.();
+                }}
+                disabled={!onDeleteConversationPress || isDeletingConversation}
+              >
                 <Text className="text-sm font-proximanova-regular text-[#EF4444]">
-                  Delete conversation
+                  {isDeletingConversation
+                    ? "Deleting conversation..."
+                    : "Delete conversation"}
                 </Text>
               </TouchableOpacity>
             </View>

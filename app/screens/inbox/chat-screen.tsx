@@ -4,6 +4,7 @@ import NoMessages from "@/components/ui/cards/NoMessages";
 import RenderMessage from "@/components/ui/cards/RenderMessage";
 import ChatInput from "@/components/ui/inputs/ChatInput";
 import TypingIndicator from "@/components/ui/inputs/TypingIndicator";
+import ChatActionConfirmModal from "@/components/ui/modals/ChatActionConfirmModal";
 import { useChat } from "@/hooks/useChat";
 import { callService } from "@/services/callService";
 import type { ChatUploadMedia } from "@/services/chatService";
@@ -60,6 +61,8 @@ const ChatScreen = () => {
   const [chatIsOnline, setChatIsOnline] = useState<boolean | undefined>(undefined);
   const [roomDetails, setRoomDetails] = useState<any>(null);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
+  const [isDeletingConversation, setIsDeletingConversation] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"toggle-block" | "delete" | null>(null);
   const messagesListRef = useRef<FlatList<any> | null>(null);
   const previousMessageCountRef = useRef(0);
   const didInitialScrollRef = useRef(false);
@@ -833,6 +836,47 @@ const ChatScreen = () => {
     }
   }, [blockedByMe, targetParticipantUserId]);
 
+  const handleDeleteConversation = useCallback(async () => {
+    if (!actualRoomId) {
+      toast.error("Chat room information is unavailable");
+      return;
+    }
+
+    try {
+      setIsDeletingConversation(true);
+      const result = await chatService.hardDeleteChatRoom(actualRoomId);
+      toast.success(
+        translateApiMessage(
+          result?.message || "chat_chat_room_hard_deleted_successfully"
+        )
+      );
+      router.back();
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to delete conversation"
+        )
+      );
+    } finally {
+      setIsDeletingConversation(false);
+    }
+  }, [actualRoomId, router]);
+
+  const handleConfirmAction = useCallback(async () => {
+    if (confirmAction === "toggle-block") {
+      await handleToggleBlockUser();
+      setConfirmAction(null);
+      return;
+    }
+
+    if (confirmAction === "delete") {
+      await handleDeleteConversation();
+      setConfirmAction(null);
+    }
+  }, [confirmAction, handleDeleteConversation, handleToggleBlockUser]);
+
   const scrollToBottom = useCallback((animated: boolean) => {
     const list = messagesListRef.current;
     if (!list) return;
@@ -955,11 +999,15 @@ const ChatScreen = () => {
             onAudioCallPress={handleStartAudioCall}
             onVideoCallPress={handleStartVideoCall}
             onSeeProfilePress={handleSeeProfile}
-            onToggleBlockUserPress={canBlockUser ? handleToggleBlockUser : undefined}
+            onToggleBlockUserPress={
+              canBlockUser ? () => setConfirmAction("toggle-block") : undefined
+            }
+            onDeleteConversationPress={() => setConfirmAction("delete")}
             isBlocked={isBlocked}
             isStartingAudioCall={startingAudioCall}
             isStartingVideoCall={startingVideoCall}
             isTogglingBlockUser={isBlockingUser}
+            isDeletingConversation={isDeletingConversation}
           />
 
           {/* Connection Status */}
@@ -1061,6 +1109,43 @@ const ChatScreen = () => {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <ChatActionConfirmModal
+        visible={confirmAction !== null}
+        title={
+          confirmAction === "delete"
+            ? "Delete Conversation"
+            : isBlocked
+              ? "Unblock User"
+              : "Block User"
+        }
+        subtitle={
+          confirmAction === "delete"
+            ? "This will permanently remove this chat for you."
+            : isBlocked
+              ? "You will be able to message and call this user again."
+              : "You will not be able to message or call this user."
+        }
+        confirmLabel={
+          confirmAction === "delete"
+            ? "Delete"
+            : isBlocked
+              ? "Unblock"
+              : "Block"
+        }
+        confirmButtonClassName={
+          confirmAction === "delete"
+            ? "bg-[#EF4444]"
+            : isBlocked
+              ? "bg-[#11293A]"
+              : "bg-[#EF4444]"
+        }
+        loading={isBlockingUser || isDeletingConversation}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => {
+          void handleConfirmAction();
+        }}
+      />
     </SafeAreaView>
   );
 };
