@@ -27,6 +27,9 @@ const CandidateRequests = () => {
   const insets = useSafeAreaInsets();
   const getBusinessApplications = useJobStore((s) => s.getBusinessApplications);
   const getUnreadCount = useJobStore((s) => s.getUnreadCount);
+  const updateBusinessApplicationStatus = useJobStore(
+    (s) => s.updateBusinessApplicationStatus
+  );
   const { selectedBusinesses } = useBusinessStore();
   const tabs = ["Send Request", "Received"];
   const [isActive, setIsActive] = useState("Send Request");
@@ -38,6 +41,10 @@ const CandidateRequests = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [unreadSent, setUnreadSent] = useState(0);
   const [unreadReceived, setUnreadReceived] = useState(0);
+  const [actionLoading, setActionLoading] = useState<{
+    applicationId: string;
+    status: "approved" | "rejected";
+  } | null>(null);
   const limit = 10;
 
   const currentBusinessId = selectedBusinesses?.[0] || null;
@@ -151,6 +158,35 @@ const CandidateRequests = () => {
   }, [search, sourceFiltered]);
 
   const canLoadMore = page < totalPages;
+
+  const handleApplicationAction = useCallback(
+    async (applicationId: string, status: "approved" | "rejected") => {
+      if (!currentBusinessId) {
+        toast.error("Business information is unavailable");
+        return;
+      }
+
+      try {
+        setActionLoading({ applicationId, status });
+        await updateBusinessApplicationStatus(currentBusinessId, applicationId, status);
+        setItems((prev) =>
+          prev.map((item) =>
+            item?.id === applicationId ? { ...item, status } : item
+          )
+        );
+        toast.success(
+          status === "approved"
+            ? "Candidate request approved"
+            : "Candidate request rejected"
+        );
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update candidate request");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [currentBusinessId, updateBusinessApplicationStatus]
+  );
 
   const handleLoadMore = async () => {
     if (!canLoadMore || isLoadingMore || isLoading) return;
@@ -288,8 +324,24 @@ const CandidateRequests = () => {
             <BusinessJobCard
               candidate={isActive === "Send Request"}
               received={isActive === "Received"}
+              disableModalOpen={isActive === "Received"}
               className="mt-4"
               profile={mapToProfile(item)}
+              onAccept={
+                isActive === "Received"
+                  ? () => handleApplicationAction(String(item?.id), "approved")
+                  : undefined
+              }
+              onReject={
+                isActive === "Received"
+                  ? () => handleApplicationAction(String(item?.id), "rejected")
+                  : undefined
+              }
+              actionLoading={
+                actionLoading?.applicationId === String(item?.id)
+                  ? actionLoading.status
+                  : null
+              }
             />
           </View>
         )}

@@ -50,7 +50,14 @@ interface BusinessState {
     payload: any
   ) => Promise<any>;
   createHoliday: (businessId: string, payload: any) => Promise<any>;
-  getBusinessHolidays: (businessId: string) => Promise<any[]>;
+  importPublicHolidays: (
+    businessId: string,
+    payload: { country: string }
+  ) => Promise<any>;
+  getBusinessHolidays: (
+    businessId: string,
+    params?: { dateFrom?: string; dateTo?: string }
+  ) => Promise<any[]>;
   deleteHoliday: (businessId: string, holidayId: string) => Promise<any>;
   createWeeklyScheduleBlock: (businessId: string, payload: any) => Promise<any>;
   updateWeeklyScheduleBlock: (
@@ -496,10 +503,57 @@ export const useBusinessStore = create<BusinessState>()(
     }
   },
 
-  getBusinessHolidays: async (businessId) => {
+  importPublicHolidays: async (businessId, payload) => {
     try {
-      const response = await axiosInstance.get(`/holidays/business/${businessId}`);
+      console.log(
+        "[BusinessStore] importPublicHolidays request:",
+        JSON.stringify({ businessId, ...payload }, null, 2)
+      );
+      const response = await axiosInstance.post(
+        `/holidays/business/${businessId}/import-public`,
+        payload
+      );
       const result = response.data;
+      console.log(
+        "[BusinessStore] importPublicHolidays response:",
+        JSON.stringify(result, null, 2)
+      );
+
+      if (!result.success) {
+        const errorMsg =
+          result.error?.message ||
+          result.message?.code ||
+          "Failed to import public holidays";
+        throw new Error(errorMsg);
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error(
+        "Import public holidays error:",
+        JSON.stringify(
+          {
+            message: error?.message,
+            response: error?.response?.data,
+          },
+          null,
+          2
+        )
+      );
+      throw error;
+    }
+  },
+
+  getBusinessHolidays: async (businessId, params) => {
+    try {
+      const response = await axiosInstance.get(`/holidays/business/${businessId}`, {
+        params,
+      });
+      const result = response.data;
+      console.log(
+        "[BusinessStore] getBusinessHolidays response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (!result.success) {
         const errorMsg =
@@ -747,6 +801,10 @@ export const useBusinessStore = create<BusinessState>()(
     try {
       const response = await axiosInstance.get(`/business/public/${businessId}`);
       const result = response.data;
+      console.log(
+        "[BusinessStore] getPublicBusinessProfile response:",
+        JSON.stringify(result, null, 2)
+      );
 
       if (!result.success) {
         const errorMsg =

@@ -90,7 +90,6 @@ const JobProfileEdit = () => {
   const insets = useSafeAreaInsets();
   const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
   const updateMyJobProfile = useJobStore((state) => state.updateMyJobProfile);
-  const jobProfile = useJobStore((state) => state.jobProfile);
   const isLoadingJobProfile = useJobStore((state) => state.isLoadingJobProfile);
   const getRoles = useBusinessStore((state) => state.getRoles);
 
@@ -176,11 +175,6 @@ const JobProfileEdit = () => {
       return () => { };
     }, [applyProfileState, getMyJobProfile])
   );
-
-  useEffect(() => {
-    if (!jobProfile) return;
-    applyProfileState(jobProfile);
-  }, [applyProfileState, jobProfile]);
 
   useEffect(() => {
     if (!availabilityTouched) return;

@@ -31,6 +31,10 @@ const BusinessJobCard = ({
   candidate,
   received,
   profile,
+  disableModalOpen,
+  onAccept,
+  onReject,
+  actionLoading,
 }: BusinessJobCardProps) => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -46,6 +50,11 @@ const BusinessJobCard = ({
     : require("@/assets/images/placeholder.png");
   const headline = profile?.headline || "Cashier";
   const isPremium = profile?.isPremium || false;
+  const applicationStatus = String(profile?.applicationStatus || "").toLowerCase();
+  const finalReceivedStatus =
+    applicationStatus === "approved" || applicationStatus === "rejected"
+      ? applicationStatus
+      : null;
 
   // Handle address - check for user.address.address structure
   let address = "New York, North Bergen";
@@ -164,7 +173,8 @@ const BusinessJobCard = ({
 
   return (
     <TouchableOpacity
-      onPress={handleOpenOfferModal}
+      onPress={disableModalOpen ? undefined : handleOpenOfferModal}
+      activeOpacity={disableModalOpen ? 1 : 0.2}
       className={`${className}
       ${status === "featured" && "bg-[#E5F4FD]"}
       p-2.5 rounded-xl border border-[#4FB2F330]`}
@@ -350,6 +360,7 @@ const BusinessJobCard = ({
           <View onStartShouldSetResponder={() => true}>
             <SecondaryButton
               title="View Details"
+              onPress={handleViewProfile}
               textClass="text-[#4FB2F3]"
               iconBackground="bg-white"
               iconColor="#4FB2F3"
@@ -370,13 +381,39 @@ const BusinessJobCard = ({
               )}
             </TouchableOpacity>
 
-            <MaterialCommunityIcons
-              name="close-circle"
-              size={40}
-              color="#F34F4F"
-            />
+            {finalReceivedStatus ? (
+              <StatusBadge status={finalReceivedStatus} />
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={onReject}
+                  disabled={actionLoading !== null}
+                  className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                >
+                  {actionLoading === "rejected" ? (
+                    <ActivityIndicator size="small" color="#F34F4F" style={{ width: 40 }} />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={40}
+                      color="#F34F4F"
+                    />
+                  )}
+                </TouchableOpacity>
 
-            <Ionicons name="checkmark-circle" size={40} color="#292D32" />
+                <TouchableOpacity
+                  onPress={onAccept}
+                  disabled={actionLoading !== null}
+                  className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                >
+                  {actionLoading === "approved" ? (
+                    <ActivityIndicator size="small" color="#292D32" style={{ width: 40 }} />
+                  ) : (
+                    <Ionicons name="checkmark-circle" size={40} color="#292D32" />
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       )}
