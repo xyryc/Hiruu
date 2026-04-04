@@ -62,6 +62,8 @@ type RecruitmentApplicationItem = {
   recruitment?: any;
 };
 
+type RecruitmentApplicationStatus = "approved" | "rejected" | "pending";
+
 type RecruitmentApplicationListResponse = {
   data: RecruitmentApplicationItem[];
   pagination: {
@@ -265,6 +267,11 @@ interface JobState {
     businessId: string,
     query?: RecruitmentApplicationFilterQuery
   ) => Promise<RecruitmentApplicationListResponse>;
+  updateBusinessApplicationStatus: (
+    businessId: string,
+    id: string,
+    status: RecruitmentApplicationStatus
+  ) => Promise<any>;
   getMyEmployments: () => Promise<MyEmploymentItem[]>;
   setSelectedEmploymentBusinessIds: (ids: string[]) => void;
   clearMyEmploymentsError: () => void;
@@ -971,6 +978,32 @@ export const useJobStore = create<JobState>((set) => ({
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
         "Failed to fetch business applications";
+      throw new Error(message);
+    }
+  },
+
+  updateBusinessApplicationStatus: async (businessId, id, status) => {
+    try {
+      const response = await axiosInstance.patch(
+        `/recruitment-application/business/${businessId}/${id}`,
+        { status }
+      );
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return result?.data || result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to update application status";
       throw new Error(message);
     }
   },

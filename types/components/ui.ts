@@ -356,5 +356,9 @@ export interface BusinessJobCardProps {
   candidate?: boolean;
   received?: boolean;
   profile?: any;
+  disableModalOpen?: boolean;
+  onAccept?: () => void;
+  onReject?: () => void;
+  actionLoading?: "approved" | "rejected" | null;
 }
 

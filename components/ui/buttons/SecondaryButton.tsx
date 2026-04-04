@@ -14,9 +14,12 @@ const SecondaryButton = ({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`${className} py-2.5 px-5 bg-white rounded-full items-center justify-center max-w-[70%]`}
+      className={`${className} py-2.5 pl-5 pr-12 bg-white rounded-full items-center justify-center self-start`}
     >
-      <Text className={`${textClass} font-proximanova-semibold text-sm mr-6`}>
+      <Text
+        numberOfLines={1}
+        className={`${textClass} font-proximanova-semibold text-sm`}
+      >
         {title}
       </Text>
 
