@@ -1,6 +1,7 @@
 import React from "react";
 import { Dimensions, Text, View } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
+import type { TrackHoursTimeframe } from "../modals/TrackHoursFilter";
 
 const { width } = Dimensions.get("window");
 
@@ -12,9 +13,13 @@ type WorkPatternPoint = {
 
 type WorkHoursChartProps = {
   workPattern?: WorkPatternPoint[];
+  selectedTimeframe?: TrackHoursTimeframe;
 };
 
-const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
+const WorkHoursChart = ({
+  workPattern = [],
+  selectedTimeframe = "all_time",
+}: WorkHoursChartProps) => {
   const fallbackBarData = [
     {
       value: 5,
@@ -85,40 +90,62 @@ const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
 
   const barData = hasPattern
     ? workPattern.map((item, index) => {
-        const dateValue = new Date(item.date);
-        const dayLabel = Number.isNaN(dateValue.getTime())
-          ? `D${index + 1}`
-          : dateValue.toLocaleDateString("en-US", { weekday: "short" });
-        const dateLabel = Number.isNaN(dateValue.getTime())
-          ? String(index + 1).padStart(2, "0")
-          : String(dateValue.getDate()).padStart(2, "0");
-        const hours = Number(item.workedHours || 0);
+      const dateValue = new Date(item.date);
+      const dayLabel = Number.isNaN(dateValue.getTime())
+        ? `D${index + 1}`
+        : dateValue.toLocaleDateString("en-US", { weekday: "short" });
+      const dateLabel = Number.isNaN(dateValue.getTime())
+        ? String(index + 1).padStart(2, "0")
+        : String(dateValue.getDate()).padStart(2, "0");
+      const hours = Number(item.workedHours || 0);
 
-        return {
-          value: hours,
-          label: `${dateLabel}\n${dayLabel}`,
-          frontColor: "#93C5FD",
-          gradientColor: "#BFDBFE",
-          date: dateLabel,
-          day: dayLabel,
-          hours,
-        };
-      })
+      return {
+        value: hours,
+        label: `${dateLabel}\n${dayLabel}`,
+        frontColor: "#93C5FD",
+        gradientColor: "#BFDBFE",
+        date: dateLabel,
+        day: dayLabel,
+        hours,
+      };
+    })
     : fallbackBarData;
 
-  const monthHeaders = hasPattern
-    ? Array.from(
-        new Set(
-          workPattern
-            .map((item) => {
-              const dateValue = new Date(item.date);
-              if (Number.isNaN(dateValue.getTime())) return null;
-              return dateValue.toLocaleDateString("en-US", { month: "long" });
-            })
-            .filter(Boolean) as string[]
-        )
-      ).slice(0, 6)
-    : ["March", "April", "May", "June", "July", "August"];
+  const now = new Date();
+  const headerMonths = Array.from({ length: 6 }).map((_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return {
+      monthIndex: date.getMonth(),
+      year: date.getFullYear(),
+      label: date.toLocaleDateString("en-US", { month: "long" }),
+    };
+  });
+
+  const highlightedMonthKeys = (() => {
+    const getKey = (monthIndex: number, year: number) => `${year}-${monthIndex}`;
+
+    if (selectedTimeframe === "all_time") {
+      return new Set(headerMonths.map((item) => getKey(item.monthIndex, item.year)));
+    }
+
+    if (selectedTimeframe === "this_month" || selectedTimeframe === "this_week") {
+      return new Set([getKey(now.getMonth(), now.getFullYear())]);
+    }
+
+    if (selectedTimeframe === "last_six_month") {
+      return new Set(headerMonths.map((item) => getKey(item.monthIndex, item.year)));
+    }
+
+    if (selectedTimeframe === "this_year") {
+      return new Set(
+        headerMonths
+          .filter((item) => item.year === now.getFullYear())
+          .map((item) => getKey(item.monthIndex, item.year))
+      );
+    }
+
+    return new Set<string>();
+  })();
 
   const chartMax = Math.max(
     6,
@@ -141,14 +168,22 @@ const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
     <View>
       {/* Month Headers */}
       <View className="flex-row justify-between mb-6">
-        {monthHeaders.map((month, index) => (
-          <Text
-            key={index}
-            className="text-sm font-proximanova-regular text-primary dark:text-dark-primary"
-          >
-            {month}
-          </Text>
-        ))}
+        {headerMonths.map((month, index) => {
+          const monthKey = `${month.year}-${month.monthIndex}`;
+          const isHighlighted = highlightedMonthKeys.has(monthKey);
+
+          return (
+            <Text
+              key={index}
+              className={`text-sm font-proximanova-regular ${isHighlighted
+                ? "text-primary dark:text-dark-primary"
+                : "text-secondary dark:text-dark-secondary"
+                }`}
+            >
+              {month.label}
+            </Text>
+          );
+        })}
       </View>
 
       {/* Chart */}
@@ -167,6 +202,7 @@ const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
           fontSize: 12,
           fontWeight: "400",
         }}
+        yAxisLabelTexts={["0 Hr", "4 Hr", "8 Hr", "12 Hr", "18 Hr"]}
         xAxisLabelTextStyle={{
           color: "#7A7A7A",
           fontSize: 12,
@@ -181,9 +217,7 @@ const WorkHoursChart = ({ workPattern = [] }: WorkHoursChartProps) => {
         initialSpacing={10}
         endSpacing={10}
         maxValue={chartMax}
-        stepValue={6}
-        yAxisLabelPrefix=""
-        yAxisLabelSuffix=" Hr"
+        stepValue={1}
         hideRules={false}
         showVerticalLines={false}
         showYAxisIndices={false}

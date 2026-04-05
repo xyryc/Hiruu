@@ -88,6 +88,13 @@ type ShiftStoreState = {
       completedShifts: number;
     }>;
   } | null>;
+  getWorkInsightsAnalytics: (params?: {
+    month?: string;
+  }) => Promise<{
+    completedShifts?: number;
+    workedHours?: number;
+    performanceStatus?: number;
+  } | null>;
   fetchMyShifts: (date?: string) => Promise<any[]>;
   fetchHomeShifts: (businessIds?: string[]) => Promise<any[]>;
   fetchBusinessAssignments: (
@@ -817,6 +824,31 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to load track hours analytics";
+      throw new Error(message);
+    }
+  },
+
+  getWorkInsightsAnalytics: async (params) => {
+    try {
+      const response = await axiosInstance.get("/analytics/work-insights", {
+        params: {
+          month: params?.month,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to load work insights analytics"
+        );
+      }
+
+      return result?.data || null;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load work insights analytics";
       throw new Error(message);
     }
   },

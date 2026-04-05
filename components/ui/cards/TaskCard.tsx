@@ -230,7 +230,7 @@ const TaskCard = ({
               {/* Avatar Stack */}
               <View className="flex-row">
                 {teamMembers.length === 0 ? (
-                  <View className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 justify-center items-center">
+                  <View className="w-8 h-8 rounded-full border border-white bg-gray-300 justify-center items-center">
                     <Image
                       source={require("@/assets/images/placeholder.png")}
                       style={{
@@ -252,7 +252,7 @@ const TaskCard = ({
                       }}
                     >
                       {typeof member === "string" &&
-                      (member.startsWith("http://") || member.startsWith("https://")) ? (
+                        (member.startsWith("http://") || member.startsWith("https://")) ? (
                         <Image
                           source={member}
                           style={{

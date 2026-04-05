@@ -173,6 +173,7 @@ export interface ActionIconCardProps {
 
 export interface WorkInsightsProps {
   className?: string;
+  title?: string;
 }
 
 export interface MonthPickerProps {
@@ -182,12 +183,16 @@ export interface MonthPickerProps {
 }
 
 export interface StatCardPrimaryProps {
-  background: string;
+  title?: string;
+  point?: string | number;
+  subtitle?: string;
+  background?: ImageSource;
 }
 
 export interface StatCardSecondaryProps {
-  background: string;
-  business?: boolean;
+  background: ImageSource;
+  isCompletedMode?: boolean;
+  point?: string | number;
 }
 
 type StatusType =

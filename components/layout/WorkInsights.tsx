@@ -1,18 +1,29 @@
 import businesses from "@/assets/data/businesses.json";
-import userData from "@/assets/data/user.json";
+import { useShiftStore } from "@/stores/shiftStore";
 import { WorkInsightsProps } from "@/types";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
+import { toast } from "sonner-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import StatCardSecondary from "../ui/cards/StatCardSecondary";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
 import MonthPicker from "../ui/inputs/MonthPicker";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
-const WorkInsights = ({ className, title }: WorkInsightsProps | any) => {
+const WorkInsights = ({ className, title }: WorkInsightsProps) => {
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
   const [showModal, setShowModal] = useState(false);
   const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
+  const getWorkInsightsAnalytics = useShiftStore((s) => s.getWorkInsightsAnalytics);
+  const [insights, setInsights] = useState<{
+    completedShifts: number;
+    workedHours: number;
+    performanceStatus: number;
+  }>({
+    completedShifts: 0,
+    workedHours: 0,
+    performanceStatus: 0,
+  });
 
   const handleReportMonthChange = (date: Date) => {
     setReportMonth(date);
@@ -35,7 +46,41 @@ const WorkInsights = ({ className, title }: WorkInsightsProps | any) => {
 
   const displayContent = getDisplayContent();
 
-  const user = userData.user;
+  const monthParam = useMemo(() => {
+    const date = reportMonth || new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  }, [reportMonth]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadInsights = async () => {
+      try {
+        const data = await getWorkInsightsAnalytics({ month: monthParam });
+        if (!mounted || !data) return;
+
+        setInsights({
+          completedShifts:
+            typeof data?.completedShifts === "number" ? data.completedShifts : 0,
+          workedHours: typeof data?.workedHours === "number" ? data.workedHours : 0,
+          performanceStatus:
+            typeof data?.performanceStatus === "number"
+              ? data.performanceStatus
+              : 0,
+        });
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load work insights");
+      }
+    };
+
+    void loadInsights();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getWorkInsightsAnalytics, monthParam]);
 
   return (
     <View className={`${className} px-4`}>
@@ -72,21 +117,22 @@ const WorkInsights = ({ className, title }: WorkInsightsProps | any) => {
       {/* stats */}
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
-          title="Total team"
-          point="25"
-          subtitle="Employees"
+          title="Completed Shifts"
+          point={insights.completedShifts}
+          subtitle="Shifts"
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="On Leave Today"
-          point="03"
-          subtitle="Employees"
+          title="Worked Hours"
+          point={insights.workedHours}
+          subtitle="Hour"
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
 
       <StatCardSecondary
-        business={user.role === "business"}
+        isCompletedMode={insights.performanceStatus < 0}
+        point={`${insights.performanceStatus > 0 ? "+" : ""}${insights.performanceStatus}%`}
         background={require("@/assets/images/stats-bg2.svg")}
       />
     </View>

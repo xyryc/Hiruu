@@ -1,9 +1,9 @@
 import DynamicBackground from "@/components/layout/DynamicBackground";
-import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import GradientButton from "@/components/ui/buttons/GradientButton";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import SmallButton from "@/components/ui/buttons/SmallButton";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
+import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
@@ -350,7 +350,7 @@ const Profile = () => {
         <BadgeCard className="mx-5 mt-3.5" />
 
         {/* short intro */}
-        <View className="mx-5 mt-7 flex-row items-center gap-2.5">
+        <View className="mx-5 mt-7 flex-row items-center gap-2.5 mb-4">
           <DynamicBackground
             className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
             pickerType={pickerType}
@@ -364,13 +364,14 @@ const Profile = () => {
               color="black"
             />
           </DynamicBackground>
+
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             Short Intro
           </Text>
         </View>
 
         {hasBio ? (
-          <View className="mx-5 mt-3 rounded-xl p-3">
+          <View className="mx-5 rounded-xl">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
               {showText ? bioText : shortBio}
               {bioText.length > 140 && (
@@ -386,7 +387,7 @@ const Profile = () => {
         ) : (
           <TouchableOpacity
             onPress={() => router.push("/screens/profile/user/edit-profile")}
-            className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3"
+            className="mx-5 border border-[#0000000D] rounded-xl p-3"
           >
             <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
               Add a bio

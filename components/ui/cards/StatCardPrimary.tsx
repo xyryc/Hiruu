@@ -8,7 +8,7 @@ const StatCardPrimary = ({
   title,
   point,
   subtitle,
-}: StatCardPrimaryProps | any) => {
+}: StatCardPrimaryProps) => {
   return (
     <View className="flex-1 p-4 border border-[#EEEEEE] rounded-xl overflow-hidden">
       <Text className="text-sm font-proximanova-regular text-secondary">
@@ -24,16 +24,18 @@ const StatCardPrimary = ({
       </View>
 
       {/* background */}
-      <View className="absolute top-0 right-0">
-        <Image
-          source={background}
-          style={{
-            width: 100,
-            height: 100,
-          }}
-          contentFit="contain"
-        />
-      </View>
+      {background ? (
+        <View className="absolute top-0 right-0">
+          <Image
+            source={background}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+            contentFit="contain"
+          />
+        </View>
+      ) : null}
     </View>
   );
 };
