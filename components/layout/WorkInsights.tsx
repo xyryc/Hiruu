@@ -6,7 +6,6 @@ import { Text, View } from "react-native";
 import { toast } from "sonner-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import StatCardSecondary from "../ui/cards/StatCardSecondary";
-import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
 import MonthPicker from "../ui/inputs/MonthPicker";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
@@ -90,16 +89,10 @@ const WorkInsights = ({ className, title }: WorkInsightsProps) => {
         </Text>
 
         {!title && (
-          <View className="flex-row items-center gap-2">
+          <View className="bg-[#E5F4FD] flex-row items-center gap-2 px-3 py-1 border border-gray-100 rounded-full">
             <MonthPicker
               value={reportMonth}
               onDateChange={handleReportMonthChange}
-            />
-
-            <BusinessSelectionTrigger
-              displayContent={displayContent as any}
-              onPress={() => setShowModal(true)}
-              compact
             />
           </View>
         )}
@@ -119,7 +112,7 @@ const WorkInsights = ({ className, title }: WorkInsightsProps) => {
         <StatCardPrimary
           title="Completed Shifts"
           point={insights.completedShifts}
-          subtitle="Shifts"
+          subtitle="Tasks"
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
