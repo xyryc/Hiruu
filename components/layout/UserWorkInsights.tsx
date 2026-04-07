@@ -9,7 +9,7 @@ import StatCardSecondary from "../ui/cards/StatCardSecondary";
 import MonthPicker from "../ui/inputs/MonthPicker";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
-const WorkInsights = ({ className, title }: WorkInsightsProps) => {
+const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
   const [showModal, setShowModal] = useState(false);
   const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
@@ -85,17 +85,15 @@ const WorkInsights = ({ className, title }: WorkInsightsProps) => {
     <View className={`${className} px-4`}>
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-proximanova-semibold">
-          {title ? title : "Work Insights"}
+          Work Insights
         </Text>
 
-        {!title && (
-          <View className="bg-[#E5F4FD] flex-row items-center gap-2 px-3 py-1 border border-gray-100 rounded-full">
-            <MonthPicker
-              value={reportMonth}
-              onDateChange={handleReportMonthChange}
-            />
-          </View>
-        )}
+        <View className="bg-[#E5F4FD] flex-row items-center gap-2 px-3 py-1 border border-gray-100 rounded-full">
+          <MonthPicker
+            value={reportMonth}
+            onDateChange={handleReportMonthChange}
+          />
+        </View>
       </View>
 
       {/* modal */}
@@ -124,7 +122,7 @@ const WorkInsights = ({ className, title }: WorkInsightsProps) => {
       </View>
 
       <StatCardSecondary
-        isCompletedMode={insights.performanceStatus < 0}
+        mode="user"
         point={`${insights.performanceStatus > 0 ? "+" : ""}${insights.performanceStatus}%`}
         background={require("@/assets/images/stats-bg2.svg")}
       />
@@ -132,4 +130,4 @@ const WorkInsights = ({ className, title }: WorkInsightsProps) => {
   );
 };
 
-export default WorkInsights;
+export default UserWorkInsights;

@@ -10,7 +10,7 @@ import ProfileProgress from "@/components/layout/ProfileProgress";
 import QuickAction from "@/components/layout/QuickAction";
 import TodayShiftsSummary from "@/components/layout/TodayShiftsSummary";
 import TopPerformer from "@/components/layout/TopPerformer";
-import WorkInsights from "@/components/layout/WorkInsights";
+import BusinessWorkInsights from "@/components/layout/BusinessWorkInsights";
 import ActionCard from "@/components/ui/cards/ActionCard";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -78,7 +78,7 @@ const BusinessHome = () => {
         <QuickAction className="mt-7" />
 
         {/* Team Insights */}
-        <WorkInsights title="Team Insights" className="mt-7" />
+        <BusinessWorkInsights title="Team Insights" className="mt-7" />
 
         {/* job Board */}
         <FindNewJob business={true} className="mt-7" />

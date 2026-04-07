@@ -62,6 +62,7 @@
     "noShiftsAvailableDescription": "Δεν υπάρχουν προγραμματισμένες βάρδιες για αυτή την ημερομηνία. Ελέγξτε άλλη ημερομηνία ή δημιουργήστε νέα βάρδια."
   },
   "api": {
+    "auth_login_success": "Η σύνδεση ολοκληρώθηκε με επιτυχία.",
     "auth_phone_registration_success": "Η εγγραφή με αριθμό τηλεφώνου ολοκληρώθηκε με επιτυχία.",
     "auth_phone_already_taken": "Ο αριθμός τηλεφώνου χρησιμοποιείται ήδη.",
     "auth_phone_otp_sent": "Ο κωδικός OTP στάλθηκε στον αριθμό τηλεφώνου σας.",
@@ -112,6 +113,7 @@
     "ai_engine_cv_cancelled": "Η δημιουργία βιογραφικού ακυρώθηκε.",
     "all_notifications_marked_as_read_successfully": "Όλες οι ειδοποιήσεις διαβάστηκαν.",
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Οι ιδιοκτήτες επιχειρήσεων δεν μπορούν να συμμετάσχουν στη δική τους επιχείρηση με κωδικό πρόσκλησης.",
+    "exceptions_invalid_or_expired_otp_code": "Μη έγκυρος ή ληγμένος κωδικός OTP.",
     "exceptions_premium_access_required": "Απαιτείται πρόσβαση premium.",
     "appearance_updated_successfully": "Η εμφάνιση ενημερώθηκε με επιτυχία.",
     "business_owner_role_is_system_locked": "Ο ρόλος ιδιοκτήτη επιχείρησης είναι κλειδωμένος από το σύστημα.",

@@ -3,6 +3,7 @@ import WelcomeHeader from "@/components/header/WelcomeHeader";
 import AttendanceSummary from '@/components/layout/AttendanceSummary';
 import BusinessProfile from "@/components/layout/BusinessProfile";
 import BusinessSummary from '@/components/layout/BusinessSummary';
+import BusinessWorkInsights from '@/components/layout/BusinessWorkInsights';
 import EngagementPerks from "@/components/layout/EngagementPerks";
 import JobBoardCta from "@/components/layout/JobBoardCta";
 import JoinColleague from "@/components/layout/JoinColleague";
@@ -13,8 +14,8 @@ import QuickActionUser from '@/components/layout/QuickActionUser';
 import TodayShiftsSummary from '@/components/layout/TodayShiftsSummary';
 import TodaysShift from '@/components/layout/TodaysShift';
 import TopPerformer from '@/components/layout/TopPerformer';
+import UserWorkInsights from '@/components/layout/UserWorkInsights';
 import Widgets from '@/components/layout/Widgets';
-import WorkInsights from '@/components/layout/WorkInsights';
 import ActionCard from '@/components/ui/cards/ActionCard';
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -149,7 +150,7 @@ const UserHome = () => {
             <PerformanceTrend className="mt-7" />
 
             {/* Team Insights */}
-            <WorkInsights title="Team Insights" className="mt-7" />
+            <BusinessWorkInsights title="Team Insights" className="mt-7" />
 
             {/* quick actions */}
             <QuickActionBusiness className="mt-7" />
@@ -197,7 +198,7 @@ const UserHome = () => {
             {hasJoinedAtLeastOneBusiness && (
               <>
                 {/* work insights */}
-                <WorkInsights className="mt-7" />
+                <UserWorkInsights className="mt-7" />
 
                 {/* engagement & perks */}
                 <EngagementPerks className="mt-7" />

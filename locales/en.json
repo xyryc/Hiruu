@@ -62,6 +62,7 @@
     "noShiftsAvailableDescription": "There are no shifts scheduled for this date. Check another date or create a new shift."
   },
   "api": {
+    "auth_login_success": "Login successful.",
     "auth_phone_registration_success": "Phone registration successful.",
     "auth_phone_already_taken": "Phone number is already taken.",
     "auth_phone_otp_sent": "OTP sent to your phone number.",
@@ -111,6 +112,7 @@
     "ai_engine_cv_cancelled": "CV generation cancelled.",
     "all_notifications_marked_as_read_successfully": "All notifications read.",
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Business owners cannot join their own business using an invitation code.",
+    "exceptions_invalid_or_expired_otp_code": "Invalid or expired OTP code.",
     "exceptions_premium_access_required": "Premium access is required.",
     "appearance_updated_successfully": "Appearance updated successfully.",
     "business_owner_role_is_system_locked": "Business owner role is system locked.",

@@ -191,8 +191,9 @@ export interface StatCardPrimaryProps {
 
 export interface StatCardSecondaryProps {
   background: ImageSource;
-  isCompletedMode?: boolean;
+  mode?: "user" | "business";
   point?: string | number;
+  averageRating?: string | number;
 }
 
 type StatusType =
