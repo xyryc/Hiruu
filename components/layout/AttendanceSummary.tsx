@@ -1,9 +1,66 @@
+import { useBusinessStore } from "@/stores/businessStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
 
 const AttendanceSummary = ({ className }: { className: string }) => {
+  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
+  const [attendance, setAttendance] = useState({
+    arrivedOnTime: 0,
+    arrivedOnLate: 0,
+    absent: 0,
+  });
+  const selectedBusinessId = selectedBusinesses?.[0] || "";
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAttendance = async () => {
+      try {
+        if (!selectedBusinessId) {
+          if (!mounted) return;
+          setAttendance({
+            arrivedOnTime: 0,
+            arrivedOnLate: 0,
+            absent: 0,
+          });
+          return;
+        }
+
+        const data = await getBusinessOverview(selectedBusinessId);
+        if (!mounted || !data) return;
+
+        const todaysAttendance = data?.todaysAttendance;
+
+        setAttendance({
+          arrivedOnTime:
+            typeof todaysAttendance?.arrivedOnTime === "number"
+              ? todaysAttendance.arrivedOnTime
+              : 0,
+          arrivedOnLate:
+            typeof todaysAttendance?.arrivedOnLate === "number"
+              ? todaysAttendance.arrivedOnLate
+              : 0,
+          absent:
+            typeof todaysAttendance?.absent === "number"
+              ? todaysAttendance.absent
+              : 0,
+        });
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load attendance summary");
+      }
+    };
+
+    void loadAttendance();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getBusinessOverview, selectedBusinessId]);
+
   return (
     <View className={className}>
       <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
@@ -32,7 +89,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             </View>
             <View className="flex-row gap-2.5 items-center">
               <Text className="font-proximanova-bold text-primary dark:text-dark-primary">
-                45
+                {attendance.arrivedOnTime}
               </Text>
               <MaterialIcons
                 name="arrow-forward-ios"
@@ -60,7 +117,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             </View>
             <View className="flex-row gap-2.5 items-center">
               <Text className="font-proximanova-bold text-primary dark:text-dark-primary">
-                06
+                {attendance.arrivedOnLate}
               </Text>
               <MaterialIcons
                 name="arrow-forward-ios"
@@ -88,7 +145,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             </View>
             <View className="flex-row gap-2.5 items-center">
               <Text className="font-proximanova-bold text-primary dark:text-dark-primary">
-                03
+                {attendance.absent}
               </Text>
               <MaterialIcons
                 name="arrow-forward-ios"
