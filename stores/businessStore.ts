@@ -71,6 +71,19 @@ interface BusinessState {
   getShiftTemplateById: (businessId: string, templateId: string) => Promise<any>;
   deleteShiftTemplate: (businessId: string, templateId: string) => Promise<any>;
   getBusinessProfile: (businessId: string) => Promise<any>;
+  getBusinessOverview: (businessId: string) => Promise<{
+    businessSummary?: any;
+    todaysShiftSummary?: any;
+    todaysAttendance?: any;
+    teamInsights?: {
+      totalEmployees?: number;
+      onLeaveToday?: number;
+      ratingsRecent?: {
+        average?: number;
+        ratingsCount?: number;
+      };
+    };
+  } | null>;
   getPublicBusinessProfile: (businessId: string) => Promise<any>;
   getBusinessEmployees: (businessId: string) => Promise<any[]>;
   updateMyBusinessProfile: (businessId: string, payload: any) => Promise<any>;
@@ -794,6 +807,35 @@ export const useBusinessStore = create<BusinessState>()(
     } catch (error) {
       console.error("Fetch business profile error:", error);
       throw error;
+    }
+  },
+
+  getBusinessOverview: async (businessId) => {
+    try {
+      if (!businessId) return null;
+
+      const response = await axiosInstance.get(
+        `/analytics/business/${businessId}/overview`
+      );
+      const result = response.data;
+
+      if (!result?.success) {
+        const errorMsg =
+          result?.error?.message ||
+          result?.message ||
+          "Failed to fetch business overview";
+        throw new Error(errorMsg);
+      }
+
+      return result?.data || null;
+    } catch (error: any) {
+      const axiosError = error as AxiosError<any>;
+      const errorMessage =
+        axiosError.response?.data?.message ||
+        axiosError.response?.data?.error?.message ||
+        axiosError.message ||
+        "Failed to fetch business overview";
+      throw new Error(errorMessage);
     }
   },
 

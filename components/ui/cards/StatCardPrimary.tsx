@@ -16,7 +16,7 @@ const StatCardPrimary = ({
       </Text>
       <View className="flex-row gap-1">
         <Text className="font-proximanova-bold text-2xl text-[#4FB2F3]">
-          {point || 8}
+          {point ?? 8}
         </Text>
         <Text className="font-proximanova-bold text-sm text-primary mt-2">
           {subtitle || "Tasks"}

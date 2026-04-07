@@ -1,71 +1,64 @@
-import businesses from "@/assets/data/businesses.json";
-import { useShiftStore } from "@/stores/shiftStore";
+import { useBusinessStore } from "@/stores/businessStore";
 import { WorkInsightsProps } from "@/types";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import StatCardSecondary from "../ui/cards/StatCardSecondary";
-import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
 const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
-  const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
-  const [showModal, setShowModal] = useState(false);
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
-  const getWorkInsightsAnalytics = useShiftStore((s) => s.getWorkInsightsAnalytics);
+  const activeBusinessIds = useBusinessStore((state) => state.selectedBusinesses);
+  const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
   const [insights, setInsights] = useState<{
-    completedShifts: number;
-    workedHours: number;
-    performanceStatus: number;
+    totalEmployees: number;
+    onLeaveToday: number;
+    ratingsCount: number;
+    averageRating: number;
   }>({
-    completedShifts: 0,
-    workedHours: 0,
-    performanceStatus: 0,
+    totalEmployees: 0,
+    onLeaveToday: 0,
+    ratingsCount: 0,
+    averageRating: 0,
   });
-
-  const handleReportMonthChange = (date: Date) => {
-    setReportMonth(date);
-  };
-
-  const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0) {
-      return { type: "all", content: "All" };
-    } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = businesses.find(
-        (b) => b.id === selectedBusinesses[0]
-      );
-      if (selectedBusiness) {
-        return { type: "single", content: selectedBusiness };
-      }
-    }
-    return { type: "all", content: "All" };
-  };
-
-  const displayContent = getDisplayContent();
-
-  const monthParam = useMemo(() => {
-    const date = reportMonth || new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-  }, [reportMonth]);
+  const selectedBusinessId = activeBusinessIds?.[0] || "";
 
   useEffect(() => {
     let mounted = true;
 
     const loadInsights = async () => {
       try {
-        const data = await getWorkInsightsAnalytics({ month: monthParam });
+        if (!selectedBusinessId) {
+          if (!mounted) return;
+          setInsights({
+            totalEmployees: 0,
+            onLeaveToday: 0,
+            ratingsCount: 0,
+            averageRating: 0,
+          });
+          return;
+        }
+
+        const data = await getBusinessOverview(selectedBusinessId);
         if (!mounted || !data) return;
 
+        const teamInsights = data?.teamInsights;
+        const ratingsRecent = teamInsights?.ratingsRecent;
+
         setInsights({
-          completedShifts:
-            typeof data?.completedShifts === "number" ? data.completedShifts : 0,
-          workedHours: typeof data?.workedHours === "number" ? data.workedHours : 0,
-          performanceStatus:
-            typeof data?.performanceStatus === "number"
-              ? data.performanceStatus
+          totalEmployees:
+            typeof teamInsights?.totalEmployees === "number"
+              ? teamInsights.totalEmployees
               : 0,
+          onLeaveToday:
+            typeof teamInsights?.onLeaveToday === "number"
+              ? teamInsights.onLeaveToday
+              : 0,
+          ratingsCount:
+            typeof ratingsRecent?.ratingsCount === "number"
+              ? ratingsRecent.ratingsCount
+              : 0,
+          averageRating:
+            typeof ratingsRecent?.average === "number" ? ratingsRecent.average : 0,
         });
       } catch (error: any) {
         toast.error(error?.message || "Failed to load work insights");
@@ -77,40 +70,33 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return () => {
       mounted = false;
     };
-  }, [getWorkInsightsAnalytics, monthParam]);
+  }, [getBusinessOverview, selectedBusinessId]);
 
   return (
     <View className={`${className} px-4`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
-        Team Insights
+        {title || "Team Insights"}
       </Text>
-
-      <BusinessSelectionModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        businesses={businesses}
-        selectedBusinesses={selectedBusinesses}
-        onSelectionChange={setSelectedBusinesses}
-      />
 
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
-          title="Completed Shifts"
-          point={insights.completedShifts}
-          subtitle="Tasks"
+          title="Total Employees"
+          point={insights.totalEmployees}
+          subtitle="Employees"
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="Worked Hours"
-          point={insights.workedHours}
-          subtitle="Hour"
+          title="On Leave Today"
+          point={insights.onLeaveToday}
+          subtitle="Employees"
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
 
       <StatCardSecondary
         mode="business"
-        point={insights.performanceStatus}
+        point={insights.ratingsCount}
+        averageRating={insights.averageRating}
         background={require("@/assets/images/stats-bg2.svg")}
       />
     </View>
