@@ -30,6 +30,12 @@ type RedeemModalData = {
   details: string[];
   confirmTitle?: string;
   cardBgColor?: string;
+  options?: Array<{ id: string; label: string }>;
+  selectedOptionId?: string;
+  onSelectOption?: (id: string) => void;
+  showSelectUser?: boolean;
+  selectUserLabel?: string;
+  onPressSelectUser?: () => void;
 };
 
 const premiumConfig = {
@@ -39,10 +45,9 @@ const premiumConfig = {
   coin: "200",
   detailsTitle: "Premium Benefits Overview",
   details: [
-    "Access to nameplate badges and premium perks",
-    "Profile boost for stronger visibility",
+    "Access to nameplate designs",
+    "Profile boost",
     "Early access to job listings",
-    "Duration: Valid for 1 Month",
   ],
   confirmTitle: "Confirm Purchase",
   cardBgColor: "#EFF9FF",
@@ -55,13 +60,12 @@ const giftConfig = {
   coin: "300",
   detailsTitle: "Gift Premium For A Month",
   details: [
-    "Send 1 month of premium access to another user",
-    "The recipient gets premium benefits instantly",
-    "Great for referrals, rewards, or team gifting",
-    "Requires a target user before redemption",
+    "Send 1 month of premium access to another user. They’ll receive all premium benefits instantly",
   ],
   confirmTitle: "Continue Gift",
   cardBgColor: "#FEEFE5",
+  showSelectUser: true,
+  selectUserLabel: "Select a user to gift",
 };
 
 const featureMeConfig = {
@@ -69,7 +73,7 @@ const featureMeConfig = {
   title: "Feature Me",
   subtitle: "Get noticed by top companies faster.",
   coin: "1000",
-  detailsTitle: "Feature Profile Boost",
+  detailsTitle: "Be feature profile as user",
   details: [
     "Push your profile higher in discovery results",
     "Increase visibility to hiring businesses",
@@ -79,6 +83,13 @@ const featureMeConfig = {
   confirmTitle: "Continue Feature",
   cardBgColor: "#E3F6E7",
 };
+
+const FEATURE_ME_OPTIONS = [
+  { id: "6h", label: "6 hours – 1,000 Tokens" },
+  { id: "12h", label: "12 hours – 2,000 Tokens" },
+  { id: "24h", label: "24 hours – 3,000 Tokens" },
+  { id: "42h", label: "42 hours – 4,200 Tokens" },
+] as const;
 
 const featureJobConfig = {
   img: require("@/assets/images/reward/purple-toolbox.svg"),
@@ -115,6 +126,7 @@ const RedeemTokens = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [redeemItems, setRedeemItems] = useState<CoreRedeemItem[]>([]);
   const [totalTokens, setTotalTokens] = useState(0);
+  const [selectedFeatureMeOption, setSelectedFeatureMeOption] = useState<string>("6h");
   const [data, setData] = useState<RedeemModalData>({
     img: "",
     title: "",
@@ -214,13 +226,45 @@ const RedeemTokens = () => {
 
   const handleModal = (key: string) => {
     if (key === "premium") {
-      openRedeemModal(premiumConfig, "buy_1_month_premium", premiumConfig.coin);
+      const coin = getItemPrice("buy_1_month_premium", premiumConfig.coin);
+      setData({
+        ...premiumConfig,
+        coin,
+        details: [
+          "Access to nameplate designs",
+          "Profile boost",
+          "Early access to job listings",
+          `Token Cost: ${coin} Tokens`,
+          "Duration: Valid for 1 Month",
+          `Current Token Balance: ${totalTokens} Tokens`,
+        ],
+      });
+      setModalVisible(true);
     } else if (key === "gift") {
       openRedeemModal(giftConfig, "gift_1_month_premium", giftConfig.coin);
     } else if (key === "job") {
       openRedeemModal(featureJobConfig, "feature_job", featureJobConfig.coin);
     } else if (key === "me") {
-      openRedeemModal(featureMeConfig, "feature_me", featureMeConfig.coin);
+      const handleSelectFeatureMeOption = (id: string) => {
+        setSelectedFeatureMeOption(id);
+        setData((prev) => ({
+          ...prev,
+          selectedOptionId: id,
+        }));
+      };
+
+      setData({
+        ...featureMeConfig,
+        coin: getItemPrice("feature_me", featureMeConfig.coin),
+        details: [
+          "Boost your visibility by appearing at the top of the Job Finder page for a selected duration",
+          `Current Token Balance: ${totalTokens} Tokens`,
+        ],
+        options: FEATURE_ME_OPTIONS.map((option) => ({ ...option })),
+        selectedOptionId: selectedFeatureMeOption,
+        onSelectOption: handleSelectFeatureMeOption,
+      });
+      setModalVisible(true);
     } else if (key === "nameplate") {
       openRedeemModal(
         nameplateConfig,

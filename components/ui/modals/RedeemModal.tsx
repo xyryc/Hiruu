@@ -25,6 +25,12 @@ const RedeemModal = ({
   const details = Array.isArray(data?.details) ? data.details.filter(Boolean) : [];
   const confirmTitle = data?.confirmTitle || "Confirm & Apply";
   const cardBgColor = data?.cardBgColor || "#EFF9FF";
+  const options = Array.isArray(data?.options) ? data.options : [];
+  const selectedOptionId = data?.selectedOptionId;
+  const onSelectOption = data?.onSelectOption;
+  const showSelectUser = Boolean(data?.showSelectUser);
+  const selectUserLabel = data?.selectUserLabel || "Select a user to gift";
+  const onPressSelectUser = data?.onPressSelectUser;
 
   return (
     <Modal
@@ -97,6 +103,29 @@ const RedeemModal = ({
               </View>
             )}
 
+            {showSelectUser ? (
+              <View className="mt-4">
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  Select User
+                </Text>
+
+                <TouchableOpacity
+                  onPress={onPressSelectUser}
+                  activeOpacity={0.8}
+                  className="mt-3 flex-row items-center justify-between rounded-2xl border border-[#E7E7E7] bg-white px-2 py-1"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <Ionicons name="person-circle" size={32} color="#B8BEC5" />
+                    <Text className="font-proximanova-regular text-sm text-secondary">
+                      {selectUserLabel}
+                    </Text>
+                  </View>
+
+                  <Ionicons name="chevron-forward" size={16} color="#111111" />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
             <View className="flex-row gap-1.5 items-center mt-4">
               <Ionicons name="trail-sign" size={14} color="#4FB2F3" />
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
@@ -119,6 +148,36 @@ const RedeemModal = ({
                 </Text>
               ) : null}
             </View>
+
+            {options.length > 0 ? (
+              <View className="mt-4 ml-4 gap-2">
+                {options.map((option: any) => {
+                  const isSelected = option?.id === selectedOptionId;
+                  return (
+                    <TouchableOpacity
+                      key={option?.id}
+                      onPress={() => onSelectOption?.(option?.id)}
+                      className="flex-row items-center gap-3"
+                    >
+                      <Ionicons
+                        name={isSelected ? "radio-button-on" : "radio-button-off"}
+                        size={20}
+                        color={isSelected ? "#4FB2F3" : "#9CA3AF"}
+                      />
+
+                      <Text
+                        className={`text-sm ${isSelected
+                          ? "font-proximanova-semibold text-primary"
+                          : "font-proximanova-regular text-secondary"
+                          }`}
+                      >
+                        {option?.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : null}
 
             {isOwned ? (
               <Text className="font-proximanova-semibold text-sm text-[#2E9B50] text-center mt-5">
