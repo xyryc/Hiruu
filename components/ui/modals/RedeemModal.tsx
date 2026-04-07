@@ -21,6 +21,10 @@ const RedeemModal = ({
   const handleDone = () => {
     onClose?.();
   };
+  const detailsTitle = data?.detailsTitle || "Reward Details";
+  const details = Array.isArray(data?.details) ? data.details.filter(Boolean) : [];
+  const confirmTitle = data?.confirmTitle || "Confirm & Apply";
+  const cardBgColor = data?.cardBgColor || "#EFF9FF";
 
   return (
     <Modal
@@ -63,7 +67,10 @@ const RedeemModal = ({
             {namePlate ? (
               <View className="mt-5">{namePlate}</View>
             ) : (
-              <View className="bg-[#EFF9FF] rounded-xl p-2 w-full flex-row items-center -z-40 mt-5">
+              <View
+                className="rounded-xl p-2 w-full flex-row items-center -z-40 mt-5"
+                style={{ backgroundColor: cardBgColor }}
+              >
                 <Image
                   source={data?.img}
                   contentFit="contain"
@@ -93,28 +100,24 @@ const RedeemModal = ({
             <View className="flex-row gap-1.5 items-center mt-4">
               <Ionicons name="trail-sign" size={14} color="#4FB2F3" />
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Featured profile nameplate
+                {detailsTitle}
               </Text>
             </View>
 
             <View className="bg-white rounded-lg ml-4">
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                1. Get Featured badge on your profile
-              </Text>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                2. Increases visibility in job search & referrals
-              </Text>
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                3. Attracts more opportunities from businesses
-              </Text>
-              {!isOwned ? (
+              {details.map((item: string, index: number) => (
+                <Text
+                  key={`${item}-${index}`}
+                  className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5"
+                >
+                  {index + 1}. {item}
+                </Text>
+              ))}
+              {!isOwned && details.length === 0 ? (
                 <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  4. Coin Price: {coinPrice} Tokens
+                  1. Coin Price: {coinPrice} Tokens
                 </Text>
               ) : null}
-              <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                {!isOwned ? "5" : "4"}. Current Token Balance: {totalTokens} Tokens
-              </Text>
             </View>
 
             {isOwned ? (
@@ -135,7 +138,7 @@ const RedeemModal = ({
 
             {!isOwned || !isEquipped ? (
               <PrimaryButton
-                title={isOwned ? "Apply Nameplate" : "Confirm & Apply"}
+                title={isOwned ? "Apply Nameplate" : confirmTitle}
                 className="mt-5"
                 onPress={onConfirm}
                 loading={confirming}
