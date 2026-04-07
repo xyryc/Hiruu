@@ -30,6 +30,7 @@ const RedeemModal = ({
   const onSelectOption = data?.onSelectOption;
   const showSelectUser = Boolean(data?.showSelectUser);
   const selectUserLabel = data?.selectUserLabel || "Select a user to gift";
+  const selectUserAvatar = data?.selectUserAvatar;
   const onPressSelectUser = data?.onPressSelectUser;
 
   return (
@@ -115,7 +116,15 @@ const RedeemModal = ({
                   className="mt-3 flex-row items-center justify-between rounded-2xl border border-[#E7E7E7] bg-white px-2 py-1"
                 >
                   <View className="flex-row items-center gap-3">
-                    <Ionicons name="person-circle" size={32} color="#B8BEC5" />
+                    {selectUserAvatar ? (
+                      <Image
+                        source={selectUserAvatar}
+                        style={{ width: 32, height: 32, borderRadius: 999 }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <Ionicons name="person-circle" size={32} color="#B8BEC5" />
+                    )}
                     <Text className="font-proximanova-regular text-sm text-secondary">
                       {selectUserLabel}
                     </Text>

@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
+import { useUserSelectionStore } from "@/stores/userSelectionStore";
 import { walletService } from "@/services/walletService";
 import axiosInstance from "@/utils/axios";
 import { Feather } from "@expo/vector-icons";
@@ -35,6 +36,7 @@ type RedeemModalData = {
   onSelectOption?: (id: string) => void;
   showSelectUser?: boolean;
   selectUserLabel?: string;
+  selectUserAvatar?: string | null;
   onPressSelectUser?: () => void;
 };
 
@@ -122,6 +124,8 @@ const nameplateConfig = {
   cardBgColor: "#FFFCEE",
 };
 
+const GIFT_PREMIUM_SELECTION_KEY = "gift-premium-user";
+
 const RedeemTokens = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [redeemItems, setRedeemItems] = useState<CoreRedeemItem[]>([]);
@@ -135,6 +139,9 @@ const RedeemTokens = () => {
     detailsTitle: "",
     details: [],
   });
+  const selectedUser = useUserSelectionStore(
+    (state) => state.selectedUsersByKey[GIFT_PREMIUM_SELECTION_KEY] || null
+  );
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -241,7 +248,28 @@ const RedeemTokens = () => {
       });
       setModalVisible(true);
     } else if (key === "gift") {
-      openRedeemModal(giftConfig, "gift_1_month_premium", giftConfig.coin);
+      const coin = getItemPrice("gift_1_month_premium", giftConfig.coin);
+      setData({
+        ...giftConfig,
+        coin,
+        details: [
+          "Send 1 month of premium access to another user. They’ll receive all premium benefits instantly",
+          `Token Cost: ${coin} Tokens`,
+          `Current Token Balance: ${totalTokens} Tokens`,
+        ],
+        selectUserLabel: selectedUser?.name || "Select a user to gift",
+        selectUserAvatar: selectedUser?.avatar || null,
+        onPressSelectUser: () =>
+          router.push({
+            pathname: "/screens/common/select-user",
+            params: {
+              selectionKey: GIFT_PREMIUM_SELECTION_KEY,
+              title: "Select User",
+              searchPlaceholder: "Search user...",
+            },
+          }),
+      });
+      setModalVisible(true);
     } else if (key === "job") {
       openRedeemModal(featureJobConfig, "feature_job", featureJobConfig.coin);
     } else if (key === "me") {
