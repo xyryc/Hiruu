@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobRequestCard from "@/components/ui/cards/JobRequestCard";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
@@ -11,12 +12,27 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const JobRequest = () => {
   const router = useRouter();
@@ -249,10 +265,15 @@ const JobRequest = () => {
                 <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
               </View>
             ) : (
-              <View className="px-5 pb-5 items-center">
-                <Text className="text-sm font-proximanova-regular text-secondary">
-                  No job requests found.
-                </Text>
+              <View className="px-5 pb-5">
+                <StatusStateCard
+                  style={styles.compactEmptyState}
+                  image={require("@/assets/images/toolbox.svg")}
+                  title="No Job Requests"
+                  text="There are no job requests to show right now."
+                  titleStyle={styles.compactEmptyStateTitle}
+                  textStyle={styles.compactEmptyStateText}
+                />
               </View>
             )
           }

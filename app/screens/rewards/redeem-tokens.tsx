@@ -1,17 +1,29 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
+import axiosInstance from "@/utils/axios";
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type CoreRedeemItem = {
+  id: string;
+  key: string;
+  priceRange?: Array<{
+    price?: number;
+    duration?: number;
+  }>;
+};
 
 const RedeemTokens = () => {
   const img = require("@/assets/images/reward/premium.svg");
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [redeemItems, setRedeemItems] = useState<CoreRedeemItem[]>([]);
   const [data, setData] = useState({
     img: "",
     title: "",
@@ -58,6 +70,51 @@ const RedeemTokens = () => {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadRedeemItems = async () => {
+      try {
+        const response = await axiosInstance.get("/core-redeem/items");
+        const result = response?.data;
+
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to load redeem items");
+        }
+
+        if (!mounted) return;
+        setRedeemItems(Array.isArray(result?.data) ? result.data : []);
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load redeem items");
+      }
+    };
+
+    void loadRedeemItems();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const getItemPrice = useMemo(() => {
+    const priceMap = new Map<string, number>();
+
+    redeemItems.forEach((item) => {
+      const firstPrice = Array.isArray(item?.priceRange)
+        ? item.priceRange.find((priceItem) => typeof priceItem?.price === "number")
+        : null;
+
+      priceMap.set(item.key, typeof firstPrice?.price === "number" ? firstPrice.price : 0);
+    });
+
+    return (key: string, fallback: string) => {
+      const value = priceMap.get(key);
+      return typeof value === "number" && Number.isFinite(value)
+        ? String(value)
+        : fallback;
+    };
+  }, [redeemItems]);
 
   const handleModal = (key: string) => {
     if (key === "premium") {
@@ -142,7 +199,7 @@ const RedeemTokens = () => {
                 />
                 <View className="px-4 py-1 bg-[#ffffff] -z-10 -ml-3 rounded-r-[40px] ">
                   <Text className="text-xs font-proximanova-semibold text-primary ">
-                    200
+                    {getItemPrice("buy_1_month_premium", "200")}
                   </Text>
                 </View>
               </View>
@@ -184,7 +241,7 @@ const RedeemTokens = () => {
                 />
                 <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
                   <Text className="text-xs font-proximanova-semibold text-primary ">
-                    200
+                    {getItemPrice("gift_1_month_premium", "200")}
                   </Text>
                 </View>
               </View>
@@ -228,7 +285,7 @@ const RedeemTokens = () => {
                 />
                 <View className="px-4 py-1 bg-[#ffffff] -z-10 -ml-3 rounded-r-[40px] ">
                   <Text className="text-xs font-proximanova-semibold text-primary ">
-                    200
+                    {getItemPrice("feature_me", "200")}
                   </Text>
                 </View>
               </View>
@@ -270,7 +327,7 @@ const RedeemTokens = () => {
                 />
                 <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
                   <Text className="text-xs font-proximanova-semibold text-primary ">
-                    200
+                    {getItemPrice("feature_job", "200")}
                   </Text>
                 </View>
               </View>
@@ -311,7 +368,7 @@ const RedeemTokens = () => {
               />
               <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
                 <Text className="text-xs font-proximanova-semibold text-primary ">
-                  200
+                  {getItemPrice("unlock_nameplate_designs", "200")}
                 </Text>
               </View>
             </View>
