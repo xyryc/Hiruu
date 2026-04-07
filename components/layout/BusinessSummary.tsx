@@ -1,6 +1,7 @@
 import { useBusinessStore } from "@/stores/businessStore";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
+import { toast } from "sonner-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
@@ -11,16 +12,76 @@ type BusinessSummaryProps = {
 
 const BusinessSummary = ({ className }: BusinessSummaryProps) => {
   const [showModal, setShowModal] = React.useState(false);
+  const [summary, setSummary] = useState({
+    totalEmployees: 0,
+    totalManagers: 0,
+    totalTodayShifts: 0,
+    businessCompletion: 0,
+  });
   const {
     myBusinesses,
     selectedBusinesses,
     setSelectedBusinesses,
     getMyBusinesses,
+    getBusinessOverview,
   } = useBusinessStore();
 
   useEffect(() => {
     getMyBusinesses().catch(() => undefined);
   }, [getMyBusinesses]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadBusinessSummary = async () => {
+      try {
+        const businessId = selectedBusinesses[0];
+
+        if (!businessId) {
+          if (!mounted) return;
+          setSummary({
+            totalEmployees: 0,
+            totalManagers: 0,
+            totalTodayShifts: 0,
+            businessCompletion: 0,
+          });
+          return;
+        }
+
+        const data = await getBusinessOverview(businessId);
+        if (!mounted || !data) return;
+
+        const businessSummary = data?.businessSummary;
+
+        setSummary({
+          totalEmployees:
+            typeof businessSummary?.totalEmployees === "number"
+              ? businessSummary.totalEmployees
+              : 0,
+          totalManagers:
+            typeof businessSummary?.totalManagers === "number"
+              ? businessSummary.totalManagers
+              : 0,
+          totalTodayShifts:
+            typeof businessSummary?.totalTodayShifts === "number"
+              ? businessSummary.totalTodayShifts
+              : 0,
+          businessCompletion:
+            typeof businessSummary?.businessCompletion === "number"
+              ? businessSummary.businessCompletion
+              : 0,
+        });
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load business summary");
+      }
+    };
+
+    void loadBusinessSummary();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getBusinessOverview, selectedBusinesses]);
 
   // Get display content for header button
   const getDisplayContent = () => {
@@ -72,13 +133,13 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       <View className="flex-row gap-3 mb-4 mt-4">
         <StatCardPrimary
           title="Total"
-          point={25}
+          point={summary.totalEmployees}
           subtitle="Employees"
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
           title="Total"
-          point="03"
+          point={summary.totalManagers}
           subtitle="Managers"
           background={require("@/assets/images/stats-bg.svg")}
         />
@@ -87,14 +148,14 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
           title="Total Shifts"
-          point={35}
+          point={summary.totalTodayShifts}
           subtitle="Today"
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
           title="Completion"
-          point="75%"
-          subtitle="Managers"
+          point={`${summary.businessCompletion}%`}
+          subtitle="Complete"
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
