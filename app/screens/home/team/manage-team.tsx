@@ -1,4 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
 import { chatService } from "@/services/chatService";
@@ -551,10 +552,12 @@ const ManageTeamPanel = () => {
             contentContainerStyle={{ paddingBottom: 100 }}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
-              <View className="flex-1 items-center justify-center mt-20">
-                <Text className="text-secondary dark:text-dark-secondary">
-                  No team members found.
-                </Text>
+              <View className="px-5 pt-10">
+                <StatusStateCard
+                  image={require("@/assets/images/male.svg")}
+                  title="No Team Members"
+                  text="There are no team members to show right now."
+                />
               </View>
             }
           />

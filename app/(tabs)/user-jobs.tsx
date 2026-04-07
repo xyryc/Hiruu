@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
-import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
@@ -12,6 +12,7 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
   StatusBar,
   Text,
   TouchableOpacity,
@@ -19,6 +20,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const UserJobs = () => {
   const router = useRouter();
@@ -165,7 +180,14 @@ const UserJobs = () => {
           featuredJobs.length === 0 &&
           suggestedJobs.length === 0 && (
             <View className="mt-7 px-5">
-              <NoJobsAvailableCard />
+              <StatusStateCard
+                style={styles.compactEmptyState}
+                image={require("@/assets/images/toolbox.svg")}
+                title="No Jobs Available"
+                text="There are no job openings at the moment. Check back later for new opportunities."
+                titleStyle={styles.compactEmptyStateTitle}
+                textStyle={styles.compactEmptyStateText}
+              />
             </View>
           )}
 

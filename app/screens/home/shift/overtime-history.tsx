@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import StatusBadge from "@/components/ui/badges/StatusBadge";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { formatDate } from "@/utils/date";
@@ -12,6 +13,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -20,6 +22,20 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { toast } from "sonner-native";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const formatApiTime = (time?: string | null) => {
   if (!time) return "-";
@@ -337,6 +353,18 @@ const OvertimeHistory = () => {
             renderItem={renderItem}
             keyExtractor={(item, index) => item?.id || `overtime-${index}`}
             contentContainerStyle={{ paddingBottom: 20 }}
+            ListEmptyComponent={
+              <View className="px-5 pt-6">
+                <StatusStateCard
+                  style={styles.compactEmptyState}
+                  image={require("@/assets/images/leave-pending.svg")}
+                  title="No Overtime Requests"
+                  text="There are no overtime requests to show right now."
+                  titleStyle={styles.compactEmptyStateTitle}
+                  textStyle={styles.compactEmptyStateText}
+                />
+              </View>
+            }
           />
         )}
       </View>

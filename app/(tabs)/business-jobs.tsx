@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
-import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
@@ -12,6 +12,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,6 +20,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const normalizeRoleIds = (value?: string[] | string) => {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -244,9 +259,13 @@ const BusinessJobs = () => {
           filteredFeaturedProfiles.length === 0 &&
           filteredSuggestedProfiles.length === 0 && (
             <View className="mt-7">
-              <NoJobsAvailableCard
+              <StatusStateCard
+                style={styles.compactEmptyState}
+                image={require("@/assets/images/toolbox.svg")}
                 title="No Candidates Available"
-                description="There are no job seekers available at the moment. Check back later or post a job to attract candidates."
+                text="There are no job seekers available at the moment. Check back later or post a job to attract candidates."
+                titleStyle={styles.compactEmptyStateTitle}
+                textStyle={styles.compactEmptyStateText}
               />
             </View>
           )}
