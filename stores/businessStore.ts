@@ -16,12 +16,15 @@ interface BusinessState {
   userBusiness?: any;
   myBusinesses: any[];
   myBusinessesLoading: boolean;
+  myEmployments: any[];
+  myEmploymentsLoading: boolean;
   selectedBusinesses: string[];
   weeklyShiftSelections: Record<string, any[]>;
   weeklyRoleAssignments: Record<string, Record<string, string[]>>;
 
   fetchBusinesses: (search?: string) => Promise<any>;
   getMyBusinesses: (force?: boolean) => Promise<any>;
+  getMyEmployments: (force?: boolean) => Promise<any[]>;
   getRoles: () => Promise<any>;
   getPermissions: () => Promise<any>;
   createBusinessRole: (businessId: string, payload: any) => Promise<any>;
@@ -216,6 +219,8 @@ export const useBusinessStore = create<BusinessState>()(
       userBusiness: null,
       myBusinesses: [],
       myBusinessesLoading: false,
+      myEmployments: [],
+      myEmploymentsLoading: false,
       selectedBusinesses: [],
       weeklyShiftSelections: {},
       weeklyRoleAssignments: {},
@@ -833,6 +838,39 @@ export const useBusinessStore = create<BusinessState>()(
     }
   },
 
+  getMyEmployments: async (force = false) => {
+    try {
+      const { myEmployments } = get();
+      if (!force && myEmployments.length > 0) {
+        return myEmployments;
+      }
+
+      set({ myEmploymentsLoading: true });
+      const response = await axiosInstance.get("/employment/my-employments");
+      const result = response.data;
+
+      if (!result.success) {
+        const errorMsg =
+          result.error?.message ||
+          result.message?.code ||
+          "Failed to fetch employments";
+        throw new Error(errorMsg);
+      }
+
+      const employments = Array.isArray(result?.data) ? result.data : [];
+      set({
+        myEmployments: employments,
+        myEmploymentsLoading: false,
+      });
+
+      return employments;
+    } catch (error) {
+      set({ myEmploymentsLoading: false });
+      console.error("Fetch my employments error:", error);
+      throw error;
+    }
+  },
+
   getBusinessOverview: async (businessId) => {
     try {
       if (!businessId) return null;
@@ -1290,8 +1328,10 @@ export const useBusinessStore = create<BusinessState>()(
     set({
       userBusiness: null,
       myBusinesses: [],
+      myEmployments: [],
       selectedBusinesses: [],
       myBusinessesLoading: false,
+      myEmploymentsLoading: false,
       isJoiningBusiness: false,
       error: null,
       weeklyShiftSelections: {},

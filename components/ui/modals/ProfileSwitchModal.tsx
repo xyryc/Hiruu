@@ -29,9 +29,9 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
   const [profile, setProfile] = useState<any>(null);
   const getProfile = useProfileStore((state) => state.getProfile);
   const {
-    myBusinesses,
-    myBusinessesLoading,
-    getMyBusinesses,
+    myEmployments,
+    myEmploymentsLoading,
+    getMyEmployments,
     selectedBusinesses,
   } = useBusinessStore();
   const selectedBusinessId = selectedBusinesses[0] || null;
@@ -50,14 +50,23 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
         // keep modal usable even if profile fetch fails
       }
 
-      getMyBusinesses(true).catch(() => undefined);
+      getMyEmployments(true).catch(() => undefined);
     };
 
     loadData();
     return () => {
       isMounted = false;
     };
-  }, [visible, getMyBusinesses, getProfile]);
+  }, [visible, getMyEmployments, getProfile]);
+
+  const activeEmploymentEntries = (Array.isArray(myEmployments) ? myEmployments : [])
+    .filter((employment: any) => String(employment?.status || "").toLowerCase() === "active")
+    .reduce((acc: any[], employment: any) => {
+      const businessId = employment?.business?.id || employment?.businessId;
+      if (!businessId) return acc;
+      if (acc.some((item) => item?.business?.id === businessId)) return acc;
+      return [...acc, employment];
+    }, []);
 
   return (
     <Modal
@@ -110,19 +119,44 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
             <ScrollView
               contentContainerStyle={{ paddingBottom: 30 }}
             >
-              {!myBusinessesLoading && myBusinesses.length === 0 && (
+              {!myEmploymentsLoading && activeEmploymentEntries.length === 0 && (
                 <Text className="text-center text-sm text-secondary py-4">
                   No businesses found.
                 </Text>
               )}
 
-              {myBusinesses.map((business) => {
-                const addressLabel = business?.address?.address || "";
+              {activeEmploymentEntries.map((employment: any) => {
+                const business = employment?.business || {};
+                const roleName = employment?.role?.role?.name || "";
+                const permissions = employment?.role?.permissions || {};
+                const overviewLevel =
+                  typeof permissions?.["business.overview"] === "number"
+                    ? permissions["business.overview"]
+                    : roleName === "Owner"
+                      ? 3
+                      : 0;
+                const roleMissing = !employment?.role;
+                const hasOverviewAccess = overviewLevel >= 1;
+                const isSwitchDisabled = roleMissing || !hasOverviewAccess;
+                const helperText = roleMissing
+                  ? "Role not assigned yet"
+                  : !hasOverviewAccess
+                    ? "No access to this profile"
+                    : roleName
+                      ? roleName
+                      : "";
+
                 return (
                   <TouchableOpacity
-                    key={business.id}
-                    onPress={() => onSelectBusinessProfile(business.id)}
-                    className="mt-3 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center"
+                    key={employment?.id || business?.id}
+                    onPress={() => {
+                      if (isSwitchDisabled) return;
+                      onSelectBusinessProfile(business.id);
+                    }}
+                    disabled={isSwitchDisabled}
+                    className={`mt-3 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center ${
+                      isSwitchDisabled ? "opacity-60" : ""
+                    }`}
                   >
                     <Image
                       source={business.logo || require("@/assets/images/placeholder.png")}
@@ -133,14 +167,14 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
                       <Text className="font-proximanova-semibold text-primary">
                         {business.name}
                       </Text>
-                      {!!addressLabel && (
+                      {!!helperText && (
                         <Text className="text-xs text-secondary" numberOfLines={1}>
-                          {addressLabel}
+                          {helperText}
                         </Text>
                       )}
                     </View>
 
-                    {selectedBusinessId === business.id && (
+                    {selectedBusinessId === business.id && !isSwitchDisabled && (
                       <Ionicons name="checkmark-circle" size={24} color="#4FB2F3" />
                     )}
                   </TouchableOpacity>

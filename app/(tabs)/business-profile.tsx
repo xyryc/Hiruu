@@ -48,14 +48,39 @@ const BusinessProfile = () => {
   const deleteRecruitment = useJobStore((state) => state.deleteRecruitment);
   const {
     selectedBusinesses,
+    myEmployments,
+    getMyEmployments,
     getBusinessProfile,
     setSelectedBusinesses,
     updateMyBusinessProfile,
   } = useBusinessStore();
   const businessId = selectedBusinesses[0];
+  const selectedEmployment = (Array.isArray(myEmployments) ? myEmployments : []).find(
+    (employment: any) =>
+      String(employment?.status || "").toLowerCase() === "active" &&
+      (employment?.businessId === businessId || employment?.business?.id === businessId)
+  );
+  const roleName = String(selectedEmployment?.role?.role?.name || "");
+  const rolePermissions = selectedEmployment?.role?.permissions || {};
+  const isOwner = roleName === "Owner";
+  const getPermissionLevel = (key: string) => {
+    if (isOwner) return 3;
+    const level = rolePermissions?.[key];
+    return typeof level === "number" ? level : 0;
+  };
+  const canReadProfile = getPermissionLevel("business.overview") >= 1;
+  const canEditProfile = getPermissionLevel("business.overview") >= 2;
+  const canReadRatings = getPermissionLevel("ratings") >= 1;
+  const canReadJobs = getPermissionLevel("jobs") >= 1;
+  const canEditJobs = getPermissionLevel("jobs") >= 2;
+  const canDeleteJobs = getPermissionLevel("jobs") >= 3;
 
   const loadBusiness = useCallback(async () => {
     if (!businessId) {
+      setBusinessData(null);
+      return;
+    }
+    if (!canReadProfile) {
       setBusinessData(null);
       return;
     }
@@ -70,10 +95,14 @@ const BusinessProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [businessId, getBusinessProfile]);
+  }, [businessId, canReadProfile, getBusinessProfile]);
 
   const loadBusinessJobs = useCallback(async () => {
     if (!businessId) {
+      setBusinessJobs([]);
+      return;
+    }
+    if (!canReadJobs) {
       setBusinessJobs([]);
       return;
     }
@@ -90,16 +119,20 @@ const BusinessProfile = () => {
     } catch (error: any) {
       toast.error(error?.message || "Failed to load jobs");
     }
-  }, [businessId, getBusinessRecruitments]);
+  }, [businessId, canReadJobs, getBusinessRecruitments]);
 
   const loadRatingSummary = useCallback(async () => {
-    if (!businessId) return;
+    if (!businessId || !canReadRatings) return;
     try {
       await getBusinessRatingSummary(businessId);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load rating summary");
     }
-  }, [businessId, getBusinessRatingSummary]);
+  }, [businessId, canReadRatings, getBusinessRatingSummary]);
+
+  useEffect(() => {
+    getMyEmployments(true).catch(() => undefined);
+  }, [getMyEmployments]);
 
   useEffect(() => {
     loadBusiness();
@@ -258,14 +291,16 @@ const BusinessProfile = () => {
             </TouchableOpacity>
           ) : null}
 
-          <TouchableOpacity
-            onPress={() =>
-              router.push("/screens/profile/business/edit-profile")
-            }
-            className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
-          >
-            <SimpleLineIcons name="pencil" size={16} color="black" />
-          </TouchableOpacity>
+          {canEditProfile ? (
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/screens/profile/business/edit-profile")
+              }
+              className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
+            >
+              <SimpleLineIcons name="pencil" size={16} color="black" />
+            </TouchableOpacity>
+          ) : null}
 
           <TouchableOpacity
             onPress={() => handleShare()}
@@ -388,19 +423,21 @@ const BusinessProfile = () => {
                   Rating Summary
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/screens/profile/rating",
-                    params: { businessId },
-                  })
-                }
-                className="items-center"
-              >
-                <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                  See All Ratings
-                </Text>
-              </TouchableOpacity>
+              {canReadRatings ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/screens/profile/rating",
+                      params: { businessId },
+                    })
+                  }
+                  className="items-center"
+                >
+                  <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                    See All Ratings
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
 
             <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
@@ -520,7 +557,7 @@ const BusinessProfile = () => {
 
                 <ToggleButton
                   isOn={toggleIsOn}
-                  setIsOn={handleRecruitingToggle}
+                  setIsOn={canEditProfile ? handleRecruitingToggle : () => undefined}
                   title={
                     recruitingUpdateLoading
                       ? "Saving..."
@@ -548,7 +585,7 @@ const BusinessProfile = () => {
             <ConnectSocials
               className="mx-5 my-4"
               value={socialLinks}
-              onChange={handleSocialLinksChange}
+              onChange={canEditProfile ? handleSocialLinksChange : () => undefined}
               hideEmpty
               canEdit={false}
             />
@@ -560,20 +597,29 @@ const BusinessProfile = () => {
           <View className="mx-5">
             <Text className="my-4">Open Positions</Text>
 
-            {businessJobs.map((job) => (
+            {!canReadJobs ? (
+              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                No access to job data.
+              </Text>
+            ) : null}
+
+            {canReadJobs && businessJobs.map((job) => (
               <JobCard
                 key={job?.id}
                 className="bg-white border border-[#EEEEEE] mb-4"
                 hideApplyButton
-                showOwnerMenu
-                onPressOwnerEdit={() =>
-                  router.push({
-                    pathname: "/screens/jobs/business/edit-job",
-                    params: { businessId, recruitmentId: job?.id },
-                  })
+                showOwnerMenu={canEditJobs || canDeleteJobs}
+                onPressOwnerEdit={
+                  canEditJobs
+                    ? () =>
+                      router.push({
+                        pathname: "/screens/jobs/business/edit-job",
+                        params: { businessId, recruitmentId: job?.id },
+                      })
+                    : undefined
                 }
                 onPressOwnerDelete={async () => {
-                  if (!businessId || !job?.id) return;
+                  if (!businessId || !job?.id || !canDeleteJobs) return;
 
                   await deleteRecruitment(businessId, job.id);
                   setBusinessJobs((prev) =>
