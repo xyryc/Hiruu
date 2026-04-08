@@ -25,10 +25,10 @@ const BusinessPlan = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedBillingCycle, setSelectedBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const {
-    myBusinesses,
+    myEmployments,
     selectedBusinesses,
     setSelectedBusinesses,
-    getMyBusinesses,
+    getMyEmployments,
   } = useBusinessStore();
   const { businessPlans, isLoadingBusinessPlans, getBusinessPlans } =
     useSubscriptionStore();
@@ -41,14 +41,37 @@ const BusinessPlan = () => {
   useEffect(() => {
     const loadBusinesses = async () => {
       try {
-        await getMyBusinesses();
+        await getMyEmployments();
       } catch {
         // ignore
       }
     };
 
     loadBusinesses();
-  }, [getMyBusinesses]);
+  }, [getMyEmployments]);
+
+  const activeBusinesses = useMemo(() => {
+    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
+      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+
+    activeEmployments.forEach((employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        address: business?.address,
+        imageUrl: business?.logo,
+        logo: business?.logo,
+      });
+    });
+
+    return Array.from(uniqueByBusinessId.values());
+  }, [myEmployments]);
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -94,12 +117,12 @@ const BusinessPlan = () => {
 
   const selectedBusinessId = useMemo(() => {
     if (selectedBusinesses.length > 0) return selectedBusinesses[0];
-    return myBusinesses[0]?.id ?? null;
-  }, [myBusinesses, selectedBusinesses]);
+    return activeBusinesses[0]?.id ?? null;
+  }, [activeBusinesses, selectedBusinesses]);
 
   const selectedBusiness = useMemo(
-    () => myBusinesses.find((b) => b.id === selectedBusinessId),
-    [myBusinesses, selectedBusinessId]
+    () => activeBusinesses.find((b) => b.id === selectedBusinessId),
+    [activeBusinesses, selectedBusinessId]
   );
 
   const selectedBusinessActiveSubscription = useMemo(() => {
@@ -290,7 +313,7 @@ const BusinessPlan = () => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={myBusinesses.map((b) => ({
+        businesses={activeBusinesses.map((b) => ({
           id: b.id,
           name: b.name,
           address: b.address,

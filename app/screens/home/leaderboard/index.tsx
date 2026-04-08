@@ -47,12 +47,12 @@ interface LeaderboardResponse {
 }
 
 export default function LeaderboardScreen() {
-  const myBusinesses = useBusinessStore((state) => state.myBusinesses);
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const setSelectedBusinesses = useBusinessStore(
     (state) => state.setSelectedBusinesses
   );
-  const getMyBusinesses = useBusinessStore((state) => state.getMyBusinesses);
+  const getMyEmployments = useBusinessStore((state) => state.getMyEmployments);
   const authUser = useAuthStore((state) => state.user);
   const currentBusinessId = selectedBusinesses?.[0] || null;
   const [showModal, setShowModal] = useState(false);
@@ -61,19 +61,39 @@ export default function LeaderboardScreen() {
   );
   const router = useRouter();
 
-  console.log('hello', JSON.stringify(authUser, null, 2))
-
-
   useEffect(() => {
-    getMyBusinesses().catch(() => undefined);
-  }, [getMyBusinesses]);
+    getMyEmployments().catch(() => undefined);
+  }, [getMyEmployments]);
+
+  const activeBusinesses = useMemo(() => {
+    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
+      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+
+    activeEmployments.forEach((employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        address: business?.address,
+        imageUrl: business?.logo,
+        logo: business?.logo,
+      });
+    });
+
+    return Array.from(uniqueByBusinessId.values());
+  }, [myEmployments]);
 
   useEffect(() => {
     if (selectedBusinesses.length > 0) return;
-    const firstBusinessId = myBusinesses?.[0]?.id;
+    const firstBusinessId = activeBusinesses?.[0]?.id;
     if (!firstBusinessId) return;
     setSelectedBusinesses([firstBusinessId]);
-  }, [myBusinesses, selectedBusinesses, setSelectedBusinesses]);
+  }, [activeBusinesses, selectedBusinesses, setSelectedBusinesses]);
 
   useEffect(() => {
     if (!currentBusinessId) {
@@ -113,7 +133,7 @@ export default function LeaderboardScreen() {
     }
 
     if (selectedBusinesses.length === 1) {
-      const selectedBusiness = (myBusinesses || []).find(
+      const selectedBusiness = (activeBusinesses || []).find(
         (business: any) => business?.id === selectedBusinesses[0]
       );
       return {
@@ -132,7 +152,7 @@ export default function LeaderboardScreen() {
       type: "multi" as const,
       content: `${selectedBusinesses.length} Selected`,
     };
-  }, [myBusinesses, selectedBusinesses]);
+  }, [activeBusinesses, selectedBusinesses]);
 
   const topPerformers = useMemo<Performer[]>(() => {
     return (leaderboardData?.top ?? []).map((item) => ({
@@ -160,7 +180,7 @@ export default function LeaderboardScreen() {
   const getRewardCoins = (rank: number) =>
     leaderboardData?.rewards?.find((item) => item.rank === rank)?.coins ?? 0;
   const handleLeaderboardBusinessSelection = (ids: string[]) => {
-    const nextBusinessId = ids[0] || currentBusinessId || myBusinesses?.[0]?.id;
+    const nextBusinessId = ids[0] || currentBusinessId || activeBusinesses?.[0]?.id;
     if (!nextBusinessId) return;
     setSelectedBusinesses([nextBusinessId]);
   };

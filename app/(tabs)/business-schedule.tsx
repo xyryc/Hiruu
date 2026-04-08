@@ -51,10 +51,10 @@ const BusinessScheduleScreen = () => {
 
   const [showModal, setShowModal] = useState(false);
   const {
-    myBusinesses,
+    myEmployments,
     selectedBusinesses,
     setSelectedBusinesses,
-    getMyBusinesses,
+    getMyEmployments,
     getMyBusinessRoles,
     getShiftTemplates,
   } = useBusinessStore();
@@ -68,14 +68,34 @@ const BusinessScheduleScreen = () => {
   useEffect(() => {
     const loadBusinesses = async () => {
       try {
-        await getMyBusinesses();
+        await getMyEmployments();
       } catch {
         // ignore
       }
     };
 
     loadBusinesses();
-  }, [getMyBusinesses]);
+  }, [getMyEmployments]);
+
+  const activeBusinesses = useMemo(() => {
+    const activeEmployments = (myEmployments || []).filter(
+      (employment: any) => employment?.status === "active" && employment?.business?.id
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+    activeEmployments.forEach((employment: any) => {
+      if (!uniqueByBusinessId.has(employment.business.id)) {
+        uniqueByBusinessId.set(employment.business.id, employment);
+      }
+    });
+
+    return Array.from(uniqueByBusinessId.values()).map((employment: any) => ({
+      id: employment.business.id,
+      name: employment.business.name || "Unnamed Business",
+      address: employment.business.address,
+      imageUrl: employment.business.logo,
+      logo: employment.business.logo,
+    }));
+  }, [myEmployments]);
 
   useEffect(() => {
     const businessId = selectedBusinesses?.[0];
@@ -148,7 +168,7 @@ const BusinessScheduleScreen = () => {
   const handleRefresh = async () => {
     try {
       setIsRefreshing(true);
-      await getMyBusinesses();
+      await getMyEmployments();
 
       const businessId = selectedBusinesses?.[0];
       if (!businessId) return;
@@ -195,7 +215,7 @@ const BusinessScheduleScreen = () => {
     if (selectedBusinesses.length === 0) {
       return { type: "all", content: "All" };
     } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = myBusinesses.find(
+      const selectedBusiness = activeBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
@@ -205,8 +225,8 @@ const BusinessScheduleScreen = () => {
 
   const displayContent = getDisplayContent();
   const selectedBusiness = useMemo(
-    () => myBusinesses.find((b) => b.id === selectedBusinesses?.[0]),
-    [myBusinesses, selectedBusinesses]
+    () => activeBusinesses.find((b) => b.id === selectedBusinesses?.[0]),
+    [activeBusinesses, selectedBusinesses]
   );
 
   const to12Hour = (value?: string) => {
@@ -688,7 +708,7 @@ const BusinessScheduleScreen = () => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={myBusinesses.map((b) => ({
+        businesses={activeBusinesses.map((b) => ({
           id: b.id,
           name: b.name,
           address: b.address,

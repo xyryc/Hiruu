@@ -1,4 +1,3 @@
-import businesses from "@/assets/data/businesses.json";
 import { useShiftStore } from "@/stores/shiftStore";
 import { WorkInsightsProps } from "@/types";
 import React, { useEffect, useMemo, useState } from "react";
@@ -83,7 +82,7 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={businesses}
+        businesses={[]}
         selectedBusinesses={selectedBusinesses}
         onSelectionChange={setSelectedBusinesses}
       />
