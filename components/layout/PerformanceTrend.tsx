@@ -39,8 +39,8 @@ const PerformanceTrend = ({ className }: any) => {
   const [graphType, setGraphType] = useState<GraphType>("daily");
   const [showGraphMenu, setShowGraphMenu] = useState(false);
   const [chartData, setChartData] = useState<{
-    completedShifts: Array<{ value: number }>;
-    missedShifts: Array<{ value: number }>;
+    completedShifts: { value: number }[];
+    missedShifts: { value: number }[];
     labels: string[];
     completedPercentage: number;
     missedPercentage: number;

@@ -28,23 +28,6 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
     setReportMonth(date);
   };
 
-  // Get display content for header button
-  const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0) {
-      return { type: "all", content: "All" };
-    } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = businesses.find(
-        (b) => b.id === selectedBusinesses[0]
-      );
-      if (selectedBusiness) {
-        return { type: "single", content: selectedBusiness };
-      }
-    }
-    return { type: "all", content: "All" }; // fallback
-  };
-
-  const displayContent = getDisplayContent();
-
   const monthParam = useMemo(() => {
     const date = reportMonth || new Date();
     const year = date.getFullYear();

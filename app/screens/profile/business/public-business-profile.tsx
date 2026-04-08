@@ -16,7 +16,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -165,39 +165,6 @@ const PublicBusinessProfile = () => {
     }
   }, [businessData?.owner?.id, businessId, isCreatingChat]);
 
-  const contactItems = useMemo(
-    () =>
-      [
-        {
-          key: "phone",
-          icon: <Ionicons name="call-outline" size={18} color="black" />,
-          label: "Phone",
-          value:
-            businessData?.countryCode && businessData?.phoneNumber
-              ? `${businessData.countryCode} ${businessData.phoneNumber}`
-              : businessData?.phoneNumber,
-        },
-        {
-          key: "email",
-          icon: (
-            <MaterialCommunityIcons
-              name="email-outline"
-              size={18}
-              color="black"
-            />
-          ),
-          label: "Email",
-          value: businessData?.email,
-        },
-        {
-          key: "website",
-          icon: <Feather name="globe" size={18} color="black" />,
-          label: "Website",
-          value: businessData?.website,
-        },
-      ].filter((item) => Boolean(item.value)),
-    [businessData]
-  );
   const socialLinks = businessData?.social || {};
   const hasSocialLinks = Object.values(socialLinks).some((value) => Boolean(value));
 

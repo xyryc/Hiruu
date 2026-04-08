@@ -16,10 +16,10 @@ import { toast } from "sonner-native";
 type CoreRedeemItem = {
   id: string;
   key: string;
-  priceRange?: Array<{
+  priceRange?: {
     price?: number;
     duration?: number;
-  }>;
+  }[];
 };
 
 type RedeemModalData = {
@@ -31,7 +31,7 @@ type RedeemModalData = {
   details: string[];
   confirmTitle?: string;
   cardBgColor?: string;
-  options?: Array<{ id: string; label: string }>;
+  options?: { id: string; label: string }[];
   selectedOptionId?: string;
   onSelectOption?: (id: string) => void;
   showSelectUser?: boolean;

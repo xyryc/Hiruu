@@ -97,7 +97,7 @@ const TrackHours = () => {
     overHours: 0,
   });
   const [workPattern, setWorkPattern] = useState<
-    Array<{ date: string; workedHours: number; completedShifts: number }>
+    { date: string; workedHours: number; completedShifts: number }[]
   >([]);
 
   const loadTrackHours = useCallback(

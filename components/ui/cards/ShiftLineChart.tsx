@@ -4,8 +4,8 @@ import { LineChart } from "react-native-gifted-charts";
 const { width } = Dimensions.get("window");
 
 type ShiftLineChartProps = {
-  completedShifts?: Array<{ value: number }>;
-  missedShifts?: Array<{ value: number }>;
+  completedShifts?: { value: number }[];
+  missedShifts?: { value: number }[];
   labels?: string[];
   completedPercentage?: number;
   missedPercentage?: number;

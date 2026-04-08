@@ -30,6 +30,23 @@ type HolidayItem = {
   type: "public" | "religious" | "company" | string;
 };
 
+const toDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getMonthRange = (date: Date) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  return {
+    dateFrom: toDateKey(start),
+    dateTo: toDateKey(end),
+  };
+};
+
 const Calendar = () => {
   const delImg = require("@/assets/images/holiday-modal.svg");
   const { colorScheme } = useColorScheme();
@@ -96,23 +113,6 @@ const Calendar = () => {
   const currentYear = currentViewDate.getFullYear();
   const currentMonth = currentViewDate.getMonth();
   const deviceToday = new Date();
-
-  const toDateKey = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const getMonthRange = (date: Date) => {
-    const start = new Date(date.getFullYear(), date.getMonth(), 1);
-    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-    return {
-      dateFrom: toDateKey(start),
-      dateTo: toDateKey(end),
-    };
-  };
 
   const handleMonthSelect = (monthIndex: number) => {
     setCurrentViewDate(new Date(currentYear, monthIndex, 1));
