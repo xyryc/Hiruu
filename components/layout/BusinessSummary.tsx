@@ -19,16 +19,34 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     businessCompletion: 0,
   });
   const {
-    myBusinesses,
+    myEmployments,
     selectedBusinesses,
     setSelectedBusinesses,
-    getMyBusinesses,
+    getMyEmployments,
     getBusinessOverview,
   } = useBusinessStore();
+  const activeBusinesses = (Array.isArray(myEmployments) ? myEmployments : [])
+    .filter((employment: any) => String(employment?.status || "").toLowerCase() === "active")
+    .reduce((acc: any[], employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId) return acc;
+      if (acc.some((item) => item?.id === businessId)) return acc;
+      return [
+        ...acc,
+        {
+          id: businessId,
+          name: business?.name || "Business",
+          address: business?.address,
+          imageUrl: business?.logo,
+          logo: business?.logo,
+        },
+      ];
+    }, []);
 
   useEffect(() => {
-    getMyBusinesses().catch(() => undefined);
-  }, [getMyBusinesses]);
+    getMyEmployments().catch(() => undefined);
+  }, [getMyEmployments]);
 
   useEffect(() => {
     let mounted = true;
@@ -88,7 +106,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     if (selectedBusinesses.length === 0) {
       return { type: "all", content: "All" };
     } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = myBusinesses.find(
+      const selectedBusiness = activeBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
@@ -118,7 +136,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={myBusinesses.map((b) => ({
+        businesses={activeBusinesses.map((b) => ({
           id: b.id,
           name: b.name,
           address: b.address,

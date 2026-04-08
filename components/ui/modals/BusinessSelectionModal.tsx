@@ -22,9 +22,46 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
   selectedBusinesses,
   onSelectionChange,
 }) => {
-  const { myBusinesses, myBusinessesLoading, getMyBusinesses } = useBusinessStore();
+  const {
+    myEmployments,
+    myEmploymentsLoading,
+    getMyEmployments,
+  } = useBusinessStore();
+  const fallbackBusinesses = useMemo(() => {
+    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
+      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+
+    activeEmployments.forEach((employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        address: business?.address,
+        imageUrl: business?.logo,
+        logo: business?.logo,
+      });
+    });
+
+    return Array.from(uniqueByBusinessId.values());
+  }, [myEmployments]);
   const displayedBusinesses =
-    businesses.length > 0 || disableStoreFallback ? businesses : myBusinesses;
+    businesses.length > 0 || disableStoreFallback ? businesses : fallbackBusinesses;
+  const employmentMetaByBusinessId = useMemo(() => {
+    const map = new Map<string, any>();
+    (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment: any) => {
+      const status = String(employment?.status || "").toLowerCase();
+      if (status !== "active") return;
+      const businessId = employment?.business?.id || employment?.businessId;
+      if (!businessId || map.has(businessId)) return;
+      map.set(businessId, employment);
+    });
+    return map;
+  }, [myEmployments]);
   const displayedBusinessIds = useMemo(() => {
     const unique = new Set<string>();
     displayedBusinesses.forEach((business) => {
@@ -52,14 +89,16 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
     if (!visible) return;
     if (disableStoreFallback) return;
     if (businesses.length > 0) return;
-    getMyBusinesses().catch(() => undefined);
-  }, [businesses.length, disableStoreFallback, getMyBusinesses, visible]);
+    getMyEmployments().catch(() => undefined);
+  }, [businesses.length, disableStoreFallback, getMyEmployments, visible]);
 
   useEffect(() => {
     if (!visible) return;
     if (!hasSingleBusiness) return;
     const onlyBusinessId = displayedBusinessIds[0];
     if (!onlyBusinessId) return;
+    const onlyBusinessEmployment = employmentMetaByBusinessId.get(onlyBusinessId);
+    if (!onlyBusinessEmployment?.role) return;
     if (
       selectedBusinesses.length === 1 &&
       selectedBusinesses[0] === onlyBusinessId
@@ -68,6 +107,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
     }
     onSelectionChange([onlyBusinessId]);
   }, [
+    employmentMetaByBusinessId,
     displayedBusinessIds,
     hasSingleBusiness,
     onSelectionChange,
@@ -175,27 +215,40 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
               className="px-6"
               contentContainerStyle={{ paddingBottom: 140 }}
             >
-              {myBusinessesLoading &&
+              {myEmploymentsLoading &&
                 !disableStoreFallback &&
                 displayedBusinesses.length === 0 && (
                   <View className="py-6 items-center">
                     <ActivityIndicator size="small" color="#4FB2F3" />
                   </View>
                 )}
-              {(!myBusinessesLoading || disableStoreFallback) &&
+              {(!myEmploymentsLoading || disableStoreFallback) &&
                 displayedBusinesses.length === 0 && (
                   <Text className="text-center text-sm text-gray-500 py-6">
                     No businesses found.
                   </Text>
-                )}
+              )}
               {displayedBusinesses.map((business) => {
                 const addressLabel = business?.address?.address || "";
+                const employment = employmentMetaByBusinessId.get(business.id);
+                const roleMissing = Boolean(employment) && !employment?.role;
+                const rowSelected = isSelected(business.id) && !roleMissing;
+                const helperText = roleMissing
+                  ? "Role not assigned yet"
+                  : addressLabel;
                 return (
                   <TouchableOpacity
                     key={business.id}
-                    onPress={() => toggleBusiness(business.id)}
-                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${isSelected(business.id) ? "bg-[#4FB2F3]" : "bg-white"
-                      }`}
+                    onPress={() => {
+                      if (roleMissing) return;
+                      toggleBusiness(business.id);
+                    }}
+                    disabled={roleMissing}
+                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${
+                      roleMissing ? "opacity-60" : ""
+                    } ${
+                      rowSelected ? "bg-[#4FB2F3]" : "bg-white"
+                    }`}
                   >
                     {/* Business Avatar */}
                     <View className="w-10 h-10 rounded-full mr-4 justify-center items-center">
@@ -225,30 +278,34 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                     {/* Business Name */}
                     <View className="flex-1">
                       <Text
-                        className={`font-proximanova-semibold ${isSelected(business.id) ? "text-white" : "text-gray-900"
+                        className={`font-proximanova-semibold ${rowSelected ? "text-white" : "text-gray-900"
                           }`}
                         numberOfLines={1}
                       >
                         {business.name}
                       </Text>
-                      {!!addressLabel && (
+                      {!!helperText && (
                         <Text
-                          className={`text-xs ${isSelected(business.id)
+                          className={`text-xs ${rowSelected
                             ? "text-white/80"
                             : "text-gray-500"
                             }`}
                           numberOfLines={1}
                         >
-                          {addressLabel}
+                          {helperText}
                         </Text>
                       )}
                     </View>
 
-                    <Ionicons
-                      name={isSelected(business.id) ? "checkmark-circle" : "radio-button-off"}
-                      size={20}
-                      color={isSelected(business.id) ? "white" : "black"
-                      } />
+                    {roleMissing ? (
+                      <Ionicons name="lock-closed-outline" size={18} color="#6B7280" />
+                    ) : (
+                      <Ionicons
+                        name={rowSelected ? "checkmark-circle" : "radio-button-off"}
+                        size={20}
+                        color={rowSelected ? "white" : "black"}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
               })}

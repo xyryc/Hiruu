@@ -5,7 +5,7 @@ import { Text, View } from "react-native";
 
 const HolidayCard = ({ shift }) => {
   return (
-    <View className="rounded-2xl border border-[#E5F4FD] bg-[#E5F4FD] p-4">
+    <View className="rounded-2xl border border-[#acdcf8] bg-[#e5f4fdc2] p-4">
 
       <View className=" items-center justify-center gap-5">
         <Image

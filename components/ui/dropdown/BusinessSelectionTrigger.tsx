@@ -29,7 +29,14 @@ const BusinessSelectionTrigger = ({
   compact = false,
 }: BusinessSelectionTriggerProps) => {
   const paddingClass = compact ? "p-0.5" : "p-1";
-  const imageSource = displayContent?.content?.logo || displayContent?.content?.imageUrl;
+  const imageSource =
+    displayContent?.content?.logo ||
+    displayContent?.content?.imageUrl ||
+    displayContent?.content?.business?.logo;
+  const displayName =
+    displayContent?.content?.name ||
+    displayContent?.content?.business?.name ||
+    "Selected";
 
   return (
     <TouchableOpacity
@@ -51,7 +58,7 @@ const BusinessSelectionTrigger = ({
           ) : (
             <View className="pl-2.5 py-1.5">
               <Text className="font-semibold text-sm text-primary">
-                {displayContent?.content?.name || "Selected"}
+                {displayName}
               </Text>
             </View>
           )}

@@ -174,8 +174,12 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
                       )}
                     </View>
 
-                    {selectedBusinessId === business.id && !isSwitchDisabled && (
+                    {isSwitchDisabled ? (
+                      <Ionicons name="lock-closed-outline" size={18} color="#6B7280" />
+                    ) : selectedBusinessId === business.id ? (
                       <Ionicons name="checkmark-circle" size={24} color="#4FB2F3" />
+                    ) : (
+                      <Ionicons name="radio-button-off" size={20} color="black" />
                     )}
                   </TouchableOpacity>
                 );
