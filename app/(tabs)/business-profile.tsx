@@ -4,6 +4,7 @@ import RatingBanner from '@/components/ui/cards/RatingBanner';
 import RatingProgress from "@/components/ui/cards/RatingProgress";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -24,6 +25,7 @@ import {
   Linking,
   ScrollView,
   Share,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View
@@ -31,6 +33,19 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from 'sonner-native';
 
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const BusinessProfile = () => {
   const [selectedTab, setSelectedTab] = useState("about");
@@ -601,6 +616,17 @@ const BusinessProfile = () => {
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                 No access to job data.
               </Text>
+            ) : null}
+
+            {canReadJobs && businessJobs.length === 0 ? (
+              <StatusStateCard
+                style={styles.compactEmptyState}
+                image={require("@/assets/images/toolbox.svg")}
+                title="No Jobs Available"
+                text="There are no job openings at the moment."
+                titleStyle={styles.compactEmptyStateTitle}
+                textStyle={styles.compactEmptyStateText}
+              />
             ) : null}
 
             {canReadJobs && businessJobs.map((job) => (

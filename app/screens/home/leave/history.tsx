@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import SickLeaveCard from "@/components/ui/cards/SickLeaveCard";
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
@@ -240,9 +241,13 @@ const LeaveHistory = () => {
       <FlatList
         ListEmptyComponent={
           !shiftRequestsLoading ? (
-            <Text className="mx-5 mt-6 text-sm text-secondary dark:text-dark-secondary">
-              No leave requests found.
-            </Text>
+            <View className="mx-5 mt-2">
+              <StatusStateCard
+                image={require("@/assets/images/leave-pending.svg")}
+                title="No Leave Requests"
+                text="There are no leave requests to show right now."
+              />
+            </View>
           ) : null
         }
         refreshControl={

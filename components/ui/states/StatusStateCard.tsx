@@ -24,7 +24,7 @@ const StatusStateCard = ({
   return (
     <View
       style={style}
-      className="items-center rounded-2xl border border-[#E4E4E4] bg-[#F7F7F7] px-6 py-10"
+      className="items-center rounded-2xl px-6 py-10"
     >
       <Image
         source={image || defaultOfflineImage}
