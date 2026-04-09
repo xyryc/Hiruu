@@ -22,6 +22,16 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
   });
   const selectedBusinessId = activeBusinessIds?.[0] || "";
 
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -61,6 +71,7 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
             typeof ratingsRecent?.average === "number" ? ratingsRecent.average : 0,
         });
       } catch (error: any) {
+        if (isExpectedAuthError(error)) return;
         toast.error(error?.message || "Failed to load work insights");
       }
     };

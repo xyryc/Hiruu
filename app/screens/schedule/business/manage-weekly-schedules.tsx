@@ -37,7 +37,8 @@ const ManageWeeklySchedules = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const {
-    myBusinesses,
+    myEmployments,
+    getMyEmployments,
     selectedBusinesses,
     getWeeklyScheduleBlocks,
     deleteWeeklyScheduleBlock,
@@ -51,6 +52,10 @@ const ManageWeeklySchedules = () => {
   );
 
   const businessId = selectedBusinesses[0];
+
+  useEffect(() => {
+    getMyEmployments().catch(() => undefined);
+  }, [getMyEmployments]);
 
   const isoToYmd = (value?: string) => {
     if (!value) return "";
@@ -170,7 +175,30 @@ const ManageWeeklySchedules = () => {
     }
   };
 
-  const selectedBusiness = myBusinesses.find((b) => b.id === selectedBusinesses[0]);
+  const activeBusinesses = useMemo(() => {
+    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
+      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+
+    activeEmployments.forEach((employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        logo: business?.logo,
+      });
+    });
+
+    return Array.from(uniqueByBusinessId.values());
+  }, [myEmployments]);
+
+  const selectedBusiness = activeBusinesses.find(
+    (business) => business.id === selectedBusinesses[0]
+  );
 
   return (
     <SafeAreaView

@@ -845,6 +845,11 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
 
       return result?.data || null;
     } catch (error: any) {
+      if (error?.isAuthSessionExpired || error?.response?.status === 401) {
+        const authError = new Error("");
+        (authError as any).isAuthSessionExpired = true;
+        throw authError;
+      }
       const message =
         error?.response?.data?.message ||
         error?.message ||

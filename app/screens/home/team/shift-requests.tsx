@@ -6,7 +6,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
@@ -31,28 +31,25 @@ const ShiftRequest = () => {
   } = useBusinessStore();
   const selectedBusinessId = selectedBusinesses?.[0];
 
-  useEffect(() => {
+  const loadBusinessAttendanceMode = useCallback(async () => {
     if (!selectedBusinessId) return;
-
-    let mounted = true;
-    const loadBusinessAttendanceMode = async () => {
-      try {
-        const result = await getBusinessProfile(selectedBusinessId);
-        if (!mounted) return;
-        const mode = String(result?.attendanceMode || "").toLowerCase();
-        setAttendanceMode(mode === "manual" ? "manual" : "automatic");
-      } catch {
-        if (!mounted) return;
-        setAttendanceMode("automatic");
-      }
-    };
-
-    loadBusinessAttendanceMode();
-
-    return () => {
-      mounted = false;
-    };
+    try {
+      const business = await getBusinessProfile(selectedBusinessId);
+      const mode = String(business?.attendanceMode || "").toLowerCase();
+      setAttendanceMode(mode === "manual" ? "manual" : "automatic");
+    } catch {
+      setAttendanceMode("automatic");
+    }
   }, [getBusinessProfile, selectedBusinessId]);
+
+  useEffect(() => {
+    loadBusinessAttendanceMode();
+  }, [loadBusinessAttendanceMode]);
+
+  useEffect(() => {
+    if (!isModalSettings) return;
+    loadBusinessAttendanceMode();
+  }, [isModalSettings, loadBusinessAttendanceMode]);
 
   const handleSaveAttendanceMode = async (mode: AttendanceMode) => {
     if (!selectedBusinessId) {

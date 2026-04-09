@@ -34,6 +34,16 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return `${year}-${month}`;
   }, [reportMonth]);
 
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -52,6 +62,7 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
               : 0,
         });
       } catch (error: any) {
+        if (isExpectedAuthError(error)) return;
         toast.error(error?.message || "Failed to load work insights");
       }
     };
