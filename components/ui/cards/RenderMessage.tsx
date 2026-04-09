@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React from "react";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { Linking, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { GestureViewer } from "react-native-gesture-image-viewer";
 
 const getStatusMeta = (status: string) => {
   switch ((status || "").toLowerCase()) {
@@ -56,6 +57,14 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
   const isUploadingMedia = showMediaUploadState && msg.uploadState === "uploading";
   const isFailedMedia = showMediaUploadState && msg.uploadState === "failed";
 
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // Extract all image URIs for the viewer
+  const imageUris = media
+    .filter((item) => item.previewType === "image")
+    .map((item) => item.uri);
+
   const avatarSource = typeof msg.avatar === "string" ? { uri: msg.avatar } : msg.avatar;
 
   return (
@@ -69,17 +78,15 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
           <View className="gap-2">
             {call && (
               <View
-                className={`w-[220px] rounded-2xl px-3.5 py-3 border ${
-                  msg.isSent
-                    ? "bg-[#3D9FDF] border-[#66BCEB]"
-                    : "bg-[#F8FAFC] border-[#E2E8F0]"
-                }`}
+                className={`w-[220px] rounded-2xl px-3.5 py-3 border ${msg.isSent
+                  ? "bg-[#3D9FDF] border-[#66BCEB]"
+                  : "bg-[#F8FAFC] border-[#E2E8F0]"
+                  }`}
               >
                 <View className="flex-row items-center gap-2">
                   <View
-                    className={`w-8 h-8 rounded-full items-center justify-center ${
-                      msg.isSent ? "bg-white/20" : "bg-[#E5EDF5]"
-                    }`}
+                    className={`w-8 h-8 rounded-full items-center justify-center ${msg.isSent ? "bg-white/20" : "bg-[#E5EDF5]"
+                      }`}
                   >
                     <Ionicons
                       name={call.type === "video" ? "videocam-outline" : "call-outline"}
@@ -90,17 +97,15 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
 
                   <View className="flex-1">
                     <Text
-                      className={`font-proximanova-semibold text-sm ${
-                        msg.isSent ? "text-white" : "text-primary"
-                      }`}
+                      className={`font-proximanova-semibold text-sm ${msg.isSent ? "text-white" : "text-primary"
+                        }`}
                       numberOfLines={1}
                     >
                       {call.label}
                     </Text>
                     <Text
-                      className={`font-proximanova-regular text-xs mt-0.5 ${
-                        msg.isSent ? "text-[#E9F6FF]" : "text-secondary"
-                      }`}
+                      className={`font-proximanova-regular text-xs mt-0.5 ${msg.isSent ? "text-[#E9F6FF]" : "text-secondary"
+                        }`}
                     >
                       {call.subtitle || "Call activity"}
                     </Text>
@@ -109,15 +114,24 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
               </View>
             )}
 
-            {media.map((item) =>
+            {media.map((item, index) =>
               item.previewType === "image" ? (
-                <Image
+                <TouchableOpacity
                   key={item.id}
-                  source={{ uri: item.uri }}
-                  style={{ width: 220, height: 160, borderRadius: 14 }}
-                  contentFit="cover"
-                />
-              ) : (
+                  onPress={() => {
+                    const imgIndex = imageUris.indexOf(item.uri);
+                    setSelectedImageIndex(imgIndex >= 0 ? imgIndex : index);
+                    setViewerVisible(true);
+                  }}
+                  activeOpacity={0.9}
+                >
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={{ width: 220, height: 160, borderRadius: 14 }}
+                    contentFit="cover"
+                  />
+                </TouchableOpacity>
+              ) : item.previewType === "video" ? (
                 <TouchableOpacity
                   key={item.id}
                   className="w-[220px] h-[140px] rounded-2xl bg-[#0F1C25] items-center justify-center px-3"
@@ -138,14 +152,17 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
                     {item.name || "Video"}
                   </Text>
                 </TouchableOpacity>
+              ) : (
+                <View>
+                  <Text className="text-xs text-red-500">Unknown media type: {item.previewType}</Text>
+                </View>
               )
             )}
 
             {shouldShowTextBubble && (
               <View
-                className={`p-2.5 rounded-2xl ${
-                  msg.isSent ? "bg-[#4FB2F3] rounded-br-sm" : "bg-white rounded-bl-sm"
-                }`}
+                className={`p-2.5 rounded-2xl ${msg.isSent ? "bg-[#4FB2F3] rounded-br-sm" : "bg-white rounded-bl-sm"
+                  }`}
               >
                 <Text className={`font-proximanova-regular text-sm ${msg.isSent ? "text-white" : "text-primary"}`}>
                   {msg.text}
@@ -187,6 +204,41 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
           <Text className="font-proximanova-regular text-xs text-secondary">{msg.time}</Text>
         </View>
       </View>
+
+      {/* Image Viewer Modal */}
+      <Modal
+        visible={viewerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setViewerVisible(false);
+        }}
+      >
+        <View className="flex-1 bg-black">
+          <GestureViewer
+            data={imageUris}
+            initialIndex={selectedImageIndex}
+            renderItem={(uri: string) => (
+              <Image source={{ uri }} style={{
+                width: "80%",
+                height: "100%",
+                alignSelf: "center"
+              }}
+                contentFit="contain" />
+            )}
+            ListComponent={ScrollView}
+            onDismiss={() => {
+              setViewerVisible(false);
+            }}
+          />
+          <TouchableOpacity
+            className="absolute top-12 right-4 p-2"
+            onPress={() => setViewerVisible(false)}
+          >
+            <Ionicons name="close" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
