@@ -3,29 +3,44 @@ import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { useRouter } from 'expo-router';
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
   const router = useRouter()
   const { logout } = useAuthStore();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePrimaryAction = async () => {
-    if (typeof onConfirm === "function") {
-      await onConfirm();
-      return;
-    }
+    if (isProcessing) return;
 
-    await logout();
-    onClose();
-    // Navigate to login after logout
-    router.replace("/(auth)/login");
+    try {
+      setIsProcessing(true);
+      if (typeof onConfirm === "function") {
+        await onConfirm();
+        return;
+      }
+
+      await logout();
+      onClose();
+      // Navigate to login after logout
+      router.replace("/(auth)/login");
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const handleDone = () => {
+    if (isProcessing) return;
     onClose();
   };
+
+  const buttonLabel = (() => {
+    if (!isProcessing) return `Yes, ${data?.buttonName}`;
+    const buttonName = String(data?.buttonName || "").toLowerCase();
+    return buttonName.includes("logout") ? "Logging out..." : "Processing...";
+  })();
 
   return (
     <Modal
@@ -38,7 +53,7 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
         <View className="bg-white rounded-t-3xl max-h-[45%]">
           {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
-            <TouchableOpacity onPress={handleDone}>
+            <TouchableOpacity onPress={handleDone} disabled={isProcessing}>
               <View className="bg-[#000] rounded-full p-2.5">
                 <Entypo name="cross" size={30} color="white" />
               </View>
@@ -66,6 +81,7 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
             <View className="flex-row  justify-between mt-5 gap-5">
               <TouchableOpacity
                 onPress={handleDone}
+                disabled={isProcessing}
                 className="border border-[#11111133] rounded-full py-3.5 w-[48%] items-center"
               >
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
@@ -77,11 +93,13 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
                 className="rounded-full py-3.5 w-[48%] items-center"
                 style={{
                   backgroundColor: data?.buttonColor,
+                  opacity: isProcessing ? 0.9 : 1,
                 }}
                 onPress={handlePrimaryAction}
+                disabled={isProcessing}
               >
                 <Text className="font-proximanova-semibold text-white">
-                  Yes, {data?.buttonName}
+                  {buttonLabel}
                 </Text>
               </TouchableOpacity>
             </View>

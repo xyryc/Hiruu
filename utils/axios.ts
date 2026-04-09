@@ -195,6 +195,7 @@ axiosInstance.interceptors.response.use(
           if (useAuthStore?.getState) {
             useAuthStore.getState().setTokens(null, null);
             useAuthStore.getState().setUser(null);
+            useAuthStore.getState().setSessionExpired(true);
           }
         } catch (e) {
           console.error('Failed to clear store state:', e);

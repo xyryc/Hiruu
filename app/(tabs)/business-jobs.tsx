@@ -1,11 +1,11 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
+import ChatBell from "@/components/ui/notification/ChatBell";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
@@ -202,16 +202,10 @@ const BusinessJobs = () => {
               <Ionicons name="document-text-outline" size={18} color="black" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => router.push("/screens/inbox/chat-list")}
+            <ChatBell
               className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
-            >
-              <Image
-                source={require("@/assets/images/messages.svg")}
-                contentFit="contain"
-                style={{ height: 22, width: 22 }}
-              />
-            </TouchableOpacity>
+              iconSize={22}
+            />
           </View>
         }
       />

@@ -279,7 +279,7 @@ const QrScanner = () => {
 
                     toast.success("You joined the business successfully!");
                     resetScanner();
-                    router.replace("/(tabs)/home");
+                    router.back();
                   } catch (err: any) {
                     toast.error(translateApiMessage(err?.message || "Failed to join business"));
                   }

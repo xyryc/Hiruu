@@ -9,6 +9,19 @@ const STORAGE_KEYS = {
   ACCESS_TOKEN: "auth_access_token",
 };
 
+const isExpectedAuthError = (error: unknown) => {
+  const axiosError = error as AxiosError<any>;
+  const status = axiosError?.response?.status;
+  if (status === 401) return true;
+
+  const message = String((error as any)?.message || "").toLowerCase();
+  return (
+    message.includes("no refresh token available") ||
+    message.includes("token_revoked_or_not_found") ||
+    message.includes("unauthorized")
+  );
+};
+
 interface BusinessState {
   isLoading: boolean;
   isJoiningBusiness: boolean;
@@ -866,6 +879,10 @@ export const useBusinessStore = create<BusinessState>()(
       return employments;
     } catch (error) {
       set({ myEmploymentsLoading: false });
+      if (isExpectedAuthError(error)) {
+        set({ myEmployments: [] });
+        return [];
+      }
       console.error("Fetch my employments error:", error);
       throw error;
     }

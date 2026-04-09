@@ -32,9 +32,11 @@ const CreateTemplate = () => {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const {
-    myBusinesses,
-    myBusinessesLoading,
-    getMyBusinesses,
+    myEmployments,
+    myEmploymentsLoading,
+    getMyEmployments,
+    selectedBusinesses,
+    setSelectedBusinesses,
     getMyBusinessRoles,
     createShiftTemplate,
   } = useBusinessStore();
@@ -61,20 +63,67 @@ const CreateTemplate = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
-    getMyBusinesses().catch((error: any) => {
+    getMyEmployments().catch((error: any) => {
       toast.error(error?.message || "Failed to load businesses");
     });
-  }, [getMyBusinesses]);
+  }, [getMyEmployments]);
 
-  const businessOptions = useMemo(
-    () =>
-      (myBusinesses || []).map((business: any) => ({
-        label: business?.name || "Business",
-        value: business?.id || "",
-        avatar: business?.logo || undefined,
-      })),
-    [myBusinesses]
-  );
+  const activeBusinesses = useMemo(() => {
+    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
+      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+    );
+    const uniqueByBusinessId = new Map<string, any>();
+
+    activeEmployments.forEach((employment: any) => {
+      const business = employment?.business;
+      const businessId = business?.id || employment?.businessId;
+      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        logo: business?.logo,
+        address: business?.address,
+      });
+    });
+
+    return Array.from(uniqueByBusinessId.values());
+  }, [myEmployments]);
+
+  useEffect(() => {
+    const preferredBusinessId = selectedBusinesses?.[0];
+    const hasPreferred = activeBusinesses.some(
+      (business) => business.id === preferredBusinessId
+    );
+    const nextBusinessId = hasPreferred
+      ? preferredBusinessId
+      : activeBusinesses[0]?.id || "";
+
+    if (!nextBusinessId) {
+      if (selectedBusiness !== "") {
+        setSelectedBusiness("");
+      }
+      return;
+    }
+
+    if (selectedBusiness !== nextBusinessId) {
+      setSelectedBusiness(nextBusinessId);
+      setSelectedRole("");
+      setRoleSelectionVersion(0);
+      setRoleRequirements([]);
+      setCurrentRoleSlotsTotal(0);
+      setRoleSlotsResetVersion((prev) => prev + 1);
+    }
+
+    if (!hasPreferred && nextBusinessId) {
+      setSelectedBusinesses([nextBusinessId]);
+    }
+  }, [
+    activeBusinesses,
+    selectedBusiness,
+    selectedBusinesses,
+    setSelectedBusinesses,
+  ]);
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -267,8 +316,8 @@ const CreateTemplate = () => {
   };
 
   const selectedBusinessInfo = useMemo(
-    () => (myBusinesses || []).find((business: any) => business?.id === selectedBusiness),
-    [myBusinesses, selectedBusiness]
+    () => activeBusinesses.find((business: any) => business?.id === selectedBusiness),
+    [activeBusinesses, selectedBusiness]
   );
 
   const previewData = useMemo(
@@ -404,31 +453,27 @@ const CreateTemplate = () => {
             ) : null}
           </View>
 
-          {/* business dropdown */}
+          {/* business info */}
           <View>
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-              Select business
+              Business
             </Text>
 
-            {myBusinessesLoading ? (
+            {myEmploymentsLoading ? (
               <View className="mt-4 py-4 items-center border border-[#EEEEEE] rounded-[10px]">
                 <ActivityIndicator size="small" />
               </View>
             ) : (
-              <SelectDropdown
-                className="mt-4"
-                placeholder="Choose business"
-                options={businessOptions}
-                value={selectedBusiness}
-                onSelect={(value: string) => {
-                  setSelectedBusiness(value);
-                  setSelectedRole("");
-                  setRoleSelectionVersion(0);
-                  setRoleRequirements([]);
-                  setCurrentRoleSlotsTotal(0);
-                  setRoleSlotsResetVersion((prev) => prev + 1);
-                }}
-              />
+              <View className="mt-4 px-4 py-3 border border-[#EEEEEE] rounded-[10px] bg-[#F9FAFB]">
+                <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {selectedBusinessInfo?.name || "No business selected"}
+                </Text>
+                {selectedBusinessInfo?.address?.address ? (
+                  <Text className="mt-1 text-xs font-proximanova-regular text-secondary">
+                    {selectedBusinessInfo.address.address}
+                  </Text>
+                ) : null}
+              </View>
             )}
           </View>
 

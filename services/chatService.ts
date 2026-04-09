@@ -59,6 +59,22 @@ class ChatService {
     }
   }
 
+  async getUnreadCount(): Promise<number> {
+    try {
+      const response = await axiosInstance.get("/chat/unread-count");
+      const result = response.data;
+
+      if (!this.isApiSuccess(result)) {
+        throw new Error(result?.message || "Failed to load unread count");
+      }
+
+      const count = Number(result?.data?.count ?? 0);
+      return Number.isFinite(count) && count > 0 ? count : 0;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to load unread count");
+    }
+  }
+
   async getRoomMessages(roomId: string, page = 1, limit = 50): Promise<any> {
     try {
       const response = await axiosInstance.get(`/chat/rooms/${roomId}/messages`, {

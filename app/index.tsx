@@ -3,7 +3,7 @@ import { consumePendingChatNavigation } from "@/utils/notificationNavigation";
 import { Redirect } from "expo-router";
 
 export default function Index() {
-  const { user, isInitialized } = useAuthStore();
+  const { user, isInitialized, sessionExpired } = useAuthStore();
 
   // Root layout already shows splash + initializes auth.
   // Avoid rendering a second splash here to prevent flicker.
@@ -46,5 +46,9 @@ export default function Index() {
   }
 
   // Not logged in, show welcome screen
+  if (sessionExpired) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return <Redirect href="/welcome" />;
 }

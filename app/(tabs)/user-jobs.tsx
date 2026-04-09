@@ -1,19 +1,19 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobCard from "@/components/ui/cards/JobCard";
-import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import ChatBell from "@/components/ui/notification/ChatBell";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
-  StyleSheet,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -129,22 +129,11 @@ const UserJobs = () => {
             </TouchableOpacity>
 
             {/* right */}
-            <TouchableOpacity
-              onPress={() => router.push("/screens/inbox/chat-list")}
-              className="w-10 h-10 justify-center items-center bg-[#f5f5f5] border-[0.5px] border-[#b2b1b169] rounded-full"
-            >
-              <Image
-                source={require("@/assets/images/messages.svg")}
-                style={{
-                  width: 20,
-                  height: 20,
-                }}
-                contentFit="contain"
-              />
-              <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-                <Text className="text-[10px] text-white">1</Text>
-              </View>
-            </TouchableOpacity>
+            {/* messages */}
+            <ChatBell
+              className="h-10 w-10 bg-[#F5F5F5] border-[0.5px] border-[#b2b1b185] rounded-full items-center justify-center"
+              iconSize={22}
+            />
           </View>
         }
       />

@@ -55,6 +55,7 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  sessionExpired: boolean;
   isLoading: boolean;
   error: Error | null;
   isInitialized: boolean;
@@ -75,12 +76,14 @@ interface AuthState {
   clearError: () => void;
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string | null, refreshToken: string | null) => void;
+  setSessionExpired: (expired: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
+  sessionExpired: false,
   isLoading: false,
   error: null,
   isInitialized: false,
@@ -97,6 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: authData.user,
           accessToken: authData.accessToken,
           refreshToken: authData.refreshToken,
+          sessionExpired: false,
           isInitialized: true,
         });
       } else {
@@ -108,6 +112,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: null,
           accessToken: null,
           refreshToken: null,
+          sessionExpired: false,
           isInitialized: true,
         });
       }
@@ -123,6 +128,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         accessToken: null,
         refreshToken: null,
+        sessionExpired: false,
         isInitialized: true,
       });
     }
@@ -173,6 +179,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          sessionExpired: false,
           isLoading: false,
         });
       } else {
@@ -200,6 +207,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          sessionExpired: false,
           isLoading: false,
         });
       } else {
@@ -227,12 +235,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          sessionExpired: false,
           isLoading: false,
         });
       } else if (response.data) {
         await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.data));
         set({
           user: response.data,
+          sessionExpired: false,
           isLoading: false,
         });
       } else {
@@ -346,6 +356,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         accessToken: null,
         refreshToken: null,
+        sessionExpired: false,
       });
     } catch (error) {
       console.error("Failed to logout:", error);
@@ -355,11 +366,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         accessToken: null,
         refreshToken: null,
+        sessionExpired: false,
       });
     }
   },
 
   clearError: () => set({ error: null }),
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({ user, sessionExpired: user ? false : get().sessionExpired }),
   setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+  setSessionExpired: (expired) => set({ sessionExpired: expired }),
 }));

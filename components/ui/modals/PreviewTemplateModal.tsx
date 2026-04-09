@@ -120,12 +120,13 @@ const PreviewTemplateModal = ({
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                     Roles:
                   </Text>
+
                   <View className="flex-row flex-wrap gap-2 justify-end flex-1 ml-3">
                     {(data?.roles || []).length > 0 ? (
                       data.roles.map((role, index) => (
                         <Text
                           key={`${role.roleName}-${index}`}
-                          className="font-proximanova-regular text-sm text-primary dark:text-dark-primary bg-[#f5f5f5] rounded-full px-2.5 py-1.5 "
+                          className="h-8 font-proximanova-regular text-sm text-primary dark:text-dark-primary bg-[#f5f5f5] rounded-full px-2.5 py-1.5 "
                         >
                           {role.count} {role.roleName}
                         </Text>
@@ -138,10 +139,11 @@ const PreviewTemplateModal = ({
                   </View>
                 </View>
               </View>
+
               <Image
                 source={require("@/assets/images/dotted-line.svg")}
-                contentFit="contain"
-                style={{ width: 210, height: 2, marginTop: 15 }}
+                contentFit="fill"
+                style={{ width: "100%", height: 1, marginTop: 15 }}
               />
 
               <View className="flex-row gap-2 items-center my-2.5">
