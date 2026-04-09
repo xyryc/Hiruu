@@ -28,6 +28,21 @@ const clearCvPollers = () => {
   }
 };
 
+const getApiMessageKey = (error: unknown, fallback: string) => {
+  if (error instanceof AxiosError) {
+    const apiMessage = (error.response?.data as any)?.message;
+    if (typeof apiMessage === "string" && apiMessage.trim().length > 0) {
+      return apiMessage;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
 export type CvLayoutStyle = "traditional" | "sidebar-left" | "sidebar-right";
 export type CvBuildStatus = "idle" | "pending" | "completed" | "cancelled" | "timeout" | "failed";
 
@@ -246,8 +261,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
       return cvResult;
     } catch (error) {
-      const finalError =
-        error instanceof Error ? error : new Error("Failed to start CV generation");
+      const finalError = new Error(
+        getApiMessageKey(error, "Failed to start CV generation")
+      );
       set({
         isGeneratingCv: false,
         isPollingCv: false,
@@ -325,8 +341,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
             cvResult: null,
           });
         } catch (error) {
-          const finalError =
-            error instanceof Error ? error : new Error("Failed to fetch CV status");
+          const finalError = new Error(
+            getApiMessageKey(error, "Failed to fetch CV status")
+          );
           fail(finalError);
         }
       };
@@ -371,8 +388,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
       return cvResult;
     } catch (error) {
-      const finalError =
-        error instanceof Error ? error : new Error("Failed to cancel CV generation");
+      const finalError = new Error(
+        getApiMessageKey(error, "Failed to cancel CV generation")
+      );
       set({
         cvBuildStatus: "failed",
         error: finalError,

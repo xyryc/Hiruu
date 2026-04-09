@@ -227,15 +227,21 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                   <Text className="text-center text-sm text-gray-500 py-6">
                     No businesses found.
                   </Text>
-              )}
+                )}
               {displayedBusinesses.map((business) => {
                 const addressLabel = business?.address?.address || "";
                 const employment = employmentMetaByBusinessId.get(business.id);
                 const roleMissing = Boolean(employment) && !employment?.role;
                 const rowSelected = isSelected(business.id) && !roleMissing;
-                const helperText = roleMissing
+                const roleName =
+                  employment?.role?.role?.name ||
+                  employment?.role?.name ||
+                  "";
+                const roleText = roleMissing
                   ? "Role not assigned yet"
-                  : addressLabel;
+                  : roleName
+                    ? `${roleName}`
+                    : "";
                 return (
                   <TouchableOpacity
                     key={business.id}
@@ -244,11 +250,9 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                       toggleBusiness(business.id);
                     }}
                     disabled={roleMissing}
-                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${
-                      roleMissing ? "opacity-60" : ""
-                    } ${
-                      rowSelected ? "bg-[#4FB2F3]" : "bg-white"
-                    }`}
+                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${roleMissing ? "opacity-60" : ""
+                      } ${rowSelected ? "bg-[#4FB2F3]" : "bg-white"
+                      }`}
                   >
                     {/* Business Avatar */}
                     <View className="w-10 h-10 rounded-full mr-4 justify-center items-center">
@@ -284,7 +288,18 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                       >
                         {business.name}
                       </Text>
-                      {!!helperText && (
+                      {!!roleText && (
+                        <Text
+                          className={`text-xs ${rowSelected
+                            ? "text-white/80"
+                            : "text-gray-600"
+                            }`}
+                          numberOfLines={1}
+                        >
+                          {roleText}
+                        </Text>
+                      )}
+                      {!!addressLabel && (
                         <Text
                           className={`text-xs ${rowSelected
                             ? "text-white/80"
@@ -292,7 +307,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                             }`}
                           numberOfLines={1}
                         >
-                          {helperText}
+                          {addressLabel}
                         </Text>
                       )}
                     </View>
