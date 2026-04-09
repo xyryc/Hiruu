@@ -2,6 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
 import ChatBell from "@/components/ui/notification/ChatBell";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
@@ -75,6 +76,7 @@ const BusinessJobs = () => {
   const getJobProfiles = useJobStore((s) => s.getJobProfiles);
   const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
   const { selectedBusinesses } = useBusinessStore();
+  const { canEdit: canPostJobs } = useBusinessPermission("jobs");
   const [featuredProfiles, setFeaturedProfiles] = useState<any[]>([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
@@ -187,8 +189,14 @@ const BusinessJobs = () => {
           <View className="flex-row items-center gap-2.5">
             {/* post job */}
             <TouchableOpacity
-              onPress={() => router.push("/screens/jobs/business/post-job")}
-              className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
+              onPress={() => {
+                if (!canPostJobs) {
+                  toast.error("You do not have permission to post jobs");
+                  return;
+                }
+                router.push("/screens/jobs/business/post-job");
+              }}
+              className={`h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full ${canPostJobs ? "" : "opacity-50"}`}
             >
               <Ionicons name="add" size={18} color="black" />
             </TouchableOpacity>

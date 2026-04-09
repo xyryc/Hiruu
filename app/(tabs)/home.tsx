@@ -17,6 +17,7 @@ import TopPerformer from '@/components/layout/TopPerformer';
 import UserWorkInsights from '@/components/layout/UserWorkInsights';
 import Widgets from '@/components/layout/Widgets';
 import ActionCard from '@/components/ui/cards/ActionCard';
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -49,6 +50,17 @@ const UserHome = () => {
       return Boolean(isActive && businessId);
     });
   }, [profileData?.employments, profileData?.user?.employments]);
+
+  const profileEmployments = useMemo(() => {
+    if (Array.isArray(profileData?.employments)) return profileData.employments;
+    if (Array.isArray(profileData?.user?.employments)) return profileData.user.employments;
+    return [];
+  }, [profileData?.employments, profileData?.user?.employments]);
+
+  const { canRead: canViewBusinessOverview } = useBusinessPermission(
+    "business.overview",
+    { employments: profileEmployments }
+  );
 
   const loadProfile = useCallback(async () => {
     const result = await getProfile();
@@ -125,7 +137,7 @@ const UserHome = () => {
         {isBusinessProfile && (
           <>
             {/* Business Summary */}
-            <BusinessSummary />
+            {canViewBusinessOverview && <BusinessSummary />}
 
             {/* todays shift summary */}
             <TodayShiftsSummary />

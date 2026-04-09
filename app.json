@@ -82,7 +82,8 @@
           "merchantIdentifier": "merchant.com.xyryc.hiruu",
           "enableGooglePay": false
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
