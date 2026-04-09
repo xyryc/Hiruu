@@ -1,18 +1,45 @@
 import { Entypo, MaterialIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RequestLogModal = ({ visible, onClose }: any) => {
-  const [selectedOption, setSelectedOption] = useState("automatic");
+type AttendanceMode = "automatic" | "manual";
 
-  const handleSave = () => {
+type RequestLogModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  value?: AttendanceMode;
+  loading?: boolean;
+  onSave?: (mode: AttendanceMode) => Promise<void> | void;
+};
+
+const RequestLogModal = ({
+  visible,
+  onClose,
+  value = "automatic",
+  loading = false,
+  onSave,
+}: RequestLogModalProps) => {
+  const [selectedOption, setSelectedOption] = useState<AttendanceMode>(value);
+
+  useEffect(() => {
+    if (!visible) return;
+    setSelectedOption(value);
+  }, [value, visible]);
+
+  const handleSave = async () => {
+    if (loading) return;
+    if (typeof onSave === "function") {
+      await onSave(selectedOption);
+      return;
+    }
     onClose();
   };
 
   const handleCancel = () => {
-    setSelectedOption("automatic");
+    if (loading) return;
+    setSelectedOption(value);
     onClose();
   };
 
@@ -24,7 +51,7 @@ const RequestLogModal = ({ visible, onClose }: any) => {
       onRequestClose={onClose}
     >
       <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
-        <View className="bg-white rounded-t-3xl min-h-[45%]">
+        <View className="bg-white rounded-t-3xl">
           {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2 z-10">
             <TouchableOpacity onPress={handleCancel}>
@@ -35,7 +62,7 @@ const RequestLogModal = ({ visible, onClose }: any) => {
           </View>
 
           {/* Modal Content */}
-          <SafeAreaView edges={["bottom"]} className="flex-1">
+          <SafeAreaView edges={["bottom"]}>
             <View className="px-6 py-7">
               {/* Header */}
               <Text className="font-proximanova-bold text-xl text-primary dark:text-dark-primary">
@@ -45,11 +72,11 @@ const RequestLogModal = ({ visible, onClose }: any) => {
               {/* Automatic Option */}
               <TouchableOpacity
                 onPress={() => setSelectedOption("automatic")}
-                className={`flex-row items-start p-4 rounded-2xl `}
+                className={`flex-row items-start rounded-2xl `}
               >
                 <View className="flex-1 mt-8">
                   <View className="flex-row justify-between">
-                    <Text className="font-proximanova-semibold text-primary dark:text-dark-primary ">
+                    <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
                       Automatic
                     </Text>
                     <View
@@ -60,7 +87,7 @@ const RequestLogModal = ({ visible, onClose }: any) => {
                       )}
                     </View>
                   </View>
-                  <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary mt-4">
+                  <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary mt-2">
                     System will automatically handle and process all incoming
                     requests
                   </Text>
@@ -70,7 +97,7 @@ const RequestLogModal = ({ visible, onClose }: any) => {
               {/* Manual Option */}
               <TouchableOpacity
                 onPress={() => setSelectedOption("manual")}
-                className={`flex-row items-start p-4 mt-3 rounded-2xl `}
+                className={`flex-row items-start mt-6 rounded-2xl `}
               >
                 <View className="flex-1">
                   <View className="flex-row justify-between">
@@ -85,7 +112,7 @@ const RequestLogModal = ({ visible, onClose }: any) => {
                       )}
                     </View>
                   </View>
-                  <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary mt-4">
+                  <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary mt-2">
                     You will need to manually approve and process each request
                   </Text>
                 </View>
@@ -95,7 +122,8 @@ const RequestLogModal = ({ visible, onClose }: any) => {
               <View className="flex-row gap-3 mt-8">
                 <TouchableOpacity
                   onPress={handleCancel}
-                  className="flex-1 border border-[#11111133] rounded-full py-4"
+                  disabled={loading}
+                  className="flex-1 border border-[#11111133] rounded-full py-2.5"
                 >
                   <Text className="text-center text-gray-700 font-proximanova-semibold text-base">
                     Cancel
@@ -104,10 +132,11 @@ const RequestLogModal = ({ visible, onClose }: any) => {
 
                 <TouchableOpacity
                   onPress={handleSave}
-                  className="flex-1 rounded-full py-4 bg-[#11293A]"
+                  disabled={loading}
+                  className="flex-1 rounded-full py-2.5 bg-[#11293A]"
                 >
                   <Text className="text-center font-proximanova-semibold text-base text-white">
-                    Save
+                    {loading ? "Saving..." : "Save"}
                   </Text>
                 </TouchableOpacity>
               </View>

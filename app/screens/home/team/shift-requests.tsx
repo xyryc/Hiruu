@@ -1,15 +1,20 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import TeamShiftRequestCard from "@/components/ui/cards/TeamShiftRequestCard";
 import RequestLogModal from "@/components/ui/modals/RequestLogModal";
+import { useBusinessStore } from "@/stores/businessStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type AttendanceMode = "automatic" | "manual";
 
 const ShiftRequest = () => {
   const { colorScheme } = useColorScheme();
@@ -17,6 +22,62 @@ const ShiftRequest = () => {
   const [selectedTab, setSelectedTab] = useState("Pending Requests");
   const insets = useSafeAreaInsets();
   const [isModalSettings, setIsModalSettings] = useState(false);
+  const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>("automatic");
+  const [isSavingAttendanceMode, setIsSavingAttendanceMode] = useState(false);
+  const {
+    selectedBusinesses,
+    getBusinessProfile,
+    updateMyBusinessProfile,
+  } = useBusinessStore();
+  const selectedBusinessId = selectedBusinesses?.[0];
+
+  useEffect(() => {
+    if (!selectedBusinessId) return;
+
+    let mounted = true;
+    const loadBusinessAttendanceMode = async () => {
+      try {
+        const result = await getBusinessProfile(selectedBusinessId);
+        if (!mounted) return;
+        const mode = String(result?.attendanceMode || "").toLowerCase();
+        setAttendanceMode(mode === "manual" ? "manual" : "automatic");
+      } catch {
+        if (!mounted) return;
+        setAttendanceMode("automatic");
+      }
+    };
+
+    loadBusinessAttendanceMode();
+
+    return () => {
+      mounted = false;
+    };
+  }, [getBusinessProfile, selectedBusinessId]);
+
+  const handleSaveAttendanceMode = async (mode: AttendanceMode) => {
+    if (!selectedBusinessId) {
+      toast.error("No business selected");
+      return;
+    }
+
+    try {
+      setIsSavingAttendanceMode(true);
+      await updateMyBusinessProfile(selectedBusinessId, { attendanceMode: mode });
+      setAttendanceMode(mode);
+      toast.success(translateApiMessage("business_updated_successfully"));
+      setIsModalSettings(false);
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to update request log settings"
+        )
+      );
+    } finally {
+      setIsSavingAttendanceMode(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -57,6 +118,9 @@ const ShiftRequest = () => {
         <RequestLogModal
           visible={isModalSettings}
           onClose={() => setIsModalSettings(false)}
+          value={attendanceMode}
+          loading={isSavingAttendanceMode}
+          onSave={handleSaveAttendanceMode}
         />
 
         {/* tabs  */}
