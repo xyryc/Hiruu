@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useState } from "react";
-import { Linking, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { GestureViewer } from "react-native-gesture-image-viewer";
+import React, { useState } from "react";
+import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const getStatusMeta = (status: string) => {
   switch ((status || "").toLowerCase()) {
@@ -59,10 +60,17 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
 
   const [viewerVisible, setViewerVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [videoVisible, setVideoVisible] = useState(false);
+  const [videoUri, setVideoUri] = useState<string>("");
 
   // Extract all image URIs for the viewer
   const imageUris = media
     .filter((item) => item.previewType === "image")
+    .map((item) => item.uri);
+
+  // Extract video URIs
+  const videoUris = media
+    .filter((item) => item.previewType === "video")
     .map((item) => item.uri);
 
   const avatarSource = typeof msg.avatar === "string" ? { uri: msg.avatar } : msg.avatar;
@@ -135,7 +143,10 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
                 <TouchableOpacity
                   key={item.id}
                   className="w-[220px] h-[140px] rounded-2xl bg-[#0F1C25] items-center justify-center px-3"
-                  onPress={() => Linking.openURL(item.uri)}
+                  onPress={() => {
+                    setVideoUri(item.uri);
+                    setVideoVisible(true);
+                  }}
                   activeOpacity={0.8}
                 >
                   {item.thumbnailUrl ? (
@@ -239,7 +250,71 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
           </TouchableOpacity>
         </View>
       </Modal>
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        visible={videoVisible}
+        videoUri={videoUri}
+        onClose={() => setVideoVisible(false)}
+      />
     </View>
+  );
+};
+
+// Separate VideoPlayerModal component to use hooks properly
+const VideoPlayerModal: React.FC<{
+  visible: boolean;
+  videoUri: string;
+  onClose: () => void;
+}> = ({ visible, videoUri, onClose }) => {
+  const player = useVideoPlayer(videoUri, (p) => {
+    p.loop = true;
+    p.play();
+  });
+
+  // Also play when visible becomes true and player is ready
+  React.useEffect(() => {
+    if (visible && player) {
+      if (player.status === "readyToPlay") {
+        player.play();
+      } else if (player.status === "loading" || player.status === "idle") {
+        // Wait for player to be ready then play
+        const interval = setInterval(() => {
+          if (player.status === "readyToPlay") {
+            clearInterval(interval);
+            player.play();
+          }
+        }, 500);
+
+        return () => clearInterval(interval);
+      }
+    }
+  }, [visible, player]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black justify-center items-center">
+        <View style={{ width: "100%", height: "100%" }}>
+          <VideoView
+            player={player}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="contain"
+            nativeControls={true}
+          />
+        </View>
+        <TouchableOpacity
+          className="absolute top-12 right-4 p-2"
+          onPress={onClose}
+        >
+          <Ionicons name="close" size={28} color="white" />
+        </TouchableOpacity>
+      </View>
+    </Modal>
   );
 };
 
