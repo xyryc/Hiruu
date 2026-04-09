@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
 };
 
 const isExpectedAuthError = (error: unknown) => {
+  if ((error as any)?.isAuthSessionExpired) return true;
   const axiosError = error as AxiosError<any>;
   const status = axiosError?.response?.status;
   if (status === 401) return true;

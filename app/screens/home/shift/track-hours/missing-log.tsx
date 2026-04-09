@@ -22,28 +22,28 @@ const MissingLog = () => {
     >
       {/* Header */}
       <ScreenHeader
-        className="mx-5 rounded-3xl"
+        className="mx-5 my-4 rounded-3xl"
         onPressBack={() => router.back()}
         title="Missing log Activities"
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
-          <TouchableOpacity onPress={() => setIsModal(true)}>
-            <Feather
-              className="p-2 bg-[#F5F5F5] rounded-full"
-              name="filter"
-              size={24}
-              color="black"
-            />
+          <TouchableOpacity
+            className="w-10 h-10 justify-center items-center bg-[#F5F5F5] rounded-full"
+            onPress={() => setIsModal(true)}
+          >
+            <Feather name="filter" size={16} color="#292D32" />
           </TouchableOpacity>
         }
       />
-      <ScrollView className="ml-5" showsVerticalScrollIndicator={false}>
-        <View className="flex-row justify-between mt-8">
-          <Text className="font-proximanova-semibold text-sm mx-5 text-secondary dark:text-dark-sectext-secondary">
+
+      <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
+        <View className="flex-row justify-between">
+          <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-sectext-secondary">
             09 June 2025 Today
           </Text>
         </View>
+
         <View className="mb-4 mt-3">
           <TaskCard
             shiftTitle="Hotel & Bar Management"
@@ -57,8 +57,10 @@ const MissingLog = () => {
             onLoginPress={handleLogin}
             status="completed"
             requestLog={true}
+            fullWidth
           />
         </View>
+
         <View className="mb-4">
           <TaskCard
             shiftTitle="Hotel & Bar Management"
@@ -72,10 +74,11 @@ const MissingLog = () => {
             onLoginPress={handleLogin}
             status="completed"
             requestLog={true}
+            fullWidth
           />
         </View>
         <View className="flex-row justify-between mt-7">
-          <Text className="font-proximanova-semibold text-sm mx-5 text-secondary dark:text-dark-sectext-secondary">
+          <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-sectext-secondary">
             08 June 2025 Today
           </Text>
         </View>
@@ -92,6 +95,7 @@ const MissingLog = () => {
             onLoginPress={handleLogin}
             status="completed"
             requestLog={true}
+            fullWidth
           />
         </View>
         <View className="mb-4">
@@ -107,6 +111,7 @@ const MissingLog = () => {
             onLoginPress={handleLogin}
             status="completed"
             requestLog={true}
+            fullWidth
           />
         </View>
         <TrackHoursFilter visible={isModal} onClose={() => setIsModal(false)} />

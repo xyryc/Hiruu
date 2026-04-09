@@ -15,7 +15,7 @@ import {
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -277,12 +277,13 @@ const TrackHours = () => {
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
               Missing log Activities
             </Text>
-            <Link
-              href="./missing-log"
-              className="font-proximanova-semibold text-sm text-[#4FB2F3]"
+
+            <TouchableOpacity
+              onPress={() => router.push("/screens/home/shift/track-hours/missing-log")}
+
             >
-              See All
-            </Link>
+              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">See All</Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView

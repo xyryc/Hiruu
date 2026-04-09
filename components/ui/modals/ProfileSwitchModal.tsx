@@ -128,23 +128,13 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
               {activeEmploymentEntries.map((employment: any) => {
                 const business = employment?.business || {};
                 const roleName = employment?.role?.role?.name || "";
-                const permissions = employment?.role?.permissions || {};
-                const overviewLevel =
-                  typeof permissions?.["business.overview"] === "number"
-                    ? permissions["business.overview"]
-                    : roleName === "Owner"
-                      ? 3
-                      : 0;
                 const roleMissing = !employment?.role;
-                const hasOverviewAccess = overviewLevel >= 1;
-                const isSwitchDisabled = roleMissing || !hasOverviewAccess;
+                const isSwitchDisabled = roleMissing;
                 const helperText = roleMissing
                   ? "Role not assigned yet"
-                  : !hasOverviewAccess
-                    ? "No access to this profile"
-                    : roleName
-                      ? roleName
-                      : "";
+                  : roleName
+                    ? roleName
+                    : "";
 
                 return (
                   <TouchableOpacity

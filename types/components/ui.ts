@@ -248,6 +248,8 @@ export interface ShiftHeaderProps {
 
 export interface WorkShiftCardProps {
   shiftId?: string;
+  className?: string;
+  fullWidth?: boolean;
   shiftTitle: string;
   startTime: string;
   endTime: string;

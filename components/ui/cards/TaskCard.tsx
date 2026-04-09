@@ -13,6 +13,8 @@ import SmallButton from "../buttons/SmallButton";
 
 const TaskCard = ({
   shiftId,
+  className = "",
+  fullWidth = false,
   shiftTitle,
   startTime,
   endTime,
@@ -153,7 +155,7 @@ const TaskCard = ({
           params: { id: String(shiftId) },
         });
       }}
-      className={`w-[320px] shrink-0 mr-4 rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"}`}
+      className={`${fullWidth ? "w-full mr-0" : "w-[320px] shrink-0 mr-4"} rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"} ${className}`}
     >
       {/* Status Timer */}
       {hasLiveTimer && (

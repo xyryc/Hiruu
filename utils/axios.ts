@@ -174,10 +174,14 @@ axiosInstance.interceptors.response.use(
             throw new Error(result.message || 'Token refresh failed');
           }
         } else {
-          throw new Error('No refresh token available');
+          const authError = new Error('');
+          (authError as any).isAuthSessionExpired = true;
+          throw authError;
         }
       } catch (refreshError) {
-        processQueue(refreshError as Error, null);
+        const normalizedAuthError = new Error('');
+        (normalizedAuthError as any).isAuthSessionExpired = true;
+        processQueue(normalizedAuthError, null);
 
         // Token refresh failed - clear storage and redirect to login
         await AsyncStorage.multiRemove([
@@ -203,7 +207,7 @@ axiosInstance.interceptors.response.use(
 
         // Don't redirect here - let app/index.tsx handle navigation
         // Setting user to null will trigger automatic redirect
-        return Promise.reject(refreshError);
+        return Promise.reject(normalizedAuthError);
       } finally {
         isRefreshing = false;
       }
