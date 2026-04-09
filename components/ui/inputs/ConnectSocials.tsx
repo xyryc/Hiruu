@@ -1,5 +1,5 @@
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useEffect, useMemo, useState } from "react";
 import { Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import SmallButton from "../buttons/SmallButton";
@@ -222,9 +222,8 @@ const ConnectSocials = ({
         return (
           <React.Fragment key={item.id}>
             <View
-              className={`flex-row justify-between items-center p-3 ${
-                index !== visibleItems.length - 1 ? "border-b border-[#EEEEEE]" : ""
-              }`}
+              className={`flex-row justify-between items-center p-3 ${index !== visibleItems.length - 1 ? "border-b border-[#EEEEEE]" : ""
+                }`}
             >
               <TouchableOpacity className="flex-row items-center gap-1.5">
                 <Image
