@@ -15,6 +15,8 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -57,10 +59,14 @@ const Challenges = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isActive, setIsActive] = useState("One-Time");
+  const [page, setPage] = useState(1);
+  const limit = 10;
   const currentType = achievementTypeByTab[isActive];
   const {
     achievements,
+    achievementsPagination,
     isLoadingAchievements,
+    isLoadingMoreAchievements,
     claimingAchievementId,
     getAchievements,
     claimAchievement,
@@ -68,7 +74,8 @@ const Challenges = () => {
 
   useFocusEffect(
     useCallback(() => {
-      getAchievements(currentType).catch((error: any) => {
+      setPage(1);
+      getAchievements(currentType, 1, limit, false).catch((error: any) => {
         toast.error(error?.message || "Failed to load challenges");
       });
     }, [currentType, getAchievements])
@@ -83,7 +90,8 @@ const Challenges = () => {
         toast.success(
           translateApiMessage(result?.message) || "Achievement claimed successfully"
         );
-        await getAchievements(currentType);
+        setPage(1);
+        await getAchievements(currentType, 1, limit, false);
       } catch (error: any) {
         toast.error(
           translateApiMessage(error?.message) || "Failed to claim achievement"
@@ -92,6 +100,35 @@ const Challenges = () => {
     },
     [claimAchievement, currentType, getAchievements]
   );
+
+  const handleLoadMore = useCallback(async () => {
+    const hasNext = Boolean(achievementsPagination?.hasNext);
+    if (!hasNext || isLoadingAchievements || isLoadingMoreAchievements) return;
+
+    const nextPage = Number(achievementsPagination?.page || page) + 1;
+    try {
+      await getAchievements(currentType, nextPage, limit, true);
+      setPage(nextPage);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load more challenges");
+    }
+  }, [
+    achievementsPagination?.hasNext,
+    achievementsPagination?.page,
+    currentType,
+    getAchievements,
+    isLoadingAchievements,
+    isLoadingMoreAchievements,
+    page,
+  ]);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const threshold = 120;
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - threshold) {
+      void handleLoadMore();
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
@@ -168,6 +205,8 @@ const Challenges = () => {
         className="mx-5"
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={150}
       >
         {isLoadingAchievements ? (
           <View className="py-10 items-center">
@@ -177,7 +216,9 @@ const Challenges = () => {
           achievements.map((achievement, index) => {
             const progress = Number(achievement?.userProgress?.progress || 0);
             const target = Number(achievement?.conditions?.target || 0);
-            const rewardCoins = Number(achievement?.rewardCoins || 0);
+            const rewardCoins = Number(
+              achievement?.rewardCoins ?? achievement?.rewards?.[0]?.coins ?? 0
+            );
             const actionLabel = getChallengeActionLabel(achievement);
             const isClaimed = Boolean(achievement?.userProgress?.isClaimed);
             const canClaim = Boolean(achievement?.userProgress?.canClaim);
@@ -281,6 +322,12 @@ const Challenges = () => {
             </Text>
           </View>
         )}
+
+        {isLoadingMoreAchievements ? (
+          <View className="py-4 items-center">
+            <ActivityIndicator size="small" color="#4FB2F3" />
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

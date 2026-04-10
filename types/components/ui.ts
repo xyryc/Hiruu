@@ -203,6 +203,7 @@ type StatusType =
   | "missed"
   | "ongoing"
   | "pending"
+  | "leave_requested"
   | "approved"
   | "rejected"
   | "cancelled"

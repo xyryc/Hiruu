@@ -6,7 +6,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
@@ -23,6 +23,7 @@ const ShiftRequest = () => {
   const insets = useSafeAreaInsets();
   const [isModalSettings, setIsModalSettings] = useState(false);
   const [attendanceMode, setAttendanceMode] = useState<AttendanceMode>("automatic");
+  const attendanceModeRequestIdRef = useRef(0);
   const [isSavingAttendanceMode, setIsSavingAttendanceMode] = useState(false);
   const {
     selectedBusinesses,
@@ -33,11 +34,14 @@ const ShiftRequest = () => {
 
   const loadBusinessAttendanceMode = useCallback(async () => {
     if (!selectedBusinessId) return;
+    const requestId = ++attendanceModeRequestIdRef.current;
     try {
       const business = await getBusinessProfile(selectedBusinessId);
+      if (requestId !== attendanceModeRequestIdRef.current) return;
       const mode = String(business?.attendanceMode || "").toLowerCase();
       setAttendanceMode(mode === "manual" ? "manual" : "automatic");
     } catch {
+      if (requestId !== attendanceModeRequestIdRef.current) return;
       setAttendanceMode("automatic");
     }
   }, [getBusinessProfile, selectedBusinessId]);

@@ -19,7 +19,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Linking,
@@ -57,6 +57,7 @@ const BusinessProfile = () => {
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const [businessJobs, setBusinessJobs] = useState<any[]>([]);
+  const profileRequestIdRef = useRef(0);
   const getBusinessRatingSummary = useProfileStore((state) => state.getBusinessRatingSummary);
   const businessRatingSummary = useProfileStore((state) => state.businessRatingSummary);
   const getBusinessRecruitments = useJobStore((state) => state.getBusinessRecruitments);
@@ -100,14 +101,19 @@ const BusinessProfile = () => {
       return;
     }
 
+    const requestId = ++profileRequestIdRef.current;
+
     try {
       setLoading(true);
       const data = await getBusinessProfile(businessId);
+      if (requestId !== profileRequestIdRef.current) return;
       setBusinessData(data);
       setSocialLinks(data?.social || {});
     } catch (error: any) {
+      if (requestId !== profileRequestIdRef.current) return;
       toast.error(error?.message || "Failed to load business");
     } finally {
+      if (requestId !== profileRequestIdRef.current) return;
       setLoading(false);
     }
   }, [businessId, canReadProfile, getBusinessProfile]);

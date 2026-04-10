@@ -34,13 +34,13 @@ const StatusStateCard = ({
 
       <Text
         style={titleStyle}
-        className="mt-1 text-center font-proximanova-semibold text-[30px] text-[#1F1F1F]"
+        className="mt-1 text-center font-proximanova-semibold text-2xl text-[#1F1F1F]"
       >
         {title}
       </Text>
       <Text
         style={textStyle}
-        className="mt-2 text-center font-proximanova-regular text-[15px] text-[#8C8C8C]"
+        className="mt-2 text-center font-proximanova-regular text-base text-[#8C8C8C]"
       >
         {text}
       </Text>

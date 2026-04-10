@@ -2,10 +2,14 @@ import StatusBadge from "@/components/ui/badges/StatusBadge";
 import { formatDate } from "@/utils/date";
 import { Image } from "expo-image";
 import React from "react";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 type SwapRequestCardProps = {
   item: any;
+  showActions?: boolean;
+  onAccept?: () => void;
+  onReject?: () => void;
+  actionLoading?: "approve" | "reject" | null;
 };
 
 const formatIsoTime = (value?: string | null) => {
@@ -19,7 +23,13 @@ const formatIsoTime = (value?: string | null) => {
   });
 };
 
-const SwapRequestCard = ({ item }: SwapRequestCardProps) => {
+const SwapRequestCard = ({
+  item,
+  showActions = false,
+  onAccept,
+  onReject,
+  actionLoading = null,
+}: SwapRequestCardProps) => {
   const roleName = item?.employment?.role?.role?.name || "-";
   const startTime = formatIsoTime(item?.originalShift?.startsAt);
   const endTime = formatIsoTime(item?.originalShift?.endsAt);
@@ -32,7 +42,7 @@ const SwapRequestCard = ({ item }: SwapRequestCardProps) => {
       ? `${firstBreak.startTime} - ${firstBreak.endTime}`
       : "-";
   const location = item?.business?.address?.city || "-";
-  const status = String(item?.status || "pending").toLowerCase();
+  const status = item?.status || "pending";
   const businessName = item?.business?.name || "-";
   const businessLogo = item?.business?.logo || null;
 
@@ -78,13 +88,13 @@ const SwapRequestCard = ({ item }: SwapRequestCardProps) => {
         </Text>
       </View>
 
-      <View className="my-4">
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          contentFit="contain"
-          style={{ height: 2, width: "100%" }}
-        />
-      </View>
+
+      <Image
+        source={require("@/assets/images/dotted-line.svg")}
+        contentFit="fill"
+        style={{ height: 1, width: "100%", marginVertical: 10 }}
+      />
+
 
       <View className="flex-row justify-between items-center">
         <View className="flex-row gap-4 items-center">
@@ -98,7 +108,35 @@ const SwapRequestCard = ({ item }: SwapRequestCardProps) => {
           </Text>
         </View>
 
-        <StatusBadge status={status as any} />
+        {showActions ? (
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={onReject}
+              disabled={actionLoading !== null}
+              className={`bg-[#F34F4F] px-3 py-2 rounded-3xl ${actionLoading !== null ? "opacity-70" : ""}`}
+            >
+              <Text className="text-white font-proximanova-semibold text-sm">
+                {actionLoading === "reject" ? "Rejecting..." : "Reject"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={onAccept}
+              disabled={actionLoading !== null}
+              className={`bg-[#11293A] px-3 py-2 rounded-3xl ${actionLoading !== null ? "opacity-70" : ""}`}
+            >
+              {actionLoading === "approve" ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text className="text-white font-proximanova-semibold text-sm">
+                  Accept
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <StatusBadge status={status as any} label={status} />
+        )}
       </View>
     </View>
   );

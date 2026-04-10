@@ -178,6 +178,11 @@ type ShiftStoreState = {
     type?: string;
     search?: string;
   }) => Promise<any[]>;
+  getPendingSwapRequests: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) => Promise<any[]>;
   getMyShiftRequests: (params?: {
     page?: number;
     limit?: number;
@@ -506,6 +511,31 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         shiftRequestsError: message,
         shiftRequestsPagination: null,
       });
+      throw new Error(message);
+    }
+  },
+
+  getPendingSwapRequests: async (params) => {
+    try {
+      const response = await axiosInstance.get("/shift-requests/pending-swaps", {
+        params: {
+          page: params?.page,
+          limit: params?.limit,
+          search: params?.search,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load pending swap requests");
+      }
+
+      return Array.isArray(result?.data) ? result.data : [];
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load pending swap requests";
       throw new Error(message);
     }
   },

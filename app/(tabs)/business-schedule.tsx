@@ -287,7 +287,12 @@ const BusinessScheduleScreen = () => {
           shiftTemplateId,
           shiftTemplateName,
           shiftTime: `${to12Hour(startTime)} - ${to12Hour(endTime)}`,
-          location: item?.business?.address?.address || "-",
+          location:
+            item?.business?.address?.city ||
+            item?.business?.address?.state ||
+            item?.business?.address?.country ||
+            item?.business?.address?.address ||
+            "-",
           status: item?.status || "upcoming",
         };
       });

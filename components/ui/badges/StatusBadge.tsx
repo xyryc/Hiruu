@@ -59,6 +59,13 @@ const StatusBadge = ({
           dotClasses: "bg-orange-600",
           label: label || "Pending",
         };
+      case "leave_requested":
+        return {
+          containerClasses: "bg-[#FFF7E8] border-[#F59E0B4D]",
+          textClasses: "text-[#D97706]",
+          dotClasses: "bg-[#D97706]",
+          label: label || "Leave Requested",
+        };
       case "approved":
         return {
           containerClasses: "bg-[#ECF9EF] border-[#F3934F4D]",
@@ -114,7 +121,7 @@ const StatusBadge = ({
           containerClasses: "bg-gray-100",
           textClasses: "text-gray-600",
           dotClasses: "bg-gray-600",
-          label: "Unknown",
+          label: label || String(status || "Unknown"),
         };
     }
   };

@@ -10,6 +10,16 @@ export type AchievementCondition = {
 
 export type AchievementType = "onetime" | "repeat";
 
+export type AchievementReward = {
+  id?: string;
+  type?: string;
+  coins?: number;
+  cosmeticId?: string | null;
+  badgeConfig?: any;
+  metadata?: any;
+  isActive?: boolean;
+};
+
 export type AchievementProgress = {
   progress?: number;
   completedAt?: string | null;
@@ -25,11 +35,15 @@ export type AchievementProgress = {
 export type AchievementItem = {
   id: string;
   key: string;
+  icon?: string | null;
   title: string;
   description?: string | null;
   type?: AchievementType;
+  category?: string | null;
+  rewardType?: string;
   rewardCoins?: number;
   rewardCosmeticId?: string | null;
+  rewards?: AchievementReward[];
   conditions?: AchievementCondition | null;
   isActive?: boolean;
   isHidden?: boolean;
@@ -57,12 +71,26 @@ export type AchievementBoardData = {
 
 interface AchievementState {
   achievements: AchievementItem[];
+  achievementsPagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
   board: AchievementBoardData | null;
   isLoadingAchievements: boolean;
+  isLoadingMoreAchievements: boolean;
   isLoadingBoard: boolean;
   claimingAchievementId: string | null;
   error: Error | null;
-  getAchievements: (type: AchievementType) => Promise<AchievementItem[]>;
+  getAchievements: (
+    type: AchievementType,
+    page?: number,
+    limit?: number,
+    append?: boolean
+  ) => Promise<AchievementItem[]>;
   getBoard: () => Promise<AchievementBoardData | null>;
   claimAchievement: (id: string) => Promise<any>;
   clearError: () => void;
@@ -70,18 +98,24 @@ interface AchievementState {
 
 export const useAchievementStore = create<AchievementState>((set) => ({
   achievements: [],
+  achievementsPagination: null,
   board: null,
   isLoadingAchievements: false,
+  isLoadingMoreAchievements: false,
   isLoadingBoard: false,
   claimingAchievementId: null,
   error: null,
 
-  getAchievements: async (type) => {
-    set({ isLoadingAchievements: true, error: null });
+  getAchievements: async (type, page = 1, limit = 5, append = false) => {
+    set({
+      isLoadingAchievements: append ? false : true,
+      isLoadingMoreAchievements: append,
+      error: null,
+    });
 
     try {
       const response = await axiosInstance.get("/achievements", {
-        params: { type },
+        params: { type, page, limit },
       });
       const result = response.data;
 
@@ -91,12 +125,39 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         );
       }
 
-      const achievements = Array.isArray(result?.data)
-        ? (result.data as AchievementItem[])
+      const nextPageItems = Array.isArray(result?.data)
+        ? (result.data as AchievementItem[]).map((item) => ({
+          ...item,
+          rewardCoins:
+            typeof item?.rewardCoins === "number"
+              ? item.rewardCoins
+              : typeof item?.rewards?.[0]?.coins === "number"
+                ? item.rewards[0].coins
+                : 0,
+        }))
         : [];
+      const pagination = result?.pagination || null;
+      let mergedItems = nextPageItems;
 
-      set({ achievements, isLoadingAchievements: false });
-      return achievements;
+      set((state) => {
+        mergedItems = append
+          ? [
+            ...state.achievements,
+            ...nextPageItems.filter(
+              (item) => !state.achievements.some((prev) => prev.id === item.id)
+            ),
+          ]
+          : nextPageItems;
+
+        return {
+          achievements: mergedItems,
+          achievementsPagination: pagination,
+          isLoadingAchievements: false,
+          isLoadingMoreAchievements: false,
+        };
+      });
+
+      return mergedItems;
     } catch (error) {
       const axiosError = error as AxiosError<any>;
       const message =
@@ -104,7 +165,11 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         axiosError.message ||
         "Failed to load achievements";
       const finalError = new Error(message);
-      set({ isLoadingAchievements: false, error: finalError });
+      set({
+        isLoadingAchievements: false,
+        isLoadingMoreAchievements: false,
+        error: finalError,
+      });
       throw finalError;
     }
   },

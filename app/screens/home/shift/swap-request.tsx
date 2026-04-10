@@ -7,7 +7,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -27,14 +27,23 @@ const SwapRequestAction = () => {
   const [filter, setFilter] = useState<string>("all");
   const filterOptions = ["all", "pending", "approved", "rejected", "cancelled", "expired"];
   const [searchQuery, setSearchQuery] = useState("");
-  const [requests, setRequests] = useState<any[]>([]);
+  const [sendRequests, setSendRequests] = useState<any[]>([]);
+  const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
+  const [receivedLoading, setReceivedLoading] = useState(false);
+  const [actioningId, setActioningId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
 
   const getShiftRequests = useShiftStore((state) => state.getShiftRequests);
+  const getPendingSwapRequests = useShiftStore((state) => state.getPendingSwapRequests);
+  const approveBusinessShiftRequest = useShiftStore(
+    (state) => state.approveBusinessShiftRequest
+  );
+  const rejectBusinessShiftRequest = useShiftStore(
+    (state) => state.rejectBusinessShiftRequest
+  );
   const shiftRequestsLoading = useShiftStore((state) => state.shiftRequestsLoading);
 
-  const loadRequests = useCallback(async () => {
-    if (selectedTab !== "Send Request") return;
-
+  const loadSendRequests = useCallback(async () => {
     try {
       const response = await getShiftRequests({
         type: "shift_swap",
@@ -43,25 +52,74 @@ const SwapRequestAction = () => {
         status: filter === "all" ? undefined : filter,
         search: searchQuery.trim() || undefined,
       });
-      setRequests(Array.isArray(response) ? response : []);
+      setSendRequests(Array.isArray(response) ? response : []);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load swap requests");
-      setRequests([]);
+      setSendRequests([]);
     }
-  }, [filter, getShiftRequests, searchQuery, selectedTab]);
+  }, [filter, getShiftRequests, searchQuery]);
+
+  const loadPendingSwaps = useCallback(async () => {
+    try {
+      setReceivedLoading(true);
+      const response = await getPendingSwapRequests({
+        page: 1,
+        limit: 50,
+        search: searchQuery.trim() || undefined,
+      });
+      setReceivedRequests(Array.isArray(response) ? response : []);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load pending swaps");
+      setReceivedRequests([]);
+    } finally {
+      setReceivedLoading(false);
+    }
+  }, [getPendingSwapRequests, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
-      loadRequests();
-    }, [loadRequests])
+      if (selectedTab === "Send Request") {
+        loadSendRequests();
+      } else {
+        loadPendingSwaps();
+      }
+    }, [loadPendingSwaps, loadSendRequests, selectedTab])
   );
 
-  const sendRequests = useMemo(() => {
-    if (selectedTab !== "Send Request") return [];
-    return requests;
-  }, [requests, selectedTab]);
+  const handlePendingSwapAction = useCallback(
+    async (item: any, type: "approve" | "reject") => {
+      const requestId = String(item?.id || "");
+      const businessId = String(item?.businessId || item?.business?.id || "");
+      if (!requestId || !businessId) {
+        toast.error("Unable to process this swap request");
+        return;
+      }
+
+      try {
+        setActioningId(requestId);
+        setActionType(type);
+
+        if (type === "approve") {
+          await approveBusinessShiftRequest(businessId, requestId);
+          toast.success("Swap request accepted");
+        } else {
+          await rejectBusinessShiftRequest(businessId, requestId);
+          toast.success("Swap request rejected");
+        }
+
+        setReceivedRequests((prev) => prev.filter((entry) => entry?.id !== requestId));
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update swap request");
+      } finally {
+        setActioningId(null);
+        setActionType(null);
+      }
+    },
+    [approveBusinessShiftRequest, rejectBusinessShiftRequest]
+  );
 
   const sendCount = sendRequests.length;
+  const receivedCount = receivedRequests.length;
 
   return (
     <SafeAreaView
@@ -81,14 +139,14 @@ const SwapRequestAction = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title="Swap Request"
+          title="Swap Requests"
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111111"}
         />
 
         <View className="flex-row justify-center mx-5">
           {["Send Request", "Received"].map((tab) => {
-            const totalCount = tab === "Send Request" ? sendCount : 0;
+            const totalCount = tab === "Send Request" ? sendCount : receivedCount;
             return (
               <TouchableOpacity
                 className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${selectedTab === tab ? "border-[#11293A] border-b-2" : ""}`}
@@ -119,7 +177,6 @@ const SwapRequestAction = () => {
             className="flex-1 text-gray-600 p-2"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            editable={selectedTab === "Send Request"}
           />
         </View>
 
@@ -151,14 +208,35 @@ const SwapRequestAction = () => {
           </View>
         )}
 
-        {shiftRequestsLoading && selectedTab === "Send Request" ? (
+        {(shiftRequestsLoading && selectedTab === "Send Request") ||
+        (receivedLoading && selectedTab === "Received") ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
           </View>
         ) : (
           <FlatList
-            data={selectedTab === "Send Request" ? sendRequests : []}
-            renderItem={({ item }) => <SwapRequestCard item={item} />}
+            data={selectedTab === "Send Request" ? sendRequests : receivedRequests}
+            renderItem={({ item }) => (
+              <SwapRequestCard
+                item={item}
+                showActions={selectedTab === "Received"}
+                onAccept={
+                  selectedTab === "Received"
+                    ? () => handlePendingSwapAction(item, "approve")
+                    : undefined
+                }
+                onReject={
+                  selectedTab === "Received"
+                    ? () => handlePendingSwapAction(item, "reject")
+                    : undefined
+                }
+                actionLoading={
+                  selectedTab === "Received" && actioningId === item?.id
+                    ? actionType
+                    : null
+                }
+              />
+            )}
             keyExtractor={(item, index) => item?.id || `swap-${index}`}
             contentContainerStyle={{ paddingBottom: 20 }}
             className={`${selectedTab === "Received" && "mt-3"}`}

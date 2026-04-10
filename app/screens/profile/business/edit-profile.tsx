@@ -86,6 +86,7 @@ const EditBusinessProfile = () => {
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [isLocationFocused, setIsLocationFocused] = useState(false);
   const hasShownGeoapifyMissingKey = useRef(false);
+  const profileRequestIdRef = useRef(0);
   const [addressDetails, setAddressDetails] = useState<AddressPayload | null>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
   const [isEditingSocials, setIsEditingSocials] = useState(false);
@@ -194,10 +195,11 @@ const EditBusinessProfile = () => {
 
     const loadProfile = async () => {
       if (!businessId) return;
+      const requestId = ++profileRequestIdRef.current;
       try {
         setLoadingProfile(true);
         const data = await getBusinessProfile(businessId);
-        if (!isMounted) return;
+        if (!isMounted || requestId !== profileRequestIdRef.current) return;
         setBusinessName(data?.name || "");
         setAbout(data?.description || "");
         setProfileImage(data?.logo || null);
@@ -240,9 +242,10 @@ const EditBusinessProfile = () => {
           setAddressDetails({ address: resolvedAddress });
         }
       } catch (error: any) {
+        if (!isMounted || requestId !== profileRequestIdRef.current) return;
         toast.error(error?.message || "Failed to load business profile");
       } finally {
-        if (isMounted) {
+        if (isMounted && requestId === profileRequestIdRef.current) {
           setLoadingProfile(false);
         }
       }
