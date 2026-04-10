@@ -176,6 +176,7 @@ type ShiftStoreState = {
     endDate?: string;
     status?: string;
     type?: string;
+    search?: string;
   }) => Promise<any[]>;
   getMyShiftRequests: (params?: {
     page?: number;
@@ -193,6 +194,10 @@ type ShiftStoreState = {
     schedule_change?: number;
     early_leave?: number;
     late_arrival?: number;
+  }>;
+  getBusinessUnresolvedShiftRequestCount: (businessId: string) => Promise<{
+    leave_request?: number;
+    overtime_request?: number;
   }>;
   getBusinessShiftRequests: (
     businessId: string,
@@ -474,6 +479,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
           endDate: params?.endDate,
           status: params?.status,
           type: params?.type,
+          search: params?.search,
         },
       });
       const result = response?.data;
@@ -562,6 +568,31 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to fetch unresolved shift request count";
+      throw new Error(message);
+    }
+  },
+
+  getBusinessUnresolvedShiftRequestCount: async (businessId) => {
+    try {
+      if (!businessId) return {};
+
+      const response = await axiosInstance.get(
+        `/shift-requests/business/${businessId}/unresolved-count`
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to fetch business unresolved shift request count"
+        );
+      }
+
+      return result?.data || {};
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch business unresolved shift request count";
       throw new Error(message);
     }
   },

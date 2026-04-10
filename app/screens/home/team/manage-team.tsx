@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -9,6 +9,7 @@ import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -20,7 +21,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 type TeamMember = {
@@ -73,6 +74,7 @@ const ManageTeamPanel = () => {
   );
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
   const {
     selectedBusinesses,
     getBusinessEmployees,
@@ -272,10 +274,10 @@ const ManageTeamPanel = () => {
       prev.map((member) =>
         member.id === selectedWorkingHourEmploymentId
           ? {
-              ...member,
-              workHourPeriod: payload.workHourPeriod,
-              workHourAmount: payload.workHourAmount,
-            }
+            ...member,
+            workHourPeriod: payload.workHourPeriod,
+            workHourAmount: payload.workHourAmount,
+          }
           : member
       )
     );
@@ -294,17 +296,17 @@ const ManageTeamPanel = () => {
           prev.map((member) =>
             member.id === String(updatedEmployment.id)
               ? {
-                  ...member,
-                  workHourPeriod:
-                    typeof updatedEmployment?.workHourPeriod === "string"
-                      ? updatedEmployment.workHourPeriod
-                      : member.workHourPeriod,
-                  workHourAmount:
-                    typeof updatedEmployment?.workHourAmount === "number" &&
+                ...member,
+                workHourPeriod:
+                  typeof updatedEmployment?.workHourPeriod === "string"
+                    ? updatedEmployment.workHourPeriod
+                    : member.workHourPeriod,
+                workHourAmount:
+                  typeof updatedEmployment?.workHourAmount === "number" &&
                     Number.isFinite(updatedEmployment.workHourAmount)
-                      ? updatedEmployment.workHourAmount
-                      : member.workHourAmount,
-                }
+                    ? updatedEmployment.workHourAmount
+                    : member.workHourAmount,
+              }
               : member
           )
         );
@@ -368,6 +370,7 @@ const ManageTeamPanel = () => {
 
   const renderTeamMember = ({ item }: { item: TeamMember }) => {
     const isOwnerRole = item.role.trim().toLowerCase() === "owner";
+
     return (
       <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4">
         <View className="flex-row items-start justify-between ">
@@ -481,13 +484,22 @@ const ManageTeamPanel = () => {
       className="flex-1 bg-white"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] rounded-b-2xl pt-10 px-5">
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title={`Team Panel(${teamMembers.length})`}
           titleClass="text-primary dark:text-dark-primary"
-          iconColor={isDark ? "#fff" : "#111"}
+          iconColor={isDark ? "#fff" : "#111111"}
         />
       </View>
 

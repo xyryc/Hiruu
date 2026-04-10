@@ -89,7 +89,7 @@ const SickLeaveCard = ({
           height: 1,
           marginVertical: 14
         }}
-        contentFit='contain'
+        contentFit='fill'
       />
 
       <View className="flex-row justify-between items-center">
@@ -105,10 +105,10 @@ const SickLeaveCard = ({
         </Text>
       </View>
 
-      <Text className="mt-3 text-secondary font-proximanova-regular">{item.details}</Text>
+      <Text className="text-secondary font-proximanova-regular mt-1">{item.details}</Text>
 
       {item.status === "rejected" && (
-        <View className="flex-row gap-1 mt-2.5">
+        <View className="flex-row gap-1">
           <RejectionReasonModal />
         </View>
       )}

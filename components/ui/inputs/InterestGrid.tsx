@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { INTERESTS, Interest } from "./interests";
+import { INTERESTS, Interest } from "@/constants/interests";
 
 type InterestGridProps = {
   selectedInterests: string[];
