@@ -66,7 +66,7 @@ const QrGenerate = () => {
       setDeepLinkUrl(link);
       setBusinessName(business?.name || userBusiness?.name || "");
       setBusinessLogoUrl(business?.logo || userBusiness?.logo || "");
-    } catch {}
+    } catch { }
   }, [
     generateBusinessCode,
     getBusinessProfile,
@@ -77,15 +77,6 @@ const QrGenerate = () => {
   useEffect(() => {
     void generatedeepLinkUrl();
   }, [generatedeepLinkUrl, selectedBusinessId, userBusiness?.id]);
-
-
-  // Create a deep link URL instead of JSON
-  // This will open your app with the invitation details
-  //  const deepLinkUrl = `hirru://join?business=${encodeURIComponent(
-  //     employeeInfo.businessName,
-  //   )}&code=${employeeInfo.code}&employee=${encodeURIComponent(
-  //     employeeInfo.name,
-  //   )}&type=employee_join`;
 
   // Copy code to clipboard function
   const copyToClipboard = async () => {
@@ -136,6 +127,38 @@ const QrGenerate = () => {
     } catch (error) {
       console.error("Error capturing QR code:", error);
       toast.error("Failed to save QR code. Please take a screenshot instead.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const shareQRCode = async () => {
+    try {
+      setIsGenerating(true);
+
+      if (!qrCodeContainerRef.current) {
+        toast.error("QR code not found");
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const uri = await captureRef(qrCodeContainerRef.current, {
+        format: "png",
+        quality: 1.0,
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "Share QR Code",
+        });
+      } else {
+        toast.info("Sharing is not available on this device");
+      }
+    } catch (error) {
+      console.error("Error sharing QR code:", error);
+      toast.error("Failed to share QR code");
     } finally {
       setIsGenerating(false);
     }
@@ -246,9 +269,10 @@ const QrGenerate = () => {
         </View>
         <ShareVia visible={isModal} onClose={() => setIsModal(false)} />
       </ScrollView>
+
       <PrimaryButton
-        onPress={() => setIsModal(true)}
-        title="Share QR Code"
+        onPress={shareQRCode}
+        title="Scan QR Code"
         className="mx-5 my-10"
       />
     </SafeAreaView>
