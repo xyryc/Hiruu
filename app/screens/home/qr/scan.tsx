@@ -285,11 +285,10 @@ const QrScanner = () => {
                   }
                 }}
 
-                className={`flex-1 rounded-full py-3 ${isJoiningBusiness ? "bg-[#9ED7FA]" : "bg-primary dark:bg-dark-primary"}`}
+                className={`flex-1 rounded-full py-3 ${isJoiningBusiness ? "bg-secondary" : "bg-primary dark:bg-dark-primary"}`}
               >
                 {isJoiningBusiness ? (
                   <View className="flex-row items-center justify-center gap-2">
-                    <ActivityIndicator size="small" color="#fff" />
                     <Text className="text-white text-center font-semibold">
                       Joining...
                     </Text>

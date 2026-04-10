@@ -77,6 +77,49 @@ const getDateRangeByTimeframe = (
   };
 };
 
+const formatDisplayDate = (value?: string | null) => {
+  if (!value) return "Today";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Today";
+
+  const now = new Date();
+  const isToday =
+    parsed.getDate() === now.getDate() &&
+    parsed.getMonth() === now.getMonth() &&
+    parsed.getFullYear() === now.getFullYear();
+
+  const base = parsed.toLocaleDateString(undefined, {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  return isToday ? `${base} (Today)` : base;
+};
+
+const formatDisplayTime = (value?: string | null) => {
+  if (!value) return "--:--";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "--:--";
+
+  return parsed.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+type TodaysShiftLog = {
+  date?: string | null;
+  workingHour?: {
+    start?: string | null;
+    end?: string | null;
+  } | null;
+  startTime?: string | null;
+  endTime?: string | null;
+} | null;
+
 const TrackHours = () => {
   const handleLogin = () => {
     router.push("./correction-request");
@@ -99,6 +142,7 @@ const TrackHours = () => {
   const [workPattern, setWorkPattern] = useState<
     { date: string; workedHours: number; completedShifts: number }[]
   >([]);
+  const [todaysShiftLog, setTodaysShiftLog] = useState<TodaysShiftLog>(null);
 
   const loadTrackHours = useCallback(
     async (timeframe: TrackHoursTimeframe) => {
@@ -137,6 +181,8 @@ const TrackHours = () => {
             }))
             : []
         );
+
+        setTodaysShiftLog(analytics?.todaysShiftLog ?? null);
       } catch (error: any) {
         toast.error(error?.message || "Failed to load track hours");
       }
@@ -160,6 +206,36 @@ const TrackHours = () => {
   const overHoursLabel = useMemo(
     () => `${Number(summary.overHours || 0).toFixed(0)}h`,
     [summary.overHours]
+  );
+
+  const shiftLogDateLabel = useMemo(
+    () => formatDisplayDate(todaysShiftLog?.date || null),
+    [todaysShiftLog?.date]
+  );
+
+  const shiftLogWorkingStart = useMemo(
+    () => formatDisplayTime(todaysShiftLog?.workingHour?.start || null),
+    [todaysShiftLog?.workingHour?.start]
+  );
+
+  const shiftLogWorkingEnd = useMemo(
+    () => formatDisplayTime(todaysShiftLog?.workingHour?.end || null),
+    [todaysShiftLog?.workingHour?.end]
+  );
+
+  const shiftLogStart = useMemo(
+    () => formatDisplayTime(todaysShiftLog?.startTime || null),
+    [todaysShiftLog?.startTime]
+  );
+
+  const shiftLogEnd = useMemo(
+    () => formatDisplayTime(todaysShiftLog?.endTime || null),
+    [todaysShiftLog?.endTime]
+  );
+
+  const workingHoursLabel = useMemo(
+    () => `Working Hours (${shiftLogWorkingStart} - ${shiftLogWorkingEnd})`,
+    [shiftLogWorkingEnd, shiftLogWorkingStart]
   );
 
   return (
@@ -260,9 +336,15 @@ const TrackHours = () => {
 
         <View className="mt-8 mx-5">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Daily shift Log
+            Daily Shift Log
           </Text>
-          <ShiftLogCard />
+          <ShiftLogCard
+            dateLabel={shiftLogDateLabel}
+            workingHoursLabel={workingHoursLabel}
+            startTimeLabel={shiftLogStart}
+            endTimeLabel={shiftLogEnd}
+            isEmpty={!todaysShiftLog}
+          />
 
           <PrimaryButton
             onPress={() =>
@@ -280,7 +362,6 @@ const TrackHours = () => {
 
             <TouchableOpacity
               onPress={() => router.push("/screens/home/shift/track-hours/missing-log")}
-
             >
               <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">See All</Text>
             </TouchableOpacity>

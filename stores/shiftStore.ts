@@ -82,6 +82,15 @@ type ShiftStoreState = {
       completedShifts?: number;
       overHours?: number;
     };
+    todaysShiftLog?: {
+      date?: string | null;
+      workingHour?: {
+        start?: string | null;
+        end?: string | null;
+      } | null;
+      startTime?: string | null;
+      endTime?: string | null;
+    } | null;
     workPattern?: Array<{
       date: string;
       workedHours: number;

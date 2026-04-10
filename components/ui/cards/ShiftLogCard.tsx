@@ -3,17 +3,31 @@ import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
 
-const ShiftLogCard = () => {
+type ShiftLogCardProps = {
+  dateLabel?: string;
+  workingHoursLabel?: string;
+  startTimeLabel?: string;
+  endTimeLabel?: string;
+  isEmpty?: boolean;
+};
+
+const ShiftLogCard = ({
+  dateLabel = "Today",
+  workingHoursLabel = "Working Hours (--:-- - --:--)",
+  startTimeLabel = "--:--",
+  endTimeLabel = "--:--",
+  isEmpty = false,
+}: ShiftLogCardProps) => {
   return (
     <View className="mt-4 border border-[#EEEEEE] p-4 rounded-xl">
       <View className="flex-row gap-4">
         <Ionicons name="calendar" size={22} color="#4FB2F3" />
         <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-          Mon, 10 june 2025(today)
+          {dateLabel}
         </Text>
       </View>
       <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
-        Working Hours (10:00 - 18:00)
+        {isEmpty ? "No shift log available for today" : workingHoursLabel}
       </Text>
 
       <View>
@@ -30,7 +44,7 @@ const ShiftLogCard = () => {
             Start Time
           </Text>
           <Text className="text-center text-lg font-proximanova-semibold text-primary dark:text-dark-primary">
-            10:00
+            {startTimeLabel}
           </Text>
         </View>
 
@@ -44,7 +58,7 @@ const ShiftLogCard = () => {
             End Time
           </Text>
           <Text className="text-center text-lg font-proximanova-semibold text-primary dark:text-dark-primary">
-            10:00
+            {endTimeLabel}
           </Text>
         </View>
       </View>
