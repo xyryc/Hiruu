@@ -120,6 +120,64 @@ type TodaysShiftLog = {
   endTime?: string | null;
 } | null;
 
+type IncompleteAttendanceItem = {
+  id: string;
+  shiftAssignmentId?: string;
+  status?: string;
+  shiftAssignment?: {
+    startsAt?: string;
+    endsAt?: string;
+    shiftTemplate?: {
+      name?: string;
+      business?: {
+        logo?: string | null;
+        city?: string;
+        address?: {
+          city?: string;
+        } | null;
+      } | null;
+    } | null;
+  } | null;
+  shiftAttendanceSummary?: {
+    assignedUsersCount?: number;
+    presentUsersCount?: number;
+    presentColleagueAvatarPreview?: string[];
+  } | null;
+};
+
+const buildPresentTeamMembers = (
+  preview: string[],
+  presentCount: number
+): string[] => {
+  const cleanPreview = Array.isArray(preview)
+    ? preview.filter((item) => typeof item === "string" && item.trim().length > 0)
+    : [];
+
+  if (!Number.isFinite(presentCount) || presentCount <= 0) return [];
+
+  if (cleanPreview.length >= presentCount) {
+    return cleanPreview.slice(0, presentCount);
+  }
+
+  return [
+    ...cleanPreview,
+    ...Array.from({ length: presentCount - cleanPreview.length }, (_, index) => `U${index + 1}`),
+  ];
+};
+
+const toTaskCardStatus = (status?: string) => {
+  const normalized = String(status || "").toLowerCase();
+  if (normalized === "ongoing") return "ongoing" as const;
+  if (normalized === "upcoming") return "upcoming" as const;
+  if (normalized === "completed") return "completed" as const;
+  if (normalized === "early_leave") return "early_leave" as const;
+  if (normalized === "pending") return "pending" as const;
+  if (normalized === "approved") return "approved" as const;
+  if (normalized === "rejected") return "rejected" as const;
+  if (normalized === "accepted") return "accepted" as const;
+  return "missed" as const;
+};
+
 const TrackHours = () => {
   const handleLogin = () => {
     router.push("./correction-request");
@@ -130,6 +188,9 @@ const TrackHours = () => {
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<TrackHoursTimeframe>("all_time");
   const getTrackHoursAnalytics = useShiftStore((s) => s.getTrackHoursAnalytics);
+  const getMyLatestIncompleteAttendance = useShiftStore(
+    (s) => s.getMyLatestIncompleteAttendance
+  );
   const [summary, setSummary] = useState<{
     totalHours: number;
     completedShifts: number;
@@ -142,6 +203,7 @@ const TrackHours = () => {
   const [workPattern, setWorkPattern] = useState<
     { date: string; workedHours: number; completedShifts: number }[]
   >([]);
+  const [missingLogItems, setMissingLogItems] = useState<IncompleteAttendanceItem[]>([]);
   const [todaysShiftLog, setTodaysShiftLog] = useState<TodaysShiftLog>(null);
 
   const loadTrackHours = useCallback(
@@ -193,6 +255,24 @@ const TrackHours = () => {
   useEffect(() => {
     void loadTrackHours(selectedTimeframe);
   }, [loadTrackHours, selectedTimeframe]);
+
+  const loadMissingLogs = useCallback(
+    async (timeframe: TrackHoursTimeframe) => {
+      try {
+        const data = await getMyLatestIncompleteAttendance(
+          getDateRangeByTimeframe(timeframe)
+        );
+        setMissingLogItems(Array.isArray(data) ? data : []);
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to load missing log activities");
+      }
+    },
+    [getMyLatestIncompleteAttendance]
+  );
+
+  useEffect(() => {
+    void loadMissingLogs(selectedTimeframe);
+  }, [loadMissingLogs, selectedTimeframe]);
 
   const handleSelectTimeframe = (timeframe: TrackHoursTimeframe) => {
     setSelectedTimeframe(timeframe);
@@ -372,47 +452,55 @@ const TrackHours = () => {
             horizontal={true}
             showsHorizontalScrollIndicator={false}
           >
-            <TaskCard
-              shiftTitle="Hotel & Bar Management"
-              startTime="10:00 AM"
-              endTime="6:00 PM"
-              shiftImage="https://media.architecturaldigest.com/photos/66c8923688f5dc5cc31e1e35/1:1/w_3283,h_3283,c_limit/CH_BAD_ROMAN_NYC_ROUND_1_020323952A.jpg" // Replace with your image
-              teamMembers={["John", "Jane", "Mike", "Sarah", "Tom"]}
-              totalMembers={30}
-              address="230 Aaron Bushnell St"
-              city="Palestine, PL"
-              onLoginPress={handleLogin}
-              status="completed"
-              requestLog={true}
-            />
+            {missingLogItems.length === 0 ? (
+              <View className="py-4">
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  No missing log activities found.
+                </Text>
+              </View>
+            ) : (
+              missingLogItems.map((item) => {
+                const startsAt = item?.shiftAssignment?.startsAt || null;
+                const endsAt = item?.shiftAssignment?.endsAt || null;
+                const presentCount =
+                  typeof item?.shiftAttendanceSummary?.presentUsersCount === "number"
+                    ? item.shiftAttendanceSummary.presentUsersCount
+                    : 0;
+                const assignedCount =
+                  typeof item?.shiftAttendanceSummary?.assignedUsersCount === "number"
+                    ? item.shiftAttendanceSummary.assignedUsersCount
+                    : 0;
+                const preview =
+                  item?.shiftAttendanceSummary?.presentColleagueAvatarPreview || [];
+                const teamMembers = buildPresentTeamMembers(preview, presentCount);
+                const business = item?.shiftAssignment?.shiftTemplate?.business || null;
+                const city = business?.city || business?.address?.city || "City unavailable";
 
-            <TaskCard
-              shiftTitle="Hotel & Bar Management"
-              startTime="10:00 AM"
-              endTime="6:00 PM"
-              shiftImage="https://media.architecturaldigest.com/photos/66c8923688f5dc5cc31e1e35/1:1/w_3283,h_3283,c_limit/CH_BAD_ROMAN_NYC_ROUND_1_020323952A.jpg" // Replace with your image
-              teamMembers={["John", "Jane", "Mike", "Sarah", "Tom"]}
-              totalMembers={30}
-              address="230 Aaron Bushnell St"
-              city="Palestine, PL"
-              onLoginPress={handleLogin}
-              status="completed"
-              requestLog={true}
-            />
-
-            <TaskCard
-              shiftTitle="Hotel & Bar Management"
-              startTime="10:00 AM"
-              endTime="6:00 PM"
-              shiftImage="https://media.architecturaldigest.com/photos/66c8923688f5dc5cc31e1e35/1:1/w_3283,h_3283,c_limit/CH_BAD_ROMAN_NYC_ROUND_1_020323952A.jpg" // Replace with your image
-              teamMembers={["John", "Jane", "Mike", "Sarah", "Tom"]}
-              totalMembers={30}
-              address="230 Aaron Bushnell St"
-              city="Palestine, PL"
-              onLoginPress={handleLogin}
-              status="completed"
-              requestLog={true}
-            />
+                return (
+                  <TaskCard
+                    key={item.id}
+                    shiftId={item?.shiftAssignmentId}
+                    shiftTitle={
+                      item?.shiftAssignment?.shiftTemplate?.name || "Untitled Shift"
+                    }
+                    startTime={formatDisplayTime(startsAt)}
+                    endTime={formatDisplayTime(endsAt)}
+                    startsAt={startsAt || undefined}
+                    endsAt={endsAt || undefined}
+                    shiftImage={
+                      business?.logo || require("@/assets/images/placeholder.png")
+                    }
+                    teamMembers={teamMembers}
+                    totalMembers={assignedCount}
+                    address={city}
+                    city={city}
+                    onLoginPress={handleLogin}
+                    status={toTaskCardStatus(item?.status)}
+                    requestLog={true}
+                  />
+                );
+              })
+            )}
           </ScrollView>
 
           {/* work pattern */}
