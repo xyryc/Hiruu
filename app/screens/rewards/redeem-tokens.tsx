@@ -186,6 +186,17 @@ const RedeemTokens = () => {
     }, [loadWallet])
   );
 
+  useEffect(() => {
+    if (!modalVisible) return;
+    if (selectedRedeemKey !== "gift_1_month_premium") return;
+
+    setData((prev) => ({
+      ...prev,
+      selectUserLabel: selectedUser?.name || "Select a user to gift",
+      selectUserAvatar: selectedUser?.avatar || null,
+    }));
+  }, [modalVisible, selectedRedeemKey, selectedUser]);
+
   const getItemPrice = useMemo(() => {
     const priceMap = new Map<string, number>();
 

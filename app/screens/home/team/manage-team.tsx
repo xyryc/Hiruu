@@ -7,11 +7,12 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -28,6 +29,7 @@ type TeamMember = {
   id: string;
   userId: string;
   name: string;
+  roleId: string | null;
   role: string;
   profilePic: string | null;
   workHourPeriod: string | null;
@@ -104,13 +106,16 @@ const ManageTeamPanel = () => {
             const location =
               typeof address === "string"
                 ? address
-                : address?.address ||
-                [address?.city, address?.country].filter(Boolean).join(", ");
+                : address?.city;
 
             return {
               id: String(item.id),
               userId: String(user.id),
               name: user?.name || "N/A",
+              roleId:
+                (typeof item?.role?.id === "string" && item.role.id) ||
+                (typeof item?.roleId === "string" && item.roleId) ||
+                null,
               role: item?.role?.role?.name || item?.role?.name || "Not assigned",
               profilePic: user?.avatar || null,
               workHourPeriod:
@@ -184,11 +189,7 @@ const ManageTeamPanel = () => {
     [filter, searchQuery, teamMembers]
   );
 
-  const openRoleModal = async (employmentId: string) => {
-    setSelectedEmploymentId(employmentId);
-    setShowModal(true);
-    setSelectedAssignRole(undefined);
-
+  const loadRoles = useCallback(async () => {
     if (!resolvedBusinessId) return;
 
     try {
@@ -214,6 +215,21 @@ const ManageTeamPanel = () => {
     } finally {
       setRolesLoading(false);
     }
+  }, [getMyBusinessRoles, resolvedBusinessId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!showModal) return;
+      loadRoles().catch(() => undefined);
+    }, [loadRoles, showModal])
+  );
+
+  const openRoleModal = async (employmentId: string) => {
+    setSelectedEmploymentId(employmentId);
+    const selectedMember = teamMembers.find((member) => member.id === employmentId);
+    setSelectedAssignRole(selectedMember?.roleId || undefined);
+    setShowModal(true);
+    await loadRoles();
   };
 
   const handleApplyRole = async () => {
@@ -228,7 +244,9 @@ const ManageTeamPanel = () => {
 
     setTeamMembers((prev) =>
       prev.map((member) =>
-        member.id === selectedEmploymentId ? { ...member, role: nextRoleName } : member
+        member.id === selectedEmploymentId
+          ? { ...member, role: nextRoleName, roleId: selectedAssignRole }
+          : member
       )
     );
 
