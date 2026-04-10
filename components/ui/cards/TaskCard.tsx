@@ -155,7 +155,7 @@ const TaskCard = ({
           params: { id: String(shiftId) },
         });
       }}
-      className={`${fullWidth ? "w-full mr-0" : "w-[320px] shrink-0 mr-4"} rounded-[14px] px-4 pb-4 bg-[#E5F4FD] border border-[#4fb1f333] ${isStaticStatus && "pt-4"} ${className}`}
+      className={`${fullWidth ? "w-full mr-0" : "w-[320px] shrink-0 mr-4"} rounded-[14px] px-4 pb-4 bg-[#e5f4fd83] border border-[#4fb1f359] ${isStaticStatus && "pt-4"} ${className}`}
     >
       {/* Status Timer */}
       {hasLiveTimer && (

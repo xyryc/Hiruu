@@ -30,7 +30,7 @@ const GradientButton = ({ title, icon, className, disabled, onPress }: GradientB
         </View>
 
         <Image
-          source={require("@/assets/images/texture.png")}
+          source={require("@/assets/images/texture_optimized.png")}
           style={{
             width: "100%",
             height: 44,

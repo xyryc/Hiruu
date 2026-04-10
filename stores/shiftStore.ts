@@ -117,6 +117,38 @@ type ShiftStoreState = {
       } | null;
     }>
   >;
+  getMyLatestIncompleteAttendance: (params?: {
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }) => Promise<
+    Array<{
+      id: string;
+      status?: string;
+      createdAt?: string;
+      updatedAt?: string;
+      shiftAssignment?: {
+        startsAt?: string;
+        endsAt?: string;
+        shiftTemplate?: {
+          name?: string;
+          business?: {
+            logo?: string | null;
+            city?: string;
+            address?: {
+              city?: string;
+            } | null;
+          } | null;
+        } | null;
+      } | null;
+      shiftAttendanceSummary?: {
+        assignedUsersCount?: number;
+        presentUsersCount?: number;
+        presentColleagueAvatarPreview?: string[];
+      } | null;
+    }>
+  >;
   getWorkInsightsAnalytics: (params?: {
     month?: string;
   }) => Promise<{
@@ -909,6 +941,34 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to load attendance log";
+      throw new Error(message);
+    }
+  },
+
+  getMyLatestIncompleteAttendance: async (params) => {
+    try {
+      const response = await axiosInstance.get("/attendance/my/latest-incomplete", {
+        params: {
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          page: params?.page,
+          limit: params?.limit,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to load latest incomplete attendance"
+        );
+      }
+
+      return Array.isArray(result?.data) ? result.data : [];
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load latest incomplete attendance";
       throw new Error(message);
     }
   },
