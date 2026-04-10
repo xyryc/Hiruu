@@ -17,7 +17,7 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Settings = () => {
   const delImg = require("@/assets/images/trash.svg");
@@ -36,6 +36,7 @@ const Settings = () => {
   }>();
 
   const { colorScheme } = useColorScheme();
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
   // language
   const { t } = useTranslation();
@@ -95,9 +96,12 @@ const Settings = () => {
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl pt-10 px-5">
+      <View
+        className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title={t("user.profile.settings")}
           titleClass="text-primary dark:text-dark-primary"

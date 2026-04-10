@@ -17,7 +17,7 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const SubscriptionLoadingState = () => {
@@ -40,6 +40,7 @@ const Subscription = () => {
   const isDark = colorScheme === "dark";
   const [showModal, setShowModal] = useState(false);
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { myBusinesses, getMyBusinesses } = useBusinessStore();
 
@@ -128,9 +129,12 @@ const Subscription = () => {
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl pt-10 px-5">
+      <View
+        className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title={t("user.profile.subscription")}
           titleClass="text-primary dark:text-dark-primary"
@@ -265,7 +269,7 @@ const Subscription = () => {
             </View>
           ))}
 
-          <View className="border px-3 rounded-2xl border-[#EEEEEE] mt-1">
+          <View className="border px-3 rounded-2xl border-[#EEEEEE] mt-4">
             <SettingsCard
               click={() =>
                 router.push("/screens/profile/settings/subscription/user-plan")

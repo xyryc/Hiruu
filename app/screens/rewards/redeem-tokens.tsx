@@ -1,8 +1,9 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
-import { useUserSelectionStore } from "@/stores/userSelectionStore";
 import { walletService } from "@/services/walletService";
-import axiosInstance from "@/utils/axios";
+import { useBusinessStore } from "@/stores/businessStore";
+import { useRewardStore } from "@/stores/rewardStore";
+import { useUserSelectionStore } from "@/stores/userSelectionStore";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -12,15 +13,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-
-type CoreRedeemItem = {
-  id: string;
-  key: string;
-  priceRange?: {
-    price?: number;
-    duration?: number;
-  }[];
-};
 
 type RedeemModalData = {
   img: any;
@@ -125,12 +117,18 @@ const nameplateConfig = {
 };
 
 const GIFT_PREMIUM_SELECTION_KEY = "gift-premium-user";
+type RedeemItemKey =
+  | "buy_1_month_premium"
+  | "gift_1_month_premium"
+  | "feature_job"
+  | "feature_me"
+  | "unlock_nameplate_designs";
 
 const RedeemTokens = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [redeemItems, setRedeemItems] = useState<CoreRedeemItem[]>([]);
   const [totalTokens, setTotalTokens] = useState(0);
   const [selectedFeatureMeOption, setSelectedFeatureMeOption] = useState<string>("6h");
+  const [selectedRedeemKey, setSelectedRedeemKey] = useState<RedeemItemKey | null>(null);
   const [data, setData] = useState<RedeemModalData>({
     img: "",
     title: "",
@@ -142,6 +140,11 @@ const RedeemTokens = () => {
   const selectedUser = useUserSelectionStore(
     (state) => state.selectedUsersByKey[GIFT_PREMIUM_SELECTION_KEY] || null
   );
+  const coreRedeemItems = useRewardStore((state) => state.coreRedeemItems);
+  const fetchCoreRedeemItems = useRewardStore((state) => state.fetchCoreRedeemItems);
+  const redeemCoreItem = useRewardStore((state) => state.redeemCoreItem);
+  const isRedeemingCoreItem = useRewardStore((state) => state.isRedeemingCoreItem);
+  const selectedBusinessId = useBusinessStore((state) => state.selectedBusinesses?.[0]);
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -161,15 +164,10 @@ const RedeemTokens = () => {
 
     const loadRedeemItems = async () => {
       try {
-        const response = await axiosInstance.get("/core-redeem/items");
-        const result = response?.data;
-
-        if (!result?.success) {
-          throw new Error(result?.message || "Failed to load redeem items");
-        }
+        const items = await fetchCoreRedeemItems();
 
         if (!mounted) return;
-        setRedeemItems(Array.isArray(result?.data) ? result.data : []);
+        if (!Array.isArray(items)) return;
       } catch (error: any) {
         toast.error(error?.message || "Failed to load redeem items");
       }
@@ -180,7 +178,7 @@ const RedeemTokens = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [fetchCoreRedeemItems]);
 
   useFocusEffect(
     useCallback(() => {
@@ -191,7 +189,7 @@ const RedeemTokens = () => {
   const getItemPrice = useMemo(() => {
     const priceMap = new Map<string, number>();
 
-    redeemItems.forEach((item) => {
+    coreRedeemItems.forEach((item) => {
       const firstPrice = Array.isArray(item?.priceRange)
         ? item.priceRange.find((priceItem) => typeof priceItem?.price === "number")
         : null;
@@ -208,7 +206,7 @@ const RedeemTokens = () => {
         ? String(value)
         : fallback;
     };
-  }, [redeemItems]);
+  }, [coreRedeemItems]);
 
   const openRedeemModal = (
     config: Omit<RedeemModalData, "coin" | "details"> & {
@@ -231,8 +229,88 @@ const RedeemTokens = () => {
     setModalVisible(true);
   };
 
+  const getDefaultRedeemTiming = (
+    key: RedeemItemKey,
+    fallback: { duration: number; unit: "min" | "hr" | "day" | "week" | "month" | "year" }
+  ) => {
+    const target = coreRedeemItems.find((item) => item?.key === key);
+    const firstPrice = Array.isArray(target?.priceRange) ? target?.priceRange[0] : null;
+
+    return {
+      duration:
+        typeof firstPrice?.duration === "number" ? firstPrice.duration : fallback.duration,
+      unit:
+        firstPrice?.unit && typeof firstPrice.unit === "string"
+          ? firstPrice.unit
+          : fallback.unit,
+    };
+  };
+
+  const buildRedeemPayload = () => {
+    if (!selectedRedeemKey) return null;
+
+    if (selectedRedeemKey === "buy_1_month_premium") {
+      return getDefaultRedeemTiming(selectedRedeemKey, { duration: 30, unit: "day" });
+    }
+
+    if (selectedRedeemKey === "gift_1_month_premium") {
+      if (!selectedUser?.id) {
+        toast.error("Please select a user to gift");
+        return null;
+      }
+      return {
+        ...getDefaultRedeemTiming(selectedRedeemKey, { duration: 30, unit: "day" }),
+        targetUserId: selectedUser.id,
+      };
+    }
+
+    if (selectedRedeemKey === "feature_job") {
+      if (!selectedBusinessId) {
+        toast.error("Please select a business profile first");
+        return null;
+      }
+      return {
+        ...getDefaultRedeemTiming(selectedRedeemKey, { duration: 7, unit: "day" }),
+        businessId: selectedBusinessId,
+      };
+    }
+
+    if (selectedRedeemKey === "feature_me") {
+      const optionMap: Record<string, { duration: number; unit: "hr" }> = {
+        "6h": { duration: 6, unit: "hr" },
+        "12h": { duration: 12, unit: "hr" },
+        "24h": { duration: 24, unit: "hr" },
+        "42h": { duration: 42, unit: "hr" },
+      };
+
+      return optionMap[selectedFeatureMeOption] || optionMap["6h"];
+    }
+
+    if (selectedRedeemKey === "unlock_nameplate_designs") {
+      return getDefaultRedeemTiming(selectedRedeemKey, { duration: 0, unit: "day" });
+    }
+
+    return null;
+  };
+
+  const handleRedeem = async () => {
+    if (!selectedRedeemKey) return;
+    const payload = buildRedeemPayload();
+    if (!payload) return;
+
+    try {
+      const result = await redeemCoreItem(selectedRedeemKey, payload);
+      toast.success(result?.message || "Redeemed successfully");
+      setModalVisible(false);
+      await loadWallet();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to redeem item");
+    }
+  };
+
   const handleModal = (key: string) => {
     if (key === "premium") {
+      setSelectedRedeemKey("buy_1_month_premium");
       const coin = getItemPrice("buy_1_month_premium", premiumConfig.coin);
       setData({
         ...premiumConfig,
@@ -248,6 +326,7 @@ const RedeemTokens = () => {
       });
       setModalVisible(true);
     } else if (key === "gift") {
+      setSelectedRedeemKey("gift_1_month_premium");
       const coin = getItemPrice("gift_1_month_premium", giftConfig.coin);
       setData({
         ...giftConfig,
@@ -271,8 +350,10 @@ const RedeemTokens = () => {
       });
       setModalVisible(true);
     } else if (key === "job") {
+      setSelectedRedeemKey("feature_job");
       openRedeemModal(featureJobConfig, "feature_job", featureJobConfig.coin);
     } else if (key === "me") {
+      setSelectedRedeemKey("feature_me");
       const handleSelectFeatureMeOption = (id: string) => {
         setSelectedFeatureMeOption(id);
         setData((prev) => ({
@@ -294,6 +375,7 @@ const RedeemTokens = () => {
       });
       setModalVisible(true);
     } else if (key === "nameplate") {
+      setSelectedRedeemKey("unlock_nameplate_designs");
       openRedeemModal(
         nameplateConfig,
         "unlock_nameplate_designs",
@@ -551,9 +633,14 @@ const RedeemTokens = () => {
 
       <RedeemModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedRedeemKey(null);
+        }}
         data={data}
         totalTokens={totalTokens}
+        onConfirm={handleRedeem}
+        confirming={isRedeemingCoreItem}
       />
     </SafeAreaView>
   );

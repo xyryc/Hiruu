@@ -22,10 +22,11 @@ const GradientButton = ({ title, icon, className, disabled, onPress }: GradientB
           borderRadius: 100,
         }}
       >
-        <View className="flex-row gap-3">
+        <View className="flex-row items-center gap-3">
           <Text className="font-proximanova-bold text-lg text-[#FFFFFF]">
-            {title}{" "}
+            {title}
           </Text>
+
           <View>{icon}</View>
         </View>
 

@@ -37,17 +37,13 @@ const RegularShiftCard = ({ shift }: RegularShiftCardProps) => {
         </Text>
       </View>
 
-      <View>
-        {shift.breakTime && (
-          <View className="flex-row justify-between">
-            <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Break:
-            </Text>
-            <Text className="text-sm font-proximanova-regular text-primary dark:text-dark-primary">
-              {shift.breakTime}
-            </Text>
-          </View>
-        )}
+      <View className="flex-row justify-between">
+        <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
+          Break:
+        </Text>
+        <Text className="text-sm font-proximanova-regular text-primary dark:text-dark-primary">
+          {shift.breakTime || "--:--"}
+        </Text>
       </View>
 
       <View>

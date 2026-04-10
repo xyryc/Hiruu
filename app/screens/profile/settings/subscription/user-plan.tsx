@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import GradientButton from "@/components/ui/buttons/GradientButton";
 import { ActiveSubscriptionItem, billingService } from '@/services/billingService';
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
-import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
@@ -15,7 +15,7 @@ import { toast } from "sonner-native";
 
 const UserPlan = () => {
   const { colorScheme } = useColorScheme();
-  const insets = useSafeAreaInsets()
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
   const { userPlans, isLoadingUserPlans, getUserPlans } = useSubscriptionStore();
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">(
@@ -188,14 +188,18 @@ const UserPlan = () => {
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      <ScreenHeader
-        className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
-        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
-        onPressBack={() => router.back()}
-        title="User Plan"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111"}
-      />
+      <View
+        className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
+        <ScreenHeader
+          className="px-5 pt-2.5 pb-4"
+          onPressBack={() => router.back()}
+          title="User Plan"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111"}
+        />
+      </View>
 
 
       <ScrollView className="flex-1 mx-5 mt-8">
@@ -320,7 +324,7 @@ const UserPlan = () => {
             isSubscribing
           }
           onPress={handleSubscribe}
-          icon={<FontAwesome6 name="crown" size={18} color="#FFFFFF" />}
+          icon={<MaterialCommunityIcons name="crown" size={18} color="#FFFFFF" />}
         />
 
       </View>

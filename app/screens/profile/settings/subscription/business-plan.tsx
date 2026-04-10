@@ -6,7 +6,7 @@ import BusinessPlanChart from "@/components/ui/subscription/BusinessPlanChart";
 import { ActiveSubscriptionItem, billingService } from "@/services/billingService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
-import { FontAwesome6 } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
@@ -33,6 +33,7 @@ const BusinessPlan = () => {
   const { businessPlans, isLoadingBusinessPlans, getBusinessPlans } =
     useSubscriptionStore();
   const { colorScheme } = useColorScheme();
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [activeSubscriptions, setActiveSubscriptions] = useState<ActiveSubscriptionItem[]>([]);
@@ -155,8 +156,6 @@ const BusinessPlan = () => {
 
   const displayContent = getDisplayContent();
 
-  const insets = useSafeAreaInsets();
-
   const handleSubscribe = async () => {
     if (isAlreadySubscribed) {
       toast.info("Already subscribed");
@@ -232,14 +231,18 @@ const BusinessPlan = () => {
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      <ScreenHeader
-        className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
-        style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
-        onPressBack={() => router.back()}
-        title="Business Plan"
-        titleClass="text-primary dark:text-dark-primary"
-        iconColor={isDark ? "#fff" : "#111"}
-      />
+      <View
+        className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
+        <ScreenHeader
+          className="px-5 pt-2.5 pb-4"
+          onPressBack={() => router.back()}
+          title="Business Plan"
+          titleClass="text-primary dark:text-dark-primary"
+          iconColor={isDark ? "#fff" : "#111"}
+        />
+      </View>
 
       <ScrollView
         className="flex-1"
@@ -306,7 +309,7 @@ const BusinessPlan = () => {
             isSubscribing
           }
           onPress={handleSubscribe}
-          icon={<FontAwesome6 name="crown" size={18} color="#FFFFFF" />}
+          icon={<MaterialCommunityIcons name="crown" size={18} color="#FFFFFF" />}
         />
       </View>
 

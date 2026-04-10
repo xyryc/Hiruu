@@ -143,17 +143,62 @@ export type CosmeticInventoryItem = {
   isEquipped?: boolean;
 };
 
+export type CoreRedeemItem = {
+  id: string;
+  key: string;
+  name?: string;
+  description?: string | null;
+  type?: string;
+  priceRange?: {
+    unit?: "min" | "hr" | "day" | "week" | "month" | "year";
+    price?: number;
+    duration?: number;
+  }[];
+  isActive?: boolean;
+  isVisible?: boolean;
+};
+
+export type CoreRedeemUnit =
+  | "min"
+  | "hr"
+  | "day"
+  | "week"
+  | "month"
+  | "year";
+
+export type CoreRedeemPayload = {
+  duration?: number;
+  unit?: CoreRedeemUnit;
+  targetUserId?: string;
+  businessId?: string;
+};
+
 type RewardStoreState = {
   cosmeticsStoreItems: CosmeticStoreItem[];
   cosmeticsStoreLoading: boolean;
   cosmeticsStoreLoadingMore: boolean;
+  coreRedeemItems: CoreRedeemItem[];
+  coreRedeemLoading: boolean;
+  isRedeemingCoreItem: boolean;
   cosmeticsInventoryItems: CosmeticInventoryItem[];
   cosmeticsInventoryLoading: boolean;
   isPurchasingCosmetic: boolean;
   isEquippingNameplate: boolean;
   cosmeticsStoreError: string | null;
+  coreRedeemError: string | null;
   cosmeticsStorePagination: Pagination;
   cosmeticsInventoryPagination: Pagination;
+  fetchCoreRedeemItems: (params?: {
+    page?: number;
+    limit?: number;
+  }) => Promise<CoreRedeemItem[]>;
+  redeemCoreItem: (
+    key: string,
+    payload?: CoreRedeemPayload
+  ) => Promise<{
+    message?: string;
+    data?: any;
+  }>;
   fetchCosmeticsStore: (params?: {
     type?: CosmeticStoreType;
     highlight?: CosmeticHighlight;
@@ -183,13 +228,96 @@ export const useRewardStore = create<RewardStoreState>((set, get) => ({
   cosmeticsStoreItems: [],
   cosmeticsStoreLoading: false,
   cosmeticsStoreLoadingMore: false,
+  coreRedeemItems: [],
+  coreRedeemLoading: false,
+  isRedeemingCoreItem: false,
   cosmeticsInventoryItems: [],
   cosmeticsInventoryLoading: false,
   isPurchasingCosmetic: false,
   isEquippingNameplate: false,
   cosmeticsStoreError: null,
+  coreRedeemError: null,
   cosmeticsStorePagination: null,
   cosmeticsInventoryPagination: null,
+
+  fetchCoreRedeemItems: async (params) => {
+    try {
+      set({
+        coreRedeemLoading: true,
+        coreRedeemError: null,
+      });
+
+      const response = await axiosInstance.get("/core-redeem/items", {
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load redeem items");
+      }
+
+      const items = Array.isArray(result?.data) ? result.data : [];
+      set({
+        coreRedeemItems: items,
+        coreRedeemLoading: false,
+        coreRedeemError: null,
+      });
+
+      return items;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load redeem items";
+
+      set({
+        coreRedeemLoading: false,
+        coreRedeemError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  redeemCoreItem: async (key, payload) => {
+    if (!key) {
+      throw new Error("Redeem key is required");
+    }
+
+    try {
+      set({
+        isRedeemingCoreItem: true,
+        coreRedeemError: null,
+      });
+
+      const response = await axiosInstance.post(`/core-redeem/redeem/${key}`, payload);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to redeem item");
+      }
+
+      set({ isRedeemingCoreItem: false });
+
+      return {
+        message: result?.message,
+        data: result?.data,
+      };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to redeem item";
+
+      set({
+        isRedeemingCoreItem: false,
+        coreRedeemError: message,
+      });
+      throw new Error(message);
+    }
+  },
 
   fetchCosmeticsStore: async (params) => {
     const page = params?.page ?? 1;

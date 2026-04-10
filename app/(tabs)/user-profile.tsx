@@ -233,7 +233,7 @@ const Profile = () => {
       <StatusBar style="dark" backgroundColor={profileColor} translucent={false} />
 
       <DynamicBackground
-        className="rounded-b-xl pb-3 overflow-hidden"
+        className="rounded-b-2xl overflow-hidden"
         style={{
           paddingTop: insets.top,
         }}
@@ -241,7 +241,7 @@ const Profile = () => {
         profileColor={profileColor}
         gradientColors={gradientColors}
       >
-        <View className={`flex-row justify-between items-center mt-5 mx-5`}>
+        <View className="flex-row justify-between items-center px-5 pt-2.5 pb-4">
           {/* profile switch */}
           <TouchableOpacity
             onPress={() => setIsProfileSwitchOpen(true)}

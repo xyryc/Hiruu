@@ -76,7 +76,7 @@ const ShiftSchedule = () => {
           workTime: "--",
           company: business?.name || "Business",
           companyLogo: business?.logo,
-          location: business?.address?.address,
+          location: business?.address?.city,
           status: "no_shift",
         };
       }
@@ -178,7 +178,7 @@ const ShiftSchedule = () => {
         breakTime,
         company: business?.name || "Business",
         companyLogo: business?.logo,
-        location: business?.address?.address,
+        location: business?.address?.city,
         status,
         countdown,
         countdownTargetAt,
