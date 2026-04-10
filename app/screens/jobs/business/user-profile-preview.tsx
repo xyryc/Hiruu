@@ -298,7 +298,7 @@ const UserProfilePreview = () => {
             onPress={() => router.push("/screens/profile/badge")}
           >
             <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              View all Badge
+              View All Badge
             </Text>
           </TouchableOpacity>
         </View>

@@ -97,6 +97,26 @@ type ShiftStoreState = {
       completedShifts: number;
     }>;
   } | null>;
+  getAttendanceLog: (params?: {
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }) => Promise<
+    Array<{
+      id: string;
+      date?: string;
+      clockInTime?: string | null;
+      clockOutTime?: string | null;
+      workingTime?: string | null;
+      statusSummary?: string | null;
+      business?: {
+        id?: string;
+        name?: string | null;
+        logo?: string | null;
+      } | null;
+    }>
+  >;
   getWorkInsightsAnalytics: (params?: {
     month?: string;
   }) => Promise<{
@@ -863,6 +883,32 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         error?.response?.data?.message ||
         error?.message ||
         "Failed to load work insights analytics";
+      throw new Error(message);
+    }
+  },
+
+  getAttendanceLog: async (params) => {
+    try {
+      const response = await axiosInstance.get("/attendance/attendance-log", {
+        params: {
+          dateFrom: params?.dateFrom,
+          dateTo: params?.dateTo,
+          page: params?.page,
+          limit: params?.limit,
+        },
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load attendance log");
+      }
+
+      return Array.isArray(result?.data) ? result.data : [];
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load attendance log";
       throw new Error(message);
     }
   },

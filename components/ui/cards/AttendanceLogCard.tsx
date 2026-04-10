@@ -1,7 +1,19 @@
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
+import { StatusBadgeProps } from "@/types";
 import StatusBadge from "../badges/StatusBadge";
+
+type AttendanceLogCardProps = {
+  startTime: string;
+  endTime: string;
+  totalWorkTime: string;
+  workTimeColor?: string;
+  status?: StatusBadgeProps["status"];
+  statusLabel?: string;
+  businessLogo?: string | null;
+  businessName?: string;
+};
 
 const AttendanceLogCard = ({
   startTime,
@@ -10,7 +22,14 @@ const AttendanceLogCard = ({
   workTimeColor,
   status,
   statusLabel,
-}: any) => {
+  businessLogo,
+  businessName,
+}: AttendanceLogCardProps) => {
+  const businessLogoSource =
+    typeof businessLogo === "string" && businessLogo.trim().length > 0
+      ? { uri: businessLogo }
+      : require("@/assets/images/placeholder.png");
+
   return (
     <View className="mt-3 p-4 border-hairline border-secondary dark:border-dark-secondary rounded-xl">
       <View className="flex-row justify-between">
@@ -26,7 +45,7 @@ const AttendanceLogCard = ({
           <View className="border-r-hairline border-secondary dark:border-dark-secondary" />
           <View>
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Start Time
+              End Time
             </Text>
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
               {endTime}
@@ -39,7 +58,8 @@ const AttendanceLogCard = ({
             Working Time
           </Text>
           <Text
-            className={`font-proximanova-semibold text-base text-[${workTimeColor}] `}
+            className="font-proximanova-semibold text-base"
+            style={{ color: workTimeColor || "#111111" }}
           >
             {totalWorkTime}
           </Text>
@@ -49,12 +69,12 @@ const AttendanceLogCard = ({
       <View className="mt-2 flex-row justify-between items-center">
         <View className="flex-row gap-2 items-center">
           <Image
-            source={require("@/assets/images/reward/complate-profile.svg")}
+            source={businessLogoSource}
             contentFit="contain"
             style={{ height: 30, width: 30, borderRadius: 15 }}
           />
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            Space Hotel
+            {businessName || "Business"}
           </Text>
         </View>
 
