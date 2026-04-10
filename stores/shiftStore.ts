@@ -185,6 +185,15 @@ type ShiftStoreState = {
     status?: string;
     type?: string;
   }) => Promise<any[]>;
+  getUnresolvedShiftRequestCount: () => Promise<{
+    shift_swap?: number;
+    overtime_request?: number;
+    leave_request?: number;
+    manual_attendance?: number;
+    schedule_change?: number;
+    early_leave?: number;
+    late_arrival?: number;
+  }>;
   getBusinessShiftRequests: (
     businessId: string,
     params?: {
@@ -532,6 +541,27 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         shiftRequestsError: message,
         shiftRequestsPagination: null,
       });
+      throw new Error(message);
+    }
+  },
+
+  getUnresolvedShiftRequestCount: async () => {
+    try {
+      const response = await axiosInstance.get("/shift-requests/unresolved-count");
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || "Failed to fetch unresolved shift request count"
+        );
+      }
+
+      return result?.data || {};
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch unresolved shift request count";
       throw new Error(message);
     }
   },

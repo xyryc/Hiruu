@@ -1,14 +1,16 @@
+import { useBusinessStore } from "@/stores/businessStore";
+import { useShiftStore } from "@/stores/shiftStore";
 import {
   AntDesign,
   FontAwesome,
   Ionicons,
   MaterialIcons
 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import ActionIconCard from "../ui/cards/ActionIconCard";
-import { useBusinessStore } from "@/stores/businessStore";
 
 type QuickActionUserProps = {
   className?: string;
@@ -17,7 +19,53 @@ type QuickActionUserProps = {
 const QuickActionUser = ({ className }: QuickActionUserProps) => {
   const router = useRouter();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const getUnresolvedShiftRequestCount = useShiftStore(
+    (state) => state.getUnresolvedShiftRequestCount
+  );
+  const [counts, setCounts] = useState<{
+    overtime_request: number;
+    shift_swap: number;
+  }>({
+    overtime_request: 0,
+    shift_swap: 0,
+  });
   const isUserProfile = selectedBusinesses.length === 0;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isUserProfile) return;
+
+      let mounted = true;
+
+      const loadCounts = async () => {
+        try {
+          const data = await getUnresolvedShiftRequestCount();
+          if (!mounted) return;
+
+          setCounts({
+            overtime_request:
+              typeof data?.overtime_request === "number"
+                ? data.overtime_request
+                : 0,
+            shift_swap:
+              typeof data?.shift_swap === "number" ? data.shift_swap : 0,
+          });
+        } catch {
+          if (!mounted) return;
+          setCounts({
+            overtime_request: 0,
+            shift_swap: 0,
+          });
+        }
+      };
+
+      void loadCounts();
+
+      return () => {
+        mounted = false;
+      };
+    }, [getUnresolvedShiftRequestCount, isUserProfile])
+  );
 
   if (!isUserProfile) {
     return null;
@@ -39,6 +87,7 @@ const QuickActionUser = ({ className }: QuickActionUserProps) => {
         <ActionIconCard
           icon={<MaterialIcons name="timer" size={24} color="#4FB2F3" />}
           title="OT Request"
+          count={counts.overtime_request}
           onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
@@ -58,6 +107,7 @@ const QuickActionUser = ({ className }: QuickActionUserProps) => {
             />
           }
           title="Swap Request"
+          count={counts.shift_swap}
           onPress={() => router.push("/screens/home/shift/swap-request")}
         />
       </ScrollView>

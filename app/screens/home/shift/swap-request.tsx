@@ -4,6 +4,7 @@ import CustomModal from "@/components/ui/modals/CustomModal";
 import { EvilIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
 import {
@@ -13,11 +14,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SwapRequestAction = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState("Send Request");
   const [filter, setFilter] = useState<string>("all");
   const filterOptions = ["all", "accepted", "rejected", "pending"];
@@ -241,38 +243,44 @@ const SwapRequestAction = () => {
   ).length;
 
   return (
-
     <SafeAreaView
       className="flex-1 bg-white"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] rounded-b-2xl pt-10 px-5">
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title="Swap Request"
           titleClass="text-primary dark:text-dark-primary"
-          iconColor={isDark ? "#fff" : "#111"}
+          iconColor={isDark ? "#fff" : "#111111"}
         />
         {/* Tabs */}
-        <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
+        <View className="flex-row justify-center mx-5">
           {["Send Request", "Received"].map((tab) => (
             <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
+              className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${selectedTab === tab ? "border-[#11293A] border-b-2" : ""}`}
               key={tab}
               onPress={() => setSelectedTab(tab)}
             >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                >
-                  {tab}
+              <Text
+                className={`text-center ${selectedTab === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"}`}
+              >
+                {tab}
+              </Text>
+              <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
+                <Text className="font-proximanova-semibold text-sm text-white">
+                  {pendingData}
                 </Text>
-                {selectedTab === tab && (
-                  <View className="bg-[#4FB2F3] px-2 py-1 rounded-full">
-                    <Text className="text-white">{pendingData}</Text>
-                  </View>
-                )}
               </View>
             </TouchableOpacity>
           ))}

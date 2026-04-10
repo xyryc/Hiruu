@@ -4,6 +4,7 @@ import LeaveRequestApprovalModal from "@/components/ui/modals/LeaveRequestApprov
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -74,38 +75,47 @@ const LeaveRequest = () => {
       className="flex-1 bg-white"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] rounded-b-2xl px-5">
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          style={{ paddingTop: insets.top + 10, paddingBottom: 10 }}
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title="Leave Requests"
           titleClass="text-primary dark:text-dark-primary"
-          iconColor={isDark ? "#fff" : "#111"}
+          iconColor={isDark ? "#fff" : "#111111"}
         />
 
         {/* Tabs */}
-        <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
+        <View className="flex-row justify-center mx-5">
           {["New Request", "Approved"].map((tab) => {
             const tabCount =
               tab === "New Request" ? pendingRequests.length : approvedRequests.length;
             return (
               <TouchableOpacity
-                className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : ""}`}
+                className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${selectedTab === tab ? "border-[#11293A] border-b-2" : ""}`}
                 key={tab}
                 onPress={() => setSelectedTab(tab)}
               >
-                <View className="flex-row justify-center gap-2">
-                  <Text
-                    className={`text-center dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                  >
-                    {tab}
-                  </Text>
-                  {tabCount > 0 && (
-                    <View className="bg-[#4FB2F3] px-1.5 py-0.5 rounded-full">
-                      <Text className="text-white text-sm">{tabCount}</Text>
-                    </View>
-                  )}
-                </View>
+                <Text
+                  className={`text-center ${selectedTab === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"}`}
+                >
+                  {tab}
+                </Text>
+                {tabCount > 0 && (
+                  <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
+                    <Text className="font-proximanova-semibold text-sm text-white">
+                      {tabCount}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             )
           })}
