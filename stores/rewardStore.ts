@@ -156,6 +156,8 @@ export type CoreRedeemItem = {
   }[];
   isActive?: boolean;
   isVisible?: boolean;
+  isClaimable?: boolean;
+  claimBlockedReason?: string | null;
 };
 
 export type CoreRedeemUnit =

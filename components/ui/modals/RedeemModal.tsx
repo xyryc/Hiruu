@@ -32,6 +32,8 @@ const RedeemModal = ({
   const selectUserLabel = data?.selectUserLabel || "Select a user to gift";
   const selectUserAvatar = data?.selectUserAvatar;
   const onPressSelectUser = data?.onPressSelectUser;
+  const showSelectBusiness = Boolean(data?.showSelectBusiness);
+  const selectBusinessTrigger = data?.selectBusinessTrigger;
 
   return (
     <Modal
@@ -135,6 +137,15 @@ const RedeemModal = ({
               </View>
             ) : null}
 
+            {showSelectBusiness ? (
+              <View className="mt-4 flex-row items-center justify-between">
+                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                  Select Business
+                </Text>
+                {selectBusinessTrigger}
+              </View>
+            ) : null}
+
             <View className="flex-row gap-1.5 items-center mt-4">
               <Ionicons name="trail-sign" size={14} color="#4FB2F3" />
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
@@ -210,7 +221,7 @@ const RedeemModal = ({
                 className="mt-5"
                 onPress={onConfirm}
                 loading={confirming}
-                disabled={confirming}
+                disabled={confirming || !onConfirm}
               />
             ) : null}
           </ScrollView>

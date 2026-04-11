@@ -292,6 +292,7 @@ const DynamicNameplateCard = ({
               >
                 {preview?.name || "User"}
               </Text>
+
               {preview?.isVerified === false ? null : (
                 <MaterialIcons name="verified" size={16} color="#4F83F3" />
               )}

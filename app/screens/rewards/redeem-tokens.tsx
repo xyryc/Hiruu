@@ -1,9 +1,12 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
+import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import RedeemModal from "@/components/ui/modals/RedeemModal";
+import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { walletService } from "@/services/walletService";
-import { useBusinessStore } from "@/stores/businessStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { useUserSelectionStore } from "@/stores/userSelectionStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -30,6 +33,8 @@ type RedeemModalData = {
   selectUserLabel?: string;
   selectUserAvatar?: string | null;
   onPressSelectUser?: () => void;
+  showSelectBusiness?: boolean;
+  selectBusinessTrigger?: React.ReactNode;
 };
 
 const premiumConfig = {
@@ -78,13 +83,6 @@ const featureMeConfig = {
   cardBgColor: "#E3F6E7",
 };
 
-const FEATURE_ME_OPTIONS = [
-  { id: "6h", label: "6 hours – 1,000 Tokens" },
-  { id: "12h", label: "12 hours – 2,000 Tokens" },
-  { id: "24h", label: "24 hours – 3,000 Tokens" },
-  { id: "42h", label: "42 hours – 4,200 Tokens" },
-] as const;
-
 const featureJobConfig = {
   img: require("@/assets/images/reward/purple-toolbox.svg"),
   title: "Feature Job",
@@ -124,10 +122,15 @@ type RedeemItemKey =
   | "feature_me"
   | "unlock_nameplate_designs";
 
+type RedeemUnit = "min" | "hr" | "day" | "week" | "month" | "year";
+
+const isRedeemUnit = (value: string): value is RedeemUnit =>
+  ["min", "hr", "day", "week", "month", "year"].includes(value);
+
 const RedeemTokens = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [totalTokens, setTotalTokens] = useState(0);
-  const [selectedFeatureMeOption, setSelectedFeatureMeOption] = useState<string>("6h");
+  const [selectedFeatureMeOption, setSelectedFeatureMeOption] = useState<string>("");
   const [selectedRedeemKey, setSelectedRedeemKey] = useState<RedeemItemKey | null>(null);
   const [data, setData] = useState<RedeemModalData>({
     img: "",
@@ -144,7 +147,91 @@ const RedeemTokens = () => {
   const fetchCoreRedeemItems = useRewardStore((state) => state.fetchCoreRedeemItems);
   const redeemCoreItem = useRewardStore((state) => state.redeemCoreItem);
   const isRedeemingCoreItem = useRewardStore((state) => state.isRedeemingCoreItem);
-  const selectedBusinessId = useBusinessStore((state) => state.selectedBusinesses?.[0]);
+  const myEmployments = useJobStore((state) => state.myEmployments);
+  const getMyEmployments = useJobStore((state) => state.getMyEmployments);
+  const [selectedEmploymentBusinessIds, setSelectedEmploymentBusinessIds] = useState<
+    string[]
+  >([]);
+  const selectedBusinessId = selectedEmploymentBusinessIds?.[0];
+  const [showBusinessModal, setShowBusinessModal] = useState(false);
+
+  const redeemBusinesses = useMemo(() => {
+    const seen = new Set<string>();
+    return (Array.isArray(myEmployments) ? myEmployments : [])
+      .map((employment: any) => {
+        const business = employment?.business;
+        if (!business?.id || seen.has(business.id)) return null;
+        seen.add(business.id);
+        return {
+          id: business.id,
+          name: business.name || "Business",
+          address: "",
+          imageUrl: business.logo || "",
+          logo: business.logo || "",
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  }, [myEmployments]);
+
+  const selectedBusiness = useMemo(
+    () => redeemBusinesses.find((business) => business.id === selectedBusinessId) || null,
+    [redeemBusinesses, selectedBusinessId]
+  );
+
+  const businessDisplayContent = useMemo(() => {
+    if (!selectedBusiness) {
+      return {
+        type: "all" as const,
+        content: "All",
+      };
+    }
+
+    return {
+      type: "single" as const,
+      content: {
+        name: selectedBusiness.name,
+        logo: selectedBusiness.logo,
+        imageUrl: selectedBusiness.imageUrl,
+      },
+    };
+  }, [selectedBusiness]);
+
+  const businessSelectionTriggerNode = useMemo(
+    () => (
+      <BusinessSelectionTrigger
+        displayContent={businessDisplayContent}
+        onPress={() => setShowBusinessModal(true)}
+        compact
+      />
+    ),
+    [businessDisplayContent]
+  );
+
+  const featureJobModalConfig = useMemo(
+    () => ({
+      ...featureJobConfig,
+      showSelectBusiness: true,
+      selectBusinessTrigger: businessSelectionTriggerNode,
+    }),
+    [businessSelectionTriggerNode]
+  );
+
+  const syncBusinessSelectorInModal = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      showSelectBusiness: true,
+      selectBusinessTrigger: businessSelectionTriggerNode,
+    }));
+  }, [businessSelectionTriggerNode]);
+
+  const openBusinessSelector = useCallback(async () => {
+    try {
+      await getMyEmployments();
+      setShowBusinessModal(true);
+    } catch {
+      toast.error("Failed to load businesses");
+    }
+  }, [getMyEmployments]);
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -169,7 +256,9 @@ const RedeemTokens = () => {
         if (!mounted) return;
         if (!Array.isArray(items)) return;
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load redeem items");
+        toast.error(
+          translateApiMessage(error?.message || "Failed to load redeem items")
+        );
       }
     };
 
@@ -197,6 +286,19 @@ const RedeemTokens = () => {
     }));
   }, [modalVisible, selectedRedeemKey, selectedUser]);
 
+  useEffect(() => {
+    if (!modalVisible || selectedRedeemKey !== "feature_job") return;
+    syncBusinessSelectorInModal();
+  }, [modalVisible, selectedRedeemKey, syncBusinessSelectorInModal]);
+
+  useEffect(() => {
+    if (selectedRedeemKey !== "feature_job") return;
+    if (selectedBusinessId) return;
+    if (redeemBusinesses.length === 0) return;
+
+    setSelectedEmploymentBusinessIds([redeemBusinesses[0].id]);
+  }, [redeemBusinesses, selectedBusinessId, selectedRedeemKey]);
+
   const getItemPrice = useMemo(() => {
     const priceMap = new Map<string, number>();
 
@@ -219,18 +321,57 @@ const RedeemTokens = () => {
     };
   }, [coreRedeemItems]);
 
+  const featureMeOptions = useMemo(() => {
+    const featureMeItem = coreRedeemItems.find((item) => item?.key === "feature_me");
+    const ranges = Array.isArray(featureMeItem?.priceRange) ? featureMeItem.priceRange : [];
+
+    return ranges
+      .filter(
+        (range) =>
+          typeof range?.price === "number" &&
+          Number.isFinite(range.price) &&
+          typeof range?.duration === "number" &&
+          Number.isFinite(range.duration) &&
+          typeof range?.unit === "string" &&
+          isRedeemUnit(range.unit)
+      )
+      .map((range) => {
+        const unit = range.unit as RedeemUnit;
+        const unitLabel = range.duration === 1 ? unit : `${unit}s`;
+        return {
+          id: `${range.duration}-${unit}-${range.price}`,
+          label: `${range.duration} ${unitLabel} - ${range.price} Tokens`,
+          duration: range.duration,
+          unit,
+        };
+      });
+  }, [coreRedeemItems]);
+
+  const isItemRedeemed = useCallback(
+    (key: RedeemItemKey) => {
+      const item = coreRedeemItems.find((entry) => entry?.key === key);
+      if (!item) return false;
+
+      // Business rule: if isClaimable is false, item is already redeemed/unavailable.
+      return item.isClaimable === false;
+    },
+    [coreRedeemItems]
+  );
+
   const openRedeemModal = (
     config: Omit<RedeemModalData, "coin" | "details"> & {
       coin: string;
       details: string[];
     },
-    key: string,
+    key: RedeemItemKey,
     priceLabel?: string
   ) => {
     const coin = getItemPrice(key, priceLabel || config.coin);
+    const alreadyRedeemed = isItemRedeemed(key);
     setData({
       ...config,
       coin,
+      confirmTitle: alreadyRedeemed ? "Already Redeemed" : config.confirmTitle,
       details: [
         ...config.details,
         `Token Cost: ${coin} Tokens`,
@@ -287,14 +428,17 @@ const RedeemTokens = () => {
     }
 
     if (selectedRedeemKey === "feature_me") {
-      const optionMap: Record<string, { duration: number; unit: "hr" }> = {
-        "6h": { duration: 6, unit: "hr" },
-        "12h": { duration: 12, unit: "hr" },
-        "24h": { duration: 24, unit: "hr" },
-        "42h": { duration: 42, unit: "hr" },
-      };
+      const selectedOption = featureMeOptions.find(
+        (option) => option.id === selectedFeatureMeOption
+      );
+      if (selectedOption) {
+        return {
+          duration: selectedOption.duration,
+          unit: selectedOption.unit,
+        };
+      }
 
-      return optionMap[selectedFeatureMeOption] || optionMap["6h"];
+      return getDefaultRedeemTiming(selectedRedeemKey, { duration: 1, unit: "month" });
     }
 
     if (selectedRedeemKey === "unlock_nameplate_designs") {
@@ -304,18 +448,33 @@ const RedeemTokens = () => {
     return null;
   };
 
+  const isSelectedItemRedeemed = selectedRedeemKey
+    ? isItemRedeemed(selectedRedeemKey)
+    : false;
+
   const handleRedeem = async () => {
     if (!selectedRedeemKey) return;
+    if (isItemRedeemed(selectedRedeemKey)) {
+      toast.info("Already redeemed");
+      return;
+    }
     const payload = buildRedeemPayload();
     if (!payload) return;
 
     try {
       const result = await redeemCoreItem(selectedRedeemKey, payload);
-      toast.success(result?.message || "Redeemed successfully");
+      console.log("[RedeemTokens] redeemCoreItem response:", result);
+      toast.success(
+        translateApiMessage(result?.message || "Redeemed successfully")
+      );
       setModalVisible(false);
+      await fetchCoreRedeemItems();
       await loadWallet();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to redeem item");
+      console.log("[RedeemTokens] redeemCoreItem error:", error);
+      toast.error(
+        translateApiMessage(error?.message || "Failed to redeem item")
+      );
     }
   };
 
@@ -326,6 +485,9 @@ const RedeemTokens = () => {
       setData({
         ...premiumConfig,
         coin,
+        confirmTitle: isItemRedeemed("buy_1_month_premium")
+          ? "Already Redeemed"
+          : premiumConfig.confirmTitle,
         details: [
           "Access to nameplate designs",
           "Profile boost",
@@ -342,6 +504,9 @@ const RedeemTokens = () => {
       setData({
         ...giftConfig,
         coin,
+        confirmTitle: isItemRedeemed("gift_1_month_premium")
+          ? "Already Redeemed"
+          : giftConfig.confirmTitle,
         details: [
           "Send 1 month of premium access to another user. They’ll receive all premium benefits instantly",
           `Token Cost: ${coin} Tokens`,
@@ -362,7 +527,8 @@ const RedeemTokens = () => {
       setModalVisible(true);
     } else if (key === "job") {
       setSelectedRedeemKey("feature_job");
-      openRedeemModal(featureJobConfig, "feature_job", featureJobConfig.coin);
+      openRedeemModal(featureJobModalConfig, "feature_job", featureJobConfig.coin);
+      openBusinessSelector();
     } else if (key === "me") {
       setSelectedRedeemKey("feature_me");
       const handleSelectFeatureMeOption = (id: string) => {
@@ -372,16 +538,29 @@ const RedeemTokens = () => {
           selectedOptionId: id,
         }));
       };
+      const fallbackOptionId = featureMeOptions[0]?.id || "";
+      const nextSelectedOptionId = featureMeOptions.some(
+        (option) => option.id === selectedFeatureMeOption
+      )
+        ? selectedFeatureMeOption
+        : fallbackOptionId;
+      setSelectedFeatureMeOption(nextSelectedOptionId);
 
       setData({
         ...featureMeConfig,
         coin: getItemPrice("feature_me", featureMeConfig.coin),
+        confirmTitle: isItemRedeemed("feature_me")
+          ? "Already Redeemed"
+          : featureMeConfig.confirmTitle,
         details: [
           "Boost your visibility by appearing at the top of the Job Finder page for a selected duration",
           `Current Token Balance: ${totalTokens} Tokens`,
         ],
-        options: FEATURE_ME_OPTIONS.map((option) => ({ ...option })),
-        selectedOptionId: selectedFeatureMeOption,
+        options: featureMeOptions.map((option) => ({
+          id: option.id,
+          label: option.label,
+        })),
+        selectedOptionId: nextSelectedOptionId,
         onSelectOption: handleSelectFeatureMeOption,
       });
       setModalVisible(true);
@@ -650,8 +829,20 @@ const RedeemTokens = () => {
         }}
         data={data}
         totalTokens={totalTokens}
-        onConfirm={handleRedeem}
+        onConfirm={isSelectedItemRedeemed ? undefined : handleRedeem}
         confirming={isRedeemingCoreItem}
+      />
+
+      <BusinessSelectionModal
+        visible={showBusinessModal}
+        onClose={() => setShowBusinessModal(false)}
+        businesses={redeemBusinesses}
+        disableStoreFallback
+        selectedBusinesses={selectedEmploymentBusinessIds}
+        onSelectionChange={(ids: string[]) => {
+          const nextId = ids[0] ? [ids[0]] : [];
+          setSelectedEmploymentBusinessIds(nextId);
+        }}
       />
     </SafeAreaView>
   );

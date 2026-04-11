@@ -5,11 +5,10 @@ import { usePreferencesStore } from "@/stores/preferencesStore";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import {
   FontAwesome,
-  FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
-  Octicons,
+  Octicons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
@@ -404,15 +403,14 @@ const UserRewards = () => {
                         contentFit="contain"
                       />
                       <View className="px-2.5 py-0.5 bg-[#DDF1FF]  -ml-2.5 -z-10 rounded-r-[40px]">
-                        {/*bg-[#DDF1FF]*/}
                         <Text className="text-xs font-proximanova-semibold">
                           {rewardTokens}
                         </Text>
                       </View>
-                      <FontAwesome6
+                      <MaterialCommunityIcons
                         name="crown"
                         className="ml-0.5"
-                        size={15}
+                        size={18}
                         color="#4FB2F3"
                       />
                     </View>
@@ -444,7 +442,7 @@ const UserRewards = () => {
                   className="flex-row justify-between items-center p-4"
                 >
                   <View className="flex-row  gap-1.5">
-                    <FontAwesome6 name="crown" size={15} color="#4FB2F3" />
+                    <MaterialCommunityIcons name="crown" size={18} color="#4FB2F3" />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                       Premium for a month
                     </Text>

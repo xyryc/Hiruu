@@ -141,6 +141,9 @@ const Profile = () => {
   };
   const analyticsMetrics = analyticsSummary?.metrics;
   const equippedNameplate = profileData?.appearance?.nameplate;
+  const isFullyVerified = Boolean(
+    profileData?.isEmailVerified && profileData?.isNumberVerified
+  );
   const profileAddress =
     profileData?.address?.address ||
     [profileData?.address?.city, profileData?.address?.country]
@@ -320,7 +323,7 @@ const Profile = () => {
                 name: profileData?.name,
                 location: profileAddress,
                 rating: profileData?.rating ?? 0,
-                isVerified: Boolean(profileData?.isEmailVerified),
+                isVerified: isFullyVerified,
               }}
             />
           ) : (
@@ -329,7 +332,7 @@ const Profile = () => {
               name={profileData?.name}
               location={profileAddress}
               rating={profileData?.rating ?? 0}
-              isVerified={Boolean(profileData?.isEmailVerified)}
+              isVerified={isFullyVerified}
             />
           )}
         </TouchableOpacity>

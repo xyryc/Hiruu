@@ -114,6 +114,7 @@
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Business owners cannot join their own business using an invitation code.",
     "exceptions_invalid_or_expired_otp_code": "Invalid or expired OTP code.",
     "exceptions_insufficient_coins": "You do not have enough coins.",
+    "core_redeem_redeemed_successfully": "Redeemed successfully.",
     "exceptions_premium_access_required": "Premium access is required.",
     "appearance_updated_successfully": "Appearance updated successfully.",
     "business_owner_role_is_system_locked": "Business owner role is system locked.",
