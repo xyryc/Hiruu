@@ -65,9 +65,11 @@ const BadgeCardWithSlider = ({
           <View className="mt-1.5">
             <CoinProgressSlider max={max} achieved={achieved} />
           </View>
-          <Text className="mt-2 font-proximanova-semibold text-primary dark:text-dark-primary">
-            <Text className="text-[#4FB2F3]">Next</Text> : {text}
-          </Text>
+          {text ? (
+            <Text className="mt-2 font-proximanova-semibold text-primary dark:text-dark-primary">
+              <Text className="text-[#4FB2F3]">Next</Text> : {text}
+            </Text>
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>

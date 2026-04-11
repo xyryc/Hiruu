@@ -97,11 +97,11 @@ const formatTier = (tier?: string) => {
 
 const formatProgressText = (
   currentProgress?: number,
-  threshold?: number,
+  nextThreshold?: number,
   displayUnit?: string
 ) => {
   const current = typeof currentProgress === "number" ? currentProgress : 0;
-  const max = typeof threshold === "number" ? threshold : 0;
+  const max = typeof nextThreshold === "number" ? nextThreshold : 0;
   const unit = String(displayUnit || "").trim();
   return `${current}${unit}/ ${max}${unit}`;
 };
@@ -111,8 +111,11 @@ const formatNextText = (
   threshold?: number,
   displayUnit?: string
 ) => {
+  if (!nextTier || typeof threshold !== "number") {
+    return null;
+  }
   const tier = formatTier(nextTier);
-  const max = typeof threshold === "number" ? threshold : 0;
+  const max = threshold;
   const unit = String(displayUnit || "").trim();
   return `${tier} badge at ${max} ${unit}`;
 };
@@ -220,7 +223,7 @@ const Badge = () => {
         ),
         nextText: formatNextText(
           track?.nextTier,
-          track?.threshold,
+          track?.nextThreshold,
           track?.displayUnit
         ),
       };
@@ -359,7 +362,7 @@ const Badge = () => {
             img={track.tierUi.img}
             title={track.title}
             time={track.time}
-            text={track.nextText}
+            text={track.nextText || ""}
             max={Number(track.threshold || 0)}
             achieved={Number(track.currentProgress || 0)}
             tag={track.tag}
@@ -377,4 +380,3 @@ const Badge = () => {
 };
 
 export default Badge;
-

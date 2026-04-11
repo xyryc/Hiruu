@@ -1,8 +1,8 @@
 import ErrorBoundary from "@/components/ui/error/ErrorBoundary";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import "@/utils/i18n";
-import * as Notifications from "expo-notifications";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import * as Notifications from "expo-notifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Toaster } from "sonner-native";

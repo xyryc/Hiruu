@@ -364,7 +364,10 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <BadgeCard className="mx-5 mt-3.5" />
+        <BadgeCard
+          className="mx-5 mt-3.5"
+          badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
+        />
 
         {/* short intro */}
         <View className="mx-5 mt-7 flex-row items-center gap-2.5 mb-4">

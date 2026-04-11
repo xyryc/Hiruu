@@ -212,7 +212,7 @@ const Edit = () => {
       edges={["left", "right", "bottom"]}
     >
       <DynamicBackground
-        className="rounded-b-2xl mb-6 overflow-hidden"
+        className="rounded-b-2xl overflow-hidden"
         style={{
           paddingTop: insets.top + 10,
         }}
@@ -237,7 +237,7 @@ const Edit = () => {
         />
       </DynamicBackground>
 
-      <ScrollView>
+      <ScrollView contentContainerClassName='mt-6'>
         <View className="mx-5">
           <View className="flex-row justify-between items-center mb-2.5">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
@@ -278,30 +278,30 @@ const Edit = () => {
         </View>
 
         {/* Badge item */}
-        <View>
-          <View className="mx-5 flex-row justify-between mt-8 items-center">
-            <View className="flex-row gap-2.5 items-center">
-              <DynamicBackground
-                className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
-                pickerType={pickerType}
-                profileColor={profileColor}
-                gradientColors={gradientColors}
-              >
-                <FontAwesome6 name="id-badge" size={14} color="black" />
-              </DynamicBackground>
-              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                Badge
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => setIsBadgeVisible(true)}>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                Edit
-              </Text>
-            </TouchableOpacity>
+        <View className="mx-5 flex-row justify-between mt-8 items-center">
+          <View className="flex-row gap-2.5 items-center">
+            <DynamicBackground
+              className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+              pickerType={pickerType}
+              profileColor={profileColor}
+              gradientColors={gradientColors}
+            >
+              <FontAwesome6 name="id-badge" size={14} color="black" />
+            </DynamicBackground>
+            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+              Badge
+            </Text>
           </View>
-          <BadgeCard className="mx-5 mt-3.5" />
+          <TouchableOpacity onPress={() => setIsBadgeVisible(true)}>
+            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+              Edit
+            </Text>
+          </TouchableOpacity>
         </View>
-
+        <BadgeCard
+          className="mx-5 mt-3.5"
+          badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
+        />
 
         <EditBadgeModal
           visible={isBadgeVisible}
@@ -357,7 +357,7 @@ const Edit = () => {
 
         {/* Experience */}
         <View>
-          <View className="flex-row justify-between items-center mx-5 mt-8 ">
+          <View className="flex-row justify-between items-center mx-5 mt-8">
             <View className="flex-row gap-2.5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
@@ -379,6 +379,7 @@ const Edit = () => {
               Edit
             </Text>
           </View>
+
           <View className="mx-5 mt-4">
             <MultiSelectCompanyDropdown
               selectedCompanies={selectedCompanies}
@@ -471,6 +472,7 @@ const Edit = () => {
           className='mx-5 my-10'
         />
       </ScrollView>
+
       <ColorPickerModal
         pickerType={pickerType}
         setPickerType={setPickerType}

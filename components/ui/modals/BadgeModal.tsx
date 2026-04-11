@@ -129,10 +129,11 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
               achieved={Number(data?.achieved || 0)}
               className="mt-4"
             />
-            <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
-              <Text className="text-[#4FB2F3]">Next</Text>:{" "}
-              {data.subTitle || "Silver badge at 500 Hours"}
-            </Text>
+            {data?.subTitle ? (
+              <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
+                <Text className="text-[#4FB2F3]">Next</Text>: {data.subTitle}
+              </Text>
+            ) : null}
 
             <View className="flex-row justify-between">
               {tierItems.map((item: any, index: number) => (
