@@ -41,6 +41,9 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
       time: "2000 hrs",
     },
   ];
+  const tierItems = Array.isArray(data?.tierItems) && data.tierItems.length > 0
+    ? data.tierItems
+    : badchcard;
 
   const handleDone = () => {
     onClose();
@@ -81,6 +84,7 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
                   }}
                   contentFit="contain"
                 />
+
                 <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
                   <Text className="text-xs font-proximanova-semibold">
                     {data?.coin}
@@ -131,13 +135,17 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
             </Text>
 
             <View className="flex-row justify-between">
-              {badchcard.map((item, index) => (
+              {tierItems.map((item: any, index: number) => (
                 <View className="items-center" key={index}>
                   <View
                     className="h-[50px] w-[50px] border-2 mt-4 rounded-full flex-row justify-center items-center "
                     style={{
                       backgroundColor: item.bgColor,
                       borderColor: item.color,
+                      opacity:
+                        typeof item?.isEarned === "boolean" && item.isEarned === false
+                          ? 0.55
+                          : 1,
                     }}
                   >
                     <Image

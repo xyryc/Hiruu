@@ -3,10 +3,11 @@ import BadgeCardWithSlider from "@/components/ui/cards/BadgeCardWithSlider";
 import BadgeModal from "@/components/ui/modals/BadgeModal";
 import axiosInstance from "@/utils/axios";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 type BadgeTrack = {
@@ -19,6 +20,41 @@ type BadgeTrack = {
   nextThreshold: number;
   currentProgress: number;
   threshold: number;
+};
+
+type BadgeTrackReward = {
+  id?: string;
+  type?: string;
+  coins?: number;
+  badgeConfig?: {
+    tier?: string;
+    assetKey?: string;
+    threshold?: number;
+  } | null;
+  metadata?: any;
+};
+
+type BadgeTrackUserBadge = {
+  achievementRewardId?: string;
+  earnedAt?: string;
+  progressSnapshot?: number;
+  isEquipped?: boolean;
+  equippedSlot?: string | null;
+};
+
+type BadgeTrackDetail = {
+  id: string;
+  key: string;
+  title: string;
+  category?: string;
+  displayUnit?: string;
+  ongoingTier?: string;
+  nextTier?: string;
+  nextThreshold?: number;
+  currentProgress?: number;
+  threshold?: number;
+  rewards?: BadgeTrackReward[];
+  userBadges?: BadgeTrackUserBadge[];
 };
 
 type BadgeUiMeta = {
@@ -81,11 +117,17 @@ const formatNextText = (
   return `${tier} badge at ${max} ${unit}`;
 };
 
+const getTierUi = (tier?: string) => {
+  const key = normalizeTier(tier);
+  return TIER_UI_MAP[key] || DEFAULT_TIER_UI;
+};
+
 const Badge = () => {
   const [visible, setVisible] = useState(false);
   const [tracks, setTracks] = useState<BadgeTrack[]>([]);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
 
   const [data, setData] = useState<{
     coin?: number;
@@ -100,6 +142,15 @@ const Badge = () => {
     max?: number;
     achieved?: number;
     metricLabel?: string;
+    tierItems?: {
+      id: string;
+      title: string;
+      img: any;
+      bgColor: string;
+      color: string;
+      time: string;
+      isEarned?: boolean;
+    }[];
   }>({
     coin: 0,
     img: "",
@@ -113,7 +164,9 @@ const Badge = () => {
     max: 0,
     achieved: 0,
     metricLabel: "Progress",
+    tierItems: [],
   });
+  const modalRequestIdRef = React.useRef(0);
 
   const isExpectedAuthError = (error: any) => {
     if (error?.isAuthSessionExpired) return true;
@@ -174,7 +227,8 @@ const Badge = () => {
     });
   }, [tracks]);
 
-  const handleClickOpenModal = (track: (typeof uiTracks)[number]) => {
+  const handleClickOpenModal = async (track: (typeof uiTracks)[number]) => {
+    const requestId = ++modalRequestIdRef.current;
     setVisible(true);
     setData({
       coin: 0,
@@ -189,17 +243,102 @@ const Badge = () => {
       max: Number(track.threshold || 0),
       achieved: Number(track.currentProgress || 0),
       metricLabel: "Progress",
+      tierItems: [],
     });
+
+    try {
+      const response = await axiosInstance.get(`/badges/tracks/${track.id}`);
+      const result = response?.data;
+      const detail: BadgeTrackDetail | null =
+        result?.data && typeof result.data === "object" ? result.data : null;
+      if (!detail) return;
+      if (requestId !== modalRequestIdRef.current) return;
+
+      const earnedRewardIds = new Set(
+        Array.isArray(detail?.userBadges)
+          ? detail.userBadges
+            .map((item) => item?.achievementRewardId)
+            .filter((id): id is string => typeof id === "string" && id.length > 0)
+          : []
+      );
+
+      const tierItems = (Array.isArray(detail?.rewards) ? detail.rewards : [])
+        .map((reward) => {
+          const tier = reward?.badgeConfig?.tier;
+          const tierUi = getTierUi(tier);
+          const thresholdValue =
+            typeof reward?.badgeConfig?.threshold === "number"
+              ? reward.badgeConfig.threshold
+              : 0;
+          const unit = String(detail?.displayUnit || "").trim();
+
+          return {
+            id: String(reward?.id || `${tier || "bronze"}-${thresholdValue}`),
+            title: formatTier(tier),
+            img: tierUi.img,
+            bgColor: `${tierUi.tagColor}26`,
+            color: tierUi.tagColor,
+            time: `${thresholdValue} ${unit}`.trim(),
+            isEarned: reward?.id ? earnedRewardIds.has(reward.id) : false,
+          };
+        })
+        .sort((a, b) => {
+          const aThreshold = Number(String(a.time).split(" ")[0] || 0);
+          const bThreshold = Number(String(b.time).split(" ")[0] || 0);
+          return aThreshold - bThreshold;
+        });
+
+      const ongoingTierUi = getTierUi(detail?.ongoingTier);
+      const ongoingReward = (Array.isArray(detail?.rewards) ? detail.rewards : []).find(
+        (item) => normalizeTier(item?.badgeConfig?.tier) === normalizeTier(detail?.ongoingTier)
+      );
+
+      setData({
+        coin: Number(ongoingReward?.coins || 0),
+        img: ongoingTierUi.img,
+        badgeBackground: ongoingTierUi.badgeBackground,
+        tagColor: ongoingTierUi.tagColor,
+        title: detail?.title || track.title,
+        buttonTitle: formatTier(detail?.ongoingTier),
+        time: formatProgressText(
+          detail?.currentProgress,
+          detail?.threshold,
+          detail?.displayUnit
+        ),
+        subTitle: formatNextText(
+          detail?.nextTier,
+          detail?.nextThreshold,
+          detail?.displayUnit
+        ),
+        details: "",
+        max: Number(detail?.threshold || 0),
+        achieved: Number(detail?.currentProgress || 0),
+        metricLabel: "Progress",
+        tierItems,
+      });
+    } catch (error: any) {
+      if (requestId !== modalRequestIdRef.current) return;
+      if (isExpectedAuthError(error)) return;
+      toast.error(error?.message || "Failed to load badge details");
+    }
   };
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className="flex-1 bg-white dark:bg-dark-background"
       edges={["left", "right", "bottom"]}
     >
-      <View className="bg-[#E5F4FD] rounded-b-2xl pt-10 px-5">
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title="Badge"
           titleClass="text-primary dark:text-dark-primary"
