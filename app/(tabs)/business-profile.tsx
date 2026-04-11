@@ -84,7 +84,6 @@ const BusinessProfile = () => {
     const level = rolePermissions?.[key];
     return typeof level === "number" ? level : 0;
   };
-  const canReadProfile = getPermissionLevel("business.overview") >= 1;
   const canEditProfile = getPermissionLevel("business.overview") >= 2;
   const canReadRatings = getPermissionLevel("ratings") >= 1;
   const canReadJobs = getPermissionLevel("jobs") >= 1;
@@ -94,10 +93,6 @@ const BusinessProfile = () => {
 
   const loadBusiness = useCallback(async () => {
     if (!businessId) {
-      setBusinessData(null);
-      return;
-    }
-    if (!canReadProfile) {
       setBusinessData(null);
       return;
     }
@@ -117,7 +112,7 @@ const BusinessProfile = () => {
       if (requestId !== profileRequestIdRef.current) return;
       setLoading(false);
     }
-  }, [businessId, canReadProfile, getBusinessProfile]);
+  }, [businessId, getBusinessProfile]);
 
   const loadBusinessJobs = useCallback(async () => {
     if (!businessId) {

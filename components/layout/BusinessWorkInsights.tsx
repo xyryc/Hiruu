@@ -1,4 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { WorkInsightsProps } from "@/types";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
@@ -8,7 +9,12 @@ import StatCardSecondary from "../ui/cards/StatCardSecondary";
 
 const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
   const activeBusinessIds = useBusinessStore((state) => state.selectedBusinesses);
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
   const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
+  const { canRead: canReadBusinessUserStats } = useBusinessPermission(
+    "business.user_stats",
+    { employments: myEmployments }
+  );
   const [insights, setInsights] = useState<{
     totalEmployees: number;
     onLeaveToday: number;
@@ -30,6 +36,7 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return (
       message.includes("unauthorized") ||
       message.includes("status code 401") ||
+      message.includes("insufficient_permissions") ||
       message.includes("no refresh token available") ||
       message.includes("token_revoked_or_not_found")
     );
@@ -41,6 +48,16 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
     const loadInsights = async () => {
       try {
         if (!selectedBusinessId) {
+          if (!mounted) return;
+          setInsights({
+            totalEmployees: 0,
+            onLeaveToday: 0,
+            ratingsCount: 0,
+            averageRating: 0,
+          });
+          return;
+        }
+        if (!canReadBusinessUserStats) {
           if (!mounted) return;
           setInsights({
             totalEmployees: 0,
@@ -85,7 +102,7 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return () => {
       mounted = false;
     };
-  }, [getBusinessOverview, selectedBusinessId]);
+  }, [canReadBusinessUserStats, getBusinessOverview, selectedBusinessId]);
 
   return (
     <View className={`${className} px-4`}>

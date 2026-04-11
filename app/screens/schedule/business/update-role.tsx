@@ -7,7 +7,8 @@ import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Keyboard,
@@ -41,7 +42,21 @@ type PermissionGroup = {
   permissions: PermissionItem[];
 };
 
+const toLocaleKey = (value?: string) => String(value || "").trim().toLowerCase();
+const toFallbackLabel = (value?: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  const stripped = raw
+    .replace(/^permissions[_\s]*/i, "")
+    .replace(/_/g, " ")
+    .trim();
+
+  return stripped.replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const UpdateRole = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -79,6 +94,12 @@ const UpdateRole = () => {
     ? params.roleId[0]
     : params.roleId;
   const targetRoleId = businessRoleId || roleIdParam;
+  const getPermissionText = useCallback((value?: string) => {
+    const key = toLocaleKey(value);
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    return toFallbackLabel(value);
+  }, [t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -196,10 +217,10 @@ const UpdateRole = () => {
     return permissionGroups.map((group) => ({
       ...group,
       permissions: group.permissions.filter((permission) =>
-        permission.title.toLowerCase().includes(query)
+        getPermissionText(permission.title).toLowerCase().includes(query)
       ),
     })).filter((group) => group.permissions.length > 0);
-  }, [permissionGroups, search]);
+  }, [getPermissionText, permissionGroups, search]);
 
   useEffect(() => {
     if (permissionGroups.length === 0) return;
@@ -377,7 +398,7 @@ const UpdateRole = () => {
               >
                 <View className="flex-row justify-between items-center ">
                   <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
-                    {group.label}
+                    {getPermissionText(group.label)}
                   </Text>
                   <ToggleButton
                     isOn={Boolean(expandedGroups[group.id])}
@@ -393,7 +414,7 @@ const UpdateRole = () => {
                     return (
                       <CheckButton
                         key={permission.key}
-                        title={permission.title}
+                        title={getPermissionText(permission.title)}
                         viewChecked={Boolean(value & 1)}
                         editChecked={Boolean(value & 2)}
                         onToggleView={() => togglePermission(permission.key, 1)}

@@ -4,6 +4,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
@@ -14,7 +15,12 @@ import ShiftsSummaryCard from "../ui/cards/ShiftsSummaryCard";
 
 const TodayShiftsSummary = ({ className }: any) => {
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
   const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
+  const { canRead: canReadBusinessOverview } = useBusinessPermission(
+    "business.overview",
+    { employments: myEmployments }
+  );
   const [summary, setSummary] = useState<{
     totalScheduled: number;
     lateArrivals: number;
@@ -35,6 +41,7 @@ const TodayShiftsSummary = ({ className }: any) => {
     return (
       message.includes("unauthorized") ||
       message.includes("status code 401") ||
+      message.includes("insufficient_permissions") ||
       message.includes("no refresh token available") ||
       message.includes("token_revoked_or_not_found")
     );
@@ -48,6 +55,16 @@ const TodayShiftsSummary = ({ className }: any) => {
     const loadTodaySummary = async () => {
       try {
         if (!selectedBusinessId) {
+          if (!mounted) return;
+          setSummary({
+            totalScheduled: 0,
+            lateArrivals: 0,
+            currentlyWorkingCount: 0,
+            avatars: [],
+          });
+          return;
+        }
+        if (!canReadBusinessOverview) {
           if (!mounted) return;
           setSummary({
             totalScheduled: 0,
@@ -93,7 +110,7 @@ const TodayShiftsSummary = ({ className }: any) => {
     return () => {
       mounted = false;
     };
-  }, [getBusinessOverview, selectedBusinessId]);
+  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinessId]);
 
   return (
     <LinearGradient

@@ -163,7 +163,8 @@
     "chat_you_are_not_a_participant_in_this_chat_room": "You are not a participant in this chat room.",
     "business_announcement_title": "Business update",
     "business_announcement_body": "There is a new update from your business.",
-    "recruitment_has_applications": "This job cannot be deleted because it already has applications."
+    "recruitment_has_applications": "This job cannot be deleted because it already has applications.",
+    "insufficient_permissions": "You do not have sufficient permissions."
   },
   "validation": {
     "fillAllFields": "Please fill in all fields",

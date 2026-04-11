@@ -1,4 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
@@ -25,6 +26,10 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     getMyEmployments,
     getBusinessOverview,
   } = useBusinessStore();
+  const { canRead: canReadBusinessOverview } = useBusinessPermission(
+    "business.overview",
+    { employments: myEmployments }
+  );
   const isExpectedAuthError = (error: any) => {
     if (error?.isAuthSessionExpired) return true;
     const status = error?.response?.status;
@@ -33,6 +38,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     return (
       message.includes("unauthorized") ||
       message.includes("status code 401") ||
+      message.includes("insufficient_permissions") ||
       message.includes("no refresh token available") ||
       message.includes("token_revoked_or_not_found")
     );
@@ -68,6 +74,16 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
         const businessId = selectedBusinesses[0];
 
         if (!businessId) {
+          if (!mounted) return;
+          setSummary({
+            totalEmployees: 0,
+            totalManagers: 0,
+            totalTodayShifts: 0,
+            businessCompletion: 0,
+          });
+          return;
+        }
+        if (!canReadBusinessOverview) {
           if (!mounted) return;
           setSummary({
             totalEmployees: 0,
@@ -113,7 +129,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     return () => {
       mounted = false;
     };
-  }, [getBusinessOverview, selectedBusinesses]);
+  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinesses]);
 
   // Get display content for header button
   const getDisplayContent = () => {

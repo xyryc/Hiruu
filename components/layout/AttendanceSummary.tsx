@@ -1,4 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
@@ -7,7 +8,12 @@ import { toast } from "sonner-native";
 
 const AttendanceSummary = ({ className }: { className: string }) => {
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
   const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
+  const { canRead: canReadBusinessOverview } = useBusinessPermission(
+    "business.overview",
+    { employments: myEmployments }
+  );
   const [attendance, setAttendance] = useState({
     arrivedOnTime: 0,
     arrivedOnLate: 0,
@@ -22,6 +28,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
     return (
       message.includes("unauthorized") ||
       message.includes("status code 401") ||
+      message.includes("insufficient_permissions") ||
       message.includes("no refresh token available") ||
       message.includes("token_revoked_or_not_found")
     );
@@ -33,6 +40,15 @@ const AttendanceSummary = ({ className }: { className: string }) => {
     const loadAttendance = async () => {
       try {
         if (!selectedBusinessId) {
+          if (!mounted) return;
+          setAttendance({
+            arrivedOnTime: 0,
+            arrivedOnLate: 0,
+            absent: 0,
+          });
+          return;
+        }
+        if (!canReadBusinessOverview) {
           if (!mounted) return;
           setAttendance({
             arrivedOnTime: 0,
@@ -73,7 +89,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
     return () => {
       mounted = false;
     };
-  }, [getBusinessOverview, selectedBusinessId]);
+  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinessId]);
 
   return (
     <View className={className}>

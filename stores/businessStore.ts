@@ -419,9 +419,16 @@ export const useBusinessStore = create<BusinessState>()(
       }
 
       return result.data || [];
-    } catch (error) {
-      console.error("Fetch roles error:", error);
-      throw error;
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to fetch roles";
+      const translatedMessage = translateApiMessage(messageKey);
+      const finalError = new Error(translatedMessage);
+      console.error("Fetch roles error:", finalError);
+      throw finalError;
     }
   },
 
@@ -441,9 +448,16 @@ export const useBusinessStore = create<BusinessState>()(
       }
 
       return Array.isArray(result.data) ? result.data : [];
-    } catch (error) {
-      console.error("Fetch detailed business roles error:", error);
-      throw error;
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to fetch detailed roles";
+      const translatedMessage = translateApiMessage(messageKey);
+      const finalError = new Error(translatedMessage);
+      console.error("Fetch detailed business roles error:", finalError);
+      throw finalError;
     }
   },
 
@@ -463,9 +477,16 @@ export const useBusinessStore = create<BusinessState>()(
       }
 
       return result.data || null;
-    } catch (error) {
-      console.error("Fetch role details error:", error);
-      throw error;
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to fetch role details";
+      const translatedMessage = translateApiMessage(messageKey);
+      const finalError = new Error(translatedMessage);
+      console.error("Fetch role details error:", finalError);
+      throw finalError;
     }
   },
 
