@@ -23,6 +23,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   Text,
@@ -40,6 +41,7 @@ const DEFAULT_PROFILE_COLOR = "#E5F4FD";
 const DEFAULT_GRADIENT_COLORS: [string, string] = ["#E5F4FD", "#FFFFFF"];
 
 const Edit = () => {
+  const { t } = useTranslation();
   const [isBadgeVisible, setIsBadgeVisible] = useState(false);
   const [visible, setVisible] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
@@ -223,7 +225,7 @@ const Edit = () => {
         <ScreenHeader
           className="px-4 pb-6"
           onPressBack={() => router.back()}
-          title="Edit Profile"
+          title={t("user.profile.businessEditProfileTitle")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
           components={
@@ -241,14 +243,14 @@ const Edit = () => {
         <View className="mx-5">
           <View className="flex-row justify-between items-center mb-2.5">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Your Nameplate
+              {t("user.profile.editUserProfile.yourNameplate")}
             </Text>
 
             <TouchableOpacity
               onPress={() => router.push("/screens/profile/nameplate-options")}
             >
               <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
-                Edit
+                {t("user.profile.edit")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -289,12 +291,12 @@ const Edit = () => {
               <FontAwesome6 name="id-badge" size={14} color="black" />
             </DynamicBackground>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Badge
+              {t("user.profile.userProfile.badge")}
             </Text>
           </View>
           <TouchableOpacity onPress={() => setIsBadgeVisible(true)}>
             <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              Edit
+              {t("user.profile.edit")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -325,12 +327,12 @@ const Edit = () => {
                 />
               </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Short Intro
+                {t("user.profile.userProfile.shortIntro")}
               </Text>
             </View>
             <TouchableOpacity onPress={() => setIsEditingIntro((prev) => !prev)}>
               <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                {isEditingIntro ? "Done" : "Edit"}
+                {isEditingIntro ? t("user.profile.done") : t("user.profile.edit")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -340,7 +342,7 @@ const Edit = () => {
               <TextInput
                 value={shortIntro}
                 onChangeText={setShortIntro}
-                placeholder="Type here..."
+                placeholder={t("user.setup.businessSetup.typeHere")}
                 placeholderTextColor="#7A7A7A"
                 className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
                 multiline
@@ -348,7 +350,7 @@ const Edit = () => {
               />
             ) : (
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary border border-[#0000000D] rounded-xl p-3">
-                {shortIntro || "No bio yet."}
+                {shortIntro || t("user.profile.editUserProfile.noBioYet")}
               </Text>
             )}
           </View>
@@ -372,11 +374,11 @@ const Edit = () => {
                 />
               </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Experience
+                {t("user.profile.userProfile.experience")}
               </Text>
             </View>
             <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              Edit
+              {t("user.profile.edit")}
             </Text>
           </View>
 
@@ -407,12 +409,12 @@ const Edit = () => {
                 />
               </DynamicBackground>
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Interests
+                {t("user.profile.userProfile.interests")}
               </Text>
             </View>
             <TouchableOpacity onPress={() => setVisible(true)}>
               <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                Edit
+                {t("user.profile.edit")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -448,12 +450,12 @@ const Edit = () => {
               <Ionicons name="call-outline" size={16} color="black" />
             </DynamicBackground>
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Contact Us On
+              {t("user.profile.contactUsOn")}
             </Text>
           </View>
           <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
             <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              {isEditingSocials ? "Done" : "Edit"}
+              {isEditingSocials ? t("user.profile.done") : t("user.profile.edit")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -466,7 +468,7 @@ const Edit = () => {
         />
 
         <PrimaryButton
-          title="Save Changes"
+          title={t("user.profile.editUserProfile.saveChanges")}
           onPress={handleSaveProfile}
           loading={isSaving}
           className='mx-5 my-10'

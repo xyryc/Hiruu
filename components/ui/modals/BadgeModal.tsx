@@ -2,11 +2,13 @@ import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CoinProgressSlider from "../inputs/CoinProgressSlider";
 
 const BadgeModal = ({ visible, onClose, data }: any) => {
+  const { t } = useTranslation();
   const img1 = require("@/assets/images/reward/red-bands.svg");
   const img2 = require("@/assets/images/reward/black-bands.svg");
   const img3 = require("@/assets/images/reward/gold-bands.svg");
@@ -16,29 +18,29 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
       img: img1,
       bgColor: "#F3934F26",
       color: "#F3934F",
-      title: "Bronze",
-      time: "100 hrs",
+      title: t("user.profile.badgeModal.bronze"),
+      time: t("user.profile.badgeModal.bronzeTime"),
     },
     {
       img: img2,
       bgColor: "#80808026",
       color: "#808080",
-      title: "Silver",
-      time: "500 hrs",
+      title: t("user.profile.badgeModal.silver"),
+      time: t("user.profile.badgeModal.silverTime"),
     },
     {
       img: img3,
       bgColor: "#F1C40026",
       color: "#F1C400",
-      title: "Gold",
-      time: "1000 hrs",
+      title: t("user.profile.badgeModal.gold"),
+      time: t("user.profile.badgeModal.goldTime"),
     },
     {
       img: img4,
       bgColor: "#4FB2F326",
       color: "#4FB2F3",
-      title: "Diamond",
-      time: "2000 hrs",
+      title: t("user.profile.badgeModal.diamond"),
+      time: t("user.profile.badgeModal.diamondTime"),
     },
   ];
   const tierItems = Array.isArray(data?.tierItems) && data.tierItems.length > 0
@@ -71,7 +73,7 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
           <SafeAreaView edges={["bottom"]} className="px-5 py-7">
             <View className="flex-row justify-between">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center">
-                Unlock this badge to earn Hirru coins.
+                {t("user.profile.badgeModal.unlockToEarnCoins")}
               </Text>
 
               {/* coin */}
@@ -107,21 +109,21 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
                 />
               </View>
               <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary mt-4">
-                {data.title || "Hard worker"}
+                {data.title || t("user.profile.badgeModal.hardWorker")}
               </Text>
               <Text
                 className="mt-1.5 text-white px-4 py-2 rounded-full"
                 style={{ backgroundColor: data.tagColor }}
               >
-                {data.buttonTitle || "Bronze"}
+                {data.buttonTitle || t("user.profile.badgeModal.bronze")}
               </Text>
             </View>
             <View className="flex-row justify-between mt-4">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {data?.metricLabel || "Progress"}
+                {data?.metricLabel || t("user.profile.badgeScreen.progress")}
               </Text>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                {data.time || "300hrs/ 500hrs"}
+                {data.time || t("user.profile.badgeModal.defaultProgressTime")}
               </Text>
             </View>
             <CoinProgressSlider
@@ -131,7 +133,7 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
             />
             {data?.subTitle ? (
               <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
-                <Text className="text-[#4FB2F3]">Next</Text>: {data.subTitle}
+                <Text className="text-[#4FB2F3]">{t("user.profile.badgeModal.next")}</Text>: {data.subTitle}
               </Text>
             ) : null}
 
@@ -166,8 +168,7 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
             </View>
 
             <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary px-3">
-              Earn this badge by working consisent hours over time. keep going
-              to level up and earn rewardz
+              {t("user.profile.badgeModal.description")}
             </Text>
           </SafeAreaView>
         </View>

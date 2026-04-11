@@ -4,6 +4,7 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   ScrollView,
@@ -26,6 +27,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
   onSelectUserProfile,
   onSelectBusinessProfile,
 }) => {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const getProfile = useProfileStore((state) => state.getProfile);
   const {
@@ -87,7 +89,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 
           <SafeAreaView edges={["bottom"]} className="px-6 py-7">
             <Text className="font-proximanova-bold text-xl text-center text-primary">
-              Switch profile
+              {t("user.profile.switchProfile")}
             </Text>
 
             <TouchableOpacity
@@ -101,7 +103,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
               />
               <View className="flex-1 ml-3">
                 <Text className="font-proximanova-semibold text-primary">
-                  {profile?.name || "User profile"}
+                  {profile?.name || t("user.profile.userProfile")}
                 </Text>
                 {!!profile?.email && (
                   <Text className="text-xs text-secondary">{profile.email}</Text>
@@ -114,14 +116,14 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 
             </TouchableOpacity>
 
-            <Text className='font-proximanova-medium text-lg mt-3'>Your Business Profiles</Text>
+            <Text className='font-proximanova-medium text-lg mt-3'>{t("user.profile.yourBusinessProfiles")}</Text>
 
             <ScrollView
               contentContainerStyle={{ paddingBottom: 30 }}
             >
               {!myEmploymentsLoading && activeEmploymentEntries.length === 0 && (
                 <Text className="text-center text-sm text-secondary py-4">
-                  No businesses found.
+                  {t("user.profile.noBusinessesFound")}
                 </Text>
               )}
 
@@ -131,7 +133,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
                 const roleMissing = !employment?.role;
                 const isSwitchDisabled = roleMissing;
                 const helperText = roleMissing
-                  ? "Role not assigned yet"
+                  ? t("user.profile.roleNotAssignedYet")
                   : roleName
                     ? roleName
                     : "";

@@ -9,6 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -23,6 +24,7 @@ import {
 import { toast } from "sonner-native";
 
 const YourNamePlates = () => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colorScheme } = useColorScheme();
@@ -88,7 +90,7 @@ const YourNamePlates = () => {
         }}
         className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-4"
         onPressBack={() => router.back()}
-        title="Your Nameplates"
+        title={t("user.profile.nameplateOptions.yourNameplates")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -117,7 +119,7 @@ const YourNamePlates = () => {
           <View className="flex-row items-center gap-2.5">
             <Ionicons name="ban-outline" size={24} color="black" />
             <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-              None
+              {t("user.profile.nameplateOptions.none")}
             </Text>
           </View>
 
@@ -150,8 +152,8 @@ const YourNamePlates = () => {
                     mode="redeem"
                     preview={{
                       avatarUrl: user?.avatar || null,
-                      name: user?.name || "User",
-                      location: profileAddress || "Location unavailable",
+                      name: user?.name || t("user.profile.nameplateOptions.user"),
+                      location: profileAddress || t("user.profile.businessProfile.locationUnavailable"),
                       rating: user?.rating ?? 0,
                       isVerified: Boolean(user?.isEmailVerified),
                     }}
@@ -173,7 +175,7 @@ const YourNamePlates = () => {
       </ScrollView>
 
       <PrimaryButton
-        title="Apply"
+        title={t("user.profile.nameplateOptions.apply")}
         className="mx-5 mt-3"
         onPress={handleApply}
         loading={isEquippingNameplate}

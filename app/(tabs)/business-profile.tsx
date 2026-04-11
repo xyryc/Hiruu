@@ -20,6 +20,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
@@ -48,6 +49,7 @@ const styles = StyleSheet.create({
 });
 
 const BusinessProfile = () => {
+  const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState("about");
   const [toggleIsOn, setToggleIsOn] = useState(false);
   const [businessData, setBusinessData] = useState<any>(null);
@@ -107,7 +109,7 @@ const BusinessProfile = () => {
       setSocialLinks(data?.social || {});
     } catch (error: any) {
       if (requestId !== profileRequestIdRef.current) return;
-      toast.error(error?.message || "Failed to load business");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToLoadBusiness"));
     } finally {
       if (requestId !== profileRequestIdRef.current) return;
       setLoading(false);
@@ -134,18 +136,18 @@ const BusinessProfile = () => {
         : [];
       setBusinessJobs(jobs);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load jobs");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToLoadJobs"));
     }
-  }, [businessId, canReadJobs, getBusinessRecruitments]);
+  }, [businessId, canReadJobs, getBusinessRecruitments, t]);
 
   const loadRatingSummary = useCallback(async () => {
     if (!businessId || !canReadRatings) return;
     try {
       await getBusinessRatingSummary(businessId);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load rating summary");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToLoadRatingSummary"));
     }
-  }, [businessId, canReadRatings, getBusinessRatingSummary]);
+  }, [businessId, canReadRatings, getBusinessRatingSummary, t]);
 
   useEffect(() => {
     getMyEmployments(true).catch(() => undefined);
@@ -190,12 +192,13 @@ const BusinessProfile = () => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message:
-          `Check out ${businessData?.name || "this business"} on Hiruu!`,
-        title: businessData?.name || "Business Profile",
+        message: t("user.profile.businessProfile.shareMessage", {
+          businessName: businessData?.name || t("user.profile.businessProfile.thisBusiness"),
+        }),
+        title: businessData?.name || t("user.profile.businessProfile.businessProfileTitle"),
       });
     } catch {
-      Alert.alert("Error", "Could not share profile");
+      Alert.alert(t("common.error"), t("user.profile.businessProfile.couldNotShareProfile"));
     }
   };
 
@@ -211,7 +214,7 @@ const BusinessProfile = () => {
       await loadBusiness();
     } catch (error: any) {
       setToggleIsOn(previousValue);
-      toast.error(error?.message || "Failed to update recruiting status");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToUpdateRecruitingStatus"));
     } finally {
       setRecruitingUpdateLoading(false);
     }
@@ -242,7 +245,7 @@ const BusinessProfile = () => {
         ...(prev || {}),
         social: previousSocial,
       }));
-      toast.error(error?.message || "Failed to update social links");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToUpdateSocialLinks"));
     } finally {
       setSocialUpdateLoading(false);
     }
@@ -259,7 +262,7 @@ const BusinessProfile = () => {
       : address;
 
     if (!query) {
-      toast.error("Location unavailable");
+      toast.error(t("user.profile.businessProfile.locationUnavailable"));
       return;
     }
 
@@ -267,14 +270,14 @@ const BusinessProfile = () => {
     try {
       const canOpen = await Linking.canOpenURL(mapUrl);
       if (!canOpen) {
-        toast.error("Unable to open maps");
+        toast.error(t("user.profile.businessProfile.unableToOpenMaps"));
         return;
       }
       await Linking.openURL(mapUrl);
     } catch {
-      toast.error("Unable to open maps");
+      toast.error(t("user.profile.businessProfile.unableToOpenMaps"));
     }
-  }, [businessData?.address?.address, businessData?.address?.latitude, businessData?.address?.longitude]);
+  }, [businessData?.address?.address, businessData?.address?.latitude, businessData?.address?.longitude, t]);
 
   return (
     <SafeAreaView
@@ -288,7 +291,7 @@ const BusinessProfile = () => {
           className="flex-row items-center gap-2"
         >
           <Text className="font-proximanova-bold text-2xl text-primary dark:text-dark-primary">
-            Profile
+            {t("user.profile.businessProfile.profile")}
           </Text>
 
           <Ionicons
@@ -366,8 +369,8 @@ const BusinessProfile = () => {
 
           {toggleIsOn && (
             <View className="absolute -bottom-3 right-6">
-              <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
-                Actively Recruiting
+                <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
+                {t("user.profile.businessProfile.activelyRecruiting")}
               </Text>
             </View>
           )}
@@ -377,7 +380,7 @@ const BusinessProfile = () => {
         <View className="mx-6 mt-16">
           <View className="flex-row items-center gap-1.5">
             <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-              {businessData?.name || "Business"}
+              {businessData?.name || t("user.profile.businessProfile.business")}
             </Text>
 
             {businessData?.isVerified ? (
@@ -402,7 +405,7 @@ const BusinessProfile = () => {
             <EvilIcons name="location" size={18} color="black" />
 
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {businessData?.address?.address || "Location unavailable"}
+              {businessData?.address?.address || t("user.profile.businessProfile.locationUnavailable")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -419,7 +422,9 @@ const BusinessProfile = () => {
                 <Text
                   className={`text-center capitalize dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
                 >
-                  {tab}
+                  {tab === "about"
+                    ? t("user.profile.businessProfile.about")
+                    : t("user.profile.businessProfile.job")}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -437,7 +442,7 @@ const BusinessProfile = () => {
                   <SimpleLineIcons name="star" size={14} color="black" />
                 </View>
                 <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                  Rating Summary
+                  {t("user.profile.businessProfile.ratingSummary")}
                 </Text>
               </View>
               {canReadRatings ? (
@@ -451,7 +456,7 @@ const BusinessProfile = () => {
                   className="items-center"
                 >
                   <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                    See All Ratings
+                    {t("user.profile.businessProfile.seeAllRatings")}
                   </Text>
                 </TouchableOpacity>
               ) : null}
@@ -467,7 +472,7 @@ const BusinessProfile = () => {
                 <View>
                   <RatingProgress rating={workEnvironmentRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    Work Environment
+                    {t("user.profile.businessProfile.workEnvironment")}
                   </Text>
                 </View>
 
@@ -480,7 +485,7 @@ const BusinessProfile = () => {
                 <View>
                   <RatingProgress rating={payOnTimeRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    pay on time
+                    {t("user.profile.businessProfile.payOnTime")}
                   </Text>
                 </View>
 
@@ -493,7 +498,7 @@ const BusinessProfile = () => {
                 <View>
                   <RatingProgress rating={communicationRating} />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    communication
+                    {t("user.profile.businessProfile.communication")}
                   </Text>
                 </View>
               </View>
@@ -507,13 +512,13 @@ const BusinessProfile = () => {
               </View>
 
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                About Us
+                {t("user.profile.businessProfile.aboutUs")}
               </Text>
             </View>
 
             <View className="mx-5 mt-4">
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {businessData?.description || "No description available."}
+                {businessData?.description || t("user.profile.businessProfile.noDescriptionAvailable")}
               </Text>
             </View>
 
@@ -525,7 +530,7 @@ const BusinessProfile = () => {
 
               <View className='flex-1'>
                 <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  Team & Overview
+                  {t("user.profile.businessProfile.teamAndOverview")}
                 </Text>
               </View>
             </View>
@@ -535,7 +540,7 @@ const BusinessProfile = () => {
                 <View className="flex-row gap-2">
                   <Feather name="users" size={16} color="black" />
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    Total Employee
+                    {t("user.profile.businessProfile.totalEmployee")}
                   </Text>
                 </View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
@@ -551,7 +556,7 @@ const BusinessProfile = () => {
                     color="black"
                   />
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    Active job posting:
+                    {t("user.profile.businessProfile.activeJobPosting")}
                   </Text>
                 </View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
@@ -568,7 +573,7 @@ const BusinessProfile = () => {
                     color="#282930"
                   />
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    Actively Recruiting
+                    {t("user.profile.businessProfile.activelyRecruiting")}
                   </Text>
                 </View>
 
@@ -577,14 +582,15 @@ const BusinessProfile = () => {
                   setIsOn={canEditProfile ? handleRecruitingToggle : () => undefined}
                   title={
                     recruitingUpdateLoading
-                      ? "Saving..."
-                      : `${toggleIsOn ? "YES" : "NO"}`
+                      ? t("user.profile.businessProfile.saving")
+                      : `${toggleIsOn ? t("common.yes") : t("common.no")}`
                   }
                 />
               </View>
 
               <Text className="mt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="font-proximanova-semibold">Note</Text> : X more hire to activate
+                <Text className="font-proximanova-semibold">{t("user.profile.businessProfile.note")}</Text>
+                {` : ${t("user.profile.businessProfile.xMoreHireToActivate")}`}
               </Text>
             </View>
 
@@ -595,7 +601,7 @@ const BusinessProfile = () => {
               </View>
 
               <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                Contact Us On
+                {t("user.profile.contactUsOn")}
               </Text>
             </View>
 
@@ -612,11 +618,11 @@ const BusinessProfile = () => {
         {/* job tabs */}
         {selectedTab === "job" && (
           <View className="mx-5">
-            <Text className="my-4">Open Positions</Text>
+            <Text className="my-4">{t("user.profile.businessProfile.openPositions")}</Text>
 
             {!canReadJobs ? (
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                No access to job data.
+                {t("user.profile.businessProfile.noAccessToJobData")}
               </Text>
             ) : null}
 
@@ -624,8 +630,8 @@ const BusinessProfile = () => {
               <StatusStateCard
                 style={styles.compactEmptyState}
                 image={require("@/assets/images/toolbox.svg")}
-                title="No Jobs Available"
-                text="There are no job openings at the moment."
+                title={t("common.noJobsAvailable")}
+                text={t("common.noJobsAvailableDescription")}
                 titleStyle={styles.compactEmptyStateTitle}
                 textStyle={styles.compactEmptyStateText}
               />
@@ -653,7 +659,7 @@ const BusinessProfile = () => {
                   setBusinessJobs((prev) =>
                     prev.filter((item) => item?.id !== job.id)
                   );
-                  toast.success("Job deleted");
+                  toast.success(t("user.profile.businessProfile.jobDeleted"));
                 }}
                 job={job}
               />

@@ -1,6 +1,7 @@
 import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../buttons/PrimaryButton";
@@ -22,6 +23,7 @@ const InterestModal = ({
   onChange,
   onClose,
 }: InterestModalProps) => {
+  const { t } = useTranslation();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     initialInterests ?? []
   );
@@ -72,7 +74,7 @@ const InterestModal = ({
 
           <SafeAreaView edges={["bottom"]} className="px-5 py-7">
             <Text className="font-proximanova-bold text-xl text-primary dark:text-dark-primary text-center">
-              Change Your Interest
+              {t("user.profile.interestModal.title")}
             </Text>
 
             <ScrollView
@@ -92,13 +94,12 @@ const InterestModal = ({
               {selectedInterests.length >= maxSelections && (
                 <View className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <Text className="text-blue-700 text-sm text-center">
-                    Maximum selections reached. Deselect an interest to choose
-                    another.
+                    {t("user.profile.interestModal.maxReached")}
                   </Text>
                 </View>
               )}
               <PrimaryButton
-                title="Save"
+                title={t("user.profile.interestModal.save")}
                 className="mt-2.5"
                 onPress={handleDone}
               />

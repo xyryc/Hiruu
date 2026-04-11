@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -36,6 +37,7 @@ const formatExpiryLabel = (expiresAt?: string | null) => {
 };
 
 const Nameplate = () => {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedNameplateIndex, setSelectedNameplateIndex] = useState(0);
   const [selectedNameplateId, setSelectedNameplateId] = useState("");
@@ -70,6 +72,22 @@ const Nameplate = () => {
     }
   }, []);
 
+  const localizedExpiryLabel = useCallback(
+    (expiresAt?: string | null) => {
+      if (!expiresAt) return t("user.profile.nameplateStore.owned");
+      const date = new Date(expiresAt);
+      if (Number.isNaN(date.getTime())) return t("user.profile.nameplateStore.owned");
+      return t("user.profile.nameplateStore.ownedExpires", {
+        date: date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      });
+    },
+    [t]
+  );
+
   useEffect(() => {
     let active = true;
 
@@ -85,7 +103,7 @@ const Nameplate = () => {
       } catch (error: any) {
         if (active) {
           toast.error(
-            translateApiMessage(error?.message || "Failed to load nameplates")
+            translateApiMessage(error?.message || t("user.profile.nameplateStore.failedToLoadNameplates"))
           );
         }
       }
@@ -96,7 +114,7 @@ const Nameplate = () => {
     return () => {
       active = false;
     };
-  }, [fetchCosmeticsStore, highlightParam]);
+  }, [fetchCosmeticsStore, highlightParam, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -123,14 +141,14 @@ const Nameplate = () => {
     try {
       if (selectedItem?.isOwnedActive) {
         if (selectedItem?.isEquipped) {
-          toast.success("This nameplate is already equipped");
+          toast.success(t("user.profile.nameplateStore.alreadyEquipped"));
           setModalVisible(false);
           return;
         }
 
         const result = await equipNameplate(selectedNameplateId);
         toast.success(
-          translateApiMessage(result?.message || "Nameplate equipped successfully")
+          translateApiMessage(result?.message || t("user.profile.nameplateStore.equippedSuccessfully"))
         );
       } else {
         const result = await purchaseCosmetic(selectedNameplateId);
@@ -139,7 +157,7 @@ const Nameplate = () => {
           setTotalTokens(nextBalance);
         }
         toast.success(
-          translateApiMessage(result?.message || "Purchase successful")
+          translateApiMessage(result?.message || t("user.profile.nameplateStore.purchaseSuccessful"))
         );
       }
 
@@ -160,7 +178,7 @@ const Nameplate = () => {
       });
     } catch (error: any) {
       toast.error(
-        translateApiMessage(error?.message || "Failed to update nameplate")
+        translateApiMessage(error?.message || t("user.profile.nameplateStore.failedToUpdateNameplate"))
       );
     }
   }, [
@@ -172,6 +190,7 @@ const Nameplate = () => {
     purchaseCosmetic,
     selectedNameplateId,
     selectedNameplateIndex,
+    t,
   ]);
 
   const { colorScheme } = useColorScheme();
@@ -183,25 +202,33 @@ const Nameplate = () => {
       user?.address?.city ||
       user?.address?.state ||
       user?.address?.country ||
-      "Location unavailable";
+      t("user.profile.businessProfile.locationUnavailable");
 
     const numericRating = Number(user?.rating ?? 0);
     const safeRating = Number.isFinite(numericRating) ? numericRating.toFixed(1) : "0.0";
 
     return {
       avatarUrl: user?.avatar || null,
-      name: user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "User",
+      name:
+        user?.name ||
+        [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+        t("user.profile.nameplateOptions.user"),
       location,
       rating: safeRating,
       isVerified: true,
       coins: "05",
       locked: true,
-      availabilityLabel: "Available for",
+      availabilityLabel: t("user.profile.nameplateStore.availableFor"),
       remainingTime: "1d, 10h",
     };
-  }, [user]);
+  }, [t, user]);
 
   const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
+  const getTabLabel = (tab: TabType) => {
+    if (tab === "limited time") return t("user.profile.nameplateStore.tabs.limitedTime");
+    if (tab === "featured") return t("user.profile.nameplateStore.tabs.featured");
+    return t("user.profile.nameplateStore.tabs.all");
+  };
 
   return (
     <SafeAreaView
@@ -220,7 +247,7 @@ const Nameplate = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title="Buy Nameplate"
+          title={t("user.profile.nameplateStore.buyNameplate")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
           components={
@@ -250,7 +277,7 @@ const Nameplate = () => {
                   : "font-proximanova-regular text-secondary dark:text-dark-secondary"
                   }`}
               >
-                <Text className="capitalize">{tab}</Text>
+                <Text className="capitalize">{getTabLabel(tab)}</Text>
               </Text>
             </TouchableOpacity>
           ))}
@@ -263,7 +290,7 @@ const Nameplate = () => {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-secondary mt-8">
-          Note: Premium Required: Only premium users can use nameplates.
+          {t("user.profile.nameplateStore.premiumRequiredNote")}
         </Text>
 
         {cosmeticsStoreLoading ? (
@@ -273,7 +300,7 @@ const Nameplate = () => {
         ) : cosmeticsStoreItems.length === 0 ? (
           <View className="py-10 items-center">
             <Text className="text-secondary dark:text-dark-secondary">
-              No nameplates found.
+              {t("user.profile.nameplateStore.noNameplatesFound")}
             </Text>
           </View>
         ) : (
@@ -285,12 +312,12 @@ const Nameplate = () => {
             >
               <View className="flex-row items-center justify-between mb-2.5">
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {item?.name || "Nameplate"}
+                  {item?.name || t("user.profile.nameplateStore.nameplate")}
                 </Text>
 
                 {item?.isOwnedActive && (
                   <Text className="text-xs text-secondary dark:text-dark-secondary">
-                    {formatExpiryLabel(item?.expiresAt)}
+                    {localizedExpiryLabel(item?.expiresAt)}
                   </Text>
                 )}
               </View>

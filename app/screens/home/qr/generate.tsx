@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -23,6 +24,7 @@ import { captureRef } from "react-native-view-shot";
 import { toast } from "sonner-native";
 
 const QrGenerate = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const qrCodeContainerRef = useRef<View>(null);
@@ -82,10 +84,10 @@ const QrGenerate = () => {
   const copyToClipboard = async () => {
     try {
       await Clipboard.setStringAsync(inviteCode);
-      toast.success("Code has been copied to clipboard");
+      toast.success(t("user.profile.qr.codeCopied"));
     } catch (error) {
       console.error("Error copying to clipboard:", error);
-      toast.error("Failed to copy code to clipboard");
+      toast.error(t("user.profile.qr.copyCodeFailed"));
     }
   };
 
@@ -94,7 +96,7 @@ const QrGenerate = () => {
       setIsGenerating(true);
 
       if (!qrCodeContainerRef.current) {
-        toast.error("QR code not found");
+        toast.error(t("user.profile.qr.qrNotFound"));
         return;
       }
 
@@ -110,7 +112,7 @@ const QrGenerate = () => {
         if (status === "granted") {
           const asset = await MediaLibrary.createAssetAsync(uri);
           await MediaLibrary.createAlbumAsync("Download", asset, false);
-          toast.success("QR code has been saved to your gallery");
+          toast.success(t("user.profile.qr.qrSavedToGallery"));
           return;
         }
       } catch {
@@ -119,14 +121,14 @@ const QrGenerate = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: "image/png",
-          dialogTitle: "Save QR Code",
+          dialogTitle: t("user.profile.qr.saveQrCode"),
         });
       } else {
-        toast.info("QR code is ready. You can take a screenshot to save it.");
+        toast.info(t("user.profile.qr.qrReadyTakeScreenshot"));
       }
     } catch (error) {
       console.error("Error capturing QR code:", error);
-      toast.error("Failed to save QR code. Please take a screenshot instead.");
+      toast.error(t("user.profile.qr.saveQrFailedTakeScreenshot"));
     } finally {
       setIsGenerating(false);
     }
@@ -137,7 +139,7 @@ const QrGenerate = () => {
       setIsGenerating(true);
 
       if (!qrCodeContainerRef.current) {
-        toast.error("QR code not found");
+        toast.error(t("user.profile.qr.qrNotFound"));
         return;
       }
 
@@ -151,14 +153,14 @@ const QrGenerate = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: "image/png",
-          dialogTitle: "Share QR Code",
+          dialogTitle: t("user.profile.qr.shareQrCode"),
         });
       } else {
-        toast.info("Sharing is not available on this device");
+        toast.info(t("user.profile.qr.sharingNotAvailable"));
       }
     } catch (error) {
       console.error("Error sharing QR code:", error);
-      toast.error("Failed to share QR code");
+      toast.error(t("user.profile.qr.shareQrFailed"));
     } finally {
       setIsGenerating(false);
     }
@@ -177,7 +179,7 @@ const QrGenerate = () => {
         className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
         onPressBack={() => router.back()}
-        title="Invite Employee"
+        title={t("user.profile.qr.inviteEmployee")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -244,13 +246,13 @@ const QrGenerate = () => {
             className="capitalize font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-4"
             numberOfLines={1}
           >
-            Scan to join {businessName}
+            {t("user.profile.qr.scanToJoin", { businessName })}
           </Text>
 
           {/* Code Display with Copy Functionality */}
           <View className="bg-[#FFFFFF] rounded-full mt-4 py-2 px-8 flex-row items-center gap-4 active:bg-gray-100">
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-              Code: {inviteCode}
+              {t("user.profile.qr.codeLabel", { code: inviteCode })}
             </Text>
             <TouchableOpacity onPress={copyToClipboard}>
               <Ionicons name="copy-outline" size={20} color="black" />
@@ -261,10 +263,10 @@ const QrGenerate = () => {
         {/* bottom text */}
         <View className="items-center">
           <Text className="mt-4 font-proximanova-semibold text-primary dark:text-dark-primary">
-            Scan QR Code
+            {t("user.profile.qr.scanQrCode")}
           </Text>
           <Text className="mt-2.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary text-center">
-            Scan the QR code to join {businessName} on Hirru
+            {t("user.profile.qr.scanQrDescription", { businessName })}
           </Text>
         </View>
         <ShareVia visible={isModal} onClose={() => setIsModal(false)} />
@@ -272,7 +274,7 @@ const QrGenerate = () => {
 
       <PrimaryButton
         onPress={shareQRCode}
-        title="Scan QR Code"
+        title={t("user.profile.qr.scanQrCode")}
         className="mx-5 my-10"
       />
     </SafeAreaView>

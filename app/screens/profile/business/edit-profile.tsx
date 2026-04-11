@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -63,6 +64,7 @@ const toOptionalNumber = (value: unknown) => {
 };
 
 const EditBusinessProfile = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -103,7 +105,7 @@ const EditBusinessProfile = () => {
       setIsSearchingLocation(false);
       if (!hasShownGeoapifyMissingKey.current) {
         hasShownGeoapifyMissingKey.current = true;
-        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+        toast.error(t("user.setup.businessSetup.geoapifyKeyMissing"));
       }
       return;
     }
@@ -177,7 +179,7 @@ const EditBusinessProfile = () => {
       } catch (error: any) {
         if (error?.name !== "AbortError") {
           setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
-          toast.error("Failed to fetch location suggestions.");
+          toast.error(t("user.setup.businessSetup.failedToFetchLocationSuggestions"));
         }
       } finally {
         setIsSearchingLocation(false);
@@ -243,7 +245,7 @@ const EditBusinessProfile = () => {
         }
       } catch (error: any) {
         if (!isMounted || requestId !== profileRequestIdRef.current) return;
-        toast.error(error?.message || "Failed to load business profile");
+        toast.error(error?.message || t("user.profile.failedToLoadBusinessProfile"));
       } finally {
         if (isMounted && requestId === profileRequestIdRef.current) {
           setLoadingProfile(false);
@@ -261,8 +263,8 @@ const EditBusinessProfile = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission required",
-        "Sorry, we need camera roll permissions to make this work!"
+        t("user.setup.businessSetup.permissionRequired"),
+        t("user.setup.businessSetup.mediaLibraryPermissionMessage")
       );
       return false;
     }
@@ -286,7 +288,7 @@ const EditBusinessProfile = () => {
           setCoverImage(result.assets[0].uri);
         }
       } catch {
-        Alert.alert("Error", "Failed to upload image");
+        Alert.alert(t("common.error"), t("user.setup.businessSetup.failedToUploadImage"));
       } finally {
         setUploading(false);
       }
@@ -311,8 +313,8 @@ const EditBusinessProfile = () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission required",
-        "Sorry, we need camera permissions to take photos!"
+        t("user.setup.businessSetup.permissionRequired"),
+        t("user.setup.businessSetup.cameraPermissionMessage")
       );
       return;
     }
@@ -330,29 +332,33 @@ const EditBusinessProfile = () => {
     if (uploading) return;
 
     Alert.alert(
-      `${type === "profile" ? "Profile" : "Cover"} Photo`,
-      "Choose an option",
+      t(
+        type === "profile"
+          ? "user.setup.businessSetup.profilePhotoTitle"
+          : "user.setup.businessSetup.coverPhotoTitle"
+      ),
+      t("user.setup.businessSetup.chooseOption"),
       [
         {
-          text: "Choose from Gallery",
+          text: t("user.setup.businessSetup.chooseFromGallery"),
           onPress: () => pickImage(type),
         },
         {
-          text: "Take Photo",
+          text: t("user.setup.businessSetup.takePhoto"),
           onPress: () => takePhoto(type),
         },
         ...((type === "profile" && profileImage) ||
           (type === "cover" && coverImage)
           ? [
               {
-                text: "Remove Photo",
+                text: t("user.setup.businessSetup.removePhoto"),
                 style: "destructive" as const,
                 onPress: () => removeImage(type),
               },
           ]
           : []),
           {
-            text: "Cancel",
+            text: t("user.setup.businessSetup.cancel"),
             style: "cancel" as const,
           },
       ]
@@ -360,13 +366,13 @@ const EditBusinessProfile = () => {
   };
 
   const removeImage = (type: "profile" | "cover") => {
-    Alert.alert("Remove Photo", "Are you sure you want to remove this photo?", [
+    Alert.alert(t("user.setup.businessSetup.removePhoto"), t("user.setup.businessSetup.removePhotoConfirmMessage"), [
         {
-          text: "Cancel",
+          text: t("user.setup.businessSetup.cancel"),
           style: "cancel" as const,
         },
         {
-          text: "Remove",
+          text: t("user.setup.businessSetup.remove"),
           style: "destructive" as const,
           onPress: () => {
           if (type === "profile") {
@@ -381,7 +387,7 @@ const EditBusinessProfile = () => {
 
   const handleSave = async () => {
     if (!businessId) {
-      toast.error("No business selected.");
+      toast.error(t("user.profile.noBusinessSelected"));
       return;
     }
 
@@ -389,11 +395,11 @@ const EditBusinessProfile = () => {
       .trim()
       .slice(0, ADDRESS_MAX_LENGTH);
     if (!resolvedAddress) {
-      toast.error("Location is required.");
+      toast.error(t("user.setup.businessSetup.locationRequired"));
       return;
     }
     if (!selectedLocationOption) {
-      toast.error("Please select a valid location from suggestions.");
+      toast.error(t("user.setup.businessSetup.selectValidLocation"));
       return;
     }
     const latitude = toOptionalNumber(
@@ -431,7 +437,7 @@ const EditBusinessProfile = () => {
       toast.success(translateApiMessage(messageKey));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to update business");
+      toast.error(error?.message || t("user.profile.failedToUpdateBusiness"));
     }
   };
 
@@ -453,7 +459,7 @@ const EditBusinessProfile = () => {
           <ScreenHeader
             className="mt-3 mx-5"
             onPressBack={() => router.back()}
-            title="Edit Profile"
+            title={t("user.profile.businessEditProfileTitle")}
             titleClass="text-primary dark:text-dark-primary "
             iconColor={isDark ? "#fff" : "#111"}
           />
@@ -495,23 +501,25 @@ const EditBusinessProfile = () => {
               </View>
               <Text className="pt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary text-center">
                 {uploading
-                  ? "Uploading..."
+                  ? t("user.setup.businessSetup.uploading")
                   : profileImage
-                    ? "Change profile photo"
-                    : "Upload profile photo"}
+                    ? t("user.setup.businessSetup.changeProfilePhoto")
+                    : t("user.setup.businessSetup.uploadProfilePhoto")}
               </Text>
             </View>
 
             {/* Cover Photo */}
             <View className="relative mt-8">
               <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary mb-2">
-                {coverImage ? "Cover Photo" : "Upload Cover Photo"}
+                {coverImage
+                  ? t("user.setup.businessSetup.coverPhoto")
+                  : t("user.setup.businessSetup.uploadCoverPhoto")}
               </Text>
               <View className="relative">
                 {uploading || loadingProfile ? (
                   <View className="w-full h-32 bg-gray-200 rounded-xl items-center justify-center">
                     <ActivityIndicator size="large" color="#4FB2F3" />
-                    <Text className="text-gray-500 mt-2">Uploading...</Text>
+                    <Text className="text-gray-500 mt-2">{t("user.setup.businessSetup.uploading")}</Text>
                   </View>
                 ) : coverImage ? (
                   <View>
@@ -544,7 +552,7 @@ const EditBusinessProfile = () => {
                       color="#053C5A"
                     />
                     <Text className="font-proximanova-semibold text-sm mt-2">
-                      Upload Photo
+                      {t("user.setup.businessSetup.uploadPhoto")}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -554,20 +562,20 @@ const EditBusinessProfile = () => {
             {/* inpute field  */}
             <View className="flex-row justify-between items-center mt-8 ">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Business Name
+                {t("user.setup.businessSetup.businessName")}
               </Text>
               <TouchableOpacity
                 onPress={() => setIsEditingBusinessName((prev) => !prev)}
               >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                  {isEditingBusinessName ? "Done" : "Edit"}
+                  {isEditingBusinessName ? t("user.profile.done") : t("user.profile.edit")}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <View>
               <TextInput
-                placeholder="Enter your business name"
+                placeholder={t("user.setup.businessSetup.enterBusinessName")}
                 className="w-full pl-3 pr-4 py-4 bg-white border mt-2.5 border-[#EEEEEE] rounded-xl text-[#7A7A7A]"
                 keyboardType="default"
                 autoCapitalize="none"
@@ -580,7 +588,7 @@ const EditBusinessProfile = () => {
             {/* location */}
             <View className="mt-8">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Location
+                {t("user.setup.businessSetup.location")}
               </Text>
 
               <TextInput
@@ -597,7 +605,7 @@ const EditBusinessProfile = () => {
                     setValue(null);
                   }
                 }}
-                placeholder="Search location"
+                placeholder={t("user.setup.businessSetup.searchLocation")}
                 className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm mt-2.5"
                 autoCapitalize="none"
                 maxLength={ADDRESS_MAX_LENGTH}
@@ -637,7 +645,7 @@ const EditBusinessProfile = () => {
 
               {isSearchingLocation ? (
                 <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-                  Searching locations...
+                  {t("user.setup.businessSetup.searchingLocations")}
                 </Text>
               ) : null}
               {isLocationFocused &&
@@ -645,7 +653,7 @@ const EditBusinessProfile = () => {
                 !isSearchingLocation &&
                 locationOptions.length === 0 ? (
                 <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-                  No locations found.
+                  {t("user.setup.businessSetup.noLocationsFound")}
                 </Text>
               ) : null}
             </View>
@@ -653,18 +661,18 @@ const EditBusinessProfile = () => {
             {/* Add a About Business */}
             <View className="flex-row justify-between items-center mt-8 ">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Add a About Business
+                {t("user.setup.businessSetup.aboutBusiness")}
               </Text>
               <TouchableOpacity onPress={() => setIsEditingAbout((prev) => !prev)}>
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                  {isEditingAbout ? "Done" : "Edit"}
+                  {isEditingAbout ? t("user.profile.done") : t("user.profile.edit")}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <View>
               <TextInput
-                placeholder="Type here..."
+                placeholder={t("user.setup.businessSetup.typeHere")}
                 placeholderTextColor="#7A7A7A"
                 className="w-full pl-3 pr-4 pt-4 pb-4 bg-white border mt-2.5 border-[#EEEEEE] rounded-xl text-primary text-base"
                 keyboardType="default"
@@ -682,11 +690,11 @@ const EditBusinessProfile = () => {
             <View className="mt-8">
               <View className="flex-row items-center justify-between mb-2.5">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Contact Us On
+                  {t("user.profile.contactUsOn")}
                 </Text>
                 <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
                   <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                    {isEditingSocials ? "Done" : "Edit"}
+                    {isEditingSocials ? t("user.profile.done") : t("user.profile.edit")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -699,7 +707,7 @@ const EditBusinessProfile = () => {
 
             <PrimaryButton
               className='my-10'
-              title="Save Change"
+              title={t("user.profile.saveChange")}
               onPress={handleSave}
               loading={isLoading}
             />

@@ -5,12 +5,14 @@ import { Directory, File, Paths } from "expo-file-system";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, Text, View } from "react-native";
 import PdfRendererView from "react-native-pdf-renderer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const CvPreview = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ type?: string; url?: string }>();
   const [pdfLocalUri, setPdfLocalUri] = useState("");
@@ -64,7 +66,7 @@ const CvPreview = () => {
       } catch {
         if (isMounted) {
           setPdfLocalUri("");
-          toast.error("Failed to load PDF preview");
+          toast.error(t("user.profile.cvPreview.failedToLoadPdfPreview"));
         }
       } finally {
         if (isMounted) setIsPreparingPdf(false);
@@ -82,7 +84,7 @@ const CvPreview = () => {
     try {
       await Linking.openURL(previewUrl);
     } catch {
-      toast.error("Unable to open link");
+      toast.error(t("user.profile.cvPreview.unableToOpenLink"));
     }
   };
 
@@ -90,14 +92,18 @@ const CvPreview = () => {
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
       <ScreenHeader
         onPressBack={() => router.back()}
-        title={previewType === "pdf" ? "PDF Preview" : "Image Preview"}
+        title={
+          previewType === "pdf"
+            ? t("user.profile.cvPreview.pdfPreview")
+            : t("user.profile.cvPreview.imagePreview")
+        }
         className="px-5 pb-4"
       />
 
       {!previewUrl ? (
         <View className="flex-1 items-center justify-center px-6">
           <Text className="font-proximanova-regular text-sm text-secondary text-center">
-            Preview link is unavailable.
+            {t("user.profile.cvPreview.previewLinkUnavailable")}
           </Text>
         </View>
       ) : previewType === "image" ? (
@@ -121,12 +127,12 @@ const CvPreview = () => {
                 maxZoom={5}
                 distanceBetweenPages={16}
                 style={{ flex: 1, width: "100%" }}
-                onError={() => toast.error("Failed to load PDF preview")}
+                onError={() => toast.error(t("user.profile.cvPreview.failedToLoadPdfPreview"))}
               />
             ) : (
               <View className="flex-1 items-center justify-center px-6">
                 <Text className="font-proximanova-regular text-sm text-secondary text-center">
-                  PDF preview is unavailable.
+                  {t("user.profile.cvPreview.pdfPreviewUnavailable")}
                 </Text>
               </View>
             )}
@@ -137,7 +143,11 @@ const CvPreview = () => {
       {previewUrl ? (
         <GradientButton
           className="mx-5 mb-5"
-          title={previewType === "pdf" ? "Download PDF" : "Download Image"}
+          title={
+            previewType === "pdf"
+              ? t("user.profile.cvPreview.downloadPdf")
+              : t("user.profile.cvPreview.downloadImage")
+          }
           icon={<Ionicons name="download-outline" size={18} color="#FFFFFF" />}
           onPress={handleOpenExternal}
         />

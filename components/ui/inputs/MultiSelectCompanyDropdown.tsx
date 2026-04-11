@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -25,6 +26,7 @@ const MultiSelectCompanyDropdown = ({
   onCompaniesChange,
   onWorkExperiencesChange,
 }: MultiSelectCompanyDropdownProps) => {
+  const { t } = useTranslation();
   const { fetchBusinesses, createCompanyManual } = useBusinessStore();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isAddingCompany, setIsAddingCompany] = useState(false);
@@ -48,9 +50,9 @@ const MultiSelectCompanyDropdown = ({
       setCompanies(transformedCompanies);
     } catch (error) {
       console.error("Failed to load companies:", error);
-      toast.error("Failed to load companies. Please try again.");
+      toast.error(t("user.profile.multiSelectCompany.failedToLoadCompanies"));
     }
-  }, [fetchBusinesses]);
+  }, [fetchBusinesses, t]);
 
   // Fetch companies when component mounts
   useEffect(() => {
@@ -125,19 +127,28 @@ const MultiSelectCompanyDropdown = ({
       }
     } catch (error) {
       console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
+      Alert.alert(
+        t("common.error"),
+        t("user.profile.multiSelectCompany.failedToPickImage")
+      );
     }
   };
 
   const addManualCompany = async () => {
     // Validate both company name and logo are present
     if (!manualCompanyName.trim()) {
-      Alert.alert("Error", "Please enter a company name.");
+      Alert.alert(
+        t("common.error"),
+        t("user.profile.multiSelectCompany.pleaseEnterCompanyName")
+      );
       return;
     }
 
     if (!manualCompanyLogo) {
-      Alert.alert("Error", "Please add a company logo.");
+      Alert.alert(
+        t("common.error"),
+        t("user.profile.multiSelectCompany.pleaseAddCompanyLogo")
+      );
       return;
     }
 
@@ -175,10 +186,12 @@ const MultiSelectCompanyDropdown = ({
       setManualCompanyName("");
       setManualCompanyLogo(null);
 
-      toast.success("Company added successfully!");
+      toast.success(t("user.profile.multiSelectCompany.companyAddedSuccessfully"));
     } catch (error) {
       console.error("Error creating company:", error);
-      toast.error(error.message || "Failed to add company. Please try again.");
+      toast.error(
+        error?.message || t("user.profile.multiSelectCompany.failedToAddCompany")
+      );
     } finally {
       setIsAddingCompany(false);
     }
@@ -237,8 +250,10 @@ const MultiSelectCompanyDropdown = ({
           className={`text-sm  ${selectedCompanies.length > 0 ? "text-primary font-proximanova-semibold" : "text-secondary"}`}
         >
           {selectedCompanies.length > 0
-            ? `${selectedCompanies.length} Company selected`
-            : "Select company name"}
+            ? t("user.profile.multiSelectCompany.companySelectedCount", {
+              count: selectedCompanies.length,
+            })
+            : t("user.profile.multiSelectCompany.selectCompanyName")}
         </Text>
         <Text className="text-gray-400 text-lg">▼</Text>
       </TouchableOpacity>
@@ -294,7 +309,7 @@ const MultiSelectCompanyDropdown = ({
                 {/* Period Section */}
                 <View className="mb-4">
                   <Text className="text-sm font-proximanova-semibold text-gray-900 mb-3">
-                    Period
+                    {t("user.profile.multiSelectCompany.period")}
                   </Text>
 
                   <View className="flex-row gap-3">
@@ -331,11 +346,11 @@ const MultiSelectCompanyDropdown = ({
                 {/* Job Title */}
                 <View>
                   <Text className="text-sm font-proximanova-semibold text-gray-900 mb-3">
-                    Job Title
+                    {t("user.profile.multiSelectCompany.jobTitle")}
                   </Text>
                   <TextInput
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm"
-                    placeholder="Enter your Role"
+                    placeholder={t("user.profile.multiSelectCompany.enterYourRole")}
                     value={experience.position}
                     onChangeText={(text) =>
                       updateWorkExperience(company.id, "position", text)
@@ -364,10 +379,10 @@ const MultiSelectCompanyDropdown = ({
             {/* Header */}
             <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
               <TouchableOpacity onPress={() => setIsModalOpen(false)}>
-                <Text className="text-blue-500 text-lg">Done</Text>
+                <Text className="text-blue-500 text-lg">{t("user.profile.done")}</Text>
               </TouchableOpacity>
               <Text className="text-lg font-proximanova-semibold text-gray-900">
-                Company/Employer
+                {t("user.profile.multiSelectCompany.companyEmployer")}
               </Text>
               <View className="w-16" />
             </View>
@@ -378,7 +393,7 @@ const MultiSelectCompanyDropdown = ({
                 <Text className="text-gray-400 mr-3">🔍</Text>
                 <TextInput
                   className="flex-1 text-sm"
-                  placeholder="Search here..."
+                  placeholder={t("user.profile.multiSelectCompany.searchHere")}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
@@ -463,20 +478,20 @@ const MultiSelectCompanyDropdown = ({
 
                   <Text className="text-base text-gray-900 font-proximanova-medium flex-1">
                     {manualCompanyLogo
-                      ? "Change Company Logo"
-                      : "Add Company Logo *"}
+                      ? t("user.profile.multiSelectCompany.changeCompanyLogo")
+                      : t("user.profile.multiSelectCompany.addCompanyLogoRequired")}
                   </Text>
                 </TouchableOpacity>
 
                 <Text className="text-sm text-gray-900 font-proximanova-semibold mb-3">
-                  Company Name
+                  {t("user.profile.multiSelectCompany.companyName")}
                 </Text>
 
                 <View className="flex-row items-center space-x-3">
                   <View className="flex-1">
                     <TextInput
                       className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm"
-                      placeholder="Type Here..."
+                      placeholder={t("user.profile.multiSelectCompany.typeHere")}
                       value={manualCompanyName}
                       onChangeText={setManualCompanyName}
                     />
@@ -493,7 +508,9 @@ const MultiSelectCompanyDropdown = ({
                       }`}
                   >
                     <Text className="text-white font-proximanova-medium">
-                      {isAddingCompany ? "Adding..." : "Add"}
+                      {isAddingCompany
+                        ? t("user.profile.multiSelectCompany.adding")
+                        : t("user.profile.multiSelectCompany.add")}
                     </Text>
                   </TouchableOpacity>
                 </View>

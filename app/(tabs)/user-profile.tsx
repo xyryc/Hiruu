@@ -26,18 +26,20 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const Profile = () => {
+  const { t } = useTranslation();
   const [showText, setShowText] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState("traditional");
   const [profileData, setProfileData] = useState<any>(null);
   const issues = [
-    { label: "traditional", value: "traditional" },
-    { label: "sidebar-left", value: "sidebar-left" },
-    { label: "sidebar-right", value: "sidebar-right" },
+    { label: t("user.profile.userProfile.cvStyles.traditional"), value: "traditional" },
+    { label: t("user.profile.userProfile.cvStyles.sidebarLeft"), value: "sidebar-left" },
+    { label: t("user.profile.userProfile.cvStyles.sidebarRight"), value: "sidebar-right" },
   ];
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
@@ -93,9 +95,9 @@ const Profile = () => {
       setProfileData(result.data);
     } catch (error: any) {
       if (isExpectedAuthError(error)) return;
-      toast.error(error?.message || "Failed to load profile");
+      toast.error(error?.message || t("user.profile.userProfile.failedToLoadProfile"));
     }
-  }, [getProfile]);
+  }, [getProfile, t]);
 
   useEffect(() => {
     loadProfile();
@@ -171,7 +173,7 @@ const Profile = () => {
         ...(prev || {}),
         social: previousSocial,
       }));
-      toast.error(error?.message || "Failed to update socials");
+      toast.error(error?.message || t("user.profile.userProfile.failedToUpdateSocials"));
     }
   };
 
@@ -191,18 +193,18 @@ const Profile = () => {
 
       const startResult = await startCvBuild(payload);
       if (startResult?.status === "completed") {
-        toast.success("CV generated successfully");
+        toast.success(t("user.profile.userProfile.cvGeneratedSuccessfully"));
         return;
       }
 
       const pollResult = await pollCvBuildStatus();
       if (pollResult?.status === "completed") {
-        toast.success("CV generated successfully");
+        toast.success(t("user.profile.userProfile.cvGeneratedSuccessfully"));
       } else if (useProfileStore.getState().cvBuildStatus === "timeout") {
-        toast.error("CV generation is taking longer than expected");
+        toast.error(t("user.profile.userProfile.cvGenerationTakingLonger"));
       }
     } catch (error: any) {
-      toast.error(translateApiMessage(error?.message || "Failed to generate CV"));
+      toast.error(translateApiMessage(error?.message || t("user.profile.userProfile.failedToGenerateCv")));
     }
   };
 
@@ -211,7 +213,7 @@ const Profile = () => {
       await cancelCvBuild();
       toast.success(translateApiMessage("ai_engine_cv_cancelled"));
     } catch (error: any) {
-      toast.error(translateApiMessage(error?.message || "Failed to cancel CV generation"));
+      toast.error(translateApiMessage(error?.message || t("user.profile.userProfile.failedToCancelCvGeneration")));
     }
   };
 
@@ -231,7 +233,7 @@ const Profile = () => {
     try {
       await Linking.openURL(url);
     } catch {
-      toast.error("Unable to open download link");
+      toast.error(t("user.profile.userProfile.unableToOpenDownloadLink"));
     }
   };
   return (
@@ -256,7 +258,7 @@ const Profile = () => {
             <Text
               className={`font-proximanova-bold text-2xl text-primary dark:text-dark-primary`}
             >
-              Profile
+              {t("user.profile.userProfile.profile")}
             </Text>
 
             <Ionicons
@@ -352,7 +354,7 @@ const Profile = () => {
               <FontAwesome6 name="id-badge" size={14} color="black" />
             </DynamicBackground>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Badge
+              {t("user.profile.userProfile.badge")}
             </Text>
           </View>
 
@@ -360,7 +362,7 @@ const Profile = () => {
             onPress={() => router.push("/screens/profile/badge")}
           >
             <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              View All Badge
+              {t("user.profile.userProfile.viewAllBadge")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -386,7 +388,7 @@ const Profile = () => {
           </DynamicBackground>
 
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Short Intro
+            {t("user.profile.userProfile.shortIntro")}
           </Text>
         </View>
 
@@ -399,7 +401,9 @@ const Profile = () => {
                   onPress={() => setShowText(!showText)}
                   className="font-proximanova-semibold text-sm text-[#11293A]"
                 >
-                  {showText ? "See less" : "Read More"}
+                  {showText
+                    ? t("user.profile.userProfile.seeLess")
+                    : t("user.profile.userProfile.readMore")}
                 </Text>
               )}
             </Text>
@@ -410,7 +414,7 @@ const Profile = () => {
             className="mx-5 border border-[#0000000D] rounded-xl p-3"
           >
             <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
-              Add a bio
+              {t("user.profile.userProfile.addBio")}
             </Text>
           </TouchableOpacity>
         )}
@@ -430,7 +434,7 @@ const Profile = () => {
             />
           </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Experience
+            {t("user.profile.userProfile.experience")}
           </Text>
         </View>
 
@@ -464,34 +468,34 @@ const Profile = () => {
               />
             </DynamicBackground>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Achievement
+              {t("user.profile.userProfile.achievement")}
             </Text>
           </View>
           <View className="flex-row gap-3 mb-4 mt-4">
             <StatCardPrimary
               point={formatMetric(analyticsMetrics?.onTimeArrivalPercent)}
-              title="On-Time Arrival"
-              subtitle={"This month"}
+              title={t("user.profile.userProfile.onTimeArrival")}
+              subtitle={t("user.profile.userProfile.thisMonth")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
               point={formatMetric(analyticsMetrics?.taskCompletionPercent)}
-              title="Task Completion"
-              subtitle={"completed"}
+              title={t("user.profile.userProfile.taskCompletion")}
+              subtitle={t("user.profile.userProfile.completed")}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
           <View className="flex-row gap-3 mb-4">
             <StatCardPrimary
               point={formatMetric(analyticsMetrics?.positiveFeedbackPercent)}
-              title="Positive Feedback"
-              subtitle={"positive"}
+              title={t("user.profile.userProfile.positiveFeedback")}
+              subtitle={t("user.profile.userProfile.positive")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
               point={formatMetric(analyticsMetrics?.growthScorePercent)}
-              title="Growth Score"
-              subtitle={"growth"}
+              title={t("user.profile.userProfile.growthScore")}
+              subtitle={t("user.profile.userProfile.growth")}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
@@ -512,7 +516,7 @@ const Profile = () => {
             />
           </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Interests
+            {t("user.profile.userProfile.interests")}
           </Text>
         </View>
 
@@ -539,7 +543,7 @@ const Profile = () => {
             />
           </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Job Profile
+            {t("user.profile.userProfile.jobProfile")}
           </Text>
         </View>
 
@@ -550,10 +554,10 @@ const Profile = () => {
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-                {jobProfile?.headline?.trim() || "Set up your job profile"}
+                {jobProfile?.headline?.trim() || t("user.profile.userProfile.setUpYourJobProfile")}
               </Text>
               <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {jobProfilePreview || "Add your role preferences, salary expectation, skills, and weekly availability."}
+                {jobProfilePreview || t("user.profile.userProfile.jobProfileFallbackDescription")}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#7A7A7A" />
@@ -572,7 +576,7 @@ const Profile = () => {
           </DynamicBackground>
 
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Contact Me On
+            {t("user.profile.userProfile.contactMeOn")}
           </Text>
         </View>
 
@@ -587,7 +591,7 @@ const Profile = () => {
         {/* generate cv */}
         <View className="mx-5 mt-6 flex-row justify-between items-center">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Options for export
+            {t("user.profile.userProfile.optionsForExport")}
           </Text>
 
           {/* <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" /> */}
@@ -595,7 +599,7 @@ const Profile = () => {
 
         <View className="mx-5 mt-4">
           <Dropdown
-            placeholder="Select Style"
+            placeholder={t("user.profile.userProfile.selectStyle")}
             options={issues}
             value={selectedIssue}
             onSelect={setSelectedIssue}
@@ -606,8 +610,8 @@ const Profile = () => {
           className="mx-5 mt-3"
           title={
             isGeneratingCv || isPollingCv
-              ? "Generating CV..."
-              : "Generate CV With AI"
+              ? t("user.profile.userProfile.generatingCv")
+              : t("user.profile.userProfile.generateCvWithAi")
           }
           icon={
             <Ionicons
@@ -623,7 +627,7 @@ const Profile = () => {
         {cvBuildStatus === "pending" && (
           <View className="mx-5 mt-3">
             <PrimaryButton
-              title="Cancel"
+              title={t("user.profile.userProfile.cancel")}
               onPress={handleCancelCv}
               showIcon={false}
               className="bg-[#EF4444] py-3 px-4"
@@ -634,19 +638,19 @@ const Profile = () => {
         {cvBuildStatus === "completed" && (cvResult?.pdf || cvResult?.image) && (
           <View className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3">
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary mb-2">
-              Generated CV
+              {t("user.profile.userProfile.generatedCv")}
             </Text>
 
             {cvResult?.pdf ? (
               <View className="flex-row justify-between items-center py-2">
                 <TouchableOpacity onPress={() => handleOpenCvPreview("pdf", cvResult.pdf)}>
                   <Text className="font-proximanova-medium text-[#4FB2F3] underline">
-                    PDF CV
+                    {t("user.profile.userProfile.pdfCv")}
                   </Text>
                 </TouchableOpacity>
                 <View className="w-28">
                   <SmallButton
-                    title="Download"
+                    title={t("user.profile.userProfile.download")}
                     onPress={() => handleDownloadCv(cvResult.pdf)}
                     className="rounded-xl py-3 px-4"
                   />
@@ -658,12 +662,12 @@ const Profile = () => {
               <View className="flex-row justify-between items-center py-2">
                 <TouchableOpacity onPress={() => handleOpenCvPreview("image", cvResult.image)}>
                   <Text className="font-proximanova-medium text-[#4FB2F3] underline">
-                    Image CV
+                    {t("user.profile.userProfile.imageCv")}
                   </Text>
                 </TouchableOpacity>
                 <View className="w-28">
                   <SmallButton
-                    title="Download"
+                    title={t("user.profile.userProfile.download")}
                     onPress={() => handleDownloadCv(cvResult.image)}
                     className="rounded-xl py-3 px-4"
                   />

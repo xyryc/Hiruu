@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ColorPicker, { HueSlider, Panel1 } from "reanimated-color-picker";
 import PrimaryButton from "../buttons/PrimaryButton";
@@ -25,6 +26,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   initialColor = "#6366F1",
   initialGradientColors = ["#6366F1", "#EC4899"],
 }) => {
+  const { t } = useTranslation();
   const [selectedColor, setSelectedColor] = useState(initialColor);
   const [gradientColors, setGradientColors] = useState([
     initialGradientColors[0],
@@ -90,7 +92,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
           {/* Header */}
           <View className="mb-7">
             <Text className="text-xl text-center font-proximanova-bold text-primary dark:text-dark-primary">
-              Change Profile color
+              {t("user.profile.colorPickerModal.title")}
             </Text>
           </View>
 
@@ -100,35 +102,31 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
             <View className="mb-4 flex-row items-center gap-2">
               <TouchableOpacity
                 onPress={() => setPickerType("solid")}
-                className={`px-4 py-2.5 rounded-full ${
-                  pickerType === "solid"
+                className={`px-4 py-2.5 rounded-full ${pickerType === "solid"
                     ? "bg-[#11293A]"
                     : "bg-transparent border border-[#EEEEEE]"
-                }`}
+                  }`}
               >
                 <Text
-                  className={`text-center font-proximanova-semibold ${
-                    pickerType === "solid" ? "text-white" : "text-gray-600"
-                  }`}
+                  className={`text-center font-proximanova-semibold ${pickerType === "solid" ? "text-white" : "text-gray-600"
+                    }`}
                 >
-                  Solid
+                  {t("user.profile.colorPickerModal.solid")}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setPickerType("gradient")}
-                className={`px-4 py-2.5 rounded-full ${
-                  pickerType === "gradient"
+                className={`px-4 py-2.5 rounded-full ${pickerType === "gradient"
                     ? "bg-[#11293A]"
                     : "bg-transparent border border-[#EEEEEE]"
-                }`}
+                  }`}
               >
                 <Text
-                  className={`text-center font-proximanova-semibold ${
-                    pickerType === "gradient" ? "text-white" : "text-gray-600"
-                  }`}
+                  className={`text-center font-proximanova-semibold ${pickerType === "gradient" ? "text-white" : "text-gray-600"
+                    }`}
                 >
-                  Gradient
+                  {t("user.profile.colorPickerModal.gradient")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -166,11 +164,10 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
                     <TouchableOpacity
                       key={index}
                       onPress={() => setActiveGradientIndex(index)}
-                      className={`w-10 h-10 rounded-full border-2 ${
-                        activeGradientIndex === index
+                      className={`w-10 h-10 rounded-full border-2 ${activeGradientIndex === index
                           ? "border-gray-500"
                           : "border-white"
-                      }`}
+                        }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -181,18 +178,17 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               {pickerType === "solid" ? (
                 <View className="mt-4">
                   <Text className="text-xs font-proximanova-medium text-secondary dark:text-dark-secondary mb-2.5">
-                    Saved colors:
+                    {t("user.profile.colorPickerModal.savedColors")}
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
                     {savedColors.map((color, index) => (
                       <TouchableOpacity
                         key={index}
                         onPress={() => setSelectedColor(color)}
-                        className={`w-10 h-10 rounded-full border-2 ${
-                          selectedColor === color
+                        className={`w-10 h-10 rounded-full border-2 ${selectedColor === color
                             ? "border-gray-500"
                             : "border-white"
-                        }`}
+                          }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -201,7 +197,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               ) : (
                 <View className="mt-4">
                   <Text className="text-xs font-proximanova-medium text-secondary dark:text-dark-secondary mb-2.5">
-                    Recent Gradient:
+                    {t("user.profile.colorPickerModal.recentGradient")}
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
                     {recentGradients.map((gradient, index) => (
@@ -228,7 +224,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
           {/* Preview Button */}
           <PrimaryButton
             className="mt-4"
-            title="Preview"
+            title={t("user.profile.colorPickerModal.preview")}
             onPress={handlePreview}
           />
         </View>

@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -89,9 +90,9 @@ const TIER_UI_MAP: Record<string, BadgeUiMeta> = {
 const DEFAULT_TIER_UI = TIER_UI_MAP.bronze;
 
 const normalizeTier = (tier?: string) => String(tier || "").toLowerCase();
-const formatTier = (tier?: string) => {
+const formatTier = (tier?: string, fallback = "") => {
   const value = normalizeTier(tier);
-  if (!value) return "Bronze";
+  if (!value) return fallback;
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
@@ -109,15 +110,17 @@ const formatProgressText = (
 const formatNextText = (
   nextTier?: string,
   threshold?: number,
-  displayUnit?: string
+  displayUnit?: string,
+  nextBadgeAtLabel = "",
+  tierFallback = ""
 ) => {
   if (!nextTier || typeof threshold !== "number") {
     return null;
   }
-  const tier = formatTier(nextTier);
+  const tier = formatTier(nextTier, tierFallback);
   const max = threshold;
   const unit = String(displayUnit || "").trim();
-  return `${tier} badge at ${max} ${unit}`;
+  return `${tier} ${nextBadgeAtLabel} ${max} ${unit}`;
 };
 
 const getTierUi = (tier?: string) => {
@@ -126,6 +129,7 @@ const getTierUi = (tier?: string) => {
 };
 
 const Badge = () => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [tracks, setTracks] = useState<BadgeTrack[]>([]);
   const { colorScheme } = useColorScheme();
@@ -166,7 +170,7 @@ const Badge = () => {
     details: "",
     max: 0,
     achieved: 0,
-    metricLabel: "Progress",
+    metricLabel: t("user.profile.badgeScreen.progress"),
     tierItems: [],
   });
   const modalRequestIdRef = React.useRef(0);
@@ -197,7 +201,7 @@ const Badge = () => {
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load badges");
+        toast.error(error?.message || t("user.profile.badgeScreen.failedToLoadBadges"));
       }
     };
 
@@ -215,7 +219,7 @@ const Badge = () => {
       return {
         ...track,
         tierUi,
-        tag: formatTier(track?.ongoingTier),
+        tag: formatTier(track?.ongoingTier, t("user.profile.badgeScreen.bronze")),
         time: formatProgressText(
           track?.currentProgress,
           track?.threshold,
@@ -224,11 +228,13 @@ const Badge = () => {
         nextText: formatNextText(
           track?.nextTier,
           track?.nextThreshold,
-          track?.displayUnit
+          track?.displayUnit,
+          t("user.profile.badgeScreen.badgeAt"),
+          t("user.profile.badgeScreen.bronze")
         ),
       };
     });
-  }, [tracks]);
+  }, [tracks, t]);
 
   const handleClickOpenModal = async (track: (typeof uiTracks)[number]) => {
     const requestId = ++modalRequestIdRef.current;
@@ -245,7 +251,7 @@ const Badge = () => {
       details: "",
       max: Number(track.threshold || 0),
       achieved: Number(track.currentProgress || 0),
-      metricLabel: "Progress",
+      metricLabel: t("user.profile.badgeScreen.progress"),
       tierItems: [],
     });
 
@@ -277,7 +283,7 @@ const Badge = () => {
 
           return {
             id: String(reward?.id || `${tier || "bronze"}-${thresholdValue}`),
-            title: formatTier(tier),
+            title: formatTier(tier, t("user.profile.badgeScreen.bronze")),
             img: tierUi.img,
             bgColor: `${tierUi.tagColor}26`,
             color: tierUi.tagColor,
@@ -302,7 +308,10 @@ const Badge = () => {
         badgeBackground: ongoingTierUi.badgeBackground,
         tagColor: ongoingTierUi.tagColor,
         title: detail?.title || track.title,
-        buttonTitle: formatTier(detail?.ongoingTier),
+        buttonTitle: formatTier(
+          detail?.ongoingTier,
+          t("user.profile.badgeScreen.bronze")
+        ),
         time: formatProgressText(
           detail?.currentProgress,
           detail?.threshold,
@@ -311,18 +320,20 @@ const Badge = () => {
         subTitle: formatNextText(
           detail?.nextTier,
           detail?.nextThreshold,
-          detail?.displayUnit
+          detail?.displayUnit,
+          t("user.profile.badgeScreen.badgeAt"),
+          t("user.profile.badgeScreen.bronze")
         ),
         details: "",
         max: Number(detail?.threshold || 0),
         achieved: Number(detail?.currentProgress || 0),
-        metricLabel: "Progress",
+        metricLabel: t("user.profile.badgeScreen.progress"),
         tierItems,
       });
     } catch (error: any) {
       if (requestId !== modalRequestIdRef.current) return;
       if (isExpectedAuthError(error)) return;
-      toast.error(error?.message || "Failed to load badge details");
+      toast.error(error?.message || t("user.profile.badgeScreen.failedToLoadBadgeDetails"));
     }
   };
 
@@ -343,7 +354,7 @@ const Badge = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title="Badge"
+          title={t("user.profile.userProfile.badge")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />

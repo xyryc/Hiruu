@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { INTERESTS, Interest } from "@/constants/interests";
 
@@ -17,6 +18,8 @@ const InterestGrid: React.FC<InterestGridProps> = ({
   showSelectedOnly = false,
   interests = INTERESTS,
 }) => {
+  const { t } = useTranslation();
+
   const visibleInterests =
     readonly && showSelectedOnly
       ? interests.filter((interest) =>
@@ -59,7 +62,7 @@ const InterestGrid: React.FC<InterestGridProps> = ({
                 <Text
                   className={`text-xs text-center mt-2 font-proximanova-medium ${selected ? "text-gray-900" : "text-gray-600"}`}
                 >
-                  {interest.name}
+                  {t(interest.name)}
                 </Text>
               </View>
             </TouchableOpacity>

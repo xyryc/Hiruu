@@ -10,32 +10,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const formatRelativeTime = (value?: string) => {
-  if (!value) return "Just now";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Just now";
-
-  const diffMs = Date.now() - date.getTime();
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (days >= 30) return `${Math.floor(days / 30)} Month ago`;
-  if (days >= 7) return `${Math.floor(days / 7)} Week ago`;
-  if (days >= 1) return `${days} Days ago`;
-
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  if (hours >= 1) return `${hours} Hour ago`;
-
-  const minutes = Math.floor(diffMs / (1000 * 60));
-  if (minutes >= 1) return `${minutes} Min ago`;
-
-  return "Just now";
-};
-
 const Rating = () => {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const params = useLocalSearchParams<{
     userId?: string;
@@ -110,9 +91,9 @@ const Rating = () => {
   const summaryBars = useMemo(() => {
     if (!ratingItems.length) {
       return [
-        { label: "Pay On Time", value: 0, max: 5 },
-        { label: "Trust Worthy", value: 0, max: 5 },
-        { label: "Communication", value: 0, max: 5 },
+        { label: t("user.profile.businessProfile.payOnTime"), value: 0, max: 5 },
+        { label: t("user.profile.rating.trustWorthy"), value: 0, max: 5 },
+        { label: t("user.profile.businessProfile.communication"), value: 0, max: 5 },
       ];
     }
 
@@ -127,11 +108,11 @@ const Rating = () => {
     );
 
     return [
-      { label: "Pay On Time", value: totals.onTime / total, max: 5 },
-      { label: "Trust Worthy", value: totals.trustWorthy / total, max: 5 },
-      { label: "Communication", value: totals.communication / total, max: 5 },
+      { label: t("user.profile.businessProfile.payOnTime"), value: totals.onTime / total, max: 5 },
+      { label: t("user.profile.rating.trustWorthy"), value: totals.trustWorthy / total, max: 5 },
+      { label: t("user.profile.businessProfile.communication"), value: totals.communication / total, max: 5 },
     ];
-  }, [ratingItems]);
+  }, [ratingItems, t]);
 
   const averageRating = useMemo(() => {
     if (!ratingItems.length) return 0;
@@ -152,6 +133,37 @@ const Rating = () => {
 
 
 
+  const formatRelativeTime = useCallback((value?: string) => {
+    if (!value) return t("user.profile.rating.justNow");
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return t("user.profile.rating.justNow");
+
+    const diffMs = Date.now() - date.getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (days >= 30) {
+      return t("user.profile.rating.monthAgo", { count: Math.floor(days / 30) });
+    }
+    if (days >= 7) {
+      return t("user.profile.rating.weekAgo", { count: Math.floor(days / 7) });
+    }
+    if (days >= 1) {
+      return t("user.profile.rating.daysAgo", { count: days });
+    }
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (hours >= 1) {
+      return t("user.profile.rating.hourAgo", { count: hours });
+    }
+
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    if (minutes >= 1) {
+      return t("user.profile.rating.minAgo", { count: minutes });
+    }
+
+    return t("user.profile.rating.justNow");
+  }, [t]);
+
   const canSubmitRating = canRate || (isBusinessRatingView && !isOwnBusinessRatingView);
 
   useEffect(() => {
@@ -167,7 +179,7 @@ const Rating = () => {
     }) => {
       if (!targetUserId || !businessId) {
         if (!isBusinessRatingView || !businessId) {
-          toast.error("Business or user information is missing");
+          toast.error(t("user.profile.rating.businessOrUserInfoMissing"));
           return;
         }
       }
@@ -186,11 +198,11 @@ const Rating = () => {
             comment: payload.comment,
           });
         }
-        toast.success("Rating submitted successfully");
+        toast.success(t("user.profile.rating.ratingSubmittedSuccessfully"));
         setIsVisible(false);
         await loadRatings();
       } catch (error: any) {
-        toast.error(error?.message || "Failed to submit rating");
+        toast.error(error?.message || t("user.profile.rating.failedToSubmitRating"));
       }
     },
     [
@@ -199,6 +211,7 @@ const Rating = () => {
       createUserBusinessRating,
       isBusinessRatingView,
       loadRatings,
+      t,
       targetUserId,
     ]
   );
@@ -218,7 +231,7 @@ const Rating = () => {
         <ScreenHeader
           onPressBack={() => router.back()}
           className="px-5 pb-6 rounded-b-3xl mt-4 overflow-hidden"
-          title="Rating"
+          title={t("user.profile.rating.title")}
           titleClass="text-primary "
           iconColor={isDark ? "#fff" : "#111111"}
         />
@@ -253,8 +266,8 @@ const Rating = () => {
                 }
                 name={
                   isBusinessRatingView
-                    ? item?.raterUser?.name || item?.business?.name || "Unknown"
-                    : item?.business?.name || item?.raterUser?.name || "Unknown"
+                    ? item?.raterUser?.name || item?.business?.name || t("user.profile.rating.unknown")
+                    : item?.business?.name || item?.raterUser?.name || t("user.profile.rating.unknown")
                 }
                 time={formatRelativeTime(item?.createdAt)}
                 rating={Math.max(
@@ -268,7 +281,7 @@ const Rating = () => {
             ))
           ) : (
             <Text className="mt-8 text-center text-sm text-secondary dark:text-dark-secondary">
-              No ratings found.
+              {t("user.profile.rating.noRatingsFound")}
             </Text>
           )}
         </View>
@@ -284,7 +297,7 @@ const Rating = () => {
       {canSubmitRating ? (
         <View className="absolute bottom-0 left-0 right-0 px-5 pb-5">
           <PrimaryButton
-            title="Add Rating"
+            title={t("user.profile.rating.addRating")}
             onPress={() => setIsVisible(true)}
           />
         </View>

@@ -4,12 +4,14 @@ import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React, { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import PrimaryButton from "../buttons/PrimaryButton";
 
 const EditBadgeModal = ({ visible, onClose }: any) => {
+  const { t } = useTranslation();
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -83,7 +85,7 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load earned badges");
+        toast.error(error?.message || t("user.profile.editBadgeModal.failedToLoadEarnedBadges"));
       } finally {
         if (!mounted) return;
         setLoading(false);
@@ -95,18 +97,18 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
     return () => {
       mounted = false;
     };
-  }, [visible]);
+  }, [t, visible]);
 
   const badgeItems = useMemo(() => {
     return earnedBadges.map((badge) => {
       const ui = getTierUi(badge?.tier);
       return {
         id: String(badge?.id || `${badge?.achievementId || ""}-${badge?.tier || ""}`),
-        title: String(badge?.achievement?.title || "Badge"),
+        title: String(badge?.achievement?.title || t("user.profile.editBadgeModal.badge")),
         ...ui,
       };
     });
-  }, [earnedBadges]);
+  }, [earnedBadges, t]);
 
   const badgeRows = useMemo(() => {
     const rows: any[][] = [];
@@ -147,7 +149,7 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
       onClose();
     } catch (error: any) {
       if (isExpectedAuthError(error)) return;
-      toast.error(translateApiMessage(error?.message || "Failed to save badges"));
+      toast.error(translateApiMessage(error?.message || t("user.profile.editBadgeModal.failedToSaveBadges")));
     } finally {
       setSaving(false);
     }
@@ -213,7 +215,7 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
 
           <SafeAreaView edges={["bottom"]} className="px-8 py-7">
             <Text className="font-proximanova-bold text-xl mb-7 text-primary dark:text-dark-primary text-center">
-              Select Your Badge
+              {t("user.profile.editBadgeModal.selectYourBadge")}
             </Text>
 
             {loading ? (
@@ -228,11 +230,11 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
               ))
             ) : (
               <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                No earned badges yet.
+                {t("user.profile.editBadgeModal.noEarnedBadgesYet")}
               </Text>
             )}
             <PrimaryButton
-              title={saving ? "Saving..." : "Save"}
+              title={saving ? t("user.profile.businessProfile.saving") : t("user.profile.editBadgeModal.save")}
               className="mt-10"
               onPress={handleSave}
               loading={saving}
