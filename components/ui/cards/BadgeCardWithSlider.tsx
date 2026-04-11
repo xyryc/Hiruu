@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import React from "react";
 import { Image } from "expo-image";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 import CoinProgressSlider from "../inputs/CoinProgressSlider";
 
 type TBadgeCardWithSlider = {
@@ -33,7 +33,7 @@ const BadgeCardWithSlider = ({
   return (
     <TouchableOpacity onPress={onPress}>
       <View
-        className={` ${className} border border-[#EEEEEE] rounded-xl p-4 flex-row gap-4`}
+        className={` ${className} border border-[#EEEEEE] rounded-xl p-4 flex-row gap-6`}
       >
         <View
           className="h-[87px] w-16 bg-[#FFF4ED] items-center flex-row justify-center rounded-[10px] border border-b-[3px] "

@@ -114,13 +114,17 @@ const BadgeModal = ({ visible, onClose, data }: any) => {
             </View>
             <View className="flex-row justify-between mt-4">
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Hours worked
+                {data?.metricLabel || "Progress"}
               </Text>
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
                 {data.time || "300hrs/ 500hrs"}
               </Text>
             </View>
-            <CoinProgressSlider max={500} achieved={300} className="mt-4" />
+            <CoinProgressSlider
+              max={Number(data?.max || 0)}
+              achieved={Number(data?.achieved || 0)}
+              className="mt-4"
+            />
             <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
               <Text className="text-[#4FB2F3]">Next</Text>:{" "}
               {data.subTitle || "Silver badge at 500 Hours"}

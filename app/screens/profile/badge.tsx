@@ -1,23 +1,94 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BadgeCardWithSlider from "@/components/ui/cards/BadgeCardWithSlider";
 import BadgeModal from "@/components/ui/modals/BadgeModal";
+import axiosInstance from "@/utils/axios";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+
+type BadgeTrack = {
+  id: string;
+  key: string;
+  title: string;
+  displayUnit: string;
+  ongoingTier: string;
+  nextTier: string;
+  nextThreshold: number;
+  currentProgress: number;
+  threshold: number;
+};
+
+type BadgeUiMeta = {
+  img: any;
+  badgeBackground: string;
+  tagColor: string;
+};
+
+const TIER_UI_MAP: Record<string, BadgeUiMeta> = {
+  bronze: {
+    img: require("@/assets/images/reward/red-bands.svg"),
+    badgeBackground: "#FFF4ED",
+    tagColor: "#F3934F",
+  },
+  silver: {
+    img: require("@/assets/images/reward/black-bands.svg"),
+    badgeBackground: "#80808008",
+    tagColor: "#808080",
+  },
+  gold: {
+    img: require("@/assets/images/reward/gold-bands.svg"),
+    badgeBackground: "#FFFBE8",
+    tagColor: "#F1C400",
+  },
+  diamond: {
+    img: require("@/assets/images/reward/blue-bands.svg"),
+    badgeBackground: "#EFF9FF",
+    tagColor: "#4FB2F3",
+  },
+};
+
+const DEFAULT_TIER_UI = TIER_UI_MAP.bronze;
+
+const normalizeTier = (tier?: string) => String(tier || "").toLowerCase();
+const formatTier = (tier?: string) => {
+  const value = normalizeTier(tier);
+  if (!value) return "Bronze";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
+const formatProgressText = (
+  currentProgress?: number,
+  threshold?: number,
+  displayUnit?: string
+) => {
+  const current = typeof currentProgress === "number" ? currentProgress : 0;
+  const max = typeof threshold === "number" ? threshold : 0;
+  const unit = String(displayUnit || "").trim();
+  return `${current}${unit}/ ${max}${unit}`;
+};
+
+const formatNextText = (
+  nextTier?: string,
+  threshold?: number,
+  displayUnit?: string
+) => {
+  const tier = formatTier(nextTier);
+  const max = typeof threshold === "number" ? threshold : 0;
+  const unit = String(displayUnit || "").trim();
+  return `${tier} badge at ${max} ${unit}`;
+};
 
 const Badge = () => {
   const [visible, setVisible] = useState(false);
-  const redBadge = require("@/assets/images/reward/red-bands.svg");
-  const blackBadge = require("@/assets/images/reward/black-bands.svg");
-  const blueBadge = require("@/assets/images/reward/blue-bands.svg");
-  const goldBadge = require("@/assets/images/reward/gold-bands.svg");
+  const [tracks, setTracks] = useState<BadgeTrack[]>([]);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const [data, setData] = useState<{
-    coin: number;
+    coin?: number;
     img: any;
     badgeBackground: string;
     tagColor: string;
@@ -26,6 +97,9 @@ const Badge = () => {
     time?: string;
     subTitle?: string;
     details?: string;
+    max?: number;
+    achieved?: number;
+    metricLabel?: string;
   }>({
     coin: 0,
     img: "",
@@ -36,72 +110,86 @@ const Badge = () => {
     time: "",
     subTitle: "",
     details: "",
+    max: 0,
+    achieved: 0,
+    metricLabel: "Progress",
   });
 
-  const bronze = {
-    coin: 100,
-    img: redBadge,
-    badgeBackground: "#FFF4ED",
-    tagColor: "#F3934F",
-    title: "Hard worker",
-    buttonTitle: "Bronze",
-    time: "300hrs/ 500hrs",
-    subTitle: "Silver badge at 500 Hours",
-    details:
-      "Earn this badge by working consistent hours over time. Keep going to level up and earn rewardz",
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const status = error?.response?.status;
+    if (status === 401) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("status code 401") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
   };
 
-  const gold = {
-    coin: 500,
-    img: goldBadge,
-    badgeBackground: "#FFFBE8",
-    tagColor: "#F1C400",
-    title: "Early Bird",
-    buttonTitle: "Gold",
-    time: "50Days/ 100Days",
-    subTitle: "Diamond badge at 100 Days",
-    details:
-      "Log in before 8 AM to earn this badge. Keep your mornings consistent to level up faster",
-  };
+  useEffect(() => {
+    let mounted = true;
 
-  const silver = {
-    coin: 1000,
-    img: blackBadge,
-    badgeBackground: "#80808008",
-    tagColor: "#808080",
-    title: "Night Owl",
-    buttonTitle: "Silver",
-    time: "20Night/ 50Night",
-    subTitle: "Gold Badge at 50 Nights",
-    details:
-      "Log shifts after 10 PM consistently. Stay active at night to level up.",
-  };
+    const loadBadgeTracks = async () => {
+      try {
+        const response = await axiosInstance.get("/badges/tracks");
+        const result = response?.data;
+        const badgeTracks = Array.isArray(result?.data) ? result.data : [];
+        if (!mounted) return;
+        setTracks(badgeTracks);
+      } catch (error: any) {
+        if (!mounted) return;
+        if (isExpectedAuthError(error)) return;
+        toast.error(error?.message || "Failed to load badges");
+      }
+    };
 
-  const blue = {
-    coin: 1000,
-    img: blueBadge,
-    badgeBackground: "#EFF9FF",
-    tagColor: "#4FB2F3",
-    title: "Streak Starter",
-    buttonTitle: "Diamond",
-    time: "100Days/ 500Days",
-    subTitle: "Diamond badge at 500 Days",
-    details:
-      "Log shifts after 10 PM consistently. Stay active at night to level up.",
-  };
+    void loadBadgeTracks();
 
-  const handleClickOpenModal = (e: string) => {
-    console.error(e);
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const uiTracks = useMemo(() => {
+    return tracks.map((track) => {
+      const tierKey = normalizeTier(track?.ongoingTier);
+      const tierUi = TIER_UI_MAP[tierKey] || DEFAULT_TIER_UI;
+      return {
+        ...track,
+        tierUi,
+        tag: formatTier(track?.ongoingTier),
+        time: formatProgressText(
+          track?.currentProgress,
+          track?.threshold,
+          track?.displayUnit
+        ),
+        nextText: formatNextText(
+          track?.nextTier,
+          track?.threshold,
+          track?.displayUnit
+        ),
+      };
+    });
+  }, [tracks]);
+
+  const handleClickOpenModal = (track: (typeof uiTracks)[number]) => {
     setVisible(true);
-    if (e === "Silver") {
-      setData(silver);
-    } else if (e === "Gold") {
-      setData(gold);
-    } else if (e === "Bronze") {
-      setData(bronze);
-    } else if (e === "Blue") {
-      setData(blue);
-    }
+    setData({
+      coin: 0,
+      img: track.tierUi.img,
+      badgeBackground: track.tierUi.badgeBackground,
+      tagColor: track.tierUi.tagColor,
+      title: track.title,
+      buttonTitle: track.tag,
+      time: track.time,
+      subTitle: track.nextText,
+      details: "",
+      max: Number(track.threshold || 0),
+      achieved: Number(track.currentProgress || 0),
+      metricLabel: "Progress",
+    });
   };
 
   return (
@@ -122,84 +210,22 @@ const Badge = () => {
       <ScrollView contentContainerStyle={{
         paddingBottom: 80
       }}>
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Bronze")}
-          className="mt-5 mx-5"
-          badgeBackground="#FFF4ED"
-          tagColor="#F3934F"
-          img={redBadge}
-          title="Hard worker"
-          time="300hrs/ 500hrs"
-          text="Silver badge at 500 Hours"
-          max={500}
-          achieved={300}
-          tag="Bronze"
-        />
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Gold")}
-          className="mt-4 mx-5"
-          badgeBackground="#FFFBE8"
-          tagColor="#F1C400"
-          img={goldBadge}
-          title="Early Bird"
-          time="50Days/ 100Days"
-          text="Diamond badge at 100 Days"
-          max={100}
-          achieved={50}
-          tag="Gold"
-        />
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Silver")}
-          className="mt-5 mx-5"
-          badgeBackground="#80808008"
-          tagColor="#808080"
-          img={blackBadge}
-          title="Night Owl"
-          time="20Nights/ 50Nights"
-          text="Gold Badge at 50 Nights"
-          max={50}
-          achieved={20}
-          tag="Silver"
-        />
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Blue")}
-          className="mt-4 mx-5"
-          badgeBackground="#EFF9FF"
-          tagColor="#4FB2F3"
-          img={blueBadge}
-          title="Streak Starter"
-          time="100Days/ 100Days"
-          text="Gold Badge at 50 Nights"
-          max={100}
-          achieved={100}
-          tag="Diamond"
-        />
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Bronze")}
-          className="mt-5 mx-5"
-          badgeBackground="#FFF4ED"
-          tagColor="#F3934F"
-          img={redBadge}
-          title="Productive Week"
-          time="40hrs/ 60hrs"
-          text="Work 60 hours this week Silver!"
-          max={60}
-          achieved={40}
-          tag="Bronze"
-        />
-        <BadgeCardWithSlider
-          onPress={() => handleClickOpenModal("Gold")}
-          className="mt-4 mx-5"
-          badgeBackground="#FFFBE8"
-          tagColor="#F1C400"
-          img={goldBadge}
-          title="Reflection Pro"
-          time="50Days/ 100Days"
-          text="Diamond badge at 100 Days"
-          max={100}
-          achieved={50}
-          tag="Gold"
-        />
+        {uiTracks.map((track, index) => (
+          <BadgeCardWithSlider
+            key={track.id}
+            onPress={() => handleClickOpenModal(track)}
+            className={`${index === 0 ? "mt-5" : "mt-4"} mx-5`}
+            badgeBackground={track.tierUi.badgeBackground}
+            tagColor={track.tierUi.tagColor}
+            img={track.tierUi.img}
+            title={track.title}
+            time={track.time}
+            text={track.nextText}
+            max={Number(track.threshold || 0)}
+            achieved={Number(track.currentProgress || 0)}
+            tag={track.tag}
+          />
+        ))}
       </ScrollView>
 
       <BadgeModal
