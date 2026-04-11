@@ -106,6 +106,7 @@ const Edit = () => {
             companyMap.set(exp.companyId, {
               id: exp.companyId,
               name: exp.companyName || "Company",
+              logo: exp.logo || undefined,
             });
           }
         });

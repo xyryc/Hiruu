@@ -8,6 +8,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -17,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const tabs = ["limited time", "featured", "all"] as const;
@@ -41,12 +42,14 @@ const Nameplate = () => {
   const [selectedCoinPrice, setSelectedCoinPrice] = useState(0);
   const [isActive, setIsActive] = useState<TabType>("limited time");
   const [totalTokens, setTotalTokens] = useState(0);
+  const insets = useSafeAreaInsets();
 
   const cosmeticsStoreItems = useRewardStore((state) => state.cosmeticsStoreItems);
   const cosmeticsStoreLoading = useRewardStore((state) => state.cosmeticsStoreLoading);
   const isPurchasingCosmetic = useRewardStore((state) => state.isPurchasingCosmetic);
   const isEquippingNameplate = useRewardStore((state) => state.isEquippingNameplate);
   const fetchCosmeticsStore = useRewardStore((state) => state.fetchCosmeticsStore);
+  const fetchCosmeticsInventory = useRewardStore((state) => state.fetchCosmeticsInventory);
   const purchaseCosmetic = useRewardStore((state) => state.purchaseCosmetic);
   const equipNameplate = useRewardStore((state) => state.equipNameplate);
   const user = useAuthStore((state) => state.user as any);
@@ -149,6 +152,12 @@ const Nameplate = () => {
         limit: 100,
         append: false,
       });
+      await fetchCosmeticsInventory({
+        type: "nameplate",
+        page: 1,
+        limit: 100,
+        append: false,
+      });
     } catch (error: any) {
       toast.error(
         translateApiMessage(error?.message || "Failed to update nameplate")
@@ -158,6 +167,7 @@ const Nameplate = () => {
     cosmeticsStoreItems,
     equipNameplate,
     fetchCosmeticsStore,
+    fetchCosmeticsInventory,
     highlightParam,
     purchaseCosmetic,
     selectedNameplateId,
@@ -194,10 +204,21 @@ const Nameplate = () => {
   const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["left", "right", "bottom"]}>
-      <View className="bg-[#E5F4FD] rounded-b-2xl pt-10 px-5 -z-30">
+    <SafeAreaView
+      className="flex-1 bg-white dark:bg-dark-background"
+      edges={["left", "right", "bottom"]}
+    >
+      <StatusBar
+        style={isDark ? "light" : "dark"}
+        backgroundColor="#E5F4FD"
+        translucent={false}
+      />
+      <View
+        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+        style={{ paddingTop: insets.top }}
+      >
         <ScreenHeader
-          className="my-4"
+          className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
           title="Buy Nameplate"
           titleClass="text-primary dark:text-dark-primary"

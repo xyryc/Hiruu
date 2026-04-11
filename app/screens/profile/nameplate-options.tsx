@@ -4,10 +4,11 @@ import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import { useAuthStore } from "@/stores/authStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { translateApiMessage } from "@/utils/apiMessages";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -52,6 +53,15 @@ const YourNamePlates = () => {
     fetchCosmeticsInventory({ type: "nameplate", page: 1 }).catch(() => null);
   }, [fetchCosmeticsInventory]);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchCosmeticsInventory({ type: "nameplate", page: 1, append: false }).catch(
+        () => null
+      );
+      return () => { };
+    }, [fetchCosmeticsInventory])
+  );
+
   useEffect(() => {
     const equipped = nameplateItems.find((item) => item?.isEquipped);
     setSelected(equipped?.cosmeticId || "none");
@@ -86,7 +96,8 @@ const YourNamePlates = () => {
             onPress={() => router.push("/screens/rewards/nameplate")}
             className="w-10 h-10 rounded-full bg-white items-center justify-center"
           >
-            <MaterialIcons name="storefront" size={18} color="black" />
+
+            <Feather name="shopping-bag" size={18} color="black" />
           </TouchableOpacity>
         }
       />

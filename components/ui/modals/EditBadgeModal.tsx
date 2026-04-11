@@ -1,4 +1,5 @@
 import axiosInstance from "@/utils/axios";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -11,6 +12,7 @@ import PrimaryButton from "../buttons/PrimaryButton";
 const EditBadgeModal = ({ visible, onClose }: any) => {
   const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const [earnedBadges, setEarnedBadges] = React.useState<any[]>([]);
 
   const getTierUi = (tier?: string) => {
@@ -69,6 +71,15 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
         const list = Array.isArray(result?.data) ? result.data : [];
         if (!mounted) return;
         setEarnedBadges(list);
+        const equipped = list
+          .filter((item: any) => item?.isEquipped === true)
+          .sort(
+            (a: any, b: any) =>
+              Number(a?.equippedSlot || 0) - Number(b?.equippedSlot || 0)
+          )
+          .map((item: any) => String(item?.id))
+          .slice(0, 3);
+        setSelectedCards(equipped);
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
@@ -116,6 +127,30 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
   const getSelectionNumber = (badgeId: string) => {
     const position = selectedCards.indexOf(badgeId);
     return position !== -1 ? position + 1 : null;
+  };
+
+  const handleSave = async () => {
+    if (saving) return;
+
+    try {
+      setSaving(true);
+      const payload = {
+        badges: selectedCards.map((id, index) => ({
+          id,
+          slot: index + 1,
+        })),
+      };
+      const response = await axiosInstance.patch("/badges/toggle", payload);
+      const result = response?.data;
+      const messageKey = result?.message || "badges_updated_successfully";
+      toast.success(translateApiMessage(messageKey));
+      onClose();
+    } catch (error: any) {
+      if (isExpectedAuthError(error)) return;
+      toast.error(translateApiMessage(error?.message || "Failed to save badges"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const renderBadgeRow = (items: any[]) => (
@@ -196,7 +231,12 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
                 No earned badges yet.
               </Text>
             )}
-            <PrimaryButton title="Save" className="mt-10" onPress={onClose} />
+            <PrimaryButton
+              title={saving ? "Saving..." : "Save"}
+              className="mt-10"
+              onPress={handleSave}
+              loading={saving}
+            />
           </SafeAreaView>
         </View>
       </BlurView>
