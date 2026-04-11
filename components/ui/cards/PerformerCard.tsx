@@ -75,7 +75,7 @@ const PerformerCard = ({
               {userName}
             </Text>
             <Text className="text-sm font-proximanova-regular text-[#4FB2F3] mt-1">
-              {points} points
+              {points} points earned
             </Text>
           </View>
         </View>

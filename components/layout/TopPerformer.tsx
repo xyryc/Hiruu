@@ -71,7 +71,10 @@ const TopPerformer = ({ className }: any) => {
           Top Performer
         </Text>
 
-        <Text className="text-sm font-proximanova-semibold text-[#4FB2F3] p-1">
+        <Text
+          onPress={() => router.push("/screens/home/leaderboard")}
+          className="text-sm font-proximanova-semibold text-[#4FB2F3] p-1"
+        >
           See All
         </Text>
       </View>
