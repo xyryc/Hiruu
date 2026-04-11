@@ -107,6 +107,7 @@
     "shift_request_created": "Shift request created successfully.",
     "successfully_clocked_in": "Successfully clocked in.",
     "successfully_clocked_out": "Successfully clocked out.",
+    "purchase_successful": "Purchase successful.",
     "attendance_you_cannot_login_twice": "You cannot login twice.",
     "calls_there_is_already_an_ongoing_call_in_this_room": "There is already an ongoing call in this room.",
     "ai_engine_cv_cancelled": "CV generation cancelled.",

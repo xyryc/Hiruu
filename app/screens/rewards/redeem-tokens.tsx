@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
-import RedeemModal from "@/components/ui/modals/RedeemModal";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
+import RedeemModal from "@/components/ui/modals/RedeemModal";
 import { walletService } from "@/services/walletService";
 import { useJobStore } from "@/stores/jobStore";
 import { useRewardStore } from "@/stores/rewardStore";
@@ -97,21 +97,6 @@ const featureJobConfig = {
   ],
   confirmTitle: "Continue Feature",
   cardBgColor: "#F7EEFF",
-};
-
-const nameplateConfig = {
-  img: require("@/assets/images/reward/designs.svg"),
-  title: "Unlock Nameplate Designs",
-  subtitle: "Choose profile nameplate styles",
-  coin: "200",
-  detailsTitle: "Nameplate Unlock Details",
-  details: [
-    "Unlock premium cosmetic nameplate designs",
-    "Customize your profile look with more styles",
-    "Applies to visual presentation only",
-  ],
-  confirmTitle: "View Nameplates",
-  cardBgColor: "#FFFCEE",
 };
 
 const GIFT_PREMIUM_SELECTION_KEY = "gift-premium-user";
@@ -565,12 +550,7 @@ const RedeemTokens = () => {
       });
       setModalVisible(true);
     } else if (key === "nameplate") {
-      setSelectedRedeemKey("unlock_nameplate_designs");
-      openRedeemModal(
-        nameplateConfig,
-        "unlock_nameplate_designs",
-        nameplateConfig.coin
-      );
+      router.push("/screens/rewards/nameplate");
     }
   };
 
@@ -796,21 +776,12 @@ const RedeemTokens = () => {
             Choose profile nameplate styles
           </Text>
           <View className="flex-row items-center gap-1.5 mt-2.5">
-            <View className="flex-row -z-20 items-center">
-              <Image
-                source={require("@/assets/images/hiruu-coin.svg")}
-                style={{
-                  width: 22,
-                  height: 22,
-                }}
-                contentFit="contain"
-              />
-              <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
-                <Text className="text-xs font-proximanova-semibold text-primary ">
-                  {getItemPrice("unlock_nameplate_designs", "200")}
-                </Text>
-              </View>
+            <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
+              <Text className="text-xs font-proximanova-semibold text-primary ">
+                See All
+              </Text>
             </View>
+
             <Feather
               name="arrow-right"
               className="bg-white p-1 rounded-full border-hairline border-[#EEEEEE] "
