@@ -12,6 +12,7 @@ import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import {
   SafeAreaView,
@@ -20,6 +21,7 @@ import {
 import { toast } from "sonner-native";
 
 const BusinessPlan = () => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -79,7 +81,7 @@ const BusinessPlan = () => {
       try {
         await getBusinessPlans();
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load business plans");
+        toast.error(error?.message || t("user.profile.failedToLoadBusinessPlans"));
       }
     };
 
@@ -149,7 +151,7 @@ const BusinessPlan = () => {
   // Get display content for header button
   const getDisplayContent = () => {
     if (!selectedBusiness) {
-      return { type: "all", content: "Select" };
+      return { type: "all", content: t("user.profile.select") };
     }
     return { type: "single", content: selectedBusiness };
   };
@@ -158,19 +160,19 @@ const BusinessPlan = () => {
 
   const handleSubscribe = async () => {
     if (isAlreadySubscribed) {
-      toast.info("Already subscribed");
+      toast.info(t("user.profile.alreadySubscribed"));
       return;
     }
 
     const planForCheckout = selectedPlanForCheckout || paidPlan;
 
     if (!planForCheckout) {
-      toast.error("No paid business plan available");
+      toast.error(t("user.profile.noPaidBusinessPlanAvailable"));
       return;
     }
 
     if (!selectedBusinessId) {
-      toast.error("Select a business first");
+      toast.error(t("user.profile.selectBusinessFirst"));
       return;
     }
 
@@ -194,13 +196,17 @@ const BusinessPlan = () => {
       });
 
       if (initResult.error) {
-        toast.error(initResult.error.message || "Failed to initialize payment sheet");
+        toast.error(
+          initResult.error.message || t("user.profile.failedToInitializePaymentSheet")
+        );
         return;
       }
 
       const paymentResult = await presentPaymentSheet();
       if (paymentResult.error) {
-        toast.error(paymentResult.error.message || "Payment was not completed");
+        toast.error(
+          paymentResult.error.message || t("user.profile.paymentWasNotCompleted")
+        );
         return;
       }
 
@@ -212,14 +218,14 @@ const BusinessPlan = () => {
       });
 
 
-      toast.success("Business subscription activated");
+      toast.success(t("user.profile.businessSubscriptionActivated"));
       await Promise.all([getBusinessPlans(), loadActiveSubscriptions()]);
       router.back();
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
         error?.message ||
-        "Business subscription failed"
+        t("user.profile.businessSubscriptionFailed")
       );
     } finally {
       setIsSubscribing(false);
@@ -238,7 +244,7 @@ const BusinessPlan = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title="Business Plan"
+          title={t("user.profile.businessPlanScreenTitle")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -254,7 +260,7 @@ const BusinessPlan = () => {
         <View className="mx-5">
           <View className="flex-row justify-between mt-4 items-center">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Select business
+              {t("user.profile.selectBusiness")}
             </Text>
 
             <BusinessSelectionTrigger
@@ -269,7 +275,7 @@ const BusinessPlan = () => {
           <View className="py-8 items-center">
             <ActivityIndicator size="small" color="#4FB2F3" />
             <Text className="mt-2 text-secondary dark:text-dark-secondary text-sm">
-              Loading plans...
+              {t("user.profile.loadingPlans")}
             </Text>
           </View>
         ) : (
@@ -288,18 +294,18 @@ const BusinessPlan = () => {
 
       <View className="mx-5 mb-6 mt-4">
         <Text className="text-center text-secondary dark:text-dark-secondary text-sm mb-4 capitalize">
-          Subscription auto-renews until manually cancelled.
+          {t("user.profile.subscriptionAutoRenew")}
         </Text>
 
         <GradientButton
           title={
             loadingActiveSub
-              ? "Checking..."
+              ? t("user.profile.checking")
               : isAlreadySubscribed
-                ? "Already Subscribed"
+                ? t("user.profile.alreadySubscribed")
                 : isSubscribing
-                  ? "Processing..."
-                  : "Subscribe Now"
+                  ? t("user.profile.processing")
+                  : t("user.profile.subscribeNow")
           }
           disabled={
             loadingActiveSub ||

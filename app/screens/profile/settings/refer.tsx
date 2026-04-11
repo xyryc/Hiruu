@@ -12,26 +12,28 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Refer = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const refCard = [
     {
       coin: 20,
-      text1: "Refer A",
-      text2: "Friend",
+      text1: t("user.profile.refer.referA"),
+      text2: t("user.profile.refer.friend"),
       imageSource: require("@/assets/images/reward/refer-friend.svg"),
       border: "#F3934F",
       back: "#FEEFE5",
     },
     {
       coin: 40,
-      text1: "Refer A",
-      text2: "Business",
+      text1: t("user.profile.refer.referA"),
+      text2: t("user.profile.refer.business"),
       imageSource: require("@/assets/images/reward/refer-business.svg"),
       border: "#788CFF",
       back: "#788CFF10",
@@ -47,7 +49,7 @@ const Refer = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="Refer and Earn"
+          title={t("user.profile.referAndEarn")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -56,9 +58,10 @@ const Refer = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="mx-5">
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-5">
-            <Text className="font-proximanova-semibold">Note:</Text> Phone
-            number verification is mandatory for any user who joins and wants to
-            claim a reward.
+            <Text className="font-proximanova-semibold">
+              {t("user.profile.refer.notePrefix")}
+            </Text>{" "}
+            {t("user.profile.refer.noteBody")}
           </Text>
 
           {/* card */}
@@ -101,11 +104,11 @@ const Refer = () => {
           </View>
 
           {/* primary button */}
-          <PrimaryButton title="Refer Now" className="mt-8" />
+          <PrimaryButton title={t("user.profile.refer.referNow")} className="mt-8" />
 
           {/* Share Via */}
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-7">
-            Share Via
+            {t("user.profile.refer.shareVia")}
           </Text>
 
           <View className="flex-row justify-between">
@@ -115,7 +118,7 @@ const Refer = () => {
                 <Ionicons name="copy-outline" size={24} color="black" />
               </View>
               <Text className="text-center font-proximanova-regular text-primary dark:text-dark-primary text-sm">
-                Copy link
+                {t("user.profile.refer.copyLink")}
               </Text>
             </View>
             {/* whatsapp */}
@@ -128,7 +131,7 @@ const Refer = () => {
                 />
               </View>
               <Text className="text-center font-proximanova-regular text-primary dark:text-dark-primary text-sm">
-                WhatsApp
+                {t("user.profile.refer.whatsapp")}
               </Text>
             </View>
             {/* Instagram */}
@@ -141,7 +144,7 @@ const Refer = () => {
                 />
               </View>
               <Text className="text-center font-proximanova-regular text-primary dark:text-dark-primary text-sm">
-                Instagram
+                {t("user.profile.refer.instagram")}
               </Text>
             </View>
             {/* Facebook */}
@@ -150,7 +153,7 @@ const Refer = () => {
                 <FontAwesome6 name="facebook" size={24} color="#1877F2" />
               </View>
               <Text className="text-center font-proximanova-regular text-primary dark:text-dark-primary text-sm">
-                Facebook
+                {t("user.profile.refer.facebook")}
               </Text>
             </View>
             {/* Telegram */}
@@ -159,7 +162,7 @@ const Refer = () => {
                 <Fontisto name="telegram" size={24} color="#41B4E6" />
               </View>
               <Text className="text-center font-proximanova-regular text-primary dark:text-dark-primary text-sm">
-                Telegram
+                {t("user.profile.refer.telegram")}
               </Text>
             </View>
           </View>

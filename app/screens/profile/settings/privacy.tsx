@@ -4,11 +4,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, ScrollView, Text, View } from "react-native";
 import { EnrichedMarkdownText } from "react-native-enriched-markdown";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Privacy = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getPrivacyPolicy = useSettingsStore((s) => s.getPrivacyPolicy);
@@ -41,7 +43,7 @@ const Privacy = () => {
         className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
         onPressBack={() => router.back()}
-        title="Privacy Policy"
+        title={t("user.profile.privacyPolicy")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -129,7 +131,7 @@ const Privacy = () => {
                 isDark ? "text-dark-primary" : "text-primary"
               }`}
             >
-              No privacy policy found.
+              {t("user.profile.noPrivacyPolicyFound")}
             </Text>
           )}
         </View>

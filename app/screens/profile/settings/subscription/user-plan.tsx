@@ -8,12 +8,14 @@ import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 
 const UserPlan = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
@@ -29,9 +31,9 @@ const UserPlan = () => {
   }, [userPlans]);
 
   const benefits = [
-    "Profile pro customization (nameplates , gradient background)",
-    "Premium mark",
-    "Export CV as PDF with AI with verified experience from our platform",
+    t("user.profile.userPlanBenefits.customization"),
+    t("user.profile.userPlanBenefits.premiumMark"),
+    t("user.profile.userPlanBenefits.exportCv"),
   ];
 
   const capitalizeBenefit = (value: string) => {
@@ -73,7 +75,7 @@ const UserPlan = () => {
 
   const handleSubscribe = async () => {
     if (isAlreadySubscribed) {
-      toast.info("You already have an active subscription");
+      toast.info(t("user.profile.alreadyHaveActiveSubscription"));
       return;
     }
 
@@ -99,7 +101,9 @@ const UserPlan = () => {
       });
 
       if (initResult.error) {
-        toast.error(initResult.error.message || "Failed to initialize payment sheet");
+        toast.error(
+          initResult.error.message || t("user.profile.failedToInitializePaymentSheet")
+        );
         return;
       }
 
@@ -107,7 +111,9 @@ const UserPlan = () => {
       const paymentResult = await presentPaymentSheet();
 
       if (paymentResult.error) {
-        toast.error(paymentResult.error.message || "Payment was not completed");
+        toast.error(
+          paymentResult.error.message || t("user.profile.paymentWasNotCompleted")
+        );
         return;
       }
 
@@ -118,7 +124,7 @@ const UserPlan = () => {
         setupIntentId: getSetupIntentId(intentData.setupIntentClientSecret),
       });
 
-      toast.success("Subscription activated");
+      toast.success(t("user.profile.subscriptionActivated"));
 
       await loadActiveSubscription();
 
@@ -127,7 +133,7 @@ const UserPlan = () => {
       toast.error(
         error?.response?.data?.message ||
         error?.message ||
-        "Subscription failed"
+        t("user.profile.subscriptionFailed")
       );
     } finally {
       setIsSubscribing(false);
@@ -162,7 +168,7 @@ const UserPlan = () => {
         await Promise.all([getUserPlans(), loadActiveSubscription()]);
       } catch (error: any) {
         if (!mounted) return;
-        toast.error(error?.message || "Failed to load subscription data");
+        toast.error(error?.message || t("user.profile.failedToLoadSubscriptionData"));
       }
     };
 
@@ -195,7 +201,7 @@ const UserPlan = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title="User Plan"
+          title={t("user.profile.userPlanScreenTitle")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -204,7 +210,7 @@ const UserPlan = () => {
 
       <ScrollView className="flex-1 mx-5 mt-8">
         <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-          Premium Benefits
+          {t("user.profile.premiumBenefits")}
         </Text>
         <View className="bg-[#F5F6FF] rounded-2xl px-4 py-3 mt-4">
           {benefits.map((item, index) => (
@@ -220,14 +226,14 @@ const UserPlan = () => {
         </View>
 
         <Text className="font-proximanova-semibold text-xl text-primary mt-8 dark:text-dark-primary">
-          Choose your Plan
+          {t("user.profile.chooseYourPlan")}
         </Text>
 
         {isLoadingUserPlans ? (
           <View className="mt-8 items-center">
             <ActivityIndicator size="small" color="#4FB2F3" />
             <Text className="mt-2 text-secondary dark:text-dark-secondary text-sm">
-              Loading plans...
+              {t("user.profile.loadingPlans")}
             </Text>
           </View>
         ) : null}
@@ -248,7 +254,7 @@ const UserPlan = () => {
 
               <View>
                 <Text className="font-proximanova-bold text-base text-primary dark:text-dark-primary">
-                  Monthly Plan
+                  {t("user.profile.monthlyPlan")}
                 </Text>
               </View>
             </View>
@@ -272,7 +278,7 @@ const UserPlan = () => {
 
               <View>
                 <Text className="font-proximanova-bold text-base text-primary dark:text-dark-primary">
-                  Annual Plan
+                  {t("user.profile.annualPlan")}
                 </Text>
               </View>
             </View>
@@ -292,7 +298,9 @@ const UserPlan = () => {
 
             <View className="absolute -top-4 left-4 py-0.5 px-3 bg-[#4FB2F3] rounded-3xl">
               <Text className="font-proximanova-semibold text-sm text-[#FFFFFF]">
-                {paidPlan?.isFeatured ? "Featured" : "Plan"}
+                {paidPlan?.isFeatured
+                  ? t("user.profile.featuredPlanBadge")
+                  : t("user.profile.planBadge")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -303,19 +311,19 @@ const UserPlan = () => {
       <View className="mx-5 mb-6 mt-4">
         {/* Subscription Text */}
         <Text className="text-center text-secondary dark:text-dark-secondary text-sm mb-4 capitalize">
-          Subscription auto-renews until manually cancelled.
+          {t("user.profile.subscriptionAutoRenew")}
         </Text>
 
         {/* Subscribe Button */}
         <GradientButton
           title={
             loadingActiveSub
-              ? "Checking..."
+              ? t("user.profile.checking")
               : isAlreadySubscribed
-                ? "Already Subscribed"
+                ? t("user.profile.alreadySubscribed")
                 : isSubscribing
-                  ? "Processing..."
-                  : "Subscribe Now"
+                  ? t("user.profile.processing")
+                  : t("user.profile.subscribeNow")
           }
           disabled={
             loadingActiveSub ||

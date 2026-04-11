@@ -6,11 +6,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const HelpSupport = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -41,15 +43,15 @@ const HelpSupport = () => {
         pathname: "/screens/profile/settings/help-chat",
         params: {
           roomId: result.roomId,
-          chatRoomName: result.room?.name || "Support Chat",
+          chatRoomName: result.room?.name || t("user.profile.support.supportChat"),
         },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to open support chat");
+      toast.error(error?.message || t("user.profile.support.failedToOpenSupportChat"));
     } finally {
       setIsOpeningSupportChat(false);
     }
-  }, []);
+  }, [t]);
 
   return (
     <SafeAreaView
@@ -60,7 +62,7 @@ const HelpSupport = () => {
         className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
         onPressBack={() => router.back()}
-        title="Help and Support"
+        title={t("user.profile.helpAndSupport")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -74,30 +76,28 @@ const HelpSupport = () => {
           className={`mt-5 font-proximanova-regular text-xs leading-5 ${isDark ? "text-dark-primary" : "text-primary"
             }`}
         >
-          Track your shifts, manage your team, and grow your work journey, all in
-          one place with Hiruu. Whether you are getting started or already a pro,
-          help is available here.
+          {t("user.profile.support.description")}
         </Text>
 
         <Text
           className={`mt-2 font-proximanova-regular text-xs ${isDark ? "text-dark-primary" : "text-primary"
             }`}
         >
-          Have a question?
+          {t("user.profile.support.haveAQuestion")}
         </Text>
 
         <Text
           className={`mt-5 font-proximanova-semibold text-base ${isDark ? "text-dark-primary" : "text-primary"
             }`}
         >
-          FAQs
+          {t("user.profile.support.faqs")}
         </Text>
 
         <Text
           className={`mt-2 font-proximanova-regular text-xs ${isDark ? "text-dark-primary" : "text-primary"
             }`}
         >
-          Quick solutions for common issues.
+          {t("user.profile.support.quickSolutions")}
         </Text>
 
         {isLoadingFaq ? (
@@ -128,7 +128,7 @@ const HelpSupport = () => {
             className={`mt-5 font-proximanova-regular text-xs ${isDark ? "text-dark-primary" : "text-primary"
               }`}
           >
-            No FAQ found.
+            {t("user.profile.support.noFaqFound")}
           </Text>
         )}
       </ScrollView>
@@ -145,7 +145,7 @@ const HelpSupport = () => {
             <>
               <AntDesign name="message" size={18} color="black" />
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                Chat with us
+                {t("user.profile.support.chatWithUs")}
               </Text>
             </>
           )}
@@ -154,7 +154,7 @@ const HelpSupport = () => {
         <TouchableOpacity className="rounded-full border border-[#11111133] py-2.5 px-5 flex-1 flex-row gap-1.5 items-center justify-center">
           <Fontisto name="email" size={18} color="black" />
           <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-            Email us
+            {t("user.profile.support.emailUs")}
           </Text>
         </TouchableOpacity>
       </View>

@@ -86,7 +86,7 @@ const BusinessSetup = () => {
           setCoverImage(result.assets[0].uri);
         }
       } catch {
-        Alert.alert("Error", "Failed to upload image");
+        Alert.alert(t("common.error"), t("user.setup.businessSetup.failedToUploadImage"));
       } finally {
         setUploadingType(null);
       }
@@ -97,8 +97,8 @@ const BusinessSetup = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission required",
-        "Sorry, we need camera roll permissions to make this work!",
+        t("user.setup.businessSetup.permissionRequired"),
+        t("user.setup.businessSetup.mediaLibraryPermissionMessage"),
       );
       return false;
     }
@@ -123,8 +123,8 @@ const BusinessSetup = () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission required",
-        "Sorry, we need camera permissions to take photos!",
+        t("user.setup.businessSetup.permissionRequired"),
+        t("user.setup.businessSetup.cameraPermissionMessage"),
       );
       return;
     }
@@ -142,29 +142,33 @@ const BusinessSetup = () => {
     if (uploadingType) return;
 
     Alert.alert(
-      `${type === "profile" ? "Profile" : "Cover"} Photo`,
-      "Choose an option",
+      t(
+        type === "profile"
+          ? "user.setup.businessSetup.profilePhotoTitle"
+          : "user.setup.businessSetup.coverPhotoTitle",
+      ),
+      t("user.setup.businessSetup.chooseOption"),
       [
         {
-          text: "Choose from Gallery",
+          text: t("user.setup.businessSetup.chooseFromGallery"),
           onPress: () => pickImage(type),
         },
         {
-          text: "Take Photo",
+          text: t("user.setup.businessSetup.takePhoto"),
           onPress: () => takePhoto(type),
         },
         ...((type === "profile" && profileImage) ||
           (type === "cover" && coverImage)
           ? [
             {
-              text: "Remove Photo",
+              text: t("user.setup.businessSetup.removePhoto"),
               style: "destructive",
               onPress: () => removeImage(type),
             },
           ]
           : []),
         {
-          text: "Cancel",
+          text: t("user.setup.businessSetup.cancel"),
           style: "cancel",
         },
       ],
@@ -172,13 +176,13 @@ const BusinessSetup = () => {
   };
 
   const removeImage = (type: "profile" | "cover") => {
-    Alert.alert("Remove Photo", "Are you sure you want to remove this photo?", [
+    Alert.alert(t("user.setup.businessSetup.removePhoto"), t("user.setup.businessSetup.removePhotoConfirmMessage"), [
       {
-        text: "Cancel",
+        text: t("user.setup.businessSetup.cancel"),
         style: "cancel",
       },
       {
-        text: "Remove",
+        text: t("user.setup.businessSetup.remove"),
         style: "destructive",
         onPress: () => {
           if (type === "profile") {
@@ -248,7 +252,7 @@ const BusinessSetup = () => {
       setIsSearchingLocation(false);
       if (!hasShownGeoapifyMissingKey.current) {
         hasShownGeoapifyMissingKey.current = true;
-        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+        toast.error(t("user.setup.businessSetup.geoapifyKeyMissing"));
       }
       return;
     }
@@ -322,7 +326,7 @@ const BusinessSetup = () => {
       } catch (error: any) {
         if (error?.name !== "AbortError") {
           setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
-          toast.error("Failed to fetch location suggestions.");
+          toast.error(t("user.setup.businessSetup.failedToFetchLocationSuggestions"));
         }
       } finally {
         setIsSearchingLocation(false);
@@ -362,15 +366,15 @@ const BusinessSetup = () => {
   const handleCreateBusiness = async () => {
     const phonePayload = getPhonePayload();
     if (!businessName.trim()) {
-      toast.error("Business name is required.");
+      toast.error(t("user.setup.businessSetup.businessNameRequired"));
       return;
     }
     if (!phonePayload.phoneNumber || !phonePayload.countryCode) {
-      toast.error("Please enter a valid phone number.");
+      toast.error(t("user.setup.businessSetup.pleaseEnterValidPhone"));
       return;
     }
     if (!email.trim()) {
-      toast.error("Email is required.");
+      toast.error(t("user.setup.businessSetup.emailRequired"));
       return;
     }
 
@@ -378,11 +382,11 @@ const BusinessSetup = () => {
       .trim()
       .slice(0, ADDRESS_MAX_LENGTH);
     if (!resolvedAddress) {
-      toast.error("Location is required.");
+      toast.error(t("user.setup.businessSetup.locationRequired"));
       return;
     }
     if (!selectedLocationOption) {
-      toast.error("Please select a valid location from suggestions.");
+      toast.error(t("user.setup.businessSetup.selectValidLocation"));
       return;
     }
     const latitude = toOptionalNumber(selectedLocationOption?.latitude);
@@ -435,7 +439,7 @@ const BusinessSetup = () => {
         <ScreenHeader
           style={{ paddingTop: insets.top + 12 }}
           className="px-5 py-3 mb-5"
-          title="Create a business"
+          title={t("user.setup.businessSetup.createBusinessTitle")}
           onPressBack={() => router.back()}
         />
 
@@ -475,23 +479,25 @@ const BusinessSetup = () => {
             </View>
             <Text className="pt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary text-center">
               {uploadingType === "profile"
-                ? "Uploading..."
+                ? t("user.setup.businessSetup.uploading")
                 : profileImage
-                  ? "Change profile photo"
-                  : "Upload profile photo"}
+                  ? t("user.setup.businessSetup.changeProfilePhoto")
+                  : t("user.setup.businessSetup.uploadProfilePhoto")}
             </Text>
           </View>
 
           {/* Cover Photo */}
           <View className="relative mt-8">
             <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary mb-2">
-              {coverImage ? "Cover Photo" : "Upload Cover Photo"}
+              {coverImage
+                ? t("user.setup.businessSetup.coverPhoto")
+                : t("user.setup.businessSetup.uploadCoverPhoto")}
             </Text>
             <View className="relative">
               {uploadingType === "cover" ? (
                 <View className="w-full h-32 bg-gray-200 rounded-xl items-center justify-center">
                   <ActivityIndicator size="large" color="#4FB2F3" />
-                  <Text className="text-gray-500 mt-2">Uploading...</Text>
+                  <Text className="text-gray-500 mt-2">{t("user.setup.businessSetup.uploading")}</Text>
                 </View>
               ) : coverImage ? (
                 <View>
@@ -520,7 +526,7 @@ const BusinessSetup = () => {
                 >
                   <Ionicons name="add-circle-sharp" size={36} color="#053C5A" />
                   <Text className="font-proximanova-semibold text-sm mt-2">
-                    Upload Photo
+                    {t("user.setup.businessSetup.uploadPhoto")}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -530,7 +536,7 @@ const BusinessSetup = () => {
           {/* phone number */}
           <View className="mt-7">
             <Text className="text-sm mb-2 text-primary font-proximanova-semibold">
-              Phone number
+              {t("user.setup.businessSetup.phoneNumber")}
             </Text>
 
             <PhoneInput
@@ -539,7 +545,7 @@ const BusinessSetup = () => {
               selectedCountry={selectedCountry}
               onChangeSelectedCountry={handleSelectedCountry}
               defaultCountry="US"
-              placeholder="Enter phone number"
+              placeholder={t("user.setup.businessSetup.enterPhoneNumber")}
               phoneInputStyles={{
                 container: {
                   borderWidth: 1,
@@ -560,7 +566,7 @@ const BusinessSetup = () => {
 
             {!isValidPhone && phoneNumber && (
               <Text className="text-red-500 text-xs mt-1 ml-1">
-                Please enter a valid phone number
+                {t("user.setup.businessSetup.pleaseEnterValidPhone")}
               </Text>
             )}
           </View>
@@ -568,12 +574,12 @@ const BusinessSetup = () => {
           {/* business name */}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Business Name
+              {t("user.setup.businessSetup.businessName")}
             </Text>
 
             <TextInput
               onChangeText={setBusinessName}
-              placeholder="Enter your business name"
+              placeholder={t("user.setup.businessSetup.enterBusinessName")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -583,11 +589,11 @@ const BusinessSetup = () => {
           {/* email */}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Business Email
+              {t("user.setup.businessSetup.businessEmail")}
             </Text>
             <TextInput
               onChangeText={setEmail}
-              placeholder="Enter business email"
+              placeholder={t("user.setup.businessSetup.enterBusinessEmail")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -597,11 +603,11 @@ const BusinessSetup = () => {
           {/* website */}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Website
+              {t("user.setup.businessSetup.website")}
             </Text>
             <TextInput
               onChangeText={setWebsite}
-              placeholder="https://example.com"
+              placeholder={t("user.setup.businessSetup.websitePlaceholder")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
               autoCapitalize="none"
             />
@@ -610,7 +616,7 @@ const BusinessSetup = () => {
           {/* location*/}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Location
+              {t("user.setup.businessSetup.location")}
             </Text>
 
             <TextInput
@@ -627,7 +633,7 @@ const BusinessSetup = () => {
                   setValue(null);
                 }
               }}
-              placeholder="Search location"
+              placeholder={t("user.setup.businessSetup.searchLocation")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
               autoCapitalize="none"
               maxLength={ADDRESS_MAX_LENGTH}
@@ -658,7 +664,7 @@ const BusinessSetup = () => {
 
             {isSearchingLocation ? (
               <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-                Searching locations...
+                {t("user.setup.businessSetup.searchingLocations")}
               </Text>
             ) : null}
             {isLocationFocused &&
@@ -666,7 +672,7 @@ const BusinessSetup = () => {
               !isSearchingLocation &&
               locationOptions.length === 0 ? (
               <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-                No locations found.
+                {t("user.setup.businessSetup.noLocationsFound")}
               </Text>
             ) : null}
           </View>
@@ -674,12 +680,12 @@ const BusinessSetup = () => {
           {/* add a business */}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Add a About Business
+              {t("user.setup.businessSetup.aboutBusiness")}
             </Text>
 
             <TextInput
               onChangeText={setAbout}
-              placeholder="Type here..."
+              placeholder={t("user.setup.businessSetup.typeHere")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm h-20"
               autoCapitalize="none"
               multiline={true}
@@ -690,7 +696,7 @@ const BusinessSetup = () => {
           {/* socials */}
           <View className="mt-7">
             <Text className="text-sm font-proximanova-semibold mb-2.5">
-              Connect Your Socials
+              {t("user.setup.businessSetup.connectYourSocials")}
             </Text>
 
             <ConnectSocials
@@ -704,7 +710,7 @@ const BusinessSetup = () => {
           <PrimaryButton
             // onPress={() => router.push("/(tabs)/business-home")}
             onPress={handleCreateBusiness}
-            title="Create Profile"
+            title={t("user.setup.businessSetup.createProfile")}
             className="my-10"
             loading={isLoading}
           />

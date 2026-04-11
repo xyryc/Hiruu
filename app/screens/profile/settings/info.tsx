@@ -4,10 +4,12 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Info = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -23,17 +25,17 @@ const Info = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="App Info"
+          title={t("user.profile.appInfo")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
       </View>
       <View className="flex-1 justify-center items-center">
         <Text className="font-proximanova-semibold text-2xl text-primary dark:text-dark-primary">
-          Hiruu Platform
+          {t("user.profile.appPlatformName")}
         </Text>
         <Text className="font-proximanova-regular text-lg text-secondary dark:text-dark-secondary">
-          Version {appVersion}
+          {t("user.profile.versionWithNumber", { version: appVersion })}
         </Text>
         <Image
           source={require("@/assets/images/hiruu-logo.svg")}
@@ -41,7 +43,7 @@ const Info = () => {
           style={{ height: 34, width: 98 }}
         />
         <Text className="font-proximanova-regular text-lg text-secondary dark:text-dark-secondary mt-2.5">
-          2023-{currentYear} Hiruu Inc.
+          {t("user.profile.appCopyright", { year: currentYear })}
         </Text>
       </View>
     </SafeAreaView>

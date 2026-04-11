@@ -4,11 +4,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, ScrollView, Text, View } from "react-native";
 import { EnrichedMarkdownText } from "react-native-enriched-markdown";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Terms = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getTermsAndConditions = useSettingsStore((s) => s.getTermsAndConditions);
@@ -43,7 +45,7 @@ const Terms = () => {
         className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
         onPressBack={() => router.back()}
-        title="Terms and Conditions"
+        title={t("user.profile.termsAndConditions")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -131,7 +133,7 @@ const Terms = () => {
               className={`mt-5 font-proximanova-regular text-xs ${isDark ? "text-dark-primary" : "text-primary"
                 }`}
             >
-              No terms and conditions found.
+              {t("user.profile.noTermsAndConditionsFound")}
             </Text>
           )}
         </View>
