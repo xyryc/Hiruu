@@ -3,6 +3,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 
 // ToggleButton Component
@@ -199,6 +200,7 @@ const WeeklySchedule = ({
   showBusinessHeader?: boolean;
   borderless?: boolean;
 }) => {
+  const { t } = useTranslation();
   const initialSchedule = useMemo(
     () => mapAvailabilityToSchedule(availability),
     [availability]
@@ -288,13 +290,23 @@ const WeeklySchedule = ({
 
   const renderDayRow = (day: string) => {
     const dayData = schedule[day];
+    const dayLabelMap: Record<string, string> = {
+      Monday: "user.profile.weeklyDays.monday",
+      Tuesday: "user.profile.weeklyDays.tuesday",
+      Wednesday: "user.profile.weeklyDays.wednesday",
+      Thursday: "user.profile.weeklyDays.thursday",
+      Friday: "user.profile.weeklyDays.friday",
+      Saturday: "user.profile.weeklyDays.saturday",
+      Sunday: "user.profile.weeklyDays.sunday",
+    };
+    const dayLabel = t(dayLabelMap[day] || day);
 
     return (
       <View key={day} className="flex-row items-center justify-between mb-4">
         {/* Left side: Day name + Toggle */}
         <View className="flex-row items-center gap-2">
           <Text className="text-sm font-medium text-primary dark:text-dark-primary w-20">
-            {day}
+            {dayLabel}
           </Text>
 
           {/* <ToggleButton isOn={dayData.isOn} setIsOn={() => toggleDay(day)} /> */}
@@ -310,7 +322,7 @@ const WeeklySchedule = ({
               onPress={() => setPickerState({ day, timeType: "startTime" })}
             />
             <Text className="text-xs text-primary dark:text-dark-primary">
-              to
+              {t("user.profile.weeklySchedule.to")}
             </Text>
             <TimePicker
               time={dayData.endTime}
@@ -320,7 +332,7 @@ const WeeklySchedule = ({
         ) : (
           <View className="flex-row items-center gap-4">
             <Text className="text-xs font-proximanova-semibold text-[#F34F4F]">
-              Closed
+              {t("user.profile.weeklySchedule.closed")}
             </Text>
             <ToggleButton isOn={dayData.isOn} setIsOn={() => toggleDay(day)} />
           </View>
@@ -340,7 +352,7 @@ const WeeklySchedule = ({
       {(showBusinessHeader ?? business) && (
         <View className="flex-row justify-between mb-5 rounded-xl">
           <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-            Available Working Days
+            {t("user.profile.availableWorkingDays")}
           </Text>
 
           <SimpleLineIcons name="arrow-down" size={16} color="black" />

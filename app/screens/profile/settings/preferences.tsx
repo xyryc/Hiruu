@@ -5,7 +5,10 @@ import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
 import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LanguageSwitcherModal from "@/components/ui/modals/LanguageSwitcherModal";
 import TimezoneSwitcherModal from "@/components/ui/modals/TimezoneSwitcherModal";
-import { getTimezoneLabel } from "@/constants/timezones";
+import {
+  getTimezoneLabel,
+  getTimezoneTranslationKey,
+} from "@/constants/timezones";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuthStore } from "@/stores/authStore";
 import { useJobStore, WeeklyAvailabilityItem } from "@/stores/jobStore";
@@ -200,7 +203,7 @@ const Preferences = () => {
         lastSyncedPreferencesRef.current = payload;
       } catch (error: any) {
         toast.error(
-          translateApiMessage(error?.message || "Failed to update preferences")
+          translateApiMessage(error?.message || "failed_to_update_preferences")
         );
       }
     }, 700);
@@ -310,7 +313,7 @@ const Preferences = () => {
                   />
                 </TouchableOpacity>
                 <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-semibold min-w-[40px] text-center">
-                  {smartAlertTime}m
+                  {t("user.profile.minutesShort", { value: smartAlertTime })}
                 </Text>
                 <TouchableOpacity
                   className={`h-7 w-7 rounded-full items-center justify-center border ${
@@ -342,7 +345,9 @@ const Preferences = () => {
 
         <SettingsCard
           fullTouchable={false}
-          subtitle={`${getTimezoneLabel(timezone)} (${timezone})`}
+          subtitle={`${t(getTimezoneTranslationKey(timezone), {
+            defaultValue: getTimezoneLabel(timezone),
+          })} (${timezone})`}
           icon={<AntDesign name="global" size={24} color="black" />}
           className="mt-4"
           text={t("user.profile.timeZone")}

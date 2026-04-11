@@ -38,10 +38,13 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
     if (error?.isAuthSessionExpired) return true;
     const status = error?.response?.status;
     if (status === 401) return true;
+    if (status === 403) return true;
     const message = String(error?.message || "").toLowerCase();
     return (
       message.includes("unauthorized") ||
       message.includes("status code 401") ||
+      message.includes("insufficient_permissions") ||
+      message.includes("status code 403") ||
       message.includes("no refresh token available") ||
       message.includes("token_revoked_or_not_found")
     );

@@ -593,6 +593,11 @@ export const getTimezoneLabel = (timezone?: string | null) => {
   return toLabel(timezone);
 };
 
+export const getTimezoneTranslationKey = (timezone?: string | null) => {
+  const zone = timezone || "UTC";
+  return `user.profile.timezoneOptions.${zone}`;
+};
+
 export const getTimezoneOffsetLabel = (timezone?: string | null) => {
   const zone = timezone || "UTC";
   const dateTime = DateTime.now().setZone(zone);

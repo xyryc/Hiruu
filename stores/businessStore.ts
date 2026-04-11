@@ -795,9 +795,16 @@ export const useBusinessStore = create<BusinessState>()(
       }
 
       return result.data;
-    } catch (error) {
-      console.error("Update shift template error:", error);
-      throw error;
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to update shift template";
+      const translatedMessage = translateApiMessage(messageKey);
+      const finalError = new Error(translatedMessage);
+      console.error("Update shift template error:", finalError);
+      throw finalError;
     }
   },
 

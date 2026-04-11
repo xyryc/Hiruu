@@ -1,5 +1,6 @@
 import {
   TIMEZONE_OPTIONS,
+  getTimezoneTranslationKey,
   getTimezoneLabel,
   getTimezoneOffsetLabel,
 } from "@/constants/timezones";
@@ -8,6 +9,7 @@ import { getDeviceTimezone } from "@/utils/date";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,6 +22,7 @@ const TimezoneSwitcherModal = ({
   visible,
   onClose,
 }: TimezoneSwitcherModalProps) => {
+  const { t } = useTranslation();
   const timezone = usePreferencesStore((state) => state.timezone);
   const setTimezone = usePreferencesStore((state) => state.setTimezone);
   const resetTimezoneToDevice = usePreferencesStore(
@@ -37,6 +40,11 @@ const TimezoneSwitcherModal = ({
     resetTimezoneToDevice();
     onClose();
   };
+
+  const getLocalizedTimezoneLabel = (timezone?: string | null) =>
+    t(getTimezoneTranslationKey(timezone), {
+      defaultValue: getTimezoneLabel(timezone),
+    });
 
   return (
     <Modal
@@ -57,7 +65,7 @@ const TimezoneSwitcherModal = ({
 
           <SafeAreaView edges={["bottom"]} className="px-5 py-7">
             <Text className="text-xl font-proximanova-bold text-center text-primary mb-4">
-              Select Timezone
+              {t("user.profile.selectTimezone")}
             </Text>
 
             <TouchableOpacity
@@ -66,10 +74,11 @@ const TimezoneSwitcherModal = ({
             >
               <View>
                 <Text className="font-proximanova-semibold text-primary">
-                  Use device timezone
+                  {t("user.profile.useDeviceTimezone")}
                 </Text>
                 <Text className="text-sm text-secondary mt-1">
-                  {getTimezoneLabel(deviceTimezone)} ({getTimezoneOffsetLabel(deviceTimezone)})
+                  {getLocalizedTimezoneLabel(deviceTimezone)} (
+                  {getTimezoneOffsetLabel(deviceTimezone)})
                 </Text>
               </View>
 
@@ -97,7 +106,10 @@ const TimezoneSwitcherModal = ({
                         className={`font-proximanova-semibold ${selected ? "text-[#4FB2F3]" : "text-primary"
                           }`}
                       >
-                        {option.label} ({getTimezoneOffsetLabel(option.value)})
+                        {t(getTimezoneTranslationKey(option.value), {
+                          defaultValue: option.label,
+                        })}{" "}
+                        ({getTimezoneOffsetLabel(option.value)})
                       </Text>
                       <Text className="text-xs text-secondary mt-1">
                         {option.value}
