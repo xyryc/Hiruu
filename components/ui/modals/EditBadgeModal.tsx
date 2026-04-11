@@ -1,66 +1,134 @@
+import axiosInstance from "@/utils/axios";
 import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import React from "react";
-import { Modal, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { ActivityIndicator, Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import PrimaryButton from "../buttons/PrimaryButton";
 
 const EditBadgeModal = ({ visible, onClose }: any) => {
-  const [selectedCards, setSelectedCards] = React.useState<number[]>([]);
+  const [selectedCards, setSelectedCards] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [earnedBadges, setEarnedBadges] = React.useState<any[]>([]);
 
-  const badchcard = [
-    {
-      img: require("@/assets/images/reward/red-bands.svg"),
-      bgColor: "#F3934F26",
-      color: "#F3934F",
-      title: "Hard worker",
-    },
-    {
-      img: require("@/assets/images/reward/black-bands.svg"),
-      bgColor: "#80808026",
-      color: "#808080",
-      title: "Night Owl",
-    },
-    {
-      img: require("@/assets/images/reward/gold-bands.svg"),
-      bgColor: "#F1C40026",
-      color: "#F1C400",
-      title: "Early Bird",
-    },
-    {
-      img: require("@/assets/images/reward/blue-bands.svg"),
-      bgColor: "#4FB2F326",
-      color: "#4FB2F3",
-      title: "Hard worker",
-    },
-  ];
+  const getTierUi = (tier?: string) => {
+    const normalized = String(tier || "").toLowerCase();
+    switch (normalized) {
+      case "silver":
+        return {
+          img: require("@/assets/images/reward/black-bands.svg"),
+          bgColor: "#80808026",
+          color: "#808080",
+        };
+      case "gold":
+        return {
+          img: require("@/assets/images/reward/gold-bands.svg"),
+          bgColor: "#F1C40026",
+          color: "#F1C400",
+        };
+      case "diamond":
+        return {
+          img: require("@/assets/images/reward/blue-bands.svg"),
+          bgColor: "#4FB2F326",
+          color: "#4FB2F3",
+        };
+      case "bronze":
+      default:
+        return {
+          img: require("@/assets/images/reward/red-bands.svg"),
+          bgColor: "#F3934F26",
+          color: "#F3934F",
+        };
+    }
+  };
 
-  const handleCardSelect = (index: number) => {
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const status = error?.response?.status;
+    if (status === 401) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("status code 401") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
+  };
+
+  useEffect(() => {
+    if (!visible) return;
+
+    let mounted = true;
+    const loadEarnedBadges = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get("/badges/my/earned");
+        const result = response?.data;
+        const list = Array.isArray(result?.data) ? result.data : [];
+        if (!mounted) return;
+        setEarnedBadges(list);
+      } catch (error: any) {
+        if (!mounted) return;
+        if (isExpectedAuthError(error)) return;
+        toast.error(error?.message || "Failed to load earned badges");
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    };
+
+    void loadEarnedBadges();
+
+    return () => {
+      mounted = false;
+    };
+  }, [visible]);
+
+  const badgeItems = useMemo(() => {
+    return earnedBadges.map((badge) => {
+      const ui = getTierUi(badge?.tier);
+      return {
+        id: String(badge?.id || `${badge?.achievementId || ""}-${badge?.tier || ""}`),
+        title: String(badge?.achievement?.title || "Badge"),
+        ...ui,
+      };
+    });
+  }, [earnedBadges]);
+
+  const badgeRows = useMemo(() => {
+    const rows: any[][] = [];
+    for (let index = 0; index < badgeItems.length; index += 4) {
+      rows.push(badgeItems.slice(index, index + 4));
+    }
+    return rows;
+  }, [badgeItems]);
+
+  const handleCardSelect = (badgeId: string) => {
     setSelectedCards((prev) => {
-      if (prev.includes(index)) return prev.filter((i) => i !== index);
-      if (prev.length < 3) return [...prev, index];
+      if (prev.includes(badgeId)) return prev.filter((id) => id !== badgeId);
+      if (prev.length < 3) return [...prev, badgeId];
       return prev;
     });
   };
 
-  const getSelectionNumber = (index: number) => {
-    const position = selectedCards.indexOf(index);
+  const getSelectionNumber = (badgeId: string) => {
+    const position = selectedCards.indexOf(badgeId);
     return position !== -1 ? position + 1 : null;
   };
 
-  const renderBadgeRow = (rowOffset: number) => (
-    <View className="flex-row justify-between mt-4">
-      {badchcard.map((item, idx) => {
-        const cardIndex = idx + rowOffset;
-        const selectionNumber = getSelectionNumber(cardIndex);
+  const renderBadgeRow = (items: any[]) => (
+    <View className="flex-row gap-4">
+      {items.map((item) => {
+        const selectionNumber = getSelectionNumber(item.id);
         const isSelected = selectionNumber !== null;
 
         return (
           <TouchableOpacity
-            key={cardIndex}
-            onPress={() => handleCardSelect(cardIndex)}
-            className="items-center"
+            key={item.id}
+            onPress={() => handleCardSelect(item.id)}
+            className="items-center w-20"
           >
             <View
               className="h-[74px] w-[54px] border-2 rounded-xl justify-center items-center"
@@ -82,7 +150,7 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
                 </View>
               )}
             </View>
-            <Text className="font-proximanova-regular text-xs text-primary dark:text-dark-primary mt-2">
+            <Text className="text-center font-proximanova-regular text-xs text-primary dark:text-dark-primary mt-2">
               {item.title}
             </Text>
           </TouchableOpacity>
@@ -113,10 +181,22 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
               Select Your Badge
             </Text>
 
-            {renderBadgeRow(0)}
-            {renderBadgeRow(4)}
-            {renderBadgeRow(8)}
-            <PrimaryButton title="Save" className="mt-10" />
+            {loading ? (
+              <View className="py-10 items-center">
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              </View>
+            ) : badgeRows.length > 0 ? (
+              badgeRows.map((row, index) => (
+                <React.Fragment key={`badge-row-${index}`}>
+                  {renderBadgeRow(row)}
+                </React.Fragment>
+              ))
+            ) : (
+              <Text className="text-center font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                No earned badges yet.
+              </Text>
+            )}
+            <PrimaryButton title="Save" className="mt-10" onPress={onClose} />
           </SafeAreaView>
         </View>
       </BlurView>
