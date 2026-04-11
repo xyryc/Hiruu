@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import NamePlateCard from "@/components/ui/cards/NamePlateCard";
+import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
+import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LogoutDeleteModal from "@/components/ui/modals/LogoutDeleteModal";
 import { useProfileStore } from "@/stores/profileStore";
@@ -80,6 +81,10 @@ const Settings = () => {
     typeof profileData?.address === "string"
       ? profileData.address
       : profileData?.address?.address || "Location unavailable";
+  const equippedNameplate = profileData?.appearance?.nameplate;
+  const isFullyVerified = Boolean(
+    profileData?.isEmailVerified && profileData?.isNumberVerified
+  );
 
   const handleClick = (e: string) => {
     if (e === "delete") {
@@ -145,14 +150,27 @@ const Settings = () => {
 
         {/* Name plate */}
         <View className="mt-5">
-          <NamePlateCard
-            variant="variant3"
-            name={profileData?.name || profileData?.email || "User"}
-            address={addressValue}
-            profileImage={
-              profileData?.avatar || require("@/assets/images/placeholder.png")
-            }
-          />
+          {equippedNameplate?.metadata ? (
+            <DynamicNameplateCard
+              metadata={equippedNameplate.metadata}
+              mode="redeem"
+              preview={{
+                avatarUrl: profileData?.avatar,
+                name: profileData?.name || profileData?.email || "User",
+                location: addressValue,
+                rating: profileData?.rating ?? 0,
+                isVerified: isFullyVerified,
+              }}
+            />
+          ) : (
+            <BasicNameplateCard
+              avatarUrl={profileData?.avatar}
+              name={profileData?.name || profileData?.email || "User"}
+              location={addressValue}
+              rating={profileData?.rating ?? 0}
+              isVerified={isFullyVerified}
+            />
+          )}
         </View>
 
         {/* settings card */}
