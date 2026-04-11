@@ -5,6 +5,7 @@ import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelection
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import UserCalendarScheduleModal from "@/components/ui/modals/UserCalendarScheduleModal";
 import NotificationBell from "@/components/ui/notification/NotificationBell";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { chatService } from "@/services/chatService";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
@@ -58,6 +59,10 @@ const BusinessScheduleScreen = () => {
     getMyBusinessRoles,
     getShiftTemplates,
   } = useBusinessStore();
+  const { canEdit: canManageScheduleTemplates } = useBusinessPermission(
+    "schedule.templates",
+    { employments: myEmployments }
+  );
   const {
     businessAssignments,
     businessAssignmentsLoading,
@@ -454,6 +459,7 @@ const BusinessScheduleScreen = () => {
       id: 2,
       title: "Create Template",
       icon: "document-text-outline",
+      hidden: !canManageScheduleTemplates,
       onPress: () => {
         checkAndNavigate("/screens/schedule/business/create-template" as RelativePathString)
         // router.push("/screens/schedule/business/create-template");
@@ -463,6 +469,7 @@ const BusinessScheduleScreen = () => {
       id: 3,
       title: "Saved Shift Template",
       icon: "document-attach-outline",
+      hidden: !canManageScheduleTemplates,
       onPress: () => {
         checkAndNavigate("/screens/schedule/business/saved-shift-template" as RelativePathString)
         // router.push("/screens/schedule/business/saved-shift-template");
@@ -486,6 +493,7 @@ const BusinessScheduleScreen = () => {
       },
     },
   ];
+  const visibleMenuItems = menuItems.filter((item: any) => !item.hidden);
 
   const router = useRouter();
 
@@ -732,7 +740,7 @@ const BusinessScheduleScreen = () => {
 
       {/* add icon */}
       <AnimatedFABMenu
-        menuItems={menuItems}
+        menuItems={visibleMenuItems}
         fabColor="#11293A"
         menuItemColor="#11293A"
       />

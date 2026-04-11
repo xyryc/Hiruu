@@ -8,7 +8,7 @@ import {
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import ActionIconCard from "../ui/cards/ActionIconCard";
 
@@ -19,6 +19,8 @@ type QuickActionBusinessProps = {
 const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
   const router = useRouter();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
+  const getMyEmployments = useBusinessStore((state) => state.getMyEmployments);
   const selectedBusinessId = selectedBusinesses?.[0] || "";
   const getBusinessUnresolvedShiftRequestCount = useShiftStore(
     (state) => state.getBusinessUnresolvedShiftRequestCount
@@ -31,6 +33,20 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
     overtime_request: 0,
   });
   const isBusinessProfile = selectedBusinesses.length > 0;
+  const canManageOnboarding = useMemo(() => {
+    const selectedEmployment = (Array.isArray(myEmployments) ? myEmployments : []).find(
+      (employment: any) =>
+        String(employment?.status || "").toLowerCase() === "active" &&
+        (employment?.businessId === selectedBusinessId ||
+          employment?.business?.id === selectedBusinessId)
+    );
+
+    const rawPermission = selectedEmployment?.role?.permissions?.["people.employees"];
+    const permissionLevel =
+      typeof rawPermission === "number" ? rawPermission : Number(rawPermission);
+
+    return Number.isFinite(permissionLevel) && permissionLevel >= 2;
+  }, [myEmployments, selectedBusinessId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -40,6 +56,7 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
 
       const loadCounts = async () => {
         try {
+          await getMyEmployments();
           const data = await getBusinessUnresolvedShiftRequestCount(selectedBusinessId);
           if (!mounted) return;
 
@@ -66,6 +83,7 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
         mounted = false;
       };
     }, [
+      getMyEmployments,
       getBusinessUnresolvedShiftRequestCount,
       isBusinessProfile,
       selectedBusinessId,
@@ -109,11 +127,13 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
           onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
-        <ActionIconCard
-          icon={<FontAwesome name="users" size={20} color="#4FB2F3" />}
-          title="Team Panel"
-          onPress={() => router.push("/screens/home/team/manage-team")}
-        />
+        {canManageOnboarding ? (
+          <ActionIconCard
+            icon={<FontAwesome name="users" size={20} color="#4FB2F3" />}
+            title="Team Panel"
+            onPress={() => router.push("/screens/home/team/manage-team")}
+          />
+        ) : null}
 
         <ActionIconCard
           icon={

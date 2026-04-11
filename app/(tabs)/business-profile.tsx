@@ -90,6 +90,7 @@ const BusinessProfile = () => {
   const canReadJobs = getPermissionLevel("jobs") >= 1;
   const canEditJobs = getPermissionLevel("jobs") >= 2;
   const canDeleteJobs = getPermissionLevel("jobs") >= 3;
+  const canManageJoinRequests = getPermissionLevel("people.join_requests") >= 2;
 
   const loadBusiness = useCallback(async () => {
     if (!businessId) {
@@ -303,7 +304,7 @@ const BusinessProfile = () => {
         </TouchableOpacity>
 
         <View className="flex-row gap-1.5 items-center justify-center">
-          {businessId ? (
+          {businessId && canManageJoinRequests ? (
             <TouchableOpacity
               onPress={() => router.push("/screens/home/qr/generate")}
               className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"

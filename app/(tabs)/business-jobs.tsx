@@ -75,7 +75,7 @@ const BusinessJobs = () => {
   const isDark = colorScheme === "dark";
   const getJobProfiles = useJobStore((s) => s.getJobProfiles);
   const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
-  const { selectedBusinesses } = useBusinessStore();
+  const { selectedBusinesses, getMyEmployments } = useBusinessStore();
   const { canEdit: canPostJobs } = useBusinessPermission("jobs");
   const [featuredProfiles, setFeaturedProfiles] = useState<any[]>([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
@@ -169,9 +169,10 @@ const BusinessJobs = () => {
 
   useFocusEffect(
     useCallback(() => {
+      getMyEmployments().catch(() => undefined);
       loadFeaturedProfiles();
       loadSuggestedProfiles();
-    }, [loadFeaturedProfiles, loadSuggestedProfiles])
+    }, [getMyEmployments, loadFeaturedProfiles, loadSuggestedProfiles])
   );
 
   return (
@@ -188,18 +189,16 @@ const BusinessJobs = () => {
         components={
           <View className="flex-row items-center gap-2.5">
             {/* post job */}
-            <TouchableOpacity
-              onPress={() => {
-                if (!canPostJobs) {
-                  toast.error("You do not have permission to post jobs");
-                  return;
-                }
-                router.push("/screens/jobs/business/post-job");
-              }}
-              className={`h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full ${canPostJobs ? "" : "opacity-50"}`}
-            >
-              <Ionicons name="add" size={18} color="black" />
-            </TouchableOpacity>
+            {canPostJobs ? (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push("/screens/jobs/business/post-job");
+                }}
+                className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
+              >
+                <Ionicons name="add" size={18} color="black" />
+              </TouchableOpacity>
+            ) : null}
 
             <TouchableOpacity
               onPress={() =>

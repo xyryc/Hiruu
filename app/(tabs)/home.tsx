@@ -15,7 +15,6 @@ import TodayShiftsSummary from '@/components/layout/TodayShiftsSummary';
 import TodaysShift from '@/components/layout/TodaysShift';
 import TopPerformer from '@/components/layout/TopPerformer';
 import UserWorkInsights from '@/components/layout/UserWorkInsights';
-import Widgets from '@/components/layout/Widgets';
 import ActionCard from '@/components/ui/cards/ActionCard';
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
@@ -35,7 +34,6 @@ const UserHome = () => {
   const isUserProfile = (selectedBusinesses?.length || 0) === 0;
   const isBusinessProfile = !isUserProfile;
   const isProfileIncomplete = !(profileData?.onboarding >= 5);
-  const hasNoJoinedBusiness = !hasJoinedAtLeastOneBusiness;
   const hasJoinedAtLeastOneBusiness = useMemo(() => {
     const employments = Array.isArray(profileData?.user?.employments)
       ? profileData.user.employments
@@ -50,6 +48,7 @@ const UserHome = () => {
       return Boolean(isActive && businessId);
     });
   }, [profileData?.employments, profileData?.user?.employments]);
+  const hasNoJoinedBusiness = !hasJoinedAtLeastOneBusiness;
 
   const profileEmployments = useMemo(() => {
     if (Array.isArray(profileData?.employments)) return profileData.employments;
@@ -59,6 +58,14 @@ const UserHome = () => {
 
   const { canRead: canViewBusinessOverview } = useBusinessPermission(
     "business.overview",
+    { employments: profileEmployments }
+  );
+  const { canRead: canViewBusinessStatistics } = useBusinessPermission(
+    "business.statistics",
+    { employments: profileEmployments }
+  );
+  const { canRead: canViewBusinessUserStats } = useBusinessPermission(
+    "business.user_stats",
     { employments: profileEmployments }
   );
 
@@ -137,92 +144,97 @@ const UserHome = () => {
         {isBusinessProfile && (
           <>
             {/* Business Summary */}
-            {canViewBusinessOverview && <BusinessSummary />}
+            {canViewBusinessOverview && (
+              <>
+                <BusinessSummary />
 
-            {/* todays shift summary */}
-            <TodayShiftsSummary />
+                {/* todays shift summary */}
+                <TodayShiftsSummary />
 
-            {/* Today’s Attendance Summary */}
-            <AttendanceSummary className="mx-5 my-7" />
+                {/* Today’s Attendance Summary */}
+                <AttendanceSummary className="mx-5 my-7" />
+              </>
+            )}
+        {/* rank card */}
+        <ActionCard
+          className="mx-5"
+          title="See employee rank on board"
+          buttonTitle="View"
+          onPress={() => router.push("/screens/home/leaderboard")}
+          rightImage={require("@/assets/images/rank.svg")}
+          imageClass="absolute bottom-0 right-2.5"
+          imageWidth={144}
+          imageHeight={95}
+          background={require("@/assets/images/chessboard-bg.svg")}
+        />
 
-            {/* rank card */}
-            <ActionCard
-              className="mx-5"
-              title="See employee rank on board"
-              buttonTitle="View"
-              onPress={() => router.push("/screens/home/leaderboard")}
-              rightImage={require("@/assets/images/rank.svg")}
-              imageClass="absolute bottom-0 right-2.5"
-              imageWidth={144}
-              imageHeight={95}
-              background={require("@/assets/images/chessboard-bg.svg")}
-            />
+        {/* performance trend */}
+        {canViewBusinessStatistics && <PerformanceTrend className="mt-7" />}
 
-            {/* performance trend */}
-            <PerformanceTrend className="mt-7" />
+        {/* Team Insights */}
+        {canViewBusinessUserStats && (
+          <BusinessWorkInsights title="Team Insights" className="mt-7" />
+        )}
 
-            {/* Team Insights */}
-            <BusinessWorkInsights title="Team Insights" className="mt-7" />
+        {/* quick actions */}
+        <QuickActionBusiness className="mt-7" />
 
-            {/* quick actions */}
-            <QuickActionBusiness className="mt-7" />
+        <JobBoardCta
+          className='mt-7'
+          title="Job Board"
+          subtitle="Need more hands? Post  & receiving applicants!"
+          route="/(tabs)/business-jobs"
+        />
 
-            <JobBoardCta
-              className='mt-7'
-              title="Job Board"
-              subtitle="Need more hands? Post  & receiving applicants!"
-              route="/(tabs)/business-jobs"
-            />
-
-            {/* Top performers */}
-            <TopPerformer className="mt-7" />
+        {/* Top performers */}
+        <TopPerformer className="mt-7" />
           </>
         )}
 
-        {/* user profile sections */}
-        {isUserProfile && (
-          <>
-            {hasNoJoinedBusiness && (
-              <>
-                {/* join your collegues */}
-                <JoinColleague />
+      {/* user profile sections */}
+      {isUserProfile && (
+        <>
+          {hasNoJoinedBusiness && (
+            <>
+              {/* join your collegues */}
+              <JoinColleague />
 
-                {/* find new job */}
-                <JobBoardCta className="mt-7"
-                  title="Find New Job"
-                  subtitle="Explore All Job Listings"
-                  route="/(tabs)/user-jobs"
-                />
-              </>
-            )}
+              {/* find new job */}
+              <JobBoardCta className="mt-7"
+                title="Find New Job"
+                subtitle="Explore All Job Listings"
+                route="/(tabs)/user-jobs"
+              />
+            </>
+          )}
 
-            {/* create business */}
-            {(profileData?.ownedBusinesses?.length ?? 0) === 0 && (
-              <BusinessProfile className="mt-7" />
-            )}
+          {/* create business */}
+          {(profileData?.ownedBusinesses?.length ?? 0) === 0 && (
+            <BusinessProfile className="mt-7" />
+          )}
 
-            {/* your todays shift */}
-            <TodaysShift className="mt-7" />
+          {/* your todays shift */}
+          <TodaysShift className="mt-7" />
 
-            {/* quick actions */}
-            <QuickActionUser className='mt-7' />
+          {/* quick actions */}
+          <QuickActionUser className='mt-7' />
 
-            {hasJoinedAtLeastOneBusiness && (
-              <>
-                {/* work insights */}
-                <UserWorkInsights className="mt-7" />
+          {hasJoinedAtLeastOneBusiness && (
+            <>
+              {/* work insights */}
+              <UserWorkInsights className="mt-7" />
 
-                {/* engagement & perks */}
-                <EngagementPerks className="mt-7" />
+              {/* engagement & perks */}
+              <EngagementPerks className="mt-7" />
 
-                {/* widgets */}
-                <Widgets className="mt-7" />
-              </>
-            )}
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+              {/* widgets */}
+              {/* <Widgets className="mt-7" /> */}
+            </>
+          )}
+        </>
+      )}
+    </ScrollView>
+    </SafeAreaView >
   );
 };
 

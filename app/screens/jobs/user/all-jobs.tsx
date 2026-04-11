@@ -289,7 +289,7 @@ const AllJobs = () => {
         data={jobs}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => (
-          <View className="px-5">
+          <View className="px-5 mt-4">
             <JobCard
               job={item}
               className="bg-white border border-[#EEEEEE] mb-4"
