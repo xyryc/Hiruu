@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
@@ -15,6 +16,7 @@ type PerformerCounts = {
 type PerformerCardProps = {
   userName: string;
   avatar?: string | null;
+  isPremium?: boolean;
   points: number;
   counts?: PerformerCounts;
   onPressSeeProfile?: () => void;
@@ -34,6 +36,7 @@ const BADGE_STYLE_MAP: Record<
 const PerformerCard = ({
   userName,
   avatar,
+  isPremium,
   points,
   counts,
   onPressSeeProfile,
@@ -71,9 +74,14 @@ const PerformerCard = ({
             contentFit="cover"
           />
           <View>
-            <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-              {userName}
-            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                {userName}
+              </Text>
+              {isPremium ? (
+                <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+              ) : null}
+            </View>
             <Text className="text-sm font-proximanova-regular text-[#4FB2F3] mt-1">
               {points} points earned
             </Text>

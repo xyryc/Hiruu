@@ -14,6 +14,18 @@ const AttendanceSummary = ({ className }: { className: string }) => {
     absent: 0,
   });
   const selectedBusinessId = selectedBusinesses?.[0] || "";
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const status = error?.response?.status;
+    if (status === 401) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("status code 401") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -50,6 +62,8 @@ const AttendanceSummary = ({ className }: { className: string }) => {
               : 0,
         });
       } catch (error: any) {
+        if (!mounted) return;
+        if (isExpectedAuthError(error)) return;
         toast.error(error?.message || "Failed to load attendance summary");
       }
     };

@@ -25,6 +25,18 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     getMyEmployments,
     getBusinessOverview,
   } = useBusinessStore();
+  const isExpectedAuthError = (error: any) => {
+    if (error?.isAuthSessionExpired) return true;
+    const status = error?.response?.status;
+    if (status === 401) return true;
+    const message = String(error?.message || "").toLowerCase();
+    return (
+      message.includes("unauthorized") ||
+      message.includes("status code 401") ||
+      message.includes("no refresh token available") ||
+      message.includes("token_revoked_or_not_found")
+    );
+  };
   const activeBusinesses = (Array.isArray(myEmployments) ? myEmployments : [])
     .filter((employment: any) => String(employment?.status || "").toLowerCase() === "active")
     .reduce((acc: any[], employment: any) => {
@@ -90,6 +102,8 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
               : 0,
         });
       } catch (error: any) {
+        if (!mounted) return;
+        if (isExpectedAuthError(error)) return;
         toast.error(error?.message || "Failed to load business summary");
       }
     };

@@ -11,6 +11,7 @@ type LeaderboardTopItem = {
   userId: string;
   userName?: string;
   avatar?: string | null;
+  isPremium?: boolean;
   rank: number;
   points: number;
   counts?: {
@@ -95,6 +96,7 @@ const TopPerformer = ({ className }: any) => {
               key={item.userId}
               userName={item.userName || "User"}
               avatar={item.avatar || null}
+              isPremium={item.isPremium === true}
               points={Number(item.points || 0)}
               counts={item.counts}
               onPressSeeProfile={() =>

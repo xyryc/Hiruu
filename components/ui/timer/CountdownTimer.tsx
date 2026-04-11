@@ -1,6 +1,6 @@
 import { CountdownTimerProps, TimeLeft } from "@/types";
 import { Image } from "expo-image";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({
@@ -18,9 +18,13 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
   const calculateTimeLeft = useCallback((): TimeLeft => {
     const target = new Date(targetTime).getTime();
-    const now = new Date().getTime();
-    const difference = target - now;
+    const now = Date.now();
 
+    if (!Number.isFinite(target)) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+    }
+
+    const difference = target - now;
     if (difference <= 0) {
       return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
     }
@@ -35,16 +39,16 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   }, [targetTime]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const newTimeLeft = calculateTimeLeft();
-      setTimeLeft(newTimeLeft);
+    setTimeLeft(calculateTimeLeft());
 
-      if (newTimeLeft.total <= 0 && onComplete) {
+    const timer = setInterval(() => {
+      const next = calculateTimeLeft();
+      setTimeLeft(next);
+
+      if (next.total <= 0 && onComplete) {
         onComplete();
       }
     }, 1000);
-
-    setTimeLeft(calculateTimeLeft());
 
     return () => clearInterval(timer);
   }, [calculateTimeLeft, onComplete]);
@@ -52,61 +56,32 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const totalHours = timeLeft.total / (1000 * 60 * 60);
   const isExpired = timeLeft.total <= 0;
   const isWarning = totalHours <= 1 && !isExpired;
-  const isNormal = totalHours > 1;
 
-  const TimeUnit = ({ value, label }: { value: number; label: string }) => (
+  const timerRingSource = useMemo(() => {
+    if (isExpired) return require("@/assets/images/countdown-red.svg");
+    if (isWarning) return require("@/assets/images/countdown-yellow.svg");
+    return require("@/assets/images/countdown-blue.svg");
+  }, [isExpired, isWarning]);
+
+  const timerTextClass = useMemo(() => {
+    if (isExpired) return "text-red-500 dark:text-red-400";
+    if (isWarning) return "text-yellow-500 dark:text-yellow-400";
+    return "text-blue-500 dark:text-blue-400";
+  }, [isExpired, isWarning]);
+
+  const TimeUnit = ({ value }: { value: number }) => (
     <View className="items-center">
       <View className="relative w-[60px] h-[60px] items-center justify-center">
-        {/* Red - Expired */}
-        {isExpired && (
-          <Image
-            source={require("@/assets/images/countdown-red.svg")}
-            style={{ width: 60, height: 60 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        )}
-
-        {/* Yellow - Warning (≤1 hour) */}
-        {isWarning && (
-          <Image
-            source={require("@/assets/images/countdown-yellow.svg")}
-            style={{ width: 60, height: 60 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        )}
-
-        {/* Blue - Normal (>1 hour) */}
-        {isNormal && (
-          <Image
-            source={require("@/assets/images/countdown-blue.svg")}
-            style={{ width: 60, height: 60 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        )}
-
-        {/* Text Color - Red */}
-        {isExpired && (
-          <Text className="text-3xl font-proximanova-bold text-red-500 dark:text-red-400 absolute">
-            {value.toString().padStart(2, "0")}
-          </Text>
-        )}
-
-        {/* Text Color - Yellow */}
-        {isWarning && (
-          <Text className="text-3xl font-proximanova-bold text-yellow-500 dark:text-yellow-400 absolute">
-            {value.toString().padStart(2, "0")}
-          </Text>
-        )}
-
-        {/* Text Color - Blue */}
-        {isNormal && (
-          <Text className="text-3xl font-proximanova-bold text-blue-500 dark:text-blue-400 absolute">
-            {value.toString().padStart(2, "0")}
-          </Text>
-        )}
+        <Image
+          source={timerRingSource}
+          style={{ width: 60, height: 60 }}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+          transition={0}
+        />
+        <Text className={`text-3xl font-proximanova-bold absolute ${timerTextClass}`}>
+          {value.toString().padStart(2, "0")}
+        </Text>
       </View>
     </View>
   );
@@ -114,29 +89,25 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   return (
     <View className={`${className} flex-row justify-center items-center`}>
       <View className="flex items-center">
-        <TimeUnit value={timeLeft.hours} label="hours" />
+        <TimeUnit value={timeLeft.hours} />
         <Text className="text-xs text-primary dark:text-dark-primary mt-2 font-proximanova-regular">
           Hours
         </Text>
       </View>
 
-      <Text className="text-2xl font-proximanova-bold text-gray-400 mx-4">
-        :
-      </Text>
+      <Text className="text-2xl font-proximanova-bold text-gray-400 mx-4">:</Text>
 
       <View className="flex items-center">
-        <TimeUnit value={timeLeft.minutes} label="minutes" />
+        <TimeUnit value={timeLeft.minutes} />
         <Text className="text-xs text-primary dark:text-dark-primary mt-2 font-proximanova-regular">
           Minutes
         </Text>
       </View>
 
-      <Text className="text-2xl font-proximanova-bold text-gray-400 mx-4">
-        :
-      </Text>
+      <Text className="text-2xl font-proximanova-bold text-gray-400 mx-4">:</Text>
 
       <View className="flex items-center">
-        <TimeUnit value={timeLeft.seconds} label="seconds" />
+        <TimeUnit value={timeLeft.seconds} />
         <Text className="text-xs text-primary dark:text-dark-primary mt-2 font-proximanova-regular">
           Seconds
         </Text>

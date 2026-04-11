@@ -833,6 +833,10 @@ export const useBusinessStore = create<BusinessState>()(
   },
 
   getBusinessProfile: async (businessId) => {
+    if (!businessId) {
+      return null;
+    }
+
     try {
       const response = await axiosInstance.get(`/business/${businessId}`);
       const result = response.data;
@@ -846,8 +850,20 @@ export const useBusinessStore = create<BusinessState>()(
       }
 
       return result.data;
-    } catch (error) {
-      console.error("Fetch business profile error:", error);
+    } catch (error: any) {
+      if (isExpectedAuthError(error)) {
+        return null;
+      }
+
+      const status = error?.response?.status;
+      const message = String(error?.message || "").toLowerCase();
+      const isSwitchTransientError =
+        status === 403 ||
+        message.includes("failed to fetch business profile");
+
+      if (!isSwitchTransientError) {
+        console.error("Fetch business profile error:", error);
+      }
       throw error;
     }
   },

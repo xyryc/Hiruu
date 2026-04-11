@@ -19,7 +19,7 @@ interface Performer {
   name: string;
   avatar?: string | null;
   points: number;
-  verified?: boolean;
+  isPremium?: boolean;
   rank: number;
 }
 
@@ -31,6 +31,7 @@ interface LeaderboardResponse {
     userId: string;
     userName?: string;
     avatar?: string | null;
+    isPremium?: boolean;
     rank: number;
     points: number;
   }[];
@@ -160,6 +161,7 @@ export default function LeaderboardScreen() {
       name: item.userName || "User",
       avatar: item.avatar || null,
       points: item.points ?? 0,
+      isPremium: item.isPremium === true,
       rank: item.rank,
     }));
   }, [leaderboardData]);
@@ -331,12 +333,8 @@ export default function LeaderboardScreen() {
                       <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
                         {performer.name}
                       </Text>
-                      {performer.verified && (
-                        <MaterialCommunityIcons
-                          name="crown"
-                          size={14}
-                          color="#3B82F6"
-                        />
+                      {performer.isPremium && (
+                        <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
                       )}
                     </View>
 
