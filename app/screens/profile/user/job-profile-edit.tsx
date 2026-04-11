@@ -17,6 +17,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -85,6 +86,7 @@ const Field = ({
 );
 
 const JobProfileEdit = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -106,10 +108,10 @@ const JobProfileEdit = () => {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jobTypeOptions = useMemo(
     () => [
-      { label: "Hourly", value: "hourly" },
-      { label: "Monthly", value: "monthly" },
+      { label: t("user.profile.jobProfileEdit.hourly"), value: "hourly" },
+      { label: t("user.profile.jobProfileEdit.monthly"), value: "monthly" },
     ],
-    []
+    [t]
   );
 
   const applyProfileState = useCallback((profile: JobProfileData | null) => {
@@ -145,7 +147,7 @@ const JobProfileEdit = () => {
         setRoleOptions(normalized);
       } catch (error: any) {
         if (isMounted) {
-          toast.error(error?.message || "Failed to load roles");
+          toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadRoles"));
         }
       } finally {
         if (isMounted) {
@@ -158,7 +160,7 @@ const JobProfileEdit = () => {
     return () => {
       isMounted = false;
     };
-  }, [getRoles]);
+  }, [getRoles, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -167,13 +169,13 @@ const JobProfileEdit = () => {
           const data = await getMyJobProfile();
           applyProfileState(data);
         } catch (error: any) {
-          toast.error(error?.message || "Failed to load job profile");
+          toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadJobProfile"));
         }
       };
 
       loadProfile();
       return () => { };
-    }, [applyProfileState, getMyJobProfile])
+    }, [applyProfileState, getMyJobProfile, t])
   );
 
   useEffect(() => {
@@ -218,10 +220,10 @@ const JobProfileEdit = () => {
           : null,
       });
 
-      toast.success("Job profile updated");
+      toast.success(t("user.profile.jobProfileEdit.jobProfileUpdated"));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to update job profile");
+      toast.error(error?.message || t("user.profile.jobProfileEdit.failedToUpdateJobProfile"));
     } finally {
       setIsSaving(false);
     }
@@ -238,7 +240,7 @@ const JobProfileEdit = () => {
         }}
         className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-6 mb-6"
         onPressBack={() => router.back()}
-        title="Edit Job Profile"
+        title={t("user.profile.jobProfileEdit.title")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -246,20 +248,20 @@ const JobProfileEdit = () => {
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="mx-5 rounded-2xl border border-[#0000000D] bg-[#F9FBFC] p-4">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Job Preferences
+            {t("user.profile.jobProfileScreen.jobPreferences")}
           </Text>
           <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
-            Update your job type, preferred roles, expected salary range, and working days.
+            {t("user.profile.jobProfileEdit.updateDescription")}
           </Text>
         </View>
 
         <SectionHeader
           icon={<MaterialCommunityIcons name="account-check-outline" size={16} color="black" />}
-          title="Open to Work"
+          title={t("user.profile.jobProfileScreen.openToWork")}
         />
         <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] px-4 py-3">
           <ToggleButton
-            title="Available for new opportunities"
+            title={t("user.profile.jobProfileEdit.availableForNewOpportunities")}
             isOn={isOpenToWork}
             setIsOn={setIsOpenToWork}
             className="mb-0 justify-between"
@@ -268,11 +270,11 @@ const JobProfileEdit = () => {
 
         <SectionHeader
           icon={<MaterialCommunityIcons name="briefcase-outline" size={16} color="black" />}
-          title="Job Type"
+          title={t("user.profile.jobProfileScreen.jobType")}
         />
         <View className="mx-5 mt-4">
           <SelectDropdown
-            placeholder="Select job type"
+            placeholder={t("user.profile.jobProfileEdit.selectJobType")}
             options={jobTypeOptions}
             value={jobType}
             listMaxHeight={220}
@@ -282,31 +284,31 @@ const JobProfileEdit = () => {
 
         <SectionHeader
           icon={<MaterialCommunityIcons name="shape-outline" size={16} color="black" />}
-          title="Preferred Roles"
+          title={t("user.profile.jobProfileScreen.preferredRoles")}
         />
         <View className="mx-5 mt-4">
           <MultiRoleSelector
             roles={roleOptions}
             loading={isLoadingRoles}
             selectedRoleIds={preferredRoleIds}
-            placeholder="Select preferred roles"
-            helperText="You can select up to 4 preferred roles."
+            placeholder={t("user.profile.jobProfileEdit.selectPreferredRoles")}
+            helperText={t("user.profile.jobProfileEdit.maxPreferredRolesHelper")}
             maxSelection={4}
             onChange={setPreferredRoleIds}
             onLimitReached={() =>
-              toast.error("You can select up to 4 preferred roles")
+              toast.error(t("user.profile.jobProfileEdit.maxPreferredRolesError"))
             }
           />
         </View>
 
         <SectionHeader
           icon={<MaterialCommunityIcons name="cash-multiple" size={16} color="black" />}
-          title="Expected Salary"
+          title={t("user.profile.jobProfileScreen.expectedSalary")}
         />
         <View className="mx-5 mt-4 flex-row gap-3">
           <View className="flex-1">
             <Text className="mb-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Minimum
+              {t("user.profile.jobProfileScreen.minimum")}
             </Text>
             <Field
               value={expectedSalaryMin}
@@ -317,7 +319,7 @@ const JobProfileEdit = () => {
           </View>
           <View className="flex-1">
             <Text className="mb-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Maximum
+              {t("user.profile.jobProfileScreen.maximum")}
             </Text>
             <Field
               value={expectedSalaryMax}
@@ -330,7 +332,7 @@ const JobProfileEdit = () => {
 
         <SectionHeader
           icon={<MaterialCommunityIcons name="calendar-multiselect-outline" size={16} color="black" />}
-          title="Weekly Availability"
+          title={t("user.profile.jobProfileScreen.weeklyAvailability")}
         />
         <View className="mx-5 mt-4">
           <WeeklySchedule
@@ -343,7 +345,7 @@ const JobProfileEdit = () => {
         </View>
 
         <PrimaryButton
-          title="Save Changes"
+          title={t("user.profile.editUserProfile.saveChanges")}
           onPress={handleSave}
           loading={isSaving || isLoadingJobProfile}
           className="mx-5 my-10"

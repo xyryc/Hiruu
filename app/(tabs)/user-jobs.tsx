@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
 });
 
 const UserJobs = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const getPublicRecruitments = useJobStore((s) => s.getPublicRecruitments);
   const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);
@@ -62,11 +64,11 @@ const UserJobs = () => {
       setFeaturedJobs(jobs);
     } catch (error: any) {
       setFeaturedJobs([]);
-      toast.error(error?.message || "Failed to load featured jobs");
+      toast.error(error?.message || t("user.jobsTab.failedToLoadFeaturedJobs"));
     } finally {
       setIsLoadingFeatured(false);
     }
-  }, [getPublicRecruitments]);
+  }, [getPublicRecruitments, t]);
 
   const loadSuggestedJobs = useCallback(async () => {
     try {
@@ -82,11 +84,11 @@ const UserJobs = () => {
       setSuggestedJobs(jobs);
     } catch (error: any) {
       setSuggestedJobs([]);
-      toast.error(error?.message || "Failed to load suggested jobs");
+      toast.error(error?.message || t("user.jobsTab.failedToLoadSuggestedJobs"));
     } finally {
       setIsLoadingSuggested(false);
     }
-  }, [getPublicRecruitments]);
+  }, [getPublicRecruitments, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -104,7 +106,7 @@ const UserJobs = () => {
 
       <ScreenHeader
         className="px-5 pt-2.5"
-        title="Find Job"
+        title={t("user.jobsTab.findJob")}
         components={
           <View className="flex-row items-center gap-2.5">
 
@@ -172,8 +174,8 @@ const UserJobs = () => {
               <StatusStateCard
                 style={styles.compactEmptyState}
                 image={require("@/assets/images/toolbox.svg")}
-                title="No Jobs Available"
-                text="There are no job openings at the moment. Check back later for new opportunities."
+                title={t("common.noJobsAvailable")}
+                text={t("common.noJobsAvailableDescription")}
                 titleStyle={styles.compactEmptyStateTitle}
                 textStyle={styles.compactEmptyStateText}
               />
@@ -185,7 +187,7 @@ const UserJobs = () => {
           <View className="mt-7">
             <View className="flex-row justify-between items-center mb-4 px-5">
               <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-                Featured Job
+                {t("user.jobsTab.featuredJob")}
               </Text>
 
               <TouchableOpacity
@@ -197,7 +199,7 @@ const UserJobs = () => {
                 }
               >
                 <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                  See All
+                  {t("user.jobsTab.seeAll")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -236,7 +238,7 @@ const UserJobs = () => {
           <View className="mt-7 px-5">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-                Suggested Job
+                {t("user.jobsTab.suggestedJob")}
               </Text>
 
               <TouchableOpacity
@@ -248,7 +250,7 @@ const UserJobs = () => {
                 }
               >
                 <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                  See All
+                  {t("user.jobsTab.seeAll")}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -1,5 +1,65 @@
 ﻿{
   "user": {
+    "jobsTab": {
+      "findJob": "Εύρεση εργασίας",
+      "featuredJob": "Προτεινόμενη θέση",
+      "suggestedJob": "Προτεινόμενη εργασία",
+      "seeAll": "Δες όλα",
+      "failedToLoadFeaturedJobs": "Αποτυχία φόρτωσης προτεινόμενων θέσεων",
+      "failedToLoadSuggestedJobs": "Αποτυχία φόρτωσης προτεινόμενων εργασιών"
+    },
+    "jobs": {
+      "postJob": {
+        "postJob": "Δημοσίευση θέσης",
+        "role": "Ρόλος",
+        "selectRole": "Επιλογή ρόλου",
+        "jobDescription": "Περιγραφή θέσης",
+        "writeResponsibilities": "Γράψε τις αρμοδιότητες της θέσης...",
+        "gender": "Φύλο",
+        "selectGender": "Επιλογή φύλου",
+        "shiftType": "Τύπος βάρδιας",
+        "selectShiftType": "Επιλογή τύπου βάρδιας",
+        "jobType": "Τύπος εργασίας",
+        "selectJobType": "Επιλογή τύπου εργασίας",
+        "experienceYears": "Εμπειρία (Έτη)",
+        "ageRangeYears": "Εύρος ηλικίας (Έτη)",
+        "min": "Ελ.",
+        "max": "Μεγ.",
+        "shiftStartTime": "Ώρα έναρξης βάρδιας",
+        "shiftEndTime": "Ώρα λήξης βάρδιας",
+        "salaryRange": "Εύρος μισθού",
+        "numberOfOpenings": "Αριθμός θέσεων",
+        "openingsPlaceholder": "1",
+        "featured": "Προτεινόμενο",
+        "jobPostedSuccessfully": "Η θέση δημοσιεύτηκε με επιτυχία.",
+        "failedToPostJob": "Αποτυχία δημοσίευσης θέσης",
+        "errors": {
+          "selectBusinessFirst": "Παρακαλώ επίλεξε πρώτα επιχειρηματικό προφίλ.",
+          "roleRequired": "Ο ρόλος είναι υποχρεωτικός.",
+          "descriptionRequired": "Η περιγραφή θέσης είναι υποχρεωτική.",
+          "genderRequired": "Το φύλο είναι υποχρεωτικό.",
+          "shiftTypeRequired": "Ο τύπος βάρδιας είναι υποχρεωτικός.",
+          "jobTypeRequired": "Ο τύπος εργασίας είναι υποχρεωτικός.",
+          "invalidAgeRange": "Παρακαλώ δώσε έγκυρο εύρος ηλικίας.",
+          "invalidSalaryRange": "Παρακαλώ δώσε έγκυρο εύρος μισθού.",
+          "minimumOpenings": "Ο αριθμός θέσεων πρέπει να είναι τουλάχιστον 1."
+        },
+        "options": {
+          "any": "Οποιοδήποτε",
+          "male": "Άνδρας",
+          "female": "Γυναίκα",
+          "other": "Άλλο",
+          "onsite": "Επιτόπου",
+          "remote": "Απομακρυσμένα",
+          "hybrid": "Υβριδικά",
+          "fullTime": "Πλήρης απασχόληση",
+          "partTime": "Μερική απασχόληση",
+          "hourly": "Ωριαία",
+          "contract": "Σύμβαση",
+          "internship": "Πρακτική"
+        }
+      }
+    },
     "profile": {
       "appPreferences": "Î ÏÎ¿Ï„Î¹Î¼Î®ÏƒÎµÎ¹Ï‚ Î•Ï†Î±ÏÎ¼Î¿Î³Î®Ï‚",
       "settings": "Î¡Ï…Î¸Î¼Î¯ÏƒÎµÎ¹Ï‚",
@@ -319,6 +379,34 @@
         "typeHere": "Πληκτρολογήστε εδώ...",
         "adding": "Προσθήκη...",
         "add": "Προσθήκη"
+      },
+      "jobProfileScreen": {
+        "failedToLoadRoles": "Αποτυχία φόρτωσης ρόλων",
+        "failedToLoadJobProfile": "Αποτυχία φόρτωσης επαγγελματικού προφίλ",
+        "jobPreferences": "Προτιμήσεις εργασίας",
+        "manageDescription": "Διαχειρίσου τον προτιμώμενο τύπο εργασίας, το εύρος αναμενόμενου μισθού και τη διαθεσιμότητα εβδομάδας.",
+        "openToWork": "Ανοιχτός σε εργασία",
+        "jobType": "Τύπος εργασίας",
+        "preferredRoles": "Προτιμώμενοι ρόλοι",
+        "notAddedYet": "Δεν έχει προστεθεί ακόμη",
+        "expectedSalary": "Αναμενόμενος μισθός",
+        "minimum": "Ελάχιστο",
+        "maximum": "Μέγιστο",
+        "weeklyAvailability": "Εβδομαδιαία διαθεσιμότητα",
+        "available": "Διαθέσιμος"
+      },
+      "jobProfileEdit": {
+        "title": "Επεξεργασία επαγγελματικού προφίλ",
+        "updateDescription": "Ενημέρωσε τον τύπο εργασίας, τους προτιμώμενους ρόλους, το εύρος αναμενόμενου μισθού και τις εργάσιμες ημέρες.",
+        "availableForNewOpportunities": "Διαθέσιμος για νέες ευκαιρίες",
+        "selectJobType": "Επιλογή τύπου εργασίας",
+        "selectPreferredRoles": "Επιλογή προτιμώμενων ρόλων",
+        "maxPreferredRolesHelper": "Μπορείς να επιλέξεις έως 4 προτιμώμενους ρόλους.",
+        "maxPreferredRolesError": "Μπορείς να επιλέξεις έως 4 προτιμώμενους ρόλους",
+        "hourly": "Ωριαία",
+        "monthly": "Μηνιαία",
+        "jobProfileUpdated": "Το επαγγελματικό προφίλ ενημερώθηκε",
+        "failedToUpdateJobProfile": "Αποτυχία ενημέρωσης επαγγελματικού προφίλ"
       },
       "editBadgeModal": {
         "selectYourBadge": "Επίλεξε το σήμα σου",

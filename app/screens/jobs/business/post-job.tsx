@@ -11,6 +11,7 @@ import { localDateToUTCTime } from "@/utils/timezone";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +27,7 @@ import {
 import { toast } from "sonner-native";
 
 const PostJob = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -124,30 +126,30 @@ const PostJob = () => {
 
   const genderOptions = useMemo(
     () => [
-      { label: "Any", value: "Any" },
-      { label: "Male", value: "Male" },
-      { label: "Female", value: "Female" },
-      { label: "Other", value: "Other" },
+      { label: t("user.jobs.postJob.options.any"), value: "Any" },
+      { label: t("user.jobs.postJob.options.male"), value: "Male" },
+      { label: t("user.jobs.postJob.options.female"), value: "Female" },
+      { label: t("user.jobs.postJob.options.other"), value: "Other" },
     ],
-    []
+    [t]
   );
   const shiftTypeOptions = useMemo(
     () => [
-      { label: "Onsite", value: "onsite" },
-      { label: "Remote", value: "remote" },
-      { label: "Hybrid", value: "hybrid" },
+      { label: t("user.jobs.postJob.options.onsite"), value: "onsite" },
+      { label: t("user.jobs.postJob.options.remote"), value: "remote" },
+      { label: t("user.jobs.postJob.options.hybrid"), value: "hybrid" },
     ],
-    []
+    [t]
   );
   const jobTypeOptions = useMemo(
     () => [
-      { label: "Full-time", value: "full_time" },
-      { label: "Part-time", value: "part_time" },
-      { label: "Hourly", value: "hourly" },
-      { label: "Contract", value: "contract" },
-      { label: "Internship", value: "internship" },
+      { label: t("user.jobs.postJob.options.fullTime"), value: "full_time" },
+      { label: t("user.jobs.postJob.options.partTime"), value: "part_time" },
+      { label: t("user.jobs.postJob.options.hourly"), value: "hourly" },
+      { label: t("user.jobs.postJob.options.contract"), value: "contract" },
+      { label: t("user.jobs.postJob.options.internship"), value: "internship" },
     ],
-    []
+    [t]
   );
 
   const formatTime24 = (date: Date) => {
@@ -158,30 +160,30 @@ const PostJob = () => {
   const handlePostJob = async () => {
     const businessId = selectedBusinesses[0];
     if (!businessId) {
-      toast.error("Please select a business profile first.");
+      toast.error(t("user.jobs.postJob.errors.selectBusinessFirst"));
       return;
     }
 
     if (!selectedRole?.name?.trim()) {
-      toast.error("Role is required.");
+      toast.error(t("user.jobs.postJob.errors.roleRequired"));
       return;
     }
 
     if (!jobDescription.trim()) {
-      toast.error("Job description is required.");
+      toast.error(t("user.jobs.postJob.errors.descriptionRequired"));
       return;
     }
 
     if (!gender) {
-      toast.error("Gender is required.");
+      toast.error(t("user.jobs.postJob.errors.genderRequired"));
       return;
     }
     if (!shiftType) {
-      toast.error("Shift type is required.");
+      toast.error(t("user.jobs.postJob.errors.shiftTypeRequired"));
       return;
     }
     if (!jobType) {
-      toast.error("Job type is required.");
+      toast.error(t("user.jobs.postJob.errors.jobTypeRequired"));
       return;
     }
 
@@ -192,7 +194,7 @@ const PostJob = () => {
     const parsedOpenings = Number(openings);
 
     if (!parsedAgeMin || !parsedAgeMax || parsedAgeMin > parsedAgeMax) {
-      toast.error("Please provide a valid age range.");
+      toast.error(t("user.jobs.postJob.errors.invalidAgeRange"));
       return;
     }
 
@@ -201,12 +203,12 @@ const PostJob = () => {
       !parsedSalaryMax ||
       parsedSalaryMin > parsedSalaryMax
     ) {
-      toast.error("Please provide a valid salary range.");
+      toast.error(t("user.jobs.postJob.errors.invalidSalaryRange"));
       return;
     }
 
     if (!parsedOpenings || parsedOpenings < 1) {
-      toast.error("Number of openings must be at least 1.");
+      toast.error(t("user.jobs.postJob.errors.minimumOpenings"));
       return;
     }
 
@@ -231,10 +233,10 @@ const PostJob = () => {
 
     try {
       await createRecruitment(businessId, payload);
-      toast.success("Job posted successfully.");
+      toast.success(t("user.jobs.postJob.jobPostedSuccessfully"));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to post job");
+      toast.error(error?.message || t("user.jobs.postJob.failedToPostJob"));
     }
   };
 
@@ -251,7 +253,7 @@ const PostJob = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="Post Job"
+          title={t("user.jobs.postJob.postJob")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -262,19 +264,19 @@ const PostJob = () => {
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Role
+            {t("user.jobs.postJob.role")}
           </Text>
           <RoleSelector
             className=""
             roles={roleOptions}
             loading={rolesLoading}
             selectedRole={selectedRole}
-            placeholder="Select role"
+            placeholder={t("user.jobs.postJob.selectRole")}
             onSelectRole={(role) => setSelectedRole(role)}
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Job Description
+            {t("user.jobs.postJob.jobDescription")}
           </Text>
           <TextInput
             value={jobDescription}
@@ -283,16 +285,16 @@ const PostJob = () => {
             numberOfLines={4}
             textAlignVertical="top"
             className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] mt-2.5 rounded-[10px] min-h-[110px]"
-            placeholder="Write job responsibilities..."
+            placeholder={t("user.jobs.postJob.writeResponsibilities")}
             placeholderTextColor="#7D7D7D"
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Gender
+            {t("user.jobs.postJob.gender")}
           </Text>
           <SelectDropdown
             className="mt-2.5"
-            placeholder="Select gender"
+            placeholder={t("user.jobs.postJob.selectGender")}
             listMaxHeight={320}
             options={genderOptions}
             value={gender}
@@ -300,11 +302,11 @@ const PostJob = () => {
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Shift Type
+            {t("user.jobs.postJob.shiftType")}
           </Text>
           <SelectDropdown
             className="mt-2.5"
-            placeholder="Select shift type"
+            placeholder={t("user.jobs.postJob.selectShiftType")}
             listMaxHeight={320}
             options={shiftTypeOptions}
             value={shiftType}
@@ -314,11 +316,11 @@ const PostJob = () => {
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Job Type
+            {t("user.jobs.postJob.jobType")}
           </Text>
           <SelectDropdown
             className="mt-2.5"
-            placeholder="Select job type"
+            placeholder={t("user.jobs.postJob.selectJobType")}
             options={jobTypeOptions}
             value={jobType}
             listMaxHeight={320}
@@ -326,7 +328,7 @@ const PostJob = () => {
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Experience (Years)
+            {t("user.jobs.postJob.experienceYears")}
           </Text>
           <TextInput
             value={experience}
@@ -338,7 +340,7 @@ const PostJob = () => {
           />
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Age Range (Years)
+            {t("user.jobs.postJob.ageRangeYears")}
           </Text>
           <View className="flex-row items-center gap-3 mt-2.5">
             <TextInput
@@ -346,12 +348,12 @@ const PostJob = () => {
               onChangeText={setAgeMin}
               keyboardType="numeric"
               className="flex-1 px-4 py-3 pr-10 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-              placeholder="Min"
+              placeholder={t("user.jobs.postJob.min")}
               placeholderTextColor="#7D7D7D"
             />
 
             <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-              To
+              {t("user.profile.weeklySchedule.to")}
             </Text>
 
             <TextInput
@@ -359,7 +361,7 @@ const PostJob = () => {
               onChangeText={setAgeMax}
               keyboardType="numeric"
               className="flex-1 px-4 py-3 pr-10 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-              placeholder="Max"
+              placeholder={t("user.jobs.postJob.max")}
               placeholderTextColor="#7D7D7D"
             />
           </View>
@@ -367,15 +369,15 @@ const PostJob = () => {
           <View className="mt-8">
             <View className="flex-row gap-4 items-center">
               <TimePicker
-                title="Shift Start Time"
+                title={t("user.jobs.postJob.shiftStartTime")}
                 value={shiftStartTime}
                 onChangeTime={setShiftStartTime}
               />
               <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                To
+                {t("user.profile.weeklySchedule.to")}
               </Text>
               <TimePicker
-                title="Shift End Time"
+                title={t("user.jobs.postJob.shiftEndTime")}
                 value={shiftEndTime}
                 onChangeTime={setShiftEndTime}
               />
@@ -383,7 +385,7 @@ const PostJob = () => {
           </View>
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-            Salary Range
+            {t("user.jobs.postJob.salaryRange")}
           </Text>
           <View className="flex-row items-center gap-3 mt-2.5">
             <View className="flex-1 relative">
@@ -395,12 +397,12 @@ const PostJob = () => {
                 onChangeText={setSalaryMin}
                 keyboardType="numeric"
                 className="px-7 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-                placeholder="Min"
+                placeholder={t("user.jobs.postJob.min")}
                 placeholderTextColor="#7D7D7D"
               />
             </View>
             <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-              To
+              {t("user.profile.weeklySchedule.to")}
             </Text>
             <View className="flex-1 relative">
               <Text className="absolute left-3 top-3.5 text-sm text-secondary dark:text-dark-secondary">
@@ -411,28 +413,28 @@ const PostJob = () => {
                 onChangeText={setSalaryMax}
                 keyboardType="numeric"
                 className="px-7 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] rounded-[10px]"
-                placeholder="Max"
+                placeholder={t("user.jobs.postJob.max")}
                 placeholderTextColor="#7D7D7D"
               />
             </View>
           </View>
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Number of Openings
+            {t("user.jobs.postJob.numberOfOpenings")}
           </Text>
           <TextInput
             value={openings}
             onChangeText={setOpenings}
             keyboardType="numeric"
             className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] mt-2.5 rounded-[10px]"
-            placeholder="1"
+            placeholder={t("user.jobs.postJob.openingsPlaceholder")}
             placeholderTextColor="#7D7D7D"
           />
 
             {isPremiumBusiness && (
               <View className="mt-7 flex-row items-center justify-between border border-[#EEEEEE] rounded-[10px] px-4 py-3">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Featured
+                  {t("user.jobs.postJob.featured")}
                 </Text>
                 <ToggleButton isOn={isFeatured} setIsOn={setIsFeatured} />
               </View>
@@ -443,7 +445,7 @@ const PostJob = () => {
               onPress={handlePostJob}
               loading={isSubmitting}
               disabled={isSubmitting}
-              title="Post Job"
+              title={t("user.jobs.postJob.postJob")}
             />
           </View>
         </ScrollView>

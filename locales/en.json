@@ -1,5 +1,65 @@
 {
   "user": {
+    "jobsTab": {
+      "findJob": "Find Job",
+      "featuredJob": "Featured Job",
+      "suggestedJob": "Suggested Job",
+      "seeAll": "See All",
+      "failedToLoadFeaturedJobs": "Failed to load featured jobs",
+      "failedToLoadSuggestedJobs": "Failed to load suggested jobs"
+    },
+    "jobs": {
+      "postJob": {
+        "postJob": "Post Job",
+        "role": "Role",
+        "selectRole": "Select role",
+        "jobDescription": "Job Description",
+        "writeResponsibilities": "Write job responsibilities...",
+        "gender": "Gender",
+        "selectGender": "Select gender",
+        "shiftType": "Shift Type",
+        "selectShiftType": "Select shift type",
+        "jobType": "Job Type",
+        "selectJobType": "Select job type",
+        "experienceYears": "Experience (Years)",
+        "ageRangeYears": "Age Range (Years)",
+        "min": "Min",
+        "max": "Max",
+        "shiftStartTime": "Shift Start Time",
+        "shiftEndTime": "Shift End Time",
+        "salaryRange": "Salary Range",
+        "numberOfOpenings": "Number of Openings",
+        "openingsPlaceholder": "1",
+        "featured": "Featured",
+        "jobPostedSuccessfully": "Job posted successfully.",
+        "failedToPostJob": "Failed to post job",
+        "errors": {
+          "selectBusinessFirst": "Please select a business profile first.",
+          "roleRequired": "Role is required.",
+          "descriptionRequired": "Job description is required.",
+          "genderRequired": "Gender is required.",
+          "shiftTypeRequired": "Shift type is required.",
+          "jobTypeRequired": "Job type is required.",
+          "invalidAgeRange": "Please provide a valid age range.",
+          "invalidSalaryRange": "Please provide a valid salary range.",
+          "minimumOpenings": "Number of openings must be at least 1."
+        },
+        "options": {
+          "any": "Any",
+          "male": "Male",
+          "female": "Female",
+          "other": "Other",
+          "onsite": "Onsite",
+          "remote": "Remote",
+          "hybrid": "Hybrid",
+          "fullTime": "Full-time",
+          "partTime": "Part-time",
+          "hourly": "Hourly",
+          "contract": "Contract",
+          "internship": "Internship"
+        }
+      }
+    },
     "profile": {
       "appPreferences": "App Preferences",
       "settings": "Settings",
@@ -319,6 +379,34 @@
         "typeHere": "Type Here...",
         "adding": "Adding...",
         "add": "Add"
+      },
+      "jobProfileScreen": {
+        "failedToLoadRoles": "Failed to load roles",
+        "failedToLoadJobProfile": "Failed to load job profile",
+        "jobPreferences": "Job Preferences",
+        "manageDescription": "Manage your preferred job type, expected salary range, and weekly availability.",
+        "openToWork": "Open to Work",
+        "jobType": "Job Type",
+        "preferredRoles": "Preferred Roles",
+        "notAddedYet": "Not added yet",
+        "expectedSalary": "Expected Salary",
+        "minimum": "Minimum",
+        "maximum": "Maximum",
+        "weeklyAvailability": "Weekly Availability",
+        "available": "Available"
+      },
+      "jobProfileEdit": {
+        "title": "Edit Job Profile",
+        "updateDescription": "Update your job type, preferred roles, expected salary range, and working days.",
+        "availableForNewOpportunities": "Available for new opportunities",
+        "selectJobType": "Select job type",
+        "selectPreferredRoles": "Select preferred roles",
+        "maxPreferredRolesHelper": "You can select up to 4 preferred roles.",
+        "maxPreferredRolesError": "You can select up to 4 preferred roles",
+        "hourly": "Hourly",
+        "monthly": "Monthly",
+        "jobProfileUpdated": "Job profile updated",
+        "failedToUpdateJobProfile": "Failed to update job profile"
       },
       "editBadgeModal": {
         "selectYourBadge": "Select Your Badge",

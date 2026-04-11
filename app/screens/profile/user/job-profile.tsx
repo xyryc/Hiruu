@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -20,16 +21,6 @@ const dayOrder = [
   "sunday",
 ];
 
-const dayLabelMap: Record<string, string> = {
-  monday: "Monday",
-  tuesday: "Tuesday",
-  wednesday: "Wednesday",
-  thursday: "Thursday",
-  friday: "Friday",
-  saturday: "Saturday",
-  sunday: "Sunday",
-};
-
 const formatTimeToDisplay = (value?: string) => {
   if (!value) return "";
   const match = value.match(/^(\d{2}):(\d{2})$/);
@@ -42,22 +33,32 @@ const formatTimeToDisplay = (value?: string) => {
   return `${hour12}:${minute} ${meridiem}`;
 };
 
-const formatSalaryValue = (value?: number | string | null) =>
+const formatSalaryValue = (
+  value?: number | string | null,
+  fallback = ""
+) =>
   typeof value === "number" || typeof value === "string"
-    ? `${value}`.trim() || "Not added yet"
-    : "Not added yet";
+    ? `${value}`.trim() || fallback
+    : fallback;
 
-const getJobType = (profile: JobProfileData | null) => {
+const getJobType = (profile: JobProfileData | null, fallback = "") => {
   const value = profile?.preferredSalaryType;
   return typeof value === "string" && value.trim().length > 0
     ? value.trim().charAt(0).toUpperCase() + value.trim().slice(1)
-    : "Not added yet";
+    : fallback;
 };
 
-const getOpenToWorkLabel = (profile: JobProfileData | null) =>
-  profile?.isOpenToWork ? "Yes" : "No";
+const getOpenToWorkLabel = (
+  profile: JobProfileData | null,
+  yesLabel = "",
+  noLabel = ""
+) => (profile?.isOpenToWork ? yesLabel : noLabel);
 
-const buildAvailabilityRows = (profile: JobProfileData | null) => {
+const buildAvailabilityRows = (
+  profile: JobProfileData | null,
+  closedLabel = "",
+  availableLabel = ""
+) => {
   const byDay = new Map(
     (profile?.weeklyAvailability || []).flatMap((item: any) => {
       if (typeof item === "string" && item.trim()) {
@@ -80,14 +81,14 @@ const buildAvailabilityRows = (profile: JobProfileData | null) => {
   return dayOrder.map((day) => {
     const item = byDay.get(day);
     if (!item || !item.isOpen) {
-      return { day, value: "Closed" };
+      return { day, value: closedLabel };
     }
 
     const start = formatTimeToDisplay(item.startTime);
     const end = formatTimeToDisplay(item.endTime);
     return {
       day,
-      value: start && end ? `${start} - ${end}` : "Available",
+      value: start && end ? `${start} - ${end}` : availableLabel,
     };
   });
 };
@@ -128,6 +129,7 @@ type RoleItem = {
 };
 
 const JobProfile = () => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -157,7 +159,7 @@ const JobProfile = () => {
         setRoleOptions(normalized);
       } catch (error: any) {
         if (isMounted) {
-          toast.error(error?.message || "Failed to load roles");
+          toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadRoles"));
         }
       }
     };
@@ -166,7 +168,7 @@ const JobProfile = () => {
     return () => {
       isMounted = false;
     };
-  }, [getRoles]);
+  }, [getRoles, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -178,16 +180,21 @@ const JobProfile = () => {
             JSON.stringify(data, null, 2)
           );
         } catch (error: any) {
-          toast.error(error?.message || "Failed to load job profile");
+          toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadJobProfile"));
         }
       };
 
       loadProfile();
       return () => { };
-    }, [getMyJobProfile])
+    }, [getMyJobProfile, t])
   );
 
-  const availabilityRows = buildAvailabilityRows(jobProfile);
+  const availabilityRows = buildAvailabilityRows(
+    jobProfile,
+    t("user.profile.weeklySchedule.closed"),
+    t("user.profile.jobProfileScreen.available")
+  );
+  const closedLabel = t("user.profile.weeklySchedule.closed");
   const preferredRoles = useMemo(() => {
     const preferredRoleIds = Array.isArray(jobProfile?.preferredRoleIds)
       ? jobProfile.preferredRoleIds
@@ -205,8 +212,8 @@ const JobProfile = () => {
         className="bg-[#E5F4FD] rounded-b-2xl px-4 pb-6 mb-6"
         onPressBack={() => router.back()}
         onPress={() => router.push("/screens/profile/user/job-profile-edit")}
-        buttonTitle="Edit"
-        title="Job Profile"
+        buttonTitle={t("user.profile.edit")}
+        title={t("user.profile.userProfile.jobProfile")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -214,21 +221,23 @@ const JobProfile = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="mx-5 rounded-2xl border border-[#0000000D] bg-[#F9FBFC] p-4">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Job Preferences
+            {t("user.profile.jobProfileScreen.jobPreferences")}
           </Text>
           <Text className="mt-2 font-proximanova-regular text-sm leading-6 text-secondary dark:text-dark-secondary">
-            Manage your preferred job type, expected salary range, and weekly availability.
+            {t("user.profile.jobProfileScreen.manageDescription")}
           </Text>
         </View>
 
         <SectionTitle
-          title="Open to Work"
+          title={t("user.profile.jobProfileScreen.openToWork")}
           icon={<MaterialCommunityIcons name="account-check-outline" size={16} color="black" />}
         />
-        <ValueCard value={getOpenToWorkLabel(jobProfile)} />
+        <ValueCard
+          value={getOpenToWorkLabel(jobProfile, t("common.yes"), t("common.no"))}
+        />
 
         <SectionTitle
-          title="Job Type"
+          title={t("user.profile.jobProfileScreen.jobType")}
           icon={<MaterialCommunityIcons name="briefcase-outline" size={16} color="black" />}
         // action={
         //   <TouchableOpacity onPress={() => router.push("/screens/profile/user/job-profile-edit")}>
@@ -238,10 +247,12 @@ const JobProfile = () => {
         //   </TouchableOpacity>
         // }
         />
-        <ValueCard value={getJobType(jobProfile)} />
+        <ValueCard
+          value={getJobType(jobProfile, t("user.profile.jobProfileScreen.notAddedYet"))}
+        />
 
         <SectionTitle
-          title="Preferred Roles"
+          title={t("user.profile.jobProfileScreen.preferredRoles")}
           icon={<MaterialCommunityIcons name="shape-outline" size={16} color="black" />}
         />
         <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
@@ -260,36 +271,42 @@ const JobProfile = () => {
             </View>
           ) : (
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Not added yet
+              {t("user.profile.jobProfileScreen.notAddedYet")}
             </Text>
           )}
         </View>
 
         <SectionTitle
-          title="Expected Salary"
+          title={t("user.profile.jobProfileScreen.expectedSalary")}
           icon={<MaterialCommunityIcons name="cash-multiple" size={16} color="black" />}
         />
         <View className="mx-5 mt-4 flex-row gap-3">
           <View className="flex-1 rounded-xl border border-[#0000000D] p-4">
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Minimum
+              {t("user.profile.jobProfileScreen.minimum")}
             </Text>
             <Text className="mt-2 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {formatSalaryValue(jobProfile?.expectedSalaryMin)}
+              {formatSalaryValue(
+                jobProfile?.expectedSalaryMin,
+                t("user.profile.jobProfileScreen.notAddedYet")
+              )}
             </Text>
           </View>
           <View className="flex-1 rounded-xl border border-[#0000000D] p-4">
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Maximum
+              {t("user.profile.jobProfileScreen.maximum")}
             </Text>
             <Text className="mt-2 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {formatSalaryValue(jobProfile?.expectedSalaryMax)}
+              {formatSalaryValue(
+                jobProfile?.expectedSalaryMax,
+                t("user.profile.jobProfileScreen.notAddedYet")
+              )}
             </Text>
           </View>
         </View>
 
         <SectionTitle
-          title="Weekly Availability"
+          title={t("user.profile.jobProfileScreen.weeklyAvailability")}
           icon={<MaterialCommunityIcons name="calendar-multiselect-outline" size={16} color="black" />}
         />
         <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
@@ -299,10 +316,10 @@ const JobProfile = () => {
               className="flex-row items-center justify-between border-b border-[#0000000D] py-3 last:border-b-0"
             >
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {dayLabelMap[item.day]}
+                {t(`user.profile.weeklyDays.${item.day}`)}
               </Text>
               <Text
-                className={`font-proximanova-regular text-sm ${item.value === "Closed"
+                className={`font-proximanova-regular text-sm ${item.value === closedLabel
                     ? "text-[#F34F4F]"
                     : "text-secondary dark:text-dark-secondary"
                   }`}
