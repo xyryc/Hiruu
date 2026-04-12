@@ -1,19 +1,21 @@
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
+import { useBusinessStore } from "@/stores/businessStore";
 import {
   FontAwesome6,
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useBusinessStore } from "@/stores/businessStore";
-import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
 import PrimaryButton from "../ui/buttons/PrimaryButton";
 import ShiftsSummaryCard from "../ui/cards/ShiftsSummaryCard";
 
 const TodayShiftsSummary = ({ className }: any) => {
+  const { t } = useTranslation();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const myEmployments = useBusinessStore((state) => state.myEmployments);
   const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
@@ -33,6 +35,7 @@ const TodayShiftsSummary = ({ className }: any) => {
     avatars: [],
   });
   const selectedBusinessId = selectedBusinesses?.[0] || "";
+
   const isExpectedAuthError = (error: any) => {
     if (error?.isAuthSessionExpired) return true;
     const status = error?.response?.status;
@@ -46,6 +49,7 @@ const TodayShiftsSummary = ({ className }: any) => {
       message.includes("token_revoked_or_not_found")
     );
   };
+
   const visibleAvatars =
     summary.avatars.length > 0 ? summary.avatars.slice(0, 3) : [null];
 
@@ -54,17 +58,7 @@ const TodayShiftsSummary = ({ className }: any) => {
 
     const loadTodaySummary = async () => {
       try {
-        if (!selectedBusinessId) {
-          if (!mounted) return;
-          setSummary({
-            totalScheduled: 0,
-            lateArrivals: 0,
-            currentlyWorkingCount: 0,
-            avatars: [],
-          });
-          return;
-        }
-        if (!canReadBusinessOverview) {
+        if (!selectedBusinessId || !canReadBusinessOverview) {
           if (!mounted) return;
           setSummary({
             totalScheduled: 0,
@@ -95,13 +89,17 @@ const TodayShiftsSummary = ({ className }: any) => {
               ? currentlyWorking.count
               : 0,
           avatars: Array.isArray(currentlyWorking?.avatars)
-            ? currentlyWorking.avatars.filter((item: unknown) => typeof item === "string")
+            ? currentlyWorking.avatars.filter(
+                (item: unknown) => typeof item === "string"
+              )
             : [],
         });
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load today's shifts summary");
+        toast.error(
+          error?.message || t("user.profile.todayShiftsSummary.failedToLoad")
+        );
       }
     };
 
@@ -110,7 +108,7 @@ const TodayShiftsSummary = ({ className }: any) => {
     return () => {
       mounted = false;
     };
-  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinessId]);
+  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinessId, t]);
 
   return (
     <LinearGradient
@@ -125,11 +123,11 @@ const TodayShiftsSummary = ({ className }: any) => {
     >
       <View className={className}>
         <Text className="text-xl font-proximanova-semibold text-black">
-          Today’s Shifts Summary
+          {t("user.profile.todayShiftsSummary.title")}
         </Text>
         <ShiftsSummaryCard
           icon={<Ionicons name="calendar" size={20} color="#4FB2F3" />}
-          title="Total scheduled shifts"
+          title={t("user.profile.todayShiftsSummary.totalScheduledShifts")}
           endItem={summary.totalScheduled}
           className="mt-2.5"
         />
@@ -142,13 +140,13 @@ const TodayShiftsSummary = ({ className }: any) => {
               color="#4FB2F3"
             />
           }
-          title="Late arrivals"
+          title={t("user.profile.todayShiftsSummary.lateArrivals")}
           endItem={summary.lateArrivals}
         />
         <ShiftsSummaryCard
           className="mt-2.5"
           icon={<FontAwesome6 name="user-group" size={17} color="#4FB2F3" />}
-          title="Currently working"
+          title={t("user.profile.todayShiftsSummary.currentlyWorking")}
           endItem={
             <View className="flex-row items-center">
               <View className="flex-row">
@@ -166,7 +164,9 @@ const TodayShiftsSummary = ({ className }: any) => {
                         avatar
                           ? avatar.startsWith("http")
                             ? { uri: avatar }
-                            : `${process.env.EXPO_PUBLIC_API_URL}${avatar.startsWith("/") ? avatar : `/${avatar}`}`
+                            : `${process.env.EXPO_PUBLIC_API_URL}${
+                                avatar.startsWith("/") ? avatar : `/${avatar}`
+                              }`
                           : require("@/assets/images/placeholder.png")
                       }
                       style={{
@@ -202,7 +202,9 @@ const TodayShiftsSummary = ({ className }: any) => {
           contentFit="cover"
         />
 
-        <PrimaryButton title="View Shift Report" />
+        <PrimaryButton
+          title={t("user.profile.todayShiftsSummary.viewShiftReport")}
+        />
       </View>
     </LinearGradient>
   );

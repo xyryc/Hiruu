@@ -272,6 +272,28 @@
         "noAccessToJobData": "Δεν υπάρχει πρόσβαση σε δεδομένα θέσεων.",
         "jobDeleted": "Η θέση διαγράφηκε"
       },
+      "businessSummary": {
+        "title": "Σύνοψη επιχείρησης",
+        "businessFallback": "Επιχείρηση",
+        "all": "Όλα",
+        "selectedCount": "{{count}} επιλεγμένα",
+        "failedToLoad": "Αποτυχία φόρτωσης σύνοψης επιχείρησης",
+        "total": "Σύνολο",
+        "employees": "Υπάλληλοι",
+        "managers": "Διευθυντές",
+        "totalShifts": "Σύνολο βαρδιών",
+        "today": "Σήμερα",
+        "completion": "Ολοκλήρωση",
+        "complete": "Ολοκληρωμένο"
+      },
+      "todayShiftsSummary": {
+        "title": "Σύνοψη σημερινών βαρδιών",
+        "totalScheduledShifts": "Συνολικές προγραμματισμένες βάρδιες",
+        "lateArrivals": "Καθυστερημένες αφίξεις",
+        "currentlyWorking": "Εργάζονται τώρα",
+        "viewShiftReport": "Προβολή αναφοράς βαρδιών",
+        "failedToLoad": "Αποτυχία φόρτωσης σύνοψης σημερινών βαρδιών"
+      },
       "rating": {
         "title": "Αξιολόγηση",
         "addRating": "Προσθήκη αξιολόγησης",

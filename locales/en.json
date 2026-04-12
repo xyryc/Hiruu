@@ -272,6 +272,28 @@
         "noAccessToJobData": "No access to job data.",
         "jobDeleted": "Job deleted"
       },
+      "businessSummary": {
+        "title": "Business Summary",
+        "businessFallback": "Business",
+        "all": "All",
+        "selectedCount": "{{count}} Selected",
+        "failedToLoad": "Failed to load business summary",
+        "total": "Total",
+        "employees": "Employees",
+        "managers": "Managers",
+        "totalShifts": "Total Shifts",
+        "today": "Today",
+        "completion": "Completion",
+        "complete": "Complete"
+      },
+      "todayShiftsSummary": {
+        "title": "Today's Shifts Summary",
+        "totalScheduledShifts": "Total scheduled shifts",
+        "lateArrivals": "Late arrivals",
+        "currentlyWorking": "Currently working",
+        "viewShiftReport": "View Shift Report",
+        "failedToLoad": "Failed to load today's shifts summary"
+      },
       "rating": {
         "title": "Rating",
         "addRating": "Add Rating",

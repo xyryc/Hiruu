@@ -1,5 +1,6 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
+import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
@@ -12,6 +13,7 @@ type BusinessSummaryProps = {
 };
 
 const BusinessSummary = ({ className }: BusinessSummaryProps) => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = React.useState(false);
   const [summary, setSummary] = useState({
     totalEmployees: 0,
@@ -54,7 +56,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
         ...acc,
         {
           id: businessId,
-          name: business?.name || "Business",
+          name: business?.name || t("user.profile.businessSummary.businessFallback"),
           address: business?.address,
           imageUrl: business?.logo,
           logo: business?.logo,
@@ -120,7 +122,9 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load business summary");
+        toast.error(
+          error?.message || t("user.profile.businessSummary.failedToLoad")
+        );
       }
     };
 
@@ -134,14 +138,19 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
   // Get display content for header button
   const getDisplayContent = () => {
     if (selectedBusinesses.length === 0) {
-      return { type: "all", content: "All" };
+      return { type: "all", content: t("user.profile.businessSummary.all") };
     } else if (selectedBusinesses.length === 1) {
       const selectedBusiness = activeBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
     }
-    return { type: "multi", content: `${selectedBusinesses.length} Selected` };
+    return {
+      type: "multi",
+      content: t("user.profile.businessSummary.selectedCount", {
+        count: selectedBusinesses.length,
+      }),
+    };
   };
 
   const displayContent = getDisplayContent();
@@ -151,7 +160,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       <View className="flex-row justify-between items-center">
         <View>
           <Text className="text-xl font-proximanova-semibold">
-            Business Summary
+            {t("user.profile.businessSummary.title")}
           </Text>
         </View>
 
@@ -180,30 +189,30 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
       {/* stats*/}
       <View className="flex-row gap-3 mb-4 mt-4">
         <StatCardPrimary
-          title="Total"
+          title={t("user.profile.businessSummary.total")}
           point={summary.totalEmployees}
-          subtitle="Employees"
+          subtitle={t("user.profile.businessSummary.employees")}
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="Total"
+          title={t("user.profile.businessSummary.total")}
           point={summary.totalManagers}
-          subtitle="Managers"
+          subtitle={t("user.profile.businessSummary.managers")}
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
 
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
-          title="Total Shifts"
+          title={t("user.profile.businessSummary.totalShifts")}
           point={summary.totalTodayShifts}
-          subtitle="Today"
+          subtitle={t("user.profile.businessSummary.today")}
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="Completion"
+          title={t("user.profile.businessSummary.completion")}
           point={`${summary.businessCompletion}%`}
-          subtitle="Complete"
+          subtitle={t("user.profile.businessSummary.complete")}
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
