@@ -21,6 +21,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from 'expo-router';
+import { t } from "i18next";
 import React, { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -158,8 +159,8 @@ const UserHome = () => {
         {/* rank card */}
         <ActionCard
           className="mx-5"
-          title="See employee rank on board"
-          buttonTitle="View"
+          title={t("user.profile.leaderboard.seeRank")}
+          buttonTitle={t("common.view")}
           onPress={() => router.push("/screens/home/leaderboard")}
           rightImage={require("@/assets/images/rank.svg")}
           imageClass="absolute bottom-0 right-2.5"

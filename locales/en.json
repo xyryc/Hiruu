@@ -294,6 +294,15 @@
         "viewShiftReport": "View Shift Report",
         "failedToLoad": "Failed to load today's shifts summary"
       },
+      "attendanceSummary": {
+        "title": "Today's Attendance Summary",
+        "arrivedOnTime": "Employees Arrived On Time",
+        "lateComers": "Late Comers Today",
+        "absent": "Absent Employees Today"
+      },
+      "leaderboard": {
+        "seeRank": "See employee rank on board"
+      },
       "rating": {
         "title": "Rating",
         "addRating": "Add Rating",
@@ -573,6 +582,8 @@
     "error": "Error",
     "yes": "YES",
     "no": "NO",
+    "view": "View",
+    "failedToLoadAttendanceSummary": "Failed to load attendance summary",
     "noJobsAvailable": "No Jobs Available",
     "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
     "noShiftsAvailable": "No Shifts Available",

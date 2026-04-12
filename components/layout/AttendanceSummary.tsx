@@ -1,5 +1,6 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
+import { t } from "i18next";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
@@ -80,7 +81,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load attendance summary");
+        toast.error(error?.message || t("common.failedToLoadAttendanceSummary"));
       }
     };
 
@@ -94,7 +95,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
   return (
     <View className={className}>
       <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-        Today’s Attendance Summary
+        {t("user.profile.attendanceSummary.title")}
       </Text>
 
       <View className="relative mt-4 overflow-hidden">
@@ -114,7 +115,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             <View className="flex-row items-center  gap-1.5">
               <View className="h-2 w-2 rounded-full bg-[#3EBF5A]" />
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                Employees Arrived On Time
+                {t("user.profile.attendanceSummary.arrivedOnTime")}
               </Text>
             </View>
             <View className="flex-row gap-2.5 items-center">
@@ -142,7 +143,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             <View className="flex-row items-center  gap-1.5">
               <View className="h-2 w-2 rounded-full bg-[#F3934F]" />
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                Late Comers Today
+                {t("user.profile.attendanceSummary.lateComers")}
               </Text>
             </View>
             <View className="flex-row gap-2.5 items-center">
@@ -170,7 +171,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
             <View className="flex-row items-center  gap-1.5">
               <View className="h-2 w-2 rounded-full bg-[#F34F4F]" />
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                Absent Employees Today
+                {t("user.profile.attendanceSummary.absent")}
               </Text>
             </View>
             <View className="flex-row gap-2.5 items-center">
