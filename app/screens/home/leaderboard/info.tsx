@@ -7,6 +7,7 @@ import {
   SimpleLineIcons,
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { t } from "i18next";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -67,7 +68,7 @@ const LeaderboardInfo = () => {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-4 mt-2"
-        title="Leaderboard Info"
+        title={t("user.profile.leaderboard.infoTitle")}
       />
 
       {/* rules */}
@@ -81,7 +82,7 @@ const LeaderboardInfo = () => {
         <View className="bg-[#E5F4FD] rounded-xl p-4">
           {/* Title */}
           <Text className="font-proximanova-semibold text-lg mb-3">
-            Visibility Rules:
+            {t("user.profile.leaderboard.visibilityRules")}
           </Text>
 
           {/* Item 1 */}
@@ -90,8 +91,7 @@ const LeaderboardInfo = () => {
               1.
             </Text>
             <Text className="flex-1 text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Employees automatically appear on the leaderboard when they start
-              earning points through their shift activity.
+              {t("user.profile.leaderboard.rule1")}
             </Text>
           </View>
 
@@ -101,7 +101,7 @@ const LeaderboardInfo = () => {
               2.
             </Text>
             <Text className="flex-1 text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Rankings reset at the start of each month.
+              {t("user.profile.leaderboard.rule2")}
             </Text>
           </View>
         </View>
@@ -109,11 +109,10 @@ const LeaderboardInfo = () => {
         {/* how to earn */}
         <View className="mt-6">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            How to Earn Points
+            {t("user.profile.leaderboard.howToEarn")}
           </Text>
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
-            Want to be a Top Performer this month? Here&apos;s how you collect points
-            based on your shift activity
+            {t("user.profile.leaderboard.howToEarnSubtitle")}
           </Text>
         </View>
 
@@ -121,26 +120,23 @@ const LeaderboardInfo = () => {
         <View>
           {renderComponent({
             icon: <SimpleLineIcons name="clock" size={18} color="black" />,
-            title: "Be On Time",
-            subtitle:
-              "Earn +2 points for every day you arrive on time. Show up consistently and rack up points all month long!",
-            point: "Up to +40 Points/month",
+            title: t("user.profile.leaderboard.beOnTime"),
+            subtitle: t("user.profile.leaderboard.beOnTimeSubtitle"),
+            point: t("user.profile.leaderboard.beOnTimePoints"),
             className: "mt-8",
           })}
           {renderComponent({
             icon: <Ionicons name="calendar-outline" size={18} color="black" />,
-            title: "Arrive Early",
-            subtitle:
-              "Show up 10+ minutes early for your shift and earn a small bonus for being proactive.",
-            point: "+1 Point/shift ",
+            title: t("user.profile.leaderboard.arriveEarly"),
+            subtitle: t("user.profile.leaderboard.arriveEarlySubtitle"),
+            point: t("user.profile.leaderboard.arriveEarlyPoints"),
             className: "mt-4",
           })}
           {renderComponent({
             icon: <Feather name="repeat" size={16} color="black" />,
-            title: "Cover a Teammate's Shift",
-            subtitle:
-              "Step in and cover a shift for a teammate to earn extra points and appreciation. Accept a swap request from teammate.",
-            point: "+2 Points/shift",
+            title: t("user.profile.leaderboard.coverShift"),
+            subtitle: t("user.profile.leaderboard.coverShiftSubtitle"),
+            point: t("user.profile.leaderboard.coverShiftPoints"),
             className: "mt-4",
           })}
           {renderComponent({
@@ -151,20 +147,18 @@ const LeaderboardInfo = () => {
                 color="black"
               />
             ),
-            title: "Late Arrival",
-            subtitle:
-              "Running late? You won’t lose points, but you’ll miss out on that day’s punctuality bonus.",
-            point: "0 Points",
+            title: t("user.profile.leaderboard.lateArrival"),
+            subtitle: t("user.profile.leaderboard.lateArrivalSubtitle"),
+            point: t("user.profile.leaderboard.lateArrivalPoints"),
             className: "mt-4",
           })}
           {renderComponent({
             icon: (
               <FontAwesome name="calendar-times-o" size={16} color="black" />
             ),
-            title: "Missed Shift",
-            subtitle:
-              "Missing a scheduled shift without notice will cost you. Always notify your manager ahead of time.",
-            point: "-4 Points/shift",
+            title: t("user.profile.leaderboard.missedShift"),
+            subtitle: t("user.profile.leaderboard.missedShiftSubtitle"),
+            point: t("user.profile.leaderboard.missedShiftPoints"),
             className: "mt-4",
           })}
         </View>

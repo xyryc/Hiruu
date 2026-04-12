@@ -9,6 +9,7 @@ import { MaterialCommunityIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { t } from "i18next";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -224,7 +225,7 @@ export default function LeaderboardScreen() {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-4 mt-2.5"
-        title="Leaderboard"
+        title={t("user.profile.leaderboard.title")}
         components={
           <BusinessSelectionTrigger
             displayContent={displayContent}
@@ -254,7 +255,7 @@ export default function LeaderboardScreen() {
           {/* Countdown Timer Card */}
           <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl dark:bg-dark-surface">
             <Text className="text-center text-sm text-secondary dark:text-dark-secondary font-proximanova-regular mb-4">
-              Next Top Performer Results in
+              {t("user.profile.leaderboard.resultsIn")}
             </Text>
 
             {/* countdown timer */}
@@ -277,7 +278,7 @@ export default function LeaderboardScreen() {
           <View className="mt-7">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-                Top 3 Performer
+                {t("user.profile.leaderboard.top3")}
               </Text>
               <TouchableOpacity
                 onPress={() => router.push("/screens/home/leaderboard/info")}
@@ -349,7 +350,7 @@ export default function LeaderboardScreen() {
                       />
                       <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
                         <Text className="text-xs font-proximanova-semibold">
-                          {getRewardCoins(performer.rank)} token reward
+                          {`${getRewardCoins(performer.rank)} ${t("user.profile.leaderboard.tokenReward")}`}
                         </Text>
                       </View>
                     </View>
@@ -367,7 +368,7 @@ export default function LeaderboardScreen() {
                     <Text
                       className={`font-proximanova-regular text-sm ${getPointsColor(performer.rank)}`}
                     >
-                      {performer.points} Points
+                      {performer.points} {t("user.profile.leaderboard.points")}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -409,7 +410,7 @@ export default function LeaderboardScreen() {
 
           <View className="bg-[#11293A] dark:bg-gray-700 px-3.5 py-2 rounded-full">
             <Text className="text-white font-proximanova-semibold text-sm">
-              {currentUser.points} Points
+              {currentUser.points} {t("user.profile.leaderboard.points")}
             </Text>
           </View>
         </View>
