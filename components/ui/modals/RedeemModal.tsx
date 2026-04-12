@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { t } from "i18next";
 
 const RedeemModal = ({
   visible,
@@ -21,15 +22,15 @@ const RedeemModal = ({
   const handleDone = () => {
     onClose?.();
   };
-  const detailsTitle = data?.detailsTitle || "Reward Details";
+  const detailsTitle = data?.detailsTitle || t("user.profile.redeemModal.rewardDetails");
   const details = Array.isArray(data?.details) ? data.details.filter(Boolean) : [];
-  const confirmTitle = data?.confirmTitle || "Confirm & Apply";
+  const confirmTitle = data?.confirmTitle || t("user.profile.redeemModal.confirmAndApply");
   const cardBgColor = data?.cardBgColor || "#EFF9FF";
   const options = Array.isArray(data?.options) ? data.options : [];
   const selectedOptionId = data?.selectedOptionId;
   const onSelectOption = data?.onSelectOption;
   const showSelectUser = Boolean(data?.showSelectUser);
-  const selectUserLabel = data?.selectUserLabel || "Select a user to gift";
+  const selectUserLabel = data?.selectUserLabel || t("user.profile.redeemModal.selectUserToGift");
   const selectUserAvatar = data?.selectUserAvatar;
   const onPressSelectUser = data?.onPressSelectUser;
   const showSelectBusiness = Boolean(data?.showSelectBusiness);
@@ -54,7 +55,7 @@ const RedeemModal = ({
 
           <ScrollView className="px-5 py-7">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary text-center">
-              Ready to Redeem?
+              {t("user.profile.redeemModal.readyToRedeem")}
             </Text>
 
             <View className="flex-row items-center mx-auto mt-3">
@@ -69,8 +70,7 @@ const RedeemModal = ({
             </View>
 
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary text-center mt-2.5">
-              This action will use your tokens to unlock the selected reward.
-              Please confirm to proceed.
+              {t("user.profile.redeemModal.actionDescription")}
             </Text>
 
             {namePlate ? (
@@ -109,7 +109,7 @@ const RedeemModal = ({
             {showSelectUser ? (
               <View className="mt-4">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Select User
+                  {t("user.profile.redeemModal.selectUser")}
                 </Text>
 
                 <TouchableOpacity
@@ -140,7 +140,7 @@ const RedeemModal = ({
             {showSelectBusiness ? (
               <View className="mt-4 flex-row items-center justify-between">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Select Business
+                  {t("user.profile.redeemModal.selectBusiness")}
                 </Text>
                 {selectBusinessTrigger}
               </View>
@@ -164,7 +164,7 @@ const RedeemModal = ({
               ))}
               {!isOwned && details.length === 0 ? (
                 <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary mt-1.5">
-                  1. Coin Price: {coinPrice} Tokens
+                  {t("user.profile.redeemModal.coinPrice", { price: coinPrice })}
                 </Text>
               ) : null}
             </View>
@@ -202,22 +202,22 @@ const RedeemModal = ({
             {isOwned ? (
               <Text className="font-proximanova-semibold text-sm text-[#2E9B50] text-center mt-5">
                 {isEquipped
-                  ? "This nameplate is already equipped"
+                  ? t("user.profile.redeemModal.nameplateEquipped")
                   : ownedExpiry
-                    ? `You already own this nameplate • Expires ${new Date(
-                      ownedExpiry
-                    ).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}`
-                    : "You already own this nameplate"}
+                    ? t("user.profile.redeemModal.nameplateOwnedExpires", {
+                      date: new Date(ownedExpiry).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }),
+                    })
+                    : t("user.profile.redeemModal.nameplateOwned")}
               </Text>
             ) : null}
 
             {!isOwned || !isEquipped ? (
               <PrimaryButton
-                title={isOwned ? "Apply Nameplate" : confirmTitle}
+                title={isOwned ? t("user.profile.redeemModal.applyNameplate") : confirmTitle}
                 className="mt-5"
                 onPress={onConfirm}
                 loading={confirming}

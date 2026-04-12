@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+import { t } from "i18next";
 
 type RedeemModalData = {
   img: any;
@@ -39,63 +40,63 @@ type RedeemModalData = {
 
 const premiumConfig = {
   img: require("@/assets/images/reward/premium.svg"),
-  title: "Buy 1 Month Premium",
-  subtitle: "Unlock premium features for yourself",
+  title: t("user.profile.redeemTokens.buyPremiumTitle"),
+  subtitle: t("user.profile.redeemTokens.buyPremiumSubtitle"),
   coin: "200",
-  detailsTitle: "Premium Benefits Overview",
+  detailsTitle: t("user.profile.redeemTokens.premiumBenefitsTitle"),
   details: [
-    "Access to nameplate designs",
-    "Profile boost",
-    "Early access to job listings",
+    t("user.profile.redeemTokens.benefitNameplates"),
+    t("user.profile.redeemTokens.benefitProfileBoost"),
+    t("user.profile.redeemTokens.benefitEarlyAccess"),
   ],
-  confirmTitle: "Confirm Purchase",
+  confirmTitle: t("user.profile.redeemTokens.confirmPurchase"),
   cardBgColor: "#EFF9FF",
 };
 
 const giftConfig = {
   img: require("@/assets/images/reward/giftbox.svg"),
-  title: "Gift 1 Month Premium",
-  subtitle: "Send premium access to a friend",
+  title: t("user.profile.redeemTokens.giftPremiumTitle"),
+  subtitle: t("user.profile.redeemTokens.giftPremiumSubtitle"),
   coin: "300",
-  detailsTitle: "Gift Premium For A Month",
+  detailsTitle: t("user.profile.redeemTokens.giftPremiumDetailsTitle"),
   details: [
-    "Send 1 month of premium access to another user. They’ll receive all premium benefits instantly",
+    t("user.profile.redeemTokens.giftPremiumDetails"),
   ],
-  confirmTitle: "Continue Gift",
+  confirmTitle: t("user.profile.redeemTokens.continueGift"),
   cardBgColor: "#FEEFE5",
   showSelectUser: true,
-  selectUserLabel: "Select a user to gift",
+  selectUserLabel: t("user.profile.redeemTokens.selectUserToGift"),
 };
 
 const featureMeConfig = {
   img: require("@/assets/images/reward/finder.svg"),
-  title: "Feature Me",
-  subtitle: "Get noticed by top companies faster.",
+  title: t("user.profile.redeemTokens.featureMeTitle"),
+  subtitle: t("user.profile.redeemTokens.featureMeSubtitle"),
   coin: "1000",
-  detailsTitle: "Be feature profile as user",
+  detailsTitle: t("user.profile.redeemTokens.featureMeDetailsTitle"),
   details: [
-    "Push your profile higher in discovery results",
-    "Increase visibility to hiring businesses",
-    "Useful when you want faster attention on your profile",
-    "Pricing varies by selected duration",
+    t("user.profile.redeemTokens.featureMeDetail1"),
+    t("user.profile.redeemTokens.featureMeDetail2"),
+    t("user.profile.redeemTokens.featureMeDetail3"),
+    t("user.profile.redeemTokens.featureMeDetail4"),
   ],
-  confirmTitle: "Continue Feature",
+  confirmTitle: t("user.profile.redeemTokens.continueFeature"),
   cardBgColor: "#E3F6E7",
 };
 
 const featureJobConfig = {
   img: require("@/assets/images/reward/purple-toolbox.svg"),
-  title: "Feature Job",
-  subtitle: "Boost your job profile visibility.",
+  title: t("user.profile.redeemTokens.featureJobTitle"),
+  subtitle: t("user.profile.redeemTokens.featureJobSubtitle"),
   coin: "200",
-  detailsTitle: "Feature Job Visibility",
+  detailsTitle: t("user.profile.redeemTokens.featureJobDetailsTitle"),
   details: [
-    "Highlight your recruitment in listings",
-    "Improve discoverability for candidates",
-    "Useful for urgent or competitive hiring needs",
-    "Visibility boost lasts for the selected duration",
+    t("user.profile.redeemTokens.featureJobDetail1"),
+    t("user.profile.redeemTokens.featureJobDetail2"),
+    t("user.profile.redeemTokens.featureJobDetail3"),
+    t("user.profile.redeemTokens.featureJobDetail4"),
   ],
-  confirmTitle: "Continue Feature",
+  confirmTitle: t("user.profile.redeemTokens.continueFeature"),
   cardBgColor: "#F7EEFF",
 };
 
@@ -167,7 +168,7 @@ const RedeemTokens = () => {
     if (!selectedBusiness) {
       return {
         type: "all" as const,
-        content: "All",
+        content: t("common.all"),
       };
     }
 
@@ -214,7 +215,7 @@ const RedeemTokens = () => {
       await getMyEmployments();
       setShowBusinessModal(true);
     } catch {
-      toast.error("Failed to load businesses");
+      toast.error(t("common.failedToLoadBusinesses"));
     }
   }, [getMyEmployments]);
 
@@ -266,7 +267,7 @@ const RedeemTokens = () => {
 
     setData((prev) => ({
       ...prev,
-      selectUserLabel: selectedUser?.name || "Select a user to gift",
+      selectUserLabel: selectedUser?.name || t("user.profile.redeemTokens.selectUserToGift"),
       selectUserAvatar: selectedUser?.avatar || null,
     }));
   }, [modalVisible, selectedRedeemKey, selectedUser]);
@@ -325,7 +326,7 @@ const RedeemTokens = () => {
         const unitLabel = range.duration === 1 ? unit : `${unit}s`;
         return {
           id: `${range.duration}-${unit}-${range.price}`,
-          label: `${range.duration} ${unitLabel} - ${range.price} Tokens`,
+          label: `${range.duration} ${unitLabel} - ${range.price} ${t("user.profile.rewards.tokens")}`,
           duration: range.duration,
           unit,
         };
@@ -356,11 +357,11 @@ const RedeemTokens = () => {
     setData({
       ...config,
       coin,
-      confirmTitle: alreadyRedeemed ? "Already Redeemed" : config.confirmTitle,
+      confirmTitle: alreadyRedeemed ? t("user.profile.redeemTokens.alreadyRedeemed") : config.confirmTitle,
       details: [
         ...config.details,
-        `Token Cost: ${coin} Tokens`,
-        `Current Token Balance: ${totalTokens} Tokens`,
+        t("user.profile.redeemTokens.tokenCost", { cost: coin }),
+        t("user.profile.redeemTokens.currentBalance", { balance: totalTokens }),
       ],
     });
     setModalVisible(true);
@@ -392,7 +393,7 @@ const RedeemTokens = () => {
 
     if (selectedRedeemKey === "gift_1_month_premium") {
       if (!selectedUser?.id) {
-        toast.error("Please select a user to gift");
+        toast.error(t("user.profile.redeemTokens.selectUserError"));
         return null;
       }
       return {
@@ -403,7 +404,7 @@ const RedeemTokens = () => {
 
     if (selectedRedeemKey === "feature_job") {
       if (!selectedBusinessId) {
-        toast.error("Please select a business profile first");
+        toast.error(t("user.profile.redeemTokens.selectBusinessError"));
         return null;
       }
       return {
@@ -440,7 +441,7 @@ const RedeemTokens = () => {
   const handleRedeem = async () => {
     if (!selectedRedeemKey) return;
     if (isItemRedeemed(selectedRedeemKey)) {
-      toast.info("Already redeemed");
+      toast.info(t("user.profile.redeemTokens.alreadyRedeemed"));
       return;
     }
     const payload = buildRedeemPayload();
@@ -471,15 +472,15 @@ const RedeemTokens = () => {
         ...premiumConfig,
         coin,
         confirmTitle: isItemRedeemed("buy_1_month_premium")
-          ? "Already Redeemed"
+          ? t("user.profile.redeemTokens.alreadyRedeemed")
           : premiumConfig.confirmTitle,
         details: [
-          "Access to nameplate designs",
-          "Profile boost",
-          "Early access to job listings",
-          `Token Cost: ${coin} Tokens`,
-          "Duration: Valid for 1 Month",
-          `Current Token Balance: ${totalTokens} Tokens`,
+          t("user.profile.redeemTokens.benefitNameplates"),
+          t("user.profile.redeemTokens.benefitProfileBoost"),
+          t("user.profile.redeemTokens.benefitEarlyAccess"),
+          t("user.profile.redeemTokens.tokenCost", { cost: coin }),
+          t("user.profile.redeemTokens.durationValid"),
+          t("user.profile.redeemTokens.currentBalance", { balance: totalTokens }),
         ],
       });
       setModalVisible(true);
@@ -490,22 +491,22 @@ const RedeemTokens = () => {
         ...giftConfig,
         coin,
         confirmTitle: isItemRedeemed("gift_1_month_premium")
-          ? "Already Redeemed"
+          ? t("user.profile.redeemTokens.alreadyRedeemed")
           : giftConfig.confirmTitle,
         details: [
-          "Send 1 month of premium access to another user. They’ll receive all premium benefits instantly",
-          `Token Cost: ${coin} Tokens`,
-          `Current Token Balance: ${totalTokens} Tokens`,
+          t("user.profile.redeemTokens.giftPremiumDetails"),
+          t("user.profile.redeemTokens.tokenCost", { cost: coin }),
+          t("user.profile.redeemTokens.currentBalance", { balance: totalTokens }),
         ],
-        selectUserLabel: selectedUser?.name || "Select a user to gift",
+        selectUserLabel: selectedUser?.name || t("user.profile.redeemTokens.selectUserToGift"),
         selectUserAvatar: selectedUser?.avatar || null,
         onPressSelectUser: () =>
           router.push({
             pathname: "/screens/common/select-user",
             params: {
               selectionKey: GIFT_PREMIUM_SELECTION_KEY,
-              title: "Select User",
-              searchPlaceholder: "Search user...",
+              title: t("user.profile.redeemTokens.selectUserToGift"),
+              searchPlaceholder: t("common.searchUser"),
             },
           }),
       });
@@ -535,11 +536,11 @@ const RedeemTokens = () => {
         ...featureMeConfig,
         coin: getItemPrice("feature_me", featureMeConfig.coin),
         confirmTitle: isItemRedeemed("feature_me")
-          ? "Already Redeemed"
+          ? t("user.profile.redeemTokens.alreadyRedeemed")
           : featureMeConfig.confirmTitle,
         details: [
-          "Boost your visibility by appearing at the top of the Job Finder page for a selected duration",
-          `Current Token Balance: ${totalTokens} Tokens`,
+          t("user.profile.redeemTokens.featureMeDetail3"),
+          t("user.profile.redeemTokens.currentBalance", { balance: totalTokens }),
         ],
         options: featureMeOptions.map((option) => ({
           id: option.id,
@@ -562,7 +563,7 @@ const RedeemTokens = () => {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-5 pb-6 rounded-b-3xl pt-2.5 overflow-hidden"
-        title="Redeem Tokens"
+        title={t("user.profile.redeemTokens.title")}
         titleClass="text-primary "
         iconColor={isDark ? "#fff" : "#111111"}
         components={
@@ -599,11 +600,11 @@ const RedeemTokens = () => {
               style={{ width: 60, height: 60 }}
             />
             <Text className="font-proximanova-semibold text-primary mt-2.5 w-2/3 text-center">
-              Buy 1 Month Premium
+              {t("user.profile.redeemTokens.buyPremiumTitle")}
             </Text>
 
             <Text className="font-proximanova-regular text-secondary text-center text-sm mt-2 w-4/5">
-              Unlock premium features for yourself
+              {t("user.profile.redeemTokens.buyPremiumSubtitle")}
             </Text>
 
             <View className="flex-row items-center gap-1.5 mt-2.5">
@@ -641,11 +642,11 @@ const RedeemTokens = () => {
               style={{ width: 60, height: 60 }}
             />
             <Text className="font-proximanova-semibold text-primary  mt-2.5 w-2/3 text-center">
-              Gift 1 Month Premium
+              {t("user.profile.redeemTokens.giftPremiumTitle")}
             </Text>
 
             <Text className="font-proximanova-regular text-secondary  text-center text-sm mt-2 w-4/5">
-              Send premium access to a friend
+              {t("user.profile.redeemTokens.giftPremiumSubtitle")}
             </Text>
 
             <View className="flex-row items-center gap-1.5 mt-2.5">
@@ -685,11 +686,11 @@ const RedeemTokens = () => {
               style={{ width: 60, height: 60 }}
             />
             <Text className="font-proximanova-semibold text-primary mt-2.5 w-2/3 text-center">
-              Feature Me
+              {t("user.profile.redeemTokens.featureMeTitle")}
             </Text>
 
             <Text className="font-proximanova-regular text-secondary  text-center text-sm mt-2 w-4/5">
-              Get noticed by top companies faster
+              {t("user.profile.redeemTokens.featureMeSubtitle")}
             </Text>
 
             <View className="flex-row items-center gap-1.5 mt-2.5">
@@ -727,11 +728,11 @@ const RedeemTokens = () => {
               style={{ width: 60, height: 60 }}
             />
             <Text className="font-proximanova-semibold text-primary mt-2.5 w-2/3 text-center">
-              Feature Job
+              {t("user.profile.redeemTokens.featureJobTitle")}
             </Text>
 
             <Text className="font-proximanova-regular text-secondary  text-center text-sm mt-2 w-4/5">
-              Get noticed by top Employees faster
+              {t("user.profile.redeemTokens.featureJobSubtitle")}
             </Text>
 
             <View className="flex-row items-center gap-1.5 mt-2.5">
@@ -770,15 +771,15 @@ const RedeemTokens = () => {
             style={{ width: 60, height: 60 }}
           />
           <Text className="font-proximanova-semibold text-primary  mt-2.5">
-            Unlock Nameplate Designs
+            {t("user.profile.redeemTokens.unlockNameplateTitle")}
           </Text>
           <Text className="font-proximanova-regular text-secondary  text-center text-sm mt-2">
-            Choose profile nameplate styles
+            {t("user.profile.redeemTokens.unlockNameplateSubtitle")}
           </Text>
           <View className="flex-row items-center gap-1.5 mt-2.5">
             <View className="px-4 py-1 bg-[#ffffff] -z-10  -ml-3 rounded-r-[40px] ">
               <Text className="text-xs font-proximanova-semibold text-primary ">
-                See All
+                {t("user.profile.redeemTokens.seeAll")}
               </Text>
             </View>
 

@@ -11,6 +11,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import {
@@ -25,10 +26,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const tabs = ["One-Time", "Repeatable"];
+const tabs = [t("user.profile.challenges.oneTime"), t("user.profile.challenges.repeatable")];
 const achievementTypeByTab: Record<(typeof tabs)[number], AchievementType> = {
-  "One-Time": "onetime",
-  Repeatable: "repeat",
+  [t("user.profile.challenges.oneTime")]: "onetime",
+  [t("user.profile.challenges.repeatable")]: "repeat",
 };
 
 const challengeIllustrations: Record<string, any> = {
@@ -49,10 +50,10 @@ const getChallengeImage = (achievement: AchievementItem) => {
 };
 
 const getChallengeActionLabel = (achievement: AchievementItem) => {
-  if (achievement?.userProgress?.isClaimed) return "Collected";
-  if (achievement?.userProgress?.canClaim) return "Claim";
-  if (achievement?.userProgress?.completedAt) return "Complete";
-  return "In Progress";
+  if (achievement?.userProgress?.isClaimed) return t("user.profile.challenges.collected");
+  if (achievement?.userProgress?.canClaim) return t("user.profile.challenges.claim");
+  if (achievement?.userProgress?.completedAt) return t("user.profile.challenges.complete");
+  return t("user.profile.challenges.inProgress");
 };
 
 const Challenges = () => {
@@ -76,7 +77,7 @@ const Challenges = () => {
     useCallback(() => {
       setPage(1);
       getAchievements(currentType, 1, limit, false).catch((error: any) => {
-        toast.error(error?.message || "Failed to load challenges");
+        toast.error(error?.message || t("user.profile.challenges.failedToLoadChallenges"));
       });
     }, [currentType, getAchievements])
   );
@@ -88,13 +89,13 @@ const Challenges = () => {
       try {
         const result = await claimAchievement(achievement.id);
         toast.success(
-          translateApiMessage(result?.message) || "Achievement claimed successfully"
+          translateApiMessage(result?.message) || t("user.profile.challenges.claimedSuccessfully")
         );
         setPage(1);
         await getAchievements(currentType, 1, limit, false);
       } catch (error: any) {
         toast.error(
-          translateApiMessage(error?.message) || "Failed to claim achievement"
+          translateApiMessage(error?.message) || t("user.profile.challenges.failedToClaimAchievement")
         );
       }
     },
@@ -135,7 +136,7 @@ const Challenges = () => {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-5 pb-6 rounded-b-3xl overflow-hidden"
-        title="Standard Challenges"
+        title={t("user.profile.challenges.standardChallenges")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111111"}
       />
@@ -160,14 +161,14 @@ const Challenges = () => {
           <View className="flex-1 flex-row mt-2 justify-between">
             <View>
               <Text className="font-proximanova-bold text-xl text-primary dark:text-dark-primary">
-                Redeem Your Tokens
+                {t("user.profile.challenges.redeemYourTokens")}
               </Text>
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-1.5">
-                Redeem for perks & premium features
+                {t("user.profile.challenges.redeemForPerks")}
               </Text>
-              <TouchableOpacity className="mt-1.5 bg-[#11293A] rounded-full px-2 py-1.5 justify-center items-center w-[92px]">
+              <TouchableOpacity className="mt-1.5 bg-[#11293A] rounded-full px-2 py-1.5 justify-center items-center w-28">
                 <Text className="font-proximanova-bold text-sm text-white text-center">
-                  50% Extra
+                  {t("user.profile.challenges.extraBonus")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -316,9 +317,9 @@ const Challenges = () => {
         ) : (
           <View className="py-10">
             <Text className="text-center text-sm text-secondary dark:text-dark-secondary">
-              {isActive === "One-Time"
-                ? "No one-time challenges found."
-                : "No repeatable challenges found."}
+              {isActive === t("user.profile.challenges.oneTime")
+                ? t("user.profile.challenges.noOneTimeFound")
+                : t("user.profile.challenges.noRepeatableFound")}
             </Text>
           </View>
         )}
