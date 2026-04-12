@@ -329,6 +329,27 @@
         "missedShiftSubtitle": "Η χαμένη προγραμματισμένη βάρδια χωρίς ειδοποίηση θα σου κοστίσει. Πάντα ειδοποίησε τον manager σου εκ των προτέρων.",
         "missedShiftPoints": "-4 Πόντοι/βάρδια"
       },
+      "performanceTrend": {
+        "title": "Τάση Απόδοσης",
+        "selectGraphType": "Επιλογή Τύπου Γραφήματος"
+      },
+      "rewards": {
+        "totalTokens": "Συνολικά Μάρκες",
+        "redeem": "Εξαργύρωση",
+        "earnTokensSubtitle": "Κέρδισε μάρκες καθώς ξεκλειδώνεις και ανεβάζεις επίπεδο στα badges!",
+        "defaultAchievementTitle": "Ολοκλήρωσες 3 συνεχόμενες βάρδιες!",
+        "completedCount": "Ολοκληρώθηκε: {{completed}}/{{target}}",
+        "tokens": "Μάρκες",
+        "yourTimeRemaining": "Υπόλοιπος Χρόνος",
+        "standardChallenges": "Τυπικές Προκλήσεις",
+        "seeAll": "Δες Όλα",
+        "redeemRewards": "Εξαργύρωση Ανταμοιβών",
+        "premiumMonth": "Premium για έναν μήνα",
+        "giftPremiumMonth": "Δώρο Premium για έναν μήνα",
+        "featureUser": "Προβεβλημένο προφίλ ως χρήστης",
+        "featureBusiness": "Προβεβλημένο προφίλ ως επιχείρηση",
+        "featuredNameplate": "Προβεβλημένη nameplate"
+      },
       "rating": {
         "title": "Αξιολόγηση",
         "addRating": "Προσθήκη αξιολόγησης",
@@ -613,6 +634,7 @@
     "noShiftsAvailable": "Δεν υπάρχουν διαθέσιμες βάρδιες",
     "noShiftsAvailableDescription": "Δεν υπάρχουν προγραμματισμένες βάρδιες για αυτή την ημερομηνία. Ελέγξτε άλλη ημερομηνία ή δημιουργήστε νέα βάρδια.",
     "failedToLoadAttendanceSummary": "Αποτυχία φόρτωσης σύνοψης παρουσίας",
+    "failedToLoadPerformanceTrend": "Αποτυχία φόρτωσης τάσης απόδοσης",
     "view": "Προβολή"
   },
   "api": {

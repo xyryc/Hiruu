@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { DateTime } from "luxon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { t } from "i18next";
 import {
   Dimensions,
   RefreshControl,
@@ -74,7 +75,7 @@ const UserRewards = () => {
   );
 
   const recentAchievementTitle = useMemo(
-    () => recentAchievement?.title?.trim() || "You've Completed 3 Shifts In A Row!",
+    () => recentAchievement?.title?.trim() || t("user.profile.rewards.defaultAchievementTitle"),
     [recentAchievement?.title]
   );
 
@@ -98,7 +99,10 @@ const UserRewards = () => {
       return recentAchievement.description.trim();
     }
 
-    return `Completed: ${recentAchievementProgress}/${recentAchievementTarget}`;
+    return t("user.profile.rewards.completedCount", {
+      completed: recentAchievementProgress,
+      target: recentAchievementTarget,
+    });
   }, [
     recentAchievement?.description,
     recentAchievementProgress,
@@ -232,7 +236,7 @@ const UserRewards = () => {
 
             <View className="flex-col mt-8 justify-between items-center">
               <Text className="font-proximanova-regular text-base text-secondary dark:text-dark-secondary text-center mt-2.5">
-                Total Tokens
+                {t("user.profile.rewards.totalTokens")}
               </Text>
 
               <View className="flex-row items-center justify-center mt-1 gap-2.5">
@@ -251,14 +255,14 @@ const UserRewards = () => {
             </View>
 
             <PrimaryButton
-              title="Redeem"
+              title={t("user.profile.rewards.redeem")}
               onPress={() => router.push("/screens/rewards/redeem-tokens")}
               className="w-44 justify-center items-center mx-auto mt-4"
               iconSize={18}
             />
 
             <Text className="font-proximanova-regular text-sm text-center text-primary dark:text-dark-primary mt-2.5">
-              Earn tokens as you unlock and level up badges!
+              {t("user.profile.rewards.earnTokensSubtitle")}
             </Text>
 
             <View className="bg-[#4FB2F3] p-4 rounded-2xl mt-8">
@@ -282,7 +286,7 @@ const UserRewards = () => {
                       </Text>
                     </Text>
                     <Text className="font-proximanova-semibold text-sm text-[#ffffff]">
-                      {recentAchievementRewardTokens} Tokens
+                      {recentAchievementRewardTokens} {t("user.profile.rewards.tokens")}
                     </Text>
                   </View>
 
@@ -314,7 +318,7 @@ const UserRewards = () => {
 
               <View className="flex-row items-center justify-center -mt-8 gap-1">
                 <Text className="text-center font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                  Your Time Remaining:
+                  {t("user.profile.rewards.yourTimeRemaining")}:
                 </Text>
 
                 <Image
@@ -336,13 +340,13 @@ const UserRewards = () => {
           <View className="mt-8 mx-5">
             <View className="flex-row justify-between items-center">
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                Standard Challenges
+                {t("user.profile.rewards.standardChallenges")}
               </Text>
               <TouchableOpacity
                 onPress={() => router.push("/screens/rewards/challenges")}
               >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
-                  See All
+                  {t("user.profile.rewards.seeAll")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -421,7 +425,7 @@ const UserRewards = () => {
 
             {/* redeem rewards */}
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-6">
-              Redeem Rewards
+              {t("user.profile.rewards.redeemRewards")}
             </Text>
 
             <View className="relative mt-4">
@@ -444,7 +448,7 @@ const UserRewards = () => {
                   <View className="flex-row  gap-1.5">
                     <MaterialCommunityIcons name="crown" size={18} color="#4FB2F3" />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Premium for a month
+                      {t("user.profile.rewards.premiumMonth")}
                     </Text>
                   </View>
                   <MaterialIcons
@@ -465,7 +469,7 @@ const UserRewards = () => {
                       color="#4FB2F3"
                     />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Gift Premium for a month
+                      {t("user.profile.rewards.giftPremiumMonth")}
                     </Text>
                   </View>
                   <MaterialIcons
@@ -482,7 +486,7 @@ const UserRewards = () => {
                   <View className="flex-row  gap-1.5">
                     <Ionicons name="person" size={15} color="#4FB2F3" />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Be feature profile as user
+                      {t("user.profile.rewards.featureUser")}
                     </Text>
                   </View>
                   <MaterialIcons
@@ -503,7 +507,7 @@ const UserRewards = () => {
                       color="#4FB2F3"
                     />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Be feature profile as business
+                      {t("user.profile.rewards.featureBusiness")}
                     </Text>
                   </View>
                   <MaterialIcons
@@ -520,7 +524,7 @@ const UserRewards = () => {
                   <View className="flex-row  gap-1.5">
                     <FontAwesome name="map-signs" size={15} color="#4FB2F3" />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Featured profile nameplate
+                      {t("user.profile.rewards.featuredNameplate")}
                     </Text>
                   </View>
                   <MaterialIcons

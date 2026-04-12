@@ -1,4 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { t } from "i18next";
 import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useMemo, useState } from "react";
@@ -226,7 +227,7 @@ const PerformanceTrend = ({ className }: any) => {
           });
         }
         if (shouldSilenceTrendError(error)) return;
-        toast.error(error?.message || "Failed to load performance trends");
+        toast.error(error?.message || t("common.failedToLoadPerformanceTrend"));
       }
     };
 
@@ -253,7 +254,7 @@ const PerformanceTrend = ({ className }: any) => {
     <View className={`${className} px-5`}>
       <View className="mb-4 flex-row items-center justify-between">
         <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-          Performance Trend
+          {t("user.profile.performanceTrend.title")}
         </Text>
 
         <TouchableOpacity
@@ -299,7 +300,7 @@ const PerformanceTrend = ({ className }: any) => {
             <SafeAreaView edges={["bottom"]}>
               <View className="px-6 py-7">
                 <Text className="font-proximanova-bold text-xl text-center">
-                  Select Graph Type
+                  {t("user.profile.performanceTrend.selectGraphType")}
                 </Text>
               </View>
 

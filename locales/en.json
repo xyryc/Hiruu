@@ -329,6 +329,27 @@
         "missedShiftSubtitle": "Missing a scheduled shift without notice will cost you. Always notify your manager ahead of time.",
         "missedShiftPoints": "-4 Points/shift"
       },
+      "performanceTrend": {
+        "title": "Performance Trend",
+        "selectGraphType": "Select Graph Type"
+      },
+      "rewards": {
+        "totalTokens": "Total Tokens",
+        "redeem": "Redeem",
+        "earnTokensSubtitle": "Earn tokens as you unlock and level up badges!",
+        "defaultAchievementTitle": "You've Completed 3 Shifts In A Row!",
+        "completedCount": "Completed: {{completed}}/{{target}}",
+        "tokens": "Tokens",
+        "yourTimeRemaining": "Your Time Remaining",
+        "standardChallenges": "Standard Challenges",
+        "seeAll": "See All",
+        "redeemRewards": "Redeem Rewards",
+        "premiumMonth": "Premium for a month",
+        "giftPremiumMonth": "Gift Premium for a month",
+        "featureUser": "Be featured profile as user",
+        "featureBusiness": "Be featured profile as business",
+        "featuredNameplate": "Featured profile nameplate"
+      },
       "rating": {
         "title": "Rating",
         "addRating": "Add Rating",
@@ -610,6 +631,7 @@
     "no": "NO",
     "view": "View",
     "failedToLoadAttendanceSummary": "Failed to load attendance summary",
+    "failedToLoadPerformanceTrend": "Failed to load performance trends",
     "noJobsAvailable": "No Jobs Available",
     "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
     "noShiftsAvailable": "No Shifts Available",
