@@ -219,6 +219,35 @@ const SavedShiftTemplate = () => {
     [weeklyShiftSelections]
   );
 
+  const isAllAssignmentsComplete = useMemo(() => {
+    return daysData.every((day) => {
+      const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
+        ? weeklyShiftSelections[day.label]
+        : [];
+
+      return selectedTemplates.every((template: any) => {
+        const requiredRoles = Array.isArray(template?.roleRequirements)
+          ? template.roleRequirements
+          : [];
+
+        if (requiredRoles.length === 0) return true;
+
+        const assignmentKey = `${day.label}::${template?.id}`;
+        const selectedByRole = weeklyRoleAssignments[assignmentKey] || {};
+
+        return requiredRoles.every((role: any) => {
+          const roleId = String(role?.roleId || "");
+          const requiredCount = Math.max(Number(role?.count || 0), 0);
+          if (!roleId || requiredCount <= 0) return true;
+          const selectedCount = Array.isArray(selectedByRole[roleId])
+            ? selectedByRole[roleId].length
+            : 0;
+          return selectedCount >= requiredCount;
+        });
+      });
+    });
+  }, [weeklyRoleAssignments, weeklyShiftSelections]);
+
   const buildSlotsPayload = () =>
     daysData.flatMap((day) => {
       const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
@@ -363,17 +392,7 @@ const SavedShiftTemplate = () => {
         });
       });
 
-      toast.success(
-        aiData?.messageKey
-          ? t(`api.${aiData.messageKey}`, {
-              defaultValue: t("api.ai_schedule_applied", {
-                defaultValue: "AI schedule applied.",
-              }),
-            })
-          : t("api.ai_schedule_applied", {
-              defaultValue: "AI schedule applied.",
-            })
-      );
+      // Intentionally no success toast after AI fill; UI state update is the feedback.
     } catch (error: any) {
       const apiMessageKey =
         error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
@@ -394,6 +413,10 @@ const SavedShiftTemplate = () => {
     }
     if (!hasAtLeastOneTemplate) {
       toast.error("Please select at least one shift template.");
+      return;
+    }
+    if (!isAllAssignmentsComplete) {
+      toast.error("Please assign required people for all selected shifts.");
       return;
     }
 
@@ -585,7 +608,13 @@ const SavedShiftTemplate = () => {
               className="my-4"
               onPress={handleNext}
               loading={isUpdating}
-              disabled={!hasAtLeastOneTemplate || isHydratingEdit || isUpdating || isFillingAI}
+              disabled={
+                !hasAtLeastOneTemplate ||
+                !isAllAssignmentsComplete ||
+                isHydratingEdit ||
+                isUpdating ||
+                isFillingAI
+              }
             />
           </ScrollView>
         )}
