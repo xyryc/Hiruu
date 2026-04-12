@@ -31,6 +31,42 @@ const daysData = [
   { label: "Sunday" },
 ];
 
+const buildRoleAwareAssignment = (template: any, employmentIds: string[]) => {
+  const normalizedAssigned = Array.from(
+    new Set((Array.isArray(employmentIds) ? employmentIds : []).filter(Boolean))
+  ).map((id) => String(id));
+
+  const assignment: Record<string, string[]> = {
+    assigned: normalizedAssigned,
+  };
+
+  const roleRequirements = Array.isArray(template?.roleRequirements)
+    ? template.roleRequirements
+    : [];
+
+  if (roleRequirements.length === 0 || normalizedAssigned.length === 0) {
+    return assignment;
+  }
+
+  // Distribute AI-assigned employees across required roles so role-based UI can reflect counts.
+  let cursor = 0;
+  roleRequirements.forEach((role: any) => {
+    const roleId = String(role?.roleId || "");
+    if (!roleId) return;
+    const count = Math.max(Number(role?.count || 0), 0);
+    if (count <= 0) {
+      assignment[roleId] = [];
+      return;
+    }
+
+    const slice = normalizedAssigned.slice(cursor, cursor + count);
+    assignment[roleId] = slice;
+    cursor += count;
+  });
+
+  return assignment;
+};
+
 const SavedShiftTemplate = () => {
   const params = useLocalSearchParams<{
     mode?: string;
@@ -46,12 +82,14 @@ const SavedShiftTemplate = () => {
   const insets = useSafeAreaInsets();
   const [isHydratingEdit, setIsHydratingEdit] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isFillingAI, setIsFillingAI] = React.useState(false);
   const {
     selectedBusinesses,
     weeklyShiftSelections,
     weeklyRoleAssignments,
     getWeeklyScheduleBlockById,
     getShiftTemplates,
+    fillWeeklyBlockAutomatic,
     updateWeeklyScheduleBlock,
     setWeeklyShiftSelection,
     setWeeklyRoleAssignment,
@@ -106,10 +144,12 @@ const SavedShiftTemplate = () => {
             const employmentIds = Array.isArray(slot?.employmentIds)
               ? slot.employmentIds.filter(Boolean)
               : [];
+            const template = templateMap.get(String(slot?.shiftTemplateId));
 
-            setWeeklyRoleAssignment(assignmentKey, {
-              assigned: employmentIds,
-            });
+            setWeeklyRoleAssignment(
+              assignmentKey,
+              buildRoleAwareAssignment(template, employmentIds)
+            );
           });
         });
       } catch (error: any) {
@@ -214,6 +254,139 @@ const SavedShiftTemplate = () => {
         });
     });
 
+  const handleFillWithAI = async () => {
+    if (!businessId) {
+      toast.error("Please select a business first.");
+      return;
+    }
+
+    try {
+      setIsFillingAI(true);
+      const aiData = await fillWeeklyBlockAutomatic(businessId);
+      const aiSlots = Array.isArray(aiData?.template?.slots)
+        ? aiData.template.slots
+        : [];
+
+      if (aiSlots.length === 0) {
+        toast.error(
+          t("api.invalid_ai_schedule_payload", {
+            defaultValue: "AI returned no schedule slots.",
+          })
+        );
+        return;
+      }
+
+      const templates = await getShiftTemplates(businessId);
+      const templateMap = new Map(
+        (Array.isArray(templates) ? templates : []).map((template: any) => [
+          String(template?.id),
+          template,
+        ])
+      );
+
+      const dayLabelMap = new Map(
+        daysData.map((day) => [day.label.toLowerCase(), day.label])
+      );
+      const dayOrder = new Map(
+        daysData.map((day, index) => [day.label.toLowerCase(), index])
+      );
+
+      const sortedSlots = [...aiSlots].sort((a: any, b: any) => {
+        const dayA = String(a?.dayOfWeek || "").toLowerCase();
+        const dayB = String(b?.dayOfWeek || "").toLowerCase();
+        const dayDiff = (dayOrder.get(dayA) ?? 99) - (dayOrder.get(dayB) ?? 99);
+        if (dayDiff !== 0) return dayDiff;
+        return Number(a?.sequence ?? 0) - Number(b?.sequence ?? 0);
+      });
+
+      const nextSelections: Record<string, any[]> = {};
+      const nextAssignments: Record<string, Set<string>> = {};
+
+      sortedSlots.forEach((slot: any) => {
+        const dayKey = String(slot?.dayOfWeek || "").toLowerCase();
+        const dayLabel = dayLabelMap.get(dayKey);
+        if (!dayLabel) return;
+
+        const shiftTemplateId = String(slot?.shiftTemplateId || "");
+        if (!shiftTemplateId) return;
+
+        const template = templateMap.get(shiftTemplateId);
+        if (!template) return;
+
+        if (!Array.isArray(nextSelections[dayLabel])) {
+          nextSelections[dayLabel] = [];
+        }
+        if (
+          !nextSelections[dayLabel].some(
+            (item: any) => String(item?.id) === shiftTemplateId
+          )
+        ) {
+          nextSelections[dayLabel].push(template);
+        }
+
+        const assignmentKey = `${dayLabel}::${shiftTemplateId}`;
+        if (!nextAssignments[assignmentKey]) {
+          nextAssignments[assignmentKey] = new Set<string>();
+        }
+        const employmentIds = Array.isArray(slot?.employmentIds)
+          ? slot.employmentIds
+          : [];
+        employmentIds.forEach((id: any) => {
+          if (id) nextAssignments[assignmentKey].add(String(id));
+        });
+      });
+
+      const hasMappedTemplates = Object.values(nextSelections).some(
+        (items) => Array.isArray(items) && items.length > 0
+      );
+      if (!hasMappedTemplates) {
+        toast.error(
+          t("api.invalid_ai_schedule_payload", {
+            defaultValue: "AI slots could not be mapped to available templates.",
+          })
+        );
+        return;
+      }
+
+      clearWeeklyShiftSelections();
+      clearWeeklyRoleAssignments();
+
+      Object.entries(nextSelections).forEach(([dayLabel, templatesForDay]) => {
+        setWeeklyShiftSelection(dayLabel, templatesForDay);
+      });
+
+      Object.entries(nextAssignments).forEach(([assignmentKey, idsSet]) => {
+        const [, shiftTemplateId = ""] = assignmentKey.split("::");
+        const template = templateMap.get(String(shiftTemplateId));
+        setWeeklyRoleAssignment(assignmentKey, {
+          ...buildRoleAwareAssignment(template, Array.from(idsSet)),
+        });
+      });
+
+      toast.success(
+        aiData?.messageKey
+          ? t(`api.${aiData.messageKey}`, {
+              defaultValue: t("api.ai_schedule_applied", {
+                defaultValue: "AI schedule applied.",
+              }),
+            })
+          : t("api.ai_schedule_applied", {
+              defaultValue: "AI schedule applied.",
+            })
+      );
+    } catch (error: any) {
+      const apiMessageKey =
+        error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
+      toast.error(
+        t(`api.${apiMessageKey}`, {
+          defaultValue: apiMessageKey || "Failed to auto-fill weekly schedule.",
+        })
+      );
+    } finally {
+      setIsFillingAI(false);
+    }
+  };
+
   const handleNext = async () => {
     if (!businessId) {
       toast.error("Please select a business first.");
@@ -313,7 +486,7 @@ const SavedShiftTemplate = () => {
               return (
                 <View key={day.label}>
                   <TouchableOpacity
-                    disabled={isHydratingEdit || isUpdating}
+                    disabled={isHydratingEdit || isUpdating || isFillingAI}
                     onPress={() =>
                       router.push({
                         pathname: "/screens/schedule/business/list-shifts",
@@ -402,15 +575,17 @@ const SavedShiftTemplate = () => {
 
             <GradientButton
               className="mt-10"
-              title="Fill With AI"
+              title={isFillingAI ? "Filling..." : "Fill With AI"}
               icon={<Ionicons name="sparkles-outline" size={20} color="white" />}
+              onPress={handleFillWithAI}
+              disabled={isHydratingEdit || isUpdating || isFillingAI}
             />
             <PrimaryButton
               title={isEditMode ? (isUpdating ? "Updating..." : "Update") : "Next"}
               className="my-4"
               onPress={handleNext}
               loading={isUpdating}
-              disabled={!hasAtLeastOneTemplate || isHydratingEdit || isUpdating}
+              disabled={!hasAtLeastOneTemplate || isHydratingEdit || isUpdating || isFillingAI}
             />
           </ScrollView>
         )}

@@ -62,6 +62,21 @@ interface BusinessState {
     payload: any
   ) => Promise<any>;
   getShiftTemplates: (businessId: string) => Promise<any>;
+  fillWeeklyBlockAutomatic: (businessId: string) => Promise<{
+    template?: {
+      startDate?: string;
+      name?: string;
+      slots?: Array<{
+        dayOfWeek?: string;
+        shiftTemplateId?: string;
+        sequence?: number;
+        employmentIds?: string[];
+        requiredEmployees?: number;
+      }>;
+    };
+    ai?: any;
+    messageKey?: string;
+  } | null>;
   createWeeklyScheduleFromTemplates: (
     businessId: string,
     payload: any
@@ -530,6 +545,40 @@ export const useBusinessStore = create<BusinessState>()(
     } catch (error) {
       console.error("Fetch shift templates error:", error);
       throw error;
+    }
+  },
+
+  fillWeeklyBlockAutomatic: async (businessId) => {
+    try {
+      if (!businessId) return null;
+
+      const response = await axiosInstance.post(
+        `/ai-engine/${businessId}/fill-weekly-block-automatic`
+      );
+      const result = response.data;
+
+      if (!result?.success) {
+        const errorMsg =
+          result?.error?.message ||
+          result?.message ||
+          "Failed to auto-fill weekly schedule";
+        throw new Error(errorMsg);
+      }
+
+      return {
+        ...(result?.data || {}),
+        messageKey: result?.message,
+      };
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to auto-fill weekly schedule";
+      const translatedMessage = translateApiMessage(messageKey);
+      const finalError = new Error(translatedMessage);
+      console.error("Fill weekly schedule with AI error:", finalError);
+      throw finalError;
     }
   },
 
