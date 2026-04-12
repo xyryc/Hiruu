@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
@@ -64,6 +65,7 @@ const filterProfilesByFeaturedType = (
 };
 
 const AllProfiles = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const getJobProfiles = useJobStore((s) => s.getJobProfiles);
@@ -79,10 +81,10 @@ const AllProfiles = () => {
   const profilesType = useMemo(() => parseProfilesTypeParam(params.type), [params.type]);
   const screenTitle =
     profilesType === "featured"
-      ? "Featured Profiles"
+      ? t("user.jobs.allProfiles.featured")
       : profilesType === "suggested"
-        ? "Suggested Profiles"
-        : "All Profiles";
+        ? t("user.jobs.allProfiles.suggested")
+        : t("user.jobs.allProfiles.all");
 
   const loadProfiles = useCallback(
     async (targetPage = 1, append = false) => {
@@ -120,7 +122,7 @@ const AllProfiles = () => {
         if (!append) {
           setProfiles([]);
         }
-        toast.error(error?.message || "Failed to fetch profiles");
+        toast.error(error?.message || t("user.jobs.allProfiles.failedToFetchProfiles"));
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -200,10 +202,10 @@ const AllProfiles = () => {
           ) : (
             <View className="flex-1 items-center justify-center px-5 py-10">
               <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
-                No profiles found
+                {t("user.jobs.allProfiles.noProfilesFound")}
               </Text>
               <Text className="mt-1 text-sm text-center font-proximanova-regular text-secondary dark:text-dark-secondary">
-                Try adjusting your filters or search.
+                {t("user.jobs.allProfiles.adjustFilters")}
               </Text>
             </View>
           )

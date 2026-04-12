@@ -16,6 +16,7 @@ import {
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -36,6 +37,7 @@ type PreviewParams = {
 };
 
 const UserProfilePreview = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<PreviewParams>();
   const getJobProfileByUserId = useJobStore((s) => s.getJobProfileByUserId);
@@ -55,7 +57,7 @@ const UserProfilePreview = () => {
     const loadProfile = async () => {
       if (!userId) {
         setIsLoading(false);
-        toast.error("User information is unavailable");
+        toast.error(t("user.jobs.candidateRequests.businessUnavailable"));
         return;
       }
 
@@ -70,7 +72,7 @@ const UserProfilePreview = () => {
         if (isMounted) {
           setProfile(null);
         }
-        toast.error(error?.message || "Failed to load profile");
+        toast.error(error?.message || t("user.profile.userProfile.failedToLoadProfile"));
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -97,7 +99,7 @@ const UserProfilePreview = () => {
   const profileAddress = useMemo(() => {
     const address = profile?.user?.address;
 
-    if (!address) return "Location unavailable";
+    if (!address) return t("common.locationUnavailable");
     if (typeof address === "string") return address;
     if (typeof address === "object") {
       return (
@@ -105,21 +107,21 @@ const UserProfilePreview = () => {
         address?.state ||
         address?.address ||
         address?.country ||
-        "Location unavailable"
+        t("common.locationUnavailable")
       );
     }
 
-    return "Location unavailable";
-  }, [profile]);
+    return t("common.locationUnavailable");
+  }, [profile, t]);
 
   const shortIntro = useMemo(() => {
     return (
       profile?.about ||
       profile?.highlightedExperience ||
       profile?.user?.bio ||
-      "No profile summary available"
+      t("user.profile.userProfile.noProfileSummary")
     );
-  }, [profile]);
+  }, [profile, t]);
 
   const openDaysCount = useMemo(() => {
     const weeklyAvailability = Array.isArray(profile?.weeklyAvailability)
@@ -134,13 +136,13 @@ const UserProfilePreview = () => {
     const max = profile?.expectedSalaryMax;
     const type = profile?.preferredSalaryType;
 
-    if (min == null && max == null) return "Not set";
+    if (min == null && max == null) return t("common.notSet");
     if (min != null && max != null) {
       return `${min}-${max}${type ? ` /${type}` : ""}`;
     }
 
     return `${min ?? max}${type ? ` /${type}` : ""}`;
-  }, [profile]);
+  }, [profile, t]);
 
   const isOwnProfile = useMemo(() => {
     const previewUserId = profile?.userId || profile?.user?.id;
@@ -150,18 +152,18 @@ const UserProfilePreview = () => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Check out ${profile?.user?.name || "this profile"} on Hiruu!`,
-        title: `${profile?.user?.name || "User"}'s Profile`,
+        message: t("common.shareProfileMessage", { name: profile?.user?.name || t("common.thisProfile") }),
+        title: `${profile?.user?.name || t("common.user")}'s ${t("user.profile.userProfile.profile")}`,
       });
     } catch {
-      Alert.alert("Error", "Could not share profile");
+      Alert.alert(t("common.error"), t("common.couldNotShareProfile"));
     }
   };
 
   const handleMessagePress = async () => {
     const participantId = profile?.userId || profile?.user?.id;
     if (!participantId) {
-      toast.error("User information is unavailable");
+      toast.error(t("user.jobs.candidateRequests.businessUnavailable"));
       return;
     }
 
@@ -179,7 +181,7 @@ const UserProfilePreview = () => {
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to start chat");
+      toast.error(error?.message || t("common.failedToStartChat"));
     } finally {
       setIsCreatingChat(false);
     }
@@ -262,8 +264,8 @@ const UserProfilePreview = () => {
               mode="redeem"
               preview={{
                 avatarUrl: profile?.user?.avatar || null,
-                name: profile?.user?.name || "User",
-                location: profileAddress || "Location unavailable",
+                name: profile?.user?.name || t("common.user"),
+                location: profileAddress,
                 rating: profile?.user?.rating ?? 0,
                 isVerified: true,
               }}
@@ -271,8 +273,8 @@ const UserProfilePreview = () => {
           ) : (
             <BasicNameplateCard
               avatarUrl={profile?.user?.avatar || null}
-              name={profile?.user?.name || "User"}
-              location={profileAddress || "Location unavailable"}
+              name={profile?.user?.name || t("common.user")}
+              location={profileAddress}
               rating={profile?.user?.rating ?? 0}
               isVerified
             />
@@ -291,16 +293,9 @@ const UserProfilePreview = () => {
               />
             </View>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Badge
+              {t("user.profile.userProfile.badge")}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => router.push("/screens/profile/badge")}
-          >
-            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              View All Badge
-            </Text>
-          </TouchableOpacity>
         </View>
         <BadgeCard className="mx-5 mt-3.5" />
 
@@ -310,7 +305,7 @@ const UserProfilePreview = () => {
             <Foundation name="clipboard" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Short Intro
+            {t("user.profile.userProfile.shortIntro")}
           </Text>
         </View>
         <View className="mx-5 mt-4">
@@ -323,7 +318,7 @@ const UserProfilePreview = () => {
               onPress={() => setShowText(!showText)}
               className="font-proximanova-semibold text-sm text-[#11293A]"
             >
-              {shortIntro.length > 120 ? (showText ? "See less" : "Read More") : ""}
+              {shortIntro.length > 120 ? (showText ? t("user.profile.userProfile.seeLess") : t("user.profile.userProfile.readMore")) : ""}
             </Text>
           </Text>
         </View>
@@ -334,15 +329,15 @@ const UserProfilePreview = () => {
             <Foundation name="clipboard" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Experience
+            {t("user.profile.userProfile.experience")}
           </Text>
         </View>
 
         <ExperienceCard
           focus
           className="mt-8 mx-5"
-          companyName={profile?.user?.name || "Profile"}
-          position={profile?.headline || "Role not specified"}
+          companyName={profile?.user?.name || t("common.user")}
+          position={profile?.headline || t("user.profile.userProfile.roleNotSpecified")}
           companyLogo={
             profile?.user?.avatar ||
             require("@/assets/images/placeholder.png")
@@ -363,33 +358,33 @@ const UserProfilePreview = () => {
               />
             </View>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Achievement
+              {t("user.profile.userProfile.achievement")}
             </Text>
           </View>
           <View className="flex-row gap-3 mb-4 mt-4">
             <StatCardPrimary
               point={`${openDaysCount}`}
-              title="Open Days"
-              subtitle={"weekly"}
+              title={t("user.profile.userProfile.openDays")}
+              subtitle={t("user.profile.userProfile.weekly")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
               point={`${(profile?.skills || []).length}`}
-              title="Skills"
-              subtitle={"listed"}
+              title={t("user.profile.userProfile.skills")}
+              subtitle={t("user.profile.userProfile.listed")}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
           <View className="flex-row gap-3 mb-4">
             <StatCardPrimary
               point={`${profile?.preferredRoleIds?.length || 0}`}
-              title="Preferred Roles"
-              subtitle={"selected"}
+              title={t("user.profile.userProfile.preferredRoles")}
+              subtitle={t("user.profile.userProfile.selected")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={profile?.isOpenToWork ? "Open" : "Closed"}
-              title="Work Status"
+              point={profile?.isOpenToWork ? t("common.open") : t("common.closed")}
+              title={t("user.profile.userProfile.workStatus")}
               subtitle={salaryRangeLabel}
               background={require("@/assets/images/stats-bg.svg")}
             />
@@ -402,7 +397,7 @@ const UserProfilePreview = () => {
             <Foundation name="clipboard" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Interests
+            {t("user.profile.userProfile.interests")}
           </Text>
         </View>
 
@@ -447,7 +442,7 @@ const UserProfilePreview = () => {
             <Ionicons name="person" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Employee Info
+            {t("user.profile.userProfile.employeeInfo")}
           </Text>
         </View>
 
@@ -464,7 +459,7 @@ const UserProfilePreview = () => {
               />
             </View>
             <Text className="font-proximanova-bold text-white">
-              {profile?.user?.name || "User"}
+              {profile?.user?.name || t("common.user")}
             </Text>
           </View>
 
@@ -493,7 +488,7 @@ const UserProfilePreview = () => {
             <Ionicons name="call-outline" size={16} color="black" />
           </View>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            Contact Me On
+            {t("user.profile.userProfile.contactMeOn")}
           </Text>
         </View>
 

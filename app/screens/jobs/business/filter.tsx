@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
@@ -53,6 +54,7 @@ const AVAILABILITY_BADGE_OPTIONS = [
 ] as const;
 
 const FindJobFilters = () => {
+  const { t } = useTranslation();
   const getRoles = useBusinessStore((state) => state.getRoles);
   const businessCandidateFilters = useJobStore((state) => state.businessCandidateFilters);
   const setBusinessCandidateFilters = useJobStore((state) => state.setBusinessCandidateFilters);
@@ -202,7 +204,7 @@ const FindJobFilters = () => {
       setIsSearchingLocation(false);
       if (!hasShownGeoapifyMissingKey.current) {
         hasShownGeoapifyMissingKey.current = true;
-        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+        toast.error(t("user.jobs.filters.geoapifyKeyMissing"));
       }
       return;
     }
@@ -276,7 +278,7 @@ const FindJobFilters = () => {
       } catch (error: any) {
         if (error?.name !== "AbortError") {
           setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
-          toast.error("Failed to fetch location suggestions.");
+          toast.error(t("user.jobs.filters.failedToFetchLocationSuggestions"));
         }
       } finally {
         setIsSearchingLocation(false);
@@ -458,7 +460,7 @@ const FindJobFilters = () => {
 
       {/* Header */}
       <ScreenHeader
-        title="Hiring Filter"
+        title={t("user.jobs.filters.hiringFilter")}
         className="mx-5 mt-7"
         onPressBack={() => router.back()}
       />
@@ -471,7 +473,7 @@ const FindJobFilters = () => {
         {/* Verified Candidates Only */}
         <View className="mt-7 flex-row justify-between items-center py-5 border border-[#EEEEEE] p-4 rounded-xl">
           <Text className="text-[#4FB2F3] font-proximanova-semibold">
-            Verified Candidates only
+            {t("user.jobs.filters.verifiedCandidatesOnly")}
           </Text>
           <TouchableOpacity
             onPress={() => setVerifiedOnly(!verifiedOnly)}
@@ -489,7 +491,7 @@ const FindJobFilters = () => {
         {/* Sort by */}
         <View className="mt-5">
           <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Sort by
+            {t("user.jobs.filters.sortBy")}
           </Text>
 
           <View className="flex-row flex-wrap gap-2.5">
@@ -507,7 +509,7 @@ const FindJobFilters = () => {
                 )}
 
                 <Text className="text-sm font-proximanova-regular">
-                  {option}
+                  {t(`user.jobs.filters.sortOptions.${option.toLowerCase().replace(" ", "_")}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -517,7 +519,7 @@ const FindJobFilters = () => {
         {/* Location */}
         <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Location
+            {t("user.jobs.filters.location")}
           </Text>
 
           <TextInput
@@ -540,7 +542,7 @@ const FindJobFilters = () => {
                 setSelectedCoords(null);
               }
             }}
-            placeholder="Search location"
+            placeholder={t("user.jobs.filters.searchLocation")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
             autoCapitalize="none"
             maxLength={ADDRESS_MAX_LENGTH}
@@ -565,7 +567,7 @@ const FindJobFilters = () => {
 
           {isSearchingLocation ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              Searching locations...
+              {t("user.jobs.filters.searchingLocations")}
             </Text>
           ) : null}
 
@@ -574,7 +576,7 @@ const FindJobFilters = () => {
             !isSearchingLocation &&
             locationOptions.length === 0 ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              No locations found.
+              {t("user.jobs.filters.noLocationsFound")}
             </Text>
           ) : null}
 
@@ -593,7 +595,7 @@ const FindJobFilters = () => {
             className="mt-1"
           />
           <Text className="text-sm font-proximanova-regular text-secondary mt-1">
-            {Math.round(distance)}km Within Selected Area
+            {t("user.jobs.filters.withinSelectedArea", { distance: Math.round(distance) })}
           </Text>
         </View>
 
@@ -655,7 +657,7 @@ const FindJobFilters = () => {
         {/* Salary Range */}
         <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Salary Range
+            {t("user.jobs.filters.salaryRange")}
           </Text>
           <Slider
             value={salaryRange}
@@ -685,26 +687,26 @@ const FindJobFilters = () => {
         {/* Experience Level */}
         <View className="py-5">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Experience Level
+            {t("user.jobs.filters.experienceLevel")}
           </Text>
           <Text className="text-sm font-proximanova-regular text-secondary mb-2">
-            Select a role first, then set the minimum years of experience.
+            {t("user.jobs.filters.selectRoleFirst")}
           </Text>
           <View className="border border-[#EEEEEE] rounded-xl px-3 pt-1 pb-3 bg-white">
             <Text className="mt-3 text-sm font-proximanova-semibold text-primary">
-              Select Role
+              {t("user.jobs.filters.selectRole")}
             </Text>
             <RoleSelector
               className="mt-1"
               roles={roleOptions}
               loading={rolesLoading}
               selectedRole={selectedRoleToAdd}
-              placeholder="Choose a role"
+              placeholder={t("user.jobs.postJob.selectRole")}
               onSelectRole={(role) => setSelectedRoleToAdd(role)}
             />
             {selectedRoleToAdd?.name ? (
               <Text className="text-xs font-proximanova-regular text-[#4FB2F3] mt-1">
-                Selected: {selectedRoleToAdd.name}
+                {t("user.jobs.filters.selected", { name: selectedRoleToAdd.name })}
               </Text>
             ) : null}
           </View>
@@ -725,7 +727,7 @@ const FindJobFilters = () => {
           {!showWorkingDays ? (
             <View className="flex-row justify-between border border-[#EEEEEE] items-center p-4 rounded-xl">
               <Text className="text-base font-proximanova-semibold text-primary">
-                Available Working Days
+                {t("user.jobs.filters.availableWorkingDays")}
               </Text>
               <TouchableOpacity
                 className="h-9 w-9 items-center justify-center"
@@ -739,7 +741,7 @@ const FindJobFilters = () => {
             <View className="border border-[#EEEEEE] rounded-xl bg-white p-4">
               <View className="flex-row justify-between items-center mb-5">
                 <Text className="text-xl font-proximanova-semibold text-primary">
-                  Available Working Days
+                  {t("user.jobs.filters.availableWorkingDays")}
                 </Text>
                 <TouchableOpacity
                   className="h-9 w-9 items-center justify-center"
@@ -764,7 +766,7 @@ const FindJobFilters = () => {
 
       {/* button */}
       <View className="mx-5 pt-5">
-        <PrimaryButton title="Apply Filters" onPress={handleApplyFilters} />
+        <PrimaryButton title={t("user.jobs.filters.applyFilters")} onPress={handleApplyFilters} />
       </View>
     </SafeAreaView>
   );
