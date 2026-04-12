@@ -58,6 +58,29 @@
           "contract": "Contract",
           "internship": "Internship"
         }
+      },
+      "candidateRequests": {
+        "title": "Candidate Requests",
+        "failedToFetch": "Failed to fetch candidate requests",
+        "businessUnavailable": "Business information is unavailable",
+        "approved": "Candidate request approved",
+        "rejected": "Candidate request rejected",
+        "failedToUpdate": "Failed to update candidate request",
+        "selectBusinessMessage": "Please select a business to view candidate requests",
+        "position": "Position",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {{page}} / {{totalPages}}",
+        "tabs": {
+          "sent": "Send Request",
+          "received": "Received"
+        },
+        "empty": {
+          "sentTitle": "No Invitations Sent",
+          "receivedTitle": "No Applications Received",
+          "sentDescription": "You haven't sent any job invitations yet. Browse available candidates and send invitations to potential employees.",
+          "receivedDescription": "No candidates have applied to your job postings yet. Make sure your job posts are active and visible to attract applicants."
+        }
       }
     },
     "profile": {

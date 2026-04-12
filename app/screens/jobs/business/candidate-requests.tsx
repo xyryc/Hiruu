@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
-import NoJobsAvailableCard from "@/components/ui/cards/NoJobsAvailableCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -21,6 +22,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { toast } from "sonner-native";
 
 const CandidateRequests = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -31,8 +33,8 @@ const CandidateRequests = () => {
     (s) => s.updateBusinessApplicationStatus
   );
   const { selectedBusinesses } = useBusinessStore();
-  const tabs = ["Send Request", "Received"];
-  const [isActive, setIsActive] = useState("Send Request");
+  const tabs = ["sent", "received"] as const;
+  const [isActive, setIsActive] = useState<(typeof tabs)[number]>("sent");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -87,13 +89,13 @@ const CandidateRequests = () => {
       } catch (error: any) {
         console.error("[CandidateRequests] Failed to load applications:", error);
         if (!append) setItems([]);
-        toast.error(error?.message || "Failed to fetch candidate requests");
+        toast.error(error?.message || t("user.jobs.candidateRequests.failedToFetch"));
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
       }
     },
-    [getBusinessApplications, currentBusinessId]
+    [getBusinessApplications, currentBusinessId, t]
   );
 
   const loadUnreadCounts = useCallback(async () => {
@@ -131,7 +133,7 @@ const CandidateRequests = () => {
 
   const sourceFiltered = useMemo(() => {
     return items.filter((item: any) =>
-      isActive === "Send Request"
+      isActive === "sent"
         ? item?.source === "business_invited"
         : item?.source === "user_applied"
     );
@@ -162,7 +164,7 @@ const CandidateRequests = () => {
   const handleApplicationAction = useCallback(
     async (applicationId: string, status: "approved" | "rejected") => {
       if (!currentBusinessId) {
-        toast.error("Business information is unavailable");
+        toast.error(t("user.jobs.candidateRequests.businessUnavailable"));
         return;
       }
 
@@ -176,16 +178,16 @@ const CandidateRequests = () => {
         );
         toast.success(
           status === "approved"
-            ? "Candidate request approved"
-            : "Candidate request rejected"
+            ? t("user.jobs.candidateRequests.approved")
+            : t("user.jobs.candidateRequests.rejected")
         );
       } catch (error: any) {
-        toast.error(error?.message || "Failed to update candidate request");
+        toast.error(error?.message || t("user.jobs.candidateRequests.failedToUpdate"));
       } finally {
         setActionLoading(null);
       }
     },
-    [currentBusinessId, updateBusinessApplicationStatus]
+    [currentBusinessId, updateBusinessApplicationStatus, t]
   );
 
   const handleLoadMore = async () => {
@@ -214,7 +216,10 @@ const CandidateRequests = () => {
     return {
       id: jobProfile?.id || item?.id,
       userId: user?.id,
-      headline: recruitment?.role?.role?.name || jobProfile?.headline || "Position",
+      headline:
+        recruitment?.role?.role?.name ||
+        jobProfile?.headline ||
+        t("user.jobs.candidateRequests.position"),
       about: jobProfile?.about,
       isPremium: jobProfile?.isPremium || false,
       // Use recruitment salary if available, otherwise fallback to job profile
@@ -253,7 +258,7 @@ const CandidateRequests = () => {
           <ScreenHeader
             onPressBack={() => router.back()}
             className="px-5 pt-2.5 pb-4"
-            title="Candidate Requests"
+            title={t("user.jobs.candidateRequests.title")}
             titleClass="text-primary dark:text-dark-primary"
             iconColor={isDark ? "#fff" : "#111111"}
           />
@@ -261,7 +266,7 @@ const CandidateRequests = () => {
 
         <View className="flex-1 items-center justify-center px-5">
           <Text className="text-center text-secondary font-proximanova-regular">
-            Please select a business to view candidate requests
+            {t("user.jobs.candidateRequests.selectBusinessMessage")}
           </Text>
         </View>
       </SafeAreaView>
@@ -280,7 +285,7 @@ const CandidateRequests = () => {
         <ScreenHeader
           onPressBack={() => router.back()}
           className="px-5 pt-2.5 pb-4"
-          title="Candidate Requests"
+          title={t("user.jobs.candidateRequests.title")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111111"}
         />
@@ -288,7 +293,7 @@ const CandidateRequests = () => {
         {/* tabs */}
         <View className="flex-row justify-center mx-5">
           {tabs.map((tab, index) => {
-            const totalCount = tab === "Send Request" ? unreadSent : unreadReceived;
+            const totalCount = tab === "sent" ? unreadSent : unreadReceived;
 
             return (
               <TouchableOpacity
@@ -299,7 +304,11 @@ const CandidateRequests = () => {
                 <Text
                   className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
                 >
-                  <Text className="capitalize">{tab}</Text>
+                  <Text className="capitalize">
+                    {tab === "sent"
+                      ? t("user.jobs.candidateRequests.tabs.sent")
+                      : t("user.jobs.candidateRequests.tabs.received")}
+                  </Text>
                 </Text>
 
                 {totalCount > 0 && (
@@ -322,18 +331,18 @@ const CandidateRequests = () => {
         renderItem={({ item }) => (
           <View className="px-5">
             <BusinessJobCard
-              candidate={isActive === "Send Request"}
-              received={isActive === "Received"}
-              disableModalOpen={isActive === "Received"}
+              candidate={isActive === "sent"}
+              received={isActive === "received"}
+              disableModalOpen={isActive === "received"}
               className="mt-4"
               profile={mapToProfile(item)}
               onAccept={
-                isActive === "Received"
+                isActive === "received"
                   ? () => handleApplicationAction(String(item?.id), "approved")
                   : undefined
               }
               onReject={
-                isActive === "Received"
+                isActive === "received"
                   ? () => handleApplicationAction(String(item?.id), "rejected")
                   : undefined
               }
@@ -357,12 +366,17 @@ const CandidateRequests = () => {
             </View>
           ) : (
             <View className="px-5 pb-5">
-              <NoJobsAvailableCard
-                title={isActive === "Send Request" ? "No Invitations Sent" : "No Applications Received"}
-                description={
-                  isActive === "Send Request"
-                    ? "You haven't sent any job invitations yet. Browse available candidates and send invitations to potential employees."
-                    : "No candidates have applied to your job postings yet. Make sure your job posts are active and visible to attract applicants."
+              <StatusStateCard
+                image={require("@/assets/images/toolbox.svg")}
+                title={
+                  isActive === "sent"
+                    ? t("user.jobs.candidateRequests.empty.sentTitle")
+                    : t("user.jobs.candidateRequests.empty.receivedTitle")
+                }
+                text={
+                  isActive === "sent"
+                    ? t("user.jobs.candidateRequests.empty.sentDescription")
+                    : t("user.jobs.candidateRequests.empty.receivedDescription")
                 }
               />
             </View>
@@ -392,12 +406,12 @@ const CandidateRequests = () => {
                       : "text-primary"
                       }`}
                   >
-                    Previous
+                    {t("user.jobs.candidateRequests.previous")}
                   </Text>
                 </TouchableOpacity>
 
                 <Text className="text-sm font-proximanova-semibold text-secondary">
-                  Page {page} / {totalPages}
+                  {t("user.jobs.candidateRequests.page", { page, totalPages })}
                 </Text>
 
                 <TouchableOpacity
@@ -414,7 +428,7 @@ const CandidateRequests = () => {
                       : "text-primary"
                       }`}
                   >
-                    Next
+                    {t("user.jobs.candidateRequests.next")}
                   </Text>
                 </TouchableOpacity>
               </View>
