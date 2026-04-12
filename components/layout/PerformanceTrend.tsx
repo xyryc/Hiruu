@@ -9,14 +9,15 @@ import ShiftsLineChart from "../ui/cards/ShiftLineChart";
 
 const GRAPH_OPTIONS = ["daily", "monthly", "yearly"] as const;
 type GraphType = (typeof GRAPH_OPTIONS)[number];
+const DAILY_API_DELAY_MS = 2000;
 
 const shouldSilenceTrendError = (error: any) => {
   const status = error?.response?.status;
   const message = String(
     error?.response?.data?.message ||
-      error?.response?.data?.error?.message ||
-      error?.message ||
-      ""
+    error?.response?.data?.error?.message ||
+    error?.message ||
+    ""
   ).toLowerCase();
 
   return (
@@ -59,57 +60,38 @@ const formatTrendLabel = (value: string, graphType: GraphType) => {
   return value;
 };
 
-const buildSpacedLabels = (rawLabels: string[], graphType: GraphType) => {
-  if (graphType !== "daily") return rawLabels;
-
-  // Keep daily labels readable by showing every 3rd tick and the last one.
-  return rawLabels.map((label, index) => {
-    const isLast = index === rawLabels.length - 1;
-    return index % 3 === 0 || isLast ? label : "";
-  });
+const shouldShowLabel = (index: number, length: number, graphType: GraphType) => {
+  if (graphType === "daily") return index % 3 === 0 || index === length - 1;
+  if (graphType === "monthly") return true;
+  return true;
 };
 
-const buildDisplaySeries = (series: any[], graphType: GraphType) => {
-  if (graphType !== "daily" || series.length <= 12) return series;
-
-  return series.filter((item, index) => {
-    const isLast = index === series.length - 1;
-    const completed =
-      typeof item?.completedShifts === "number" ? item.completedShifts : 0;
-    const missed = typeof item?.missedShifts === "number" ? item.missedShifts : 0;
-    const hasData = completed > 0 || missed > 0;
-
-    // Keep points with data, every 3rd day, and the last day.
-    return hasData || index % 3 === 0 || isLast;
-  });
+const toNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const buildSeparatedSeries = (series: any[]) => {
-  const epsilon = 0.06;
-  const completedShifts = series.map((item) => {
-    const completed =
-      typeof item?.completedShifts === "number" ? item.completedShifts : 0;
-    const missed = typeof item?.missedShifts === "number" ? item.missedShifts : 0;
+const getCompletedValue = (item: any) =>
+  toNumber(
+    item?.completedShifts ??
+    item?.completedShift ??
+    item?.completed ??
+    item?.counts?.completedShifts ??
+    item?.counts?.completedShift ??
+    item?.counts?.completed ??
+    0
+  );
 
-    if (completed === missed && completed > 0) {
-      return { value: completed + epsilon };
-    }
-    return { value: completed };
-  });
-
-  const missedShifts = series.map((item) => {
-    const completed =
-      typeof item?.completedShifts === "number" ? item.completedShifts : 0;
-    const missed = typeof item?.missedShifts === "number" ? item.missedShifts : 0;
-
-    if (completed === missed && missed > 0) {
-      return { value: Math.max(0, missed - epsilon) };
-    }
-    return { value: missed };
-  });
-
-  return { completedShifts, missedShifts };
-};
+const getMissedValue = (item: any) =>
+  toNumber(
+    item?.missedShifts ??
+    item?.missedShift ??
+    item?.missed ??
+    item?.counts?.missedShifts ??
+    item?.counts?.missedShift ??
+    item?.counts?.missed ??
+    0
+  );
 
 const PerformanceTrend = ({ className }: any) => {
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
@@ -119,15 +101,13 @@ const PerformanceTrend = ({ className }: any) => {
   const [graphType, setGraphType] = useState<GraphType>("daily");
   const [showGraphMenu, setShowGraphMenu] = useState(false);
   const [chartData, setChartData] = useState<{
-    completedShifts: { value: number }[];
-    missedShifts: { value: number }[];
-    labels: string[];
+    completedShifts: { value: number; label?: string }[];
+    missedShifts: { value: number; label?: string }[];
     completedPercentage: number;
     missedPercentage: number;
   }>({
     completedShifts: [],
     missedShifts: [],
-    labels: [],
     completedPercentage: 0,
     missedPercentage: 0,
   });
@@ -135,15 +115,18 @@ const PerformanceTrend = ({ className }: any) => {
 
   useEffect(() => {
     let mounted = true;
+    let fetchTimer: ReturnType<typeof setTimeout> | null = null;
 
     const loadPerformanceTrends = async () => {
       try {
         if (!selectedBusinessId) {
+          if (__DEV__) {
+            console.log("[PerformanceTrend] skip fetch: no selected business");
+          }
           if (!mounted) return;
           setChartData({
             completedShifts: [],
             missedShifts: [],
-            labels: [],
             completedPercentage: 0,
             missedPercentage: 0,
           });
@@ -155,44 +138,108 @@ const PerformanceTrend = ({ className }: any) => {
 
         const summary = data?.summary;
         const series = Array.isArray(data?.series) ? data.series : [];
-        const displaySeries = buildDisplaySeries(series, graphType);
-        const separatedSeries = buildSeparatedSeries(displaySeries);
-        const rawLabels = displaySeries.map((item) => {
-          const rawLabel = typeof item?.label === "string" ? item.label : "";
-          return formatTrendLabel(rawLabel, graphType);
+        let completedShifts = series.map((item: any, index: number) => {
+          const rawLabel =
+            typeof item?.label === "string"
+              ? item.label
+              : typeof item?.key === "string"
+                ? item.key
+                : "";
+          const formattedLabel = formatTrendLabel(rawLabel, graphType);
+          return {
+            value: getCompletedValue(item),
+            label: shouldShowLabel(index, series.length, graphType)
+              ? formattedLabel
+              : "",
+          };
         });
-        const labels = buildSpacedLabels(rawLabels, graphType);
+        let missedShifts = series.map((item: any) => ({
+          value: getMissedValue(item),
+        }));
 
-        setChartData({
-          completedShifts: separatedSeries.completedShifts,
-          missedShifts: separatedSeries.missedShifts,
-          labels,
-          completedPercentage:
-            typeof summary?.completedShiftPercentage === "number"
-              ? summary.completedShiftPercentage
-              : 0,
-          missedPercentage:
-            typeof summary?.missedShiftPercentage === "number"
-              ? summary.missedShiftPercentage
-              : 0,
-        });
+        // Safety fallback: if parsed series is all-zero but summary has values,
+        // place summary values at the last point so chart is never misleadingly flat.
+        const totalCompletedFromSeries = completedShifts.reduce(
+          (sum, point) => sum + toNumber(point?.value),
+          0
+        );
+        const totalMissedFromSeries = missedShifts.reduce(
+          (sum, point) => sum + toNumber(point?.value),
+          0
+        );
+        const completedFromSummary = toNumber(summary?.completedShifts);
+        const missedFromSummary = toNumber(summary?.missedShifts);
+
+        if (
+          series.length > 0 &&
+          totalCompletedFromSeries === 0 &&
+          totalMissedFromSeries === 0 &&
+          (completedFromSummary > 0 || missedFromSummary > 0)
+        ) {
+          const lastIndex = series.length - 1;
+          completedShifts = completedShifts.map((point, index) =>
+            index === lastIndex ? { ...point, value: completedFromSummary } : point
+          );
+          missedShifts = missedShifts.map((point, index) =>
+            index === lastIndex ? { ...point, value: missedFromSummary } : point
+          );
+        }
+
+        if (__DEV__) {
+          console.log("[PerformanceTrend] fetched", {
+            businessId: selectedBusinessId,
+            graphType,
+            points: series.length,
+            totalCompletedFromSeries,
+            totalMissedFromSeries,
+            completedFromSummary,
+            missedFromSummary,
+          });
+        }
+
+        const nextChartData = {
+          completedShifts,
+          missedShifts,
+          completedPercentage: toNumber(summary?.completedShiftPercentage),
+          missedPercentage: toNumber(summary?.missedShiftPercentage),
+        };
+
+        if (!mounted) return;
+        setChartData(nextChartData);
       } catch (error: any) {
         if (!mounted) return;
         setChartData({
           completedShifts: [],
           missedShifts: [],
-          labels: [],
           completedPercentage: 0,
           missedPercentage: 0,
         });
+        if (__DEV__) {
+          console.log("[PerformanceTrend] fetch failed", {
+            businessId: selectedBusinessId,
+            graphType,
+            status: error?.response?.status,
+            message:
+              error?.response?.data?.message ||
+              error?.response?.data?.error?.message ||
+              error?.message,
+          });
+        }
         if (shouldSilenceTrendError(error)) return;
         toast.error(error?.message || "Failed to load performance trends");
       }
     };
 
-    void loadPerformanceTrends();
+    if (graphType === "daily") {
+      fetchTimer = setTimeout(() => {
+        void loadPerformanceTrends();
+      }, DAILY_API_DELAY_MS);
+    } else {
+      void loadPerformanceTrends();
+    }
 
     return () => {
+      if (fetchTimer) clearTimeout(fetchTimer);
       mounted = false;
     };
   }, [getBusinessPerformanceTrends, graphType, selectedBusinessId]);
@@ -228,7 +275,7 @@ const PerformanceTrend = ({ className }: any) => {
       <ShiftsLineChart
         completedShifts={chartData.completedShifts}
         missedShifts={chartData.missedShifts}
-        labels={chartData.labels}
+        graphType={graphType}
         completedPercentage={chartData.completedPercentage}
         missedPercentage={chartData.missedPercentage}
       />
@@ -268,15 +315,13 @@ const PerformanceTrend = ({ className }: any) => {
                         setGraphType(option);
                         setShowGraphMenu(false);
                       }}
-                      className={`flex-row items-center p-3 mb-3 rounded-xl ${
-                        isActive ? "bg-[#4FB2F3]" : "bg-white"
-                      }`}
+                      className={`flex-row items-center p-3 mb-3 rounded-xl ${isActive ? "bg-[#4FB2F3]" : "bg-white"
+                        }`}
                     >
                       <View className="flex-1">
                         <Text
-                          className={`font-proximanova-semibold ${
-                            isActive ? "text-white" : "text-gray-900"
-                          }`}
+                          className={`font-proximanova-semibold ${isActive ? "text-white" : "text-gray-900"
+                            }`}
                         >
                           {label}
                         </Text>

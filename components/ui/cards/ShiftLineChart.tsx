@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 const { width } = Dimensions.get("window");
 
+type GraphType = "daily" | "monthly" | "yearly";
+
 type ShiftLineChartProps = {
-  completedShifts?: { value: number }[];
-  missedShifts?: { value: number }[];
-  labels?: string[];
+  completedShifts?: { value: number; label?: string }[];
+  missedShifts?: { value: number; label?: string }[];
+  graphType?: GraphType;
   completedPercentage?: number;
   missedPercentage?: number;
   fixedMaxValue?: number;
@@ -16,16 +18,107 @@ type ShiftLineChartProps = {
 const ShiftsLineChart = ({
   completedShifts = [],
   missedShifts = [],
-  labels = [],
+  graphType = "daily",
   completedPercentage = 0,
   missedPercentage = 0,
   fixedMaxValue,
   fixedStepValue,
 }: ShiftLineChartProps) => {
-  const fallbackCompleted = [{ value: 0 }, { value: 0 }, { value: 0 }];
+  const chartScrollRef = useRef<any>(null);
+  const autoFocusKeyRef = useRef("");
+  const fallbackCompleted = [{ value: 0, label: "" }, { value: 0, label: "" }, { value: 0, label: "" }];
   const fallbackMissed = [{ value: 0 }, { value: 0 }, { value: 0 }];
-  const chartCompleted = completedShifts.length > 0 ? completedShifts : fallbackCompleted;
-  const chartMissed = missedShifts.length > 0 ? missedShifts : fallbackMissed;
+  const chartCompletedBase = completedShifts.length > 0 ? completedShifts : fallbackCompleted;
+  const chartMissedBase = missedShifts.length > 0 ? missedShifts : fallbackMissed;
+  const isDaily = graphType === "daily";
+  const initialSpacing = isDaily ? 24 : 14;
+  const endSpacing = isDaily ? 28 : 20;
+  const spacing = isDaily ? 72 : graphType === "monthly" ? 48 : 44;
+  const visibleChartWidth = width - 80;
+
+  const chartCompleted = useMemo(
+    () =>
+      chartCompletedBase.map((item) => {
+        const value = Number(item?.value ?? 0);
+        const isNonZero = value > 0;
+        return {
+          ...item,
+          value,
+          dataPointRadius: isNonZero ? 4 : 2.5,
+          dataPointText: isNonZero ? String(value) : "",
+          textColor: "#22C55E",
+          textFontSize: 11,
+          textShiftY: -10,
+        };
+      }),
+    [chartCompletedBase]
+  );
+
+  const chartMissed = useMemo(
+    () =>
+      chartMissedBase.map((item) => {
+        const value = Number(item?.value ?? 0);
+        const isNonZero = value > 0;
+        return {
+          ...item,
+          value,
+          dataPointRadius: isNonZero ? 4 : 2.5,
+          dataPointText: isNonZero ? String(value) : "",
+          textColor: "#EF4444",
+          textFontSize: 11,
+          textShiftY: -10,
+        };
+      }),
+    [chartMissedBase]
+  );
+
+  const requiredChartWidth =
+    initialSpacing + endSpacing + Math.max(1, chartCompleted.length) * spacing + 24;
+  const chartWidth = Math.max(visibleChartWidth, requiredChartWidth);
+  const latestNonZeroIndex = useMemo(
+    () =>
+      chartCompleted.reduce((latestIndex, point, index) => {
+        const hasCompleted = (point?.value ?? 0) > 0;
+        const hasMissed = (chartMissed[index]?.value ?? 0) > 0;
+        return hasCompleted || hasMissed ? index : latestIndex;
+      }, -1),
+    [chartCompleted, chartMissed]
+  );
+  const focusKey = useMemo(() => {
+    const completedTotal = chartCompleted.reduce((sum, item) => sum + (item?.value ?? 0), 0);
+    const missedTotal = chartMissed.reduce((sum, item) => sum + (item?.value ?? 0), 0);
+    return `${graphType}:${chartCompleted.length}:${latestNonZeroIndex}:${completedTotal}:${missedTotal}`;
+  }, [chartCompleted, chartMissed, graphType, latestNonZeroIndex]);
+
+  useEffect(() => {
+    if (graphType !== "daily") return;
+    if (autoFocusKeyRef.current === focusKey) return;
+    autoFocusKeyRef.current = focusKey;
+
+    const targetIndex = latestNonZeroIndex >= 0 ? latestNonZeroIndex : chartCompleted.length - 1;
+    const targetX = Math.max(
+      0,
+      initialSpacing + Math.max(0, targetIndex) * spacing - visibleChartWidth * 0.55
+    );
+
+    const run = () => chartScrollRef.current?.scrollTo?.({ x: targetX, animated: false });
+    requestAnimationFrame(run);
+    const t1 = setTimeout(run, 120);
+    const t2 = setTimeout(run, 260);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [
+    chartCompleted.length,
+    focusKey,
+    graphType,
+    initialSpacing,
+    latestNonZeroIndex,
+    spacing,
+    visibleChartWidth,
+  ]);
+
   const maxSeriesValue = Math.max(
     ...chartCompleted.map((item) => item?.value ?? 0),
     ...chartMissed.map((item) => item?.value ?? 0),
@@ -34,10 +127,6 @@ const ShiftsLineChart = ({
   const computedMaxValue = Math.max(4, Math.ceil(maxSeriesValue / 4) * 4);
   const maxValue = fixedMaxValue ?? computedMaxValue;
   const stepValue = fixedStepValue ?? Math.max(1, Math.ceil(maxValue / 4));
-  const chartLabels =
-    labels.length === chartCompleted.length
-      ? labels
-      : chartCompleted.map((_, index) => `${index + 1}`);
 
   return (
     <View className="bg-[#E5F4FD] p-4 rounded-2xl border border-[#4FB2F350] overflow-hidden">
@@ -46,15 +135,22 @@ const ShiftsLineChart = ({
         data={chartCompleted}
         data2={chartMissed}
         height={180}
-        width={width - 80}
-        spacing={chartCompleted.length > 12 ? 18 : 30}
-        initialSpacing={10}
-        endSpacing={10}
+        width={chartWidth}
+        parentWidth={visibleChartWidth}
+        adjustToWidth={false}
+        spacing={spacing}
+        initialSpacing={initialSpacing}
+        endSpacing={endSpacing}
         color1="#22C55E"
         color2="#EF4444"
-        thickness={3}
+        thickness={2.5}
         curved
-        hideDataPoints
+        curvature={0.18}
+        hideDataPoints={false}
+        showValuesAsDataPointsText
+        dataPointsRadius={2.5}
+        dataPointsColor="#22C55E"
+        dataPointsColor2="#EF4444"
         hideRules={false}
         hideYAxisText={false}
         yAxisColor="transparent"
@@ -66,7 +162,7 @@ const ShiftsLineChart = ({
         }}
         xAxisLabelTextStyle={{
           color: "#6B7280",
-          fontSize: 10,
+          fontSize: 12,
           textAlign: "center",
           marginTop: 4,
         }}
@@ -79,7 +175,12 @@ const ShiftsLineChart = ({
         areaChart={false}
         startOpacity={0}
         endOpacity={0}
-        xAxisLabelTexts={chartLabels}
+        disableScroll={false}
+        showScrollIndicator
+        nestedScrollEnabled
+        scrollRef={chartScrollRef}
+        scrollAnimation={false}
+        xAxisTextNumberOfLines={1}
       />
 
       {/* Legend */}
