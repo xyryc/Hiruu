@@ -472,6 +472,12 @@ const SavedShiftTemplate = () => {
     router.push("/screens/schedule/business/apply-weekly-schedule");
   };
 
+  const handleClearSlots = () => {
+    if (isHydratingEdit || isUpdating || isFillingAI) return;
+    clearWeeklyShiftSelections();
+    clearWeeklyRoleAssignments();
+  };
+
   return (
     <KeyboardAvoidingView
       className="flex-1"
@@ -488,6 +494,17 @@ const SavedShiftTemplate = () => {
           title={isEditMode ? "Edit Weekly Schedule" : "Weekly Schedule"}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
+          components={
+            <TouchableOpacity
+              onPress={handleClearSlots}
+              disabled={isHydratingEdit || isUpdating || isFillingAI}
+              className={`${isHydratingEdit || isUpdating || isFillingAI ? "opacity-50" : ""}`}
+            >
+              <Text className="font-proximanova-semibold text-[#4FB2F3]">
+                Clear
+              </Text>
+            </TouchableOpacity>
+          }
         />
 
         {isHydratingEdit ? (
