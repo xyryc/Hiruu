@@ -710,6 +710,18 @@
     "failedToLoadAttendanceSummary": "Failed to load attendance summary",
     "failedToLoadPerformanceTrend": "Failed to load performance trends",
     "noJobsAvailable": "No Jobs Available",
+    "connectSocials": {
+      "facebook": "Facebook",
+      "linkedin": "LinkedIn",
+      "whatsapp": "WhatsApp",
+      "twitter": "Twitter",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "invalidPhone": "Enter a valid phone number",
+      "noContactInfo": "No contact information available.",
+      "enterPhone": "Enter phone number",
+      "enterHandle": "Enter {{platform}}"
+    },
     "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
     "noShiftsAvailable": "No Shifts Available",
     "noShiftsAvailableDescription": "There are no shifts scheduled for this date. Check another date or create a new shift."

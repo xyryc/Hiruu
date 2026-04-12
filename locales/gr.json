@@ -1,4 +1,4 @@
-﻿{
+{
   "user": {
     "jobsTab": {
       "findJob": "Εύρεση εργασίας",
@@ -84,16 +84,16 @@
       }
     },
     "profile": {
-      "appPreferences": "Î ÏÎ¿Ï„Î¹Î¼Î®ÏƒÎµÎ¹Ï‚ Î•Ï†Î±ÏÎ¼Î¿Î³Î®Ï‚",
-      "settings": "Î¡Ï…Î¸Î¼Î¯ÏƒÎµÎ¹Ï‚",
-      "subscription": "Î£Ï…Î½Î´ÏÎ¿Î¼Î®",
-      "referAndEarn": "Î‘Î½Î±Ï†ÎµÏÎ¸ÎµÎ¯Ï„Îµ ÎºÎ±Î¹ ÎºÎµÏÎ´Î¯ÏƒÏ„Îµ",
-      "privacyPolicy": "Î Î¿Î»Î¹Ï„Î¹ÎºÎ® Î‘Ï€Î¿ÏÏÎ®Ï„Î¿Ï…",
+      "appPreferences": "Προτιμήσεις Εφαρμογής",
+      "settings": "Ρυθμίσεις",
+      "subscription": "Συνδρομή",
+      "referAndEarn": "Αναφέρθηκε και κέρδισε",
+      "privacyPolicy": "Πολιτική Απορρήτου",
       "noPrivacyPolicyFound": "Δεν βρέθηκε πολιτική απορρήτου.",
-      "termsAndConditions": "ÎŒÏÎ¿Î¹ ÎºÎ±Î¹ Î ÏÎ¿Ï‹Ï€Î¿Î¸Î­ÏƒÎµÎ¹Ï‚",
+      "termsAndConditions": "Όροι και Προϋποθέσεις",
       "noTermsAndConditionsFound": "Δεν βρέθηκαν όροι και προϋποθέσεις.",
-      "helpAndSupport": "Î’Î¿Î®Î¸ÎµÎ¹Î± ÎºÎ±Î¹ Î¥Ï€Î¿ÏƒÏ„Î®ÏÎ¹Î¾Î·",
-      "appInfo": "Î Î»Î·ÏÎ¿Ï†Î¿ÏÎ¯ÎµÏ‚ ÎµÏ†Î±ÏÎ¼Î¿Î³Î®Ï‚",
+      "helpAndSupport": "Βοήθεια και Υποστήριξη",
+      "appInfo": "Πληροφορίες Εφαρμογής",
       "appPlatformName": "Πλατφόρμα Hiruu",
       "versionWithNumber": "Έκδοση {{version}}",
       "appCopyright": "2023-{{year}} Hiruu Inc.",
@@ -110,8 +110,8 @@
       "edit": "Επεξεργασία",
       "contactUsOn": "Επικοινώνησε μαζί μας στο",
       "saveChange": "Αποθήκευση αλλαγών",
-      "deleteAccount": "Î”Î¹Î±Î³ÏÎ±Ï†Î® Î»Î¿Î³Î±ÏÎ¹Î±ÏƒÎ¼Î¿Ï",
-      "logout": "Î‘Ï€Î¿ÏƒÏÎ½Î´ÎµÏƒÎ·",
+      "deleteAccount": "Διαγραφή Λογαριασμού",
+      "logout": "Αποσύνδεση",
       "language": "Γλώσσα",
       "smartAlert": "Έξυπνη ειδοποίηση",
       "smartAlertSubtitle": "Ειδοποίησέ με 3 ώρες πριν τη βάρδια",
@@ -651,8 +651,8 @@
       }
     },
     "setup": {
-      "selectLocation": "Î•Ï€Î¹Î»Î­Î¾Ï„Îµ Ï„Î¿Ï€Î¿Î¸ÎµÏƒÎ¯Î±",
-      "profileUpdateError": "Î‘Ï€Î¿Ï„Ï…Ï‡Î¯Î± Î±Ï€Î¿Î¸Î®ÎºÎµÏ…ÏƒÎ·Ï‚ Î´ÎµÎ´Î¿Î¼Î­Î½Ï‰Î½ Ï€ÏÎ¿Ï†Î¯Î»",
+      "selectLocation": "Παρακαλώ επιλέξτε την τοποθεσία σας",
+      "profileUpdateError": "Αποτυχία αποθήκευσης δεδομένων προφίλ",
       "businessSetup": {
         "createBusinessTitle": "Δημιουργία επιχείρησης",
         "failedToUploadImage": "Αποτυχία μεταφόρτωσης εικόνας",
@@ -701,7 +701,7 @@
     }
   },
   "common": {
-    "error": "Î£Ï†Î¬Î»Î¼Î±",
+    "error": "Σφάλμα",
     "yes": "ΝΑΙ",
     "no": "ΟΧΙ",
     "noJobsAvailable": "Δεν υπάρχουν διαθέσιμες θέσεις εργασίας",
@@ -712,7 +712,19 @@
     "failedToLoadPerformanceTrend": "Αποτυχία φόρτωσης τάσης απόδοσης",
     "view": "Προβολή",
     "all": "Όλα",
-    "searchUser": "Αναζήτηση χρήστη..."
+    "searchUser": "Αναζήτηση χρήστη...",
+    "connectSocials": {
+      "facebook": "Facebook",
+      "linkedin": "LinkedIn",
+      "whatsapp": "WhatsApp",
+      "twitter": "Twitter",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "invalidPhone": "Εισήγαγε έναν έγκυρο αριθμό τηλεφώνου",
+      "noContactInfo": "Δεν υπάρχουν στοιχεία επικοινωνίας.",
+      "enterPhone": "Εισήγαγε αριθμό τηλεφώνου",
+      "enterHandle": "Εισήγαγε {{platform}}"
+    }
   },
   "api": {
     "auth_login_success": "Η σύνδεση ολοκληρώθηκε με επιτυχία.",
@@ -722,8 +734,8 @@
     "otp_sent_email": "Ο κωδικός OTP στάλθηκε στο email σας.",
     "otp_sent_phone": "Ο κωδικός OTP στάλθηκε στον αριθμό τηλεφώνου σας.",
     "otp_password_reset_sent": "Ο κωδικός OTP επαναφοράς κωδικού στάλθηκε στο email σας.",
-    "auth_email_already_taken": "Î¤Î¿ email Ï‡ÏÎ·ÏƒÎ¹Î¼Î¿Ï€Î¿Î¹ÎµÎ¯Ï„Î±Î¹ Î®Î´Î·.",
-    "auth_invalid_credentials": "ÎœÎ· Î­Î³ÎºÏ…ÏÎ± ÏƒÏ„Î¿Î¹Ï‡ÎµÎ¯Î± ÏƒÏÎ½Î´ÎµÏƒÎ·Ï‚.",
+    "auth_email_already_taken": "Το email χρησιμοποιείται ήδη.",
+    "auth_invalid_credentials": "Μη έγκυρο email ή κωδικός.",
     "authentication_failed": "Η ταυτοποίηση απέτυχε.",
     "auth_password_reset_success": "Η επαναφορά κωδικού ολοκληρώθηκε με επιτυχία.",
     "unauthorized": "Δεν έχετε εξουσιοδότηση. Παρακαλώ συνδεθείτε ξανά.",
@@ -738,9 +750,9 @@
     "internal_server_error": "Παρουσιάστηκε σφάλμα στον διακομιστή. Παρακαλώ δοκιμάστε ξανά.",
     "bad_request": "Παρακαλώ ελέγξτε τα στοιχεία και δοκιμάστε ξανά.",
     "experience_invalid_date_range": "Η ημερομηνία έναρξης πρέπει να είναι πριν από την ημερομηνία λήξης.",
-    "business_created_successfully": "Î— ÎµÏ€Î¹Ï‡ÎµÎ¯ÏÎ·ÏƒÎ· Î´Î·Î¼Î¹Î¿Ï…ÏÎ³Î®Î¸Î·ÎºÎµ Î¼Îµ ÎµÏ€Î¹Ï„Ï…Ï‡Î¯Î±.",
+    "business_created_successfully": "Η επιχείρηση δημιουργήθηκε με επιτυχία.",
     "shift_template_created_successfully": "Το πρότυπο βάρδιας δημιουργήθηκε με επιτυχία.",
-    "UNKNOWN_ERROR": "Î Î±ÏÎ¿Ï…ÏƒÎ¹Î¬ÏƒÏ„Î·ÎºÎµ Î±Ï€ÏÎ¿ÏƒÎ´ÏŒÎºÎ·Ï„Î¿ ÏƒÏ†Î¬Î»Î¼Î±",
+    "UNKNOWN_ERROR": "Παρουσιάστηκε απρόσδοκτο σφάλμα",
     "business_updated_successfully": "Προφίλ ενημερώθηκε με επιτυχία.",
     "shift_template_updated_successfully": "Το πρότυπο βάρδιας ενημερώθηκε με επιτυχία.",
     "shift_template_deleted_successfully": "Το πρότυπο βάρδιας διαγράφηκε με επιτυχία.",
@@ -821,15 +833,15 @@
     "insufficient_permissions": "You do not have sufficient permissions."
   },
   "validation": {
-    "fillAllFields": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÏƒÏ…Î¼Ï€Î»Î·ÏÏŽÏƒÏ„Îµ ÏŒÎ»Î± Ï„Î± Ï€ÎµÎ´Î¯Î±",
-    "invalidEmail": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÎµÎ¹ÏƒÎ¬Î³ÎµÏ„Îµ Î¼Î¹Î± Î­Î³ÎºÏ…ÏÎ· Î´Î¹ÎµÏÎ¸Ï…Î½ÏƒÎ· email",
+    "fillAllFields": "Παρακαλώ συμπληρώστε όλα τα πεδία",
+    "invalidEmail": "Παρακαλώ εισάγετε έγκυρη διεύθυνση email",
     "invalidPhone": "Παρακαλώ εισάγετε έγκυρο αριθμό τηλεφώνου",
-    "passwordTooShort": "ÎŸ ÎºÏ‰Î´Î¹ÎºÏŒÏ‚ Ï€ÏÎ­Ï€ÎµÎ¹ Î½Î± Î­Ï‡ÎµÎ¹ Ï„Î¿Ï…Î»Î¬Ï‡Î¹ÏƒÏ„Î¿Î½ 6 Ï‡Î±ÏÎ±ÎºÏ„Î®ÏÎµÏ‚",
-    "validationError": "Î£Ï†Î¬Î»Î¼Î± ÎµÏ€Î¹ÎºÏÏÏ‰ÏƒÎ·Ï‚",
-    "enterName": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÎµÎ¹ÏƒÎ¬Î³ÎµÏ„Îµ Ï„Î¿ ÏŒÎ½Î¿Î¼Î¬ ÏƒÎ±Ï‚",
-    "selectLocation": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÎµÏ€Î¹Î»Î­Î¾Ï„Îµ Ï„Î·Î½ Ï„Î¿Ï€Î¿Î¸ÎµÏƒÎ¯Î± ÏƒÎ±Ï‚",
-    "selectDateOfBirth": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÎµÏ€Î¹Î»Î­Î¾Ï„Îµ Ï„Î·Î½ Î·Î¼ÎµÏÎ¿Î¼Î·Î½Î¯Î± Î³Î­Î½Î½Î·ÏƒÎ®Ï‚ ÏƒÎ±Ï‚",
-    "selectGender": "Î Î±ÏÎ±ÎºÎ±Î»ÏŽ ÎµÏ€Î¹Î»Î­Î¾Ï„Îµ Ï„Î¿ Ï†ÏÎ»Î¿ ÏƒÎ±Ï‚"
+    "passwordTooShort": "Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες",
+    "validationError": "Σφάλμα ÎµÏ€Î¹ÎºÏÏÏ‰ÏƒÎ·Ï‚",
+    "enterName": "Παρακαλώ εισάγετε το όνομά σας",
+    "selectLocation": "Παρακαλώ επιλέξτε την τοποθεσία σας",
+    "selectDateOfBirth": "Παρακαλώ επιλέξτε την ημερομηνία γέννησής σας",
+    "selectGender": "Παρακαλώ επιλέξτε το φύλο σας"
   },
   "permissions_accept_reject_join_requests": "Accept/Reject join requests",
   "permissions_accept_reject_join_requests_title": "Accept/Reject Join Requests",

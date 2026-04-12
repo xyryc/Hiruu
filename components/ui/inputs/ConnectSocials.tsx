@@ -3,14 +3,15 @@ import { Image } from "expo-image";
 import React, { useEffect, useMemo, useState } from "react";
 import { Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
 import SmallButton from "../buttons/SmallButton";
+import { t } from "i18next";
 
 const SOCIAL_ITEMS = [
-  { id: "facebook", label: "Facebook", icon: require("@/assets/images/facebook2.svg") },
-  { id: "linkedin", label: "LinkedIn", icon: require("@/assets/images/linkedin.svg") },
-  { id: "whatsapp", label: "WhatsApp", icon: require("@/assets/images/whatsapp.svg") },
-  { id: "twitter", label: "Twitter", icon: require("@/assets/images/twitter.svg") },
-  { id: "telegram", label: "Telegram", icon: require("@/assets/images/telegram.svg") },
-  { id: "instagram", label: "Instagram", icon: require("@/assets/images/instagram.svg") },
+  { id: "facebook", label: t("common.connectSocials.facebook"), icon: require("@/assets/images/facebook2.svg") },
+  { id: "linkedin", label: t("common.connectSocials.linkedin"), icon: require("@/assets/images/linkedin.svg") },
+  { id: "whatsapp", label: t("common.connectSocials.whatsapp"), icon: require("@/assets/images/whatsapp.svg") },
+  { id: "twitter", label: t("common.connectSocials.twitter"), icon: require("@/assets/images/twitter.svg") },
+  { id: "telegram", label: t("common.connectSocials.telegram"), icon: require("@/assets/images/telegram.svg") },
+  { id: "instagram", label: t("common.connectSocials.instagram"), icon: require("@/assets/images/instagram.svg") },
 ] as const;
 
 type SocialKey = (typeof SOCIAL_ITEMS)[number]["id"];
@@ -139,7 +140,7 @@ const ConnectSocials = ({
       if (!digits || digits.length < 7) {
         setInputErrors((prev) => ({
           ...prev,
-          [id]: "Enter a valid phone number",
+          [id]: t("common.connectSocials.invalidPhone"),
         }));
         return;
       }
@@ -209,7 +210,7 @@ const ConnectSocials = ({
       {visibleItems.length === 0 && hideEmpty ? (
         <View className="p-4">
           <Text className="text-sm font-proximanova-regular text-secondary">
-            No contact information available.
+            {t("common.connectSocials.noContactInfo")}
           </Text>
         </View>
       ) : null}
@@ -241,8 +242,8 @@ const ConnectSocials = ({
                     onChangeText={(value) => updateDraft(item.id, value)}
                     placeholder={
                       PHONE_ONLY_SOCIALS.has(item.id)
-                        ? "Enter phone number"
-                        : `Enter ${item.label}`
+                        ? t("common.connectSocials.enterPhone")
+                        : t("common.connectSocials.enterHandle", { platform: item.label })
                     }
                     className="bg-white border border-[#D8D8D8] rounded-full px-3 py-2 text-xs min-w-[120px]"
                     keyboardType={
