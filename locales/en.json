@@ -791,6 +791,7 @@
     "company_not_found": "Company not found.",
     "company_duplicate_name": "A company with this name already exists.",
     "shift_template_name_exists": "A shift template with this name already exists.",
+    "shift_template_not_found": "Shift template not found.",
     "otp_expired": "OTP has expired. Please request a new one.",
     "otp_invalid_code": "Invalid OTP code. Please try again.",
     "employment_created_successfully": "Employment created successfully.",
