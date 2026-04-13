@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const WelcomeHeader = ({
   className,
@@ -10,6 +11,7 @@ const WelcomeHeader = ({
   avatar,
   coins = 0,
 }: WelcomeHeaderProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -32,10 +34,10 @@ const WelcomeHeader = ({
 
         <View className="w-56">
           <Text className="text-sm text-[#7A7A7A] mb-1.5 " numberOfLines={1}>
-            👋 Hello, {name || "User"}
+            {t("common.hello", { name: name || t("common.user") })}
           </Text>
           <Text className="font-proximanova-semibold">
-            Ready for today&apos;s task?
+            {t("common.readyForTodaysTask")}
           </Text>
         </View>
       </View>
