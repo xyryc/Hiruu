@@ -2,9 +2,11 @@ import { JobBoardCtaProps } from "@/types";
 import { Href, useRouter } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import ActionCard from "../ui/cards/ActionCard";
 
 const JobBoardCta = ({ className, title, subtitle, route }: JobBoardCtaProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const targetRoute: Href = route || "/(tabs)/user-jobs";
 
@@ -18,7 +20,7 @@ const JobBoardCta = ({ className, title, subtitle, route }: JobBoardCtaProps) =>
       <ActionCard
         onPress={() => router.push(targetRoute)}
         title={subtitle}
-        buttonTitle="Find Now"
+        buttonTitle={t("common.findNow")}
         rightImage={require("@/assets/images/toolbox.svg")}
         imageWidth={110}
         imageHeight={80}

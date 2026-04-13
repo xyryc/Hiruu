@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import SimpleStatusBadge from "../badges/SimpleStatusBadge";
 import SmallButton from "../buttons/SmallButton";
 
@@ -24,13 +25,13 @@ type PerformerCardProps = {
 
 const BADGE_STYLE_MAP: Record<
   keyof PerformerCounts,
-  { label: string; textColor: string; bgColor: string }
+  { labelKey: string; textColor: string; bgColor: string }
 > = {
-  onTime: { label: "On Time", textColor: "#6998EF", bgColor: "#E9F0FD" },
-  early: { label: "Early", textColor: "#3EBF5A", bgColor: "#3EBF5A1F" },
-  shiftCover: { label: "Shift Cover", textColor: "#EAC324", bgColor: "#EAC3241F" },
-  late: { label: "Late", textColor: "#F3934F", bgColor: "#F3934F1F" },
-  missed: { label: "Missed", textColor: "#F34F4F", bgColor: "#F34F4F1A" },
+  onTime: { labelKey: "user.profile.leaderboard.onTime", textColor: "#6998EF", bgColor: "#E9F0FD" },
+  early: { labelKey: "user.profile.leaderboard.early", textColor: "#3EBF5A", bgColor: "#3EBF5A1F" },
+  shiftCover: { labelKey: "user.profile.leaderboard.shiftCover", textColor: "#EAC324", bgColor: "#EAC3241F" },
+  late: { labelKey: "user.profile.leaderboard.late", textColor: "#F3934F", bgColor: "#F3934F1F" },
+  missed: { labelKey: "user.profile.leaderboard.missed", textColor: "#F34F4F", bgColor: "#F34F4F1A" },
 };
 
 const PerformerCard = ({
@@ -41,13 +42,14 @@ const PerformerCard = ({
   counts,
   onPressSeeProfile,
 }: PerformerCardProps) => {
+  const { t } = useTranslation();
   const badgeItems = (Object.keys(BADGE_STYLE_MAP) as (keyof PerformerCounts)[])
     .map((key) => {
       const style = BADGE_STYLE_MAP[key];
       const value = Number(counts?.[key] ?? 0);
       return {
         key,
-        title: `${style.label}: ${value}`,
+        title: `${t(style.labelKey)}: ${value}`,
         textColor: style.textColor,
         bgColor: style.bgColor,
       };
@@ -83,12 +85,12 @@ const PerformerCard = ({
               ) : null}
             </View>
             <Text className="text-sm font-proximanova-regular text-[#4FB2F3] mt-1">
-              {points} points earned
+              {points} {t("user.profile.leaderboard.pointsEarned")}
             </Text>
           </View>
         </View>
 
-        <SmallButton title="See Profile" onPress={onPressSeeProfile} />
+        <SmallButton title={t("user.profile.leaderboard.seeProfile")} onPress={onPressSeeProfile} />
       </View>
 
       <View className="flex-row pl-4 pb-4 overflow-hidden">

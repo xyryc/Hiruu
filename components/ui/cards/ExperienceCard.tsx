@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 type ExperienceCardProps = {
   focus?: boolean;
@@ -20,6 +21,7 @@ const ExperienceCard = ({
   companyLogo,
   isVerified,
 }: ExperienceCardProps) => {
+  const { t } = useTranslation();
   return (
     <View
       className={`p-2.5  ${className} ${isCurrent ? " border rounded-2xl" : "border border-[#0000000D] rounded-2xl"}`}>
@@ -31,7 +33,7 @@ const ExperienceCard = ({
             style={{ height: 30, width: 150 }}
           />
           <Text className="-top-6 text-center font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-            Current Working
+            {t("user.profile.userProfile.currentWorking")}
           </Text>
         </View>
       )}
@@ -46,10 +48,10 @@ const ExperienceCard = ({
           </View>
           <View>
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              {companyName || "Company"}
+              {companyName || t("user.profile.userProfile.company")}
             </Text>
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {position ? `Working as ${position}` : "Role not specified"}
+              {position ? `${t("user.profile.userProfile.workingAs")} ${position}` : t("user.profile.userProfile.roleNotSpecified")}
             </Text>
           </View>
         </View>
