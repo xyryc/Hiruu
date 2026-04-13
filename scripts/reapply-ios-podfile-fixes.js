@@ -14,14 +14,31 @@ if (!fs.existsSync(podfilePath)) {
 let content = fs.readFileSync(podfilePath, 'utf8');
 let changed = false;
 
-const staticFrameworkLine = '$RNFirebaseAsStaticFramework = true';
-if (!content.includes(staticFrameworkLine)) {
+const staticFrameworkFlagLine = '$RNFirebaseAsStaticFramework = true';
+if (!content.includes(staticFrameworkFlagLine)) {
   const anchorRegex = /(podfile_properties\s*=\s*JSON\.parse\([^\n]*\)\s*rescue\s*\{\}\n)/;
   if (!anchorRegex.test(content)) {
     console.error('Could not find podfile_properties line to insert RNFirebase static framework flag.');
     process.exit(1);
   }
-  content = content.replace(anchorRegex, `$1${staticFrameworkLine}\n`);
+  content = content.replace(anchorRegex, `$1${staticFrameworkFlagLine}\n`);
+  changed = true;
+}
+
+const forcedUseFrameworksLine = '  use_frameworks! :linkage => :static';
+const oldConditionalUseFrameworksRegex =
+  /\n\s*use_frameworks!\s*:linkage\s*=>\s*podfile_properties\['ios\.useFrameworks'\]\.to_sym\s*if\s*podfile_properties\['ios\.useFrameworks'\]\s*\n\s*use_frameworks!\s*:linkage\s*=>\s*ENV\['USE_FRAMEWORKS'\]\.to_sym\s*if\s*ENV\['USE_FRAMEWORKS'\]\s*/m;
+
+if (oldConditionalUseFrameworksRegex.test(content)) {
+  content = content.replace(oldConditionalUseFrameworksRegex, `\n${forcedUseFrameworksLine}`);
+  changed = true;
+} else if (!content.includes(forcedUseFrameworksLine)) {
+  const nativeModulesAnchor = /(config\s*=\s*use_native_modules!\(config_command\)\n)/;
+  if (!nativeModulesAnchor.test(content)) {
+    console.error('Could not find native modules config line to insert static use_frameworks.');
+    process.exit(1);
+  }
+  content = content.replace(nativeModulesAnchor, `$1\n${forcedUseFrameworksLine}\n`);
   changed = true;
 }
 
@@ -51,32 +68,40 @@ if (postEnd === -1) {
 }
 
 const postBlock = lines.slice(postStart, postEnd + 1).join('\n');
-const hasRnfbPatch = postBlock.includes('rnfb_targets = %w[RNFBApp RNFBAuth RNFBMessaging]');
+const rnfbBlockRegex = /\n\s*# BEGIN HIRUU RNFB WORKAROUND[\s\S]*?# END HIRUU RNFB WORKAROUND\n?/m;
+let updatedPostBlock = postBlock;
 
-if (!hasRnfbPatch) {
-  const patchBlock = [
-    '',
-    '    # BEGIN HIRUU RNFB WORKAROUND',
-    '    rnfb_targets = %w[RNFBApp RNFBAuth RNFBMessaging]',
-    '    installer.pods_project.targets.each do |target|',
-    '      next unless rnfb_targets.include?(target.name)',
-    '',
-    '      target.build_configurations.each do |config|',
-    "        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'",
-    "        if target.name == 'RNFBApp'",
-    "          config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-error=non-modular-include-in-framework-module'",
-    '        end',
-    "        if target.name == 'RNFBMessaging'",
-    "          config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'",
-    "          config.build_settings['DEFINES_MODULE'] = 'NO'",
-    '        end',
-    '      end',
-    '    end',
-    '    # END HIRUU RNFB WORKAROUND',
-  ];
+if (rnfbBlockRegex.test(updatedPostBlock)) {
+  updatedPostBlock = updatedPostBlock.replace(rnfbBlockRegex, '\n');
+}
 
-  lines.splice(postEnd, 0, ...patchBlock);
-  content = lines.join('\n');
+const patchBlock = [
+  '',
+  '    # BEGIN HIRUU RNFB WORKAROUND',
+  '    installer.pods_project.targets.each do |target|',
+  "      next unless target.name.start_with?('RNFB')",
+  '',
+  '      target.build_configurations.each do |config|',
+  "        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'",
+  "        config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'",
+  "        config.build_settings['DEFINES_MODULE'] = 'NO'",
+  '',
+  "        if target.name == 'RNFBApp'",
+  "          config.build_settings['OTHER_CFLAGS'] = '$(inherited) -Wno-error=non-modular-include-in-framework-module'",
+  '        end',
+  '      end',
+  '    end',
+  '    # END HIRUU RNFB WORKAROUND',
+].join('\n');
+
+if (!updatedPostBlock.includes("next unless target.name.start_with?('RNFB')")) {
+  updatedPostBlock = updatedPostBlock.replace(/\nend\s*$/, `${patchBlock}\n  end`);
+}
+
+if (updatedPostBlock !== postBlock) {
+  const nextLines = content.split('\n');
+  nextLines.splice(postStart, postEnd - postStart + 1, ...updatedPostBlock.split('\n'));
+  content = nextLines.join('\n');
   changed = true;
 }
 

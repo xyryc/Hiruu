@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "ios:podfile:fix": "node scripts/reapply-ios-podfile-fixes.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
@@ -28,7 +29,7 @@
     "expo-asset": "~12.0.12",
     "expo-audio": "~1.1.1",
     "expo-blur": "~15.0.8",
-    "expo-build-properties": "^55.0.13",
+    "expo-build-properties": "~1.0.10",
     "expo-camera": "~17.0.10",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.8",
