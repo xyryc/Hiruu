@@ -31,25 +31,25 @@ const SocialAuth = () => {
         return;
       }
 
-      const oauthId = result?.data?.user?.id;
-      if (!oauthId) {
-        console.error("[GOOGLE_LOGIN] No oauthId returned");
+      const oAuthToken = result?.data?.idToken!;
+
+      if (!oAuthToken) {
+        console.error("[GOOGLE_LOGIN] No oAuthToken returned");
         return;
       }
-      console.log("[GOOGLE_LOGIN] oauthId:", oauthId);
+      console.log("[GOOGLE_LOGIN] oauthId:", oAuthToken);
 
       const fcmToken = await registerForFcmToken().catch(() => undefined);
       const timeZone = getCalendars()[0]?.timeZone || "UTC";
       console.log("[GOOGLE_LOGIN] oauth payload:", {
         provider: "google",
-        oauthId,
         hasFcmToken: Boolean(fcmToken),
         timeZone,
       });
 
       const response = await oauthLogin({
         provider: "google",
-        oauthId,
+        oAuthToken,
         fcmToken,
         timeZone,
       });
