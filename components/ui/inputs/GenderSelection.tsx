@@ -2,15 +2,17 @@ import { GenderSelectionProps } from "@/types";
 import { Image } from "expo-image";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const GenderSelection: React.FC<GenderSelectionProps> = ({
   value,
   onGenderChange,
 }) => {
+  const { t } = useTranslation();
   const genderOptions = [
     {
       value: "male" as const,
-      label: "Male",
+      label: t("user.jobs.postJob.options.male"),
       icon: "👨",
       bgColor: "bg-white",
       textColor: "text-gray-900",
@@ -18,7 +20,7 @@ const GenderSelection: React.FC<GenderSelectionProps> = ({
     },
     {
       value: "female" as const,
-      label: "Female",
+      label: t("user.jobs.postJob.options.female"),
       icon: "👩",
       bgColor: "bg-gray-100",
       textColor: "text-gray-400",
@@ -26,7 +28,7 @@ const GenderSelection: React.FC<GenderSelectionProps> = ({
     },
     {
       value: "other" as const,
-      label: "Other",
+      label: t("user.jobs.postJob.options.other"),
       icon: "⚧️",
       bgColor: "bg-gray-100",
       textColor: "text-gray-400",

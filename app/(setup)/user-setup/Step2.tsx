@@ -3,7 +3,7 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ProfileImagePicker from "@/components/ui/inputs/ProfileImagePicker";
 import { useProfileStore } from "@/stores/profileStore";
 import { useRouter } from "expo-router";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import {
   ScrollView,
@@ -25,6 +25,7 @@ export default function Step2({
   onComplete,
   handleBack,
 }: any) {
+  const { t } = useTranslation();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const router = useRouter();
@@ -78,8 +79,8 @@ export default function Step2({
     >
       <ScreenHeader
         onPressBack={handleBack}
-        title="Profile Photo"
-        buttonTitle="Skip"
+        title={t("user.setup.businessSetup.profilePhotoTitle")}
+        buttonTitle={t("user.setup.skip")}
         className="mt-3"
         onPress={() => router.replace("/(tabs)/home")}
       />
@@ -88,7 +89,7 @@ export default function Step2({
       <View className="my-7">
         <View className="flex-row items-center justify-between mb-6">
           <Text className="text-sm font-proximanova-semibold">
-            Your Progress: {currentStep * 20}%
+            {t("user.setup.yourProgress", { percent: currentStep * 20 })}
           </Text>
 
           <Text className="text-sm font-proximanova-semibold">
@@ -131,7 +132,7 @@ export default function Step2({
               className="mt-6 px-4 py-2 bg-red-500 rounded-lg"
             >
               <Text className="text-white font-proximanova-medium text-center">
-                Remove Photo
+                {t("user.setup.businessSetup.removePhoto")}
               </Text>
             </TouchableOpacity>
           )}
@@ -140,11 +141,11 @@ export default function Step2({
         {/* intro  */}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Add a personal intro
+            {t("user.setup.addPersonalIntro")}
           </Text>
 
           <TextInput
-            placeholder="Type here..."
+            placeholder={t("user.setup.businessSetup.typeHere")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm h-20"
             autoCapitalize="none"
             multiline={true}
@@ -158,7 +159,7 @@ export default function Step2({
       {/* Button fixed at bottom */}
       <View className="pb-10 pt-4 bg-transparent">
         <PrimaryButton
-          title="Next"
+          title={t("user.setup.next")}
           className="w-full"
           onPress={handleNext}
           loading={isLoading}

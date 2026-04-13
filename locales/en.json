@@ -731,6 +731,19 @@
       }
     },
     "setup": {
+      "personalDetails": "Personal Details",
+      "yourProgress": "Your Progress: {{percent}}%",
+      "name": "Name",
+      "enterYourName": "Enter your name",
+      "location": "Location",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "connectYourSocials": "Connect Your Socials",
+      "searchingLocations": "Searching locations...",
+      "noLocationsFound": "No locations found.",
+      "next": "Next",
+      "skip": "Skip",
+      "addPersonalIntro": "Add a personal intro",
       "selectLocation": "Select location",
       "profileUpdateError": "Failed to save profile data",
       "businessSetup": {
@@ -822,7 +835,14 @@
       "invalidPhone": "Enter a valid phone number",
       "noContactInfo": "No contact information available.",
       "enterPhone": "Enter phone number",
-      "enterHandle": "Enter {{platform}}"
+      "enterHandle": "Enter {{platform}}",
+      "link": "Link"
+    },
+    "profileImagePicker": {
+      "chooseHowToSelect": "Choose how you want to select an image",
+      "failedToOpenCamera": "Failed to open camera",
+      "failedToOpenImageLibrary": "Failed to open image library",
+      "tapToChange": "Tap to change photo"
     },
     "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
     "noShiftsAvailable": "No Shifts Available",

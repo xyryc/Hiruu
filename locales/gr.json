@@ -731,6 +731,19 @@
       }
     },
     "setup": {
+      "personalDetails": "Προσωπικά Στοιχεία",
+      "yourProgress": "Η πρόοδός σου: {{percent}}%",
+      "name": "Όνομα",
+      "enterYourName": "Εισάγετε το όνομά σας",
+      "location": "Τοποθεσία",
+      "dateOfBirth": "Ημερομηνία Γέννησης",
+      "gender": "Φύλο",
+      "connectYourSocials": "Συνδέστε τα Social σας",
+      "searchingLocations": "Αναζήτηση τοποθεσιών...",
+      "noLocationsFound": "Δεν βρέθηκαν τοποθεσίες.",
+      "next": "Επόμενο",
+      "skip": "Παράλειψη",
+      "addPersonalIntro": "Προσθέστε μια προσωπική εισαγωγή",
       "selectLocation": "Παρακαλώ επιλέξτε την τοποθεσία σας",
       "profileUpdateError": "Αποτυχία αποθήκευσης δεδομένων προφίλ",
       "businessSetup": {
@@ -825,7 +838,14 @@
       "invalidPhone": "Εισήγαγε έναν έγκυρο αριθμό τηλεφώνου",
       "noContactInfo": "Δεν υπάρχουν στοιχεία επικοινωνίας.",
       "enterPhone": "Εισήγαγε αριθμό τηλεφώνου",
-      "enterHandle": "Εισήγαγε {{platform}}"
+      "enterHandle": "Εισήγαγε {{platform}}",
+      "link": "Σύνδεση"
+    },
+    "profileImagePicker": {
+      "chooseHowToSelect": "Επιλέξτε πώς θέλετε να επιλέξετε εικόνα",
+      "failedToOpenCamera": "Αποτυχία ανοίγματος κάμερας",
+      "failedToOpenImageLibrary": "Αποτυχία ανοίγματος βιβλιοθήκης εικόνων",
+      "tapToChange": "Πατήστε για αλλαγή φωτογραφίας"
     }
   },
   "api": {
