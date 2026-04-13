@@ -70,14 +70,10 @@ const ShiftRequest = () => {
     loadBusinessAttendanceMode();
   }, [isModalSettings, loadBusinessAttendanceMode]);
 
-  const loadPendingRequests = useCallback(async () => {
+  const loadShiftRequests = useCallback(async () => {
     if (!selectedBusinessId) return;
     try {
-      await getBusinessShiftRequests(selectedBusinessId, {
-        page: 1,
-        limit: 50,
-        status: "pending",
-      });
+      await getBusinessShiftRequests(selectedBusinessId, { page: 1, limit: 50 });
     } catch (error: any) {
       toast.error(
         translateApiMessage(
@@ -89,15 +85,22 @@ const ShiftRequest = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedTab !== "Pending Requests") return;
-      loadPendingRequests();
-    }, [loadPendingRequests, selectedTab])
+      loadShiftRequests();
+    }, [loadShiftRequests])
   );
 
   const pendingRequests = useMemo(
     () =>
       (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
         (item: any) => String(item?.status || "").toLowerCase() === "pending"
+      ),
+    [businessShiftRequests]
+  );
+
+  const requestHistory = useMemo(
+    () =>
+      (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
+        (item: any) => String(item?.status || "").toLowerCase() !== "pending"
       ),
     [businessShiftRequests]
   );
@@ -215,7 +218,7 @@ const ShiftRequest = () => {
                   try {
                     await approveBusinessShiftRequest(selectedBusinessId, item.id);
                     toast.success(translateApiMessage("shift_request_approved"));
-                    loadPendingRequests();
+                    loadShiftRequests();
                   } catch (error: any) {
                     toast.error(
                       translateApiMessage(
@@ -232,7 +235,7 @@ const ShiftRequest = () => {
                   try {
                     await rejectBusinessShiftRequest(selectedBusinessId, item.id);
                     toast.success(translateApiMessage("shift_request_declined"));
-                    loadPendingRequests();
+                    loadShiftRequests();
                   } catch (error: any) {
                     toast.error(
                       translateApiMessage(
@@ -254,11 +257,25 @@ const ShiftRequest = () => {
         {/* Request History */}
         {selectedTab === "Request History" && (
           <View>
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
-            <TeamShiftRequestCard isHistory status="Late Clock-in" />
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
-            <TeamShiftRequestCard isHistory status="Network Issues" />
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
+            {businessShiftRequestsLoading ? (
+              <View className="py-6 items-center">
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              </View>
+            ) : null}
+            {requestHistory.map((item: any, index: number) => (
+              <TeamShiftRequestCard
+                key={item?.id || `history-${index}`}
+                title={index === 0 ? "History" : undefined}
+                request={item}
+                hideAddRequest
+                footerStatus={item?.status}
+              />
+            ))}
+            {!businessShiftRequestsLoading && requestHistory.length === 0 ? (
+              <Text className="text-center text-sm text-secondary mt-6">
+                No request history found.
+              </Text>
+            ) : null}
           </View>
         )}
       </ScrollView>

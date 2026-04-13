@@ -1,4 +1,5 @@
 import { chatService } from "@/services/chatService";
+import StatusBadge from "@/components/ui/badges/StatusBadge";
 import { formatDate, formatTimeInTimezone } from "@/utils/date";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -21,6 +22,7 @@ type TeamShiftRequestCardProps = {
   request?: any;
   showActions?: boolean;
   hideAddRequest?: boolean;
+  footerStatus?: string;
   userId?: string;
   onApprove?: () => void;
   onReject?: () => void;
@@ -42,6 +44,7 @@ const TeamShiftRequestCard = ({
   request,
   showActions,
   hideAddRequest,
+  footerStatus,
   userId,
   onApprove,
   onReject,
@@ -85,6 +88,11 @@ const TeamShiftRequestCard = ({
   const resolvedUserId = userId || request?.employment?.user?.id;
   const shouldShowActions = Boolean(showActions ?? isHistory);
   const statusText = String(request?.status || "").toLowerCase();
+  const resolvedFooterStatus = (
+    footerStatus ||
+    request?.status ||
+    ""
+  ).toString();
 
   const statusBadgeClass = (() => {
     if (statusText === "approved") return "bg-[#4FB2F34D]";
@@ -195,6 +203,12 @@ const TeamShiftRequestCard = ({
                 <Feather name="check" size={22} color="white" />
               </TouchableOpacity>
             </View>
+          ) : resolvedFooterStatus ? (
+            <StatusBadge
+              status={resolvedFooterStatus.toLowerCase()}
+              label={resolvedFooterStatus}
+              size="small"
+            />
           ) : !hideAddRequest ? (
             <TouchableOpacity
               onPress={() => setIsFilterModal(true)}

@@ -12,7 +12,7 @@ const StatusBadge = ({
     switch (status) {
       case "upcoming":
         return {
-          containerClasses: "bg-yellow-50 border-[#EAC3244D]",
+          containerClasses: "bg-yellow-50 border-yellow-300",
           textClasses: "text-[#EAC324]",
           dotClasses: "bg-[#EAC324]",
           label: label || "Upcoming",
@@ -68,7 +68,7 @@ const StatusBadge = ({
         };
       case "approved":
         return {
-          containerClasses: "bg-[#ECF9EF] border-[#F3934F4D]",
+          containerClasses: "bg-[#ECF9EF] border-green-300",
           textClasses: "text-[#3EBF5A]",
           dotClasses: "bg-[#3EBF5A]",
           label: "Approved",
@@ -82,7 +82,7 @@ const StatusBadge = ({
         };
       case "rejected":
         return {
-          containerClasses: "bg-[#FEEEEE] border-[#F3934F4D]",
+          containerClasses: "bg-[#FEEEEE] border-red-300",
           textClasses: "text-[#F34F4F]",
           dotClasses: "bg-[#F34F4F]",
           label: "Rejected",
