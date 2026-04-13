@@ -90,6 +90,13 @@
           "best_fit": "Καλύτερη αντιστοίχιση"
         }
       },
+      "workInsights": {
+        "totalEmployees": "Συνολικοί Εργαζόμενοι",
+        "onLeaveToday": "Σε Άδεια Σήμερα",
+        "employees": "Εργαζόμενοι",
+        "totalNewRatingsThisWeek": "Νέες Αξιολογήσεις Αυτή την Εβδομάδα",
+        "newRatings": "Νέες Αξιολογήσεις"
+      },
       "candidateRequests": {
         "title": "Αιτήματα υποψηφίων",
         "failedToFetch": "Αποτυχία φόρτωσης αιτημάτων υποψηφίων",
@@ -504,6 +511,12 @@
         "selected": "επιλεγμένες",
         "workStatus": "Κατάσταση εργασίας",
         "employeeInfo": "Πληροφορίες υπαλλήλου",
+        "workInsights": {
+          "performanceStatus": "Κατάσταση Απόδοσης",
+          "onTime": "Εγκαίρως",
+          "reliable": "Αξιόπιστος",
+          "fiveStarFeedback": "5-Star Feedback"
+        },
         "optionsForExport": "Επιλογές εξαγωγής",
         "selectStyle": "Επιλογή στυλ",
         "generatingCv": "Δημιουργία CV...",
@@ -756,11 +769,14 @@
     "open": "Ανοιχτό",
     "closed": "Κλειστό",
     "notSet": "Δεν έχει οριστεί",
+    "average": "μέσος όρος",
     "searchUser": "Αναζήτηση χρήστη...",
     "shareProfileMessage": "Δες το προφίλ του {{name}} στο Hiruu!",
     "thisProfile": "αυτό το προφίλ",
     "couldNotShareProfile": "Δεν ήταν δυνατή η κοινοποίηση του προφίλ",
     "failedToStartChat": "Αποτυχία έναρξης συνομιλίας",
+    "failedToLoadWorkInsights": "Αποτυχία φόρτωσης στατιστικών εργασίας",
+    "teamInsights": "Στατιστικά Ομάδας",
     "connectSocials": {
       "facebook": "Facebook",
       "linkedin": "LinkedIn",

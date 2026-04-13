@@ -4,10 +4,12 @@ import { WorkInsightsProps } from "@/types";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import StatCardSecondary from "../ui/cards/StatCardSecondary";
 
 const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
+  const { t } = useTranslation();
   const activeBusinessIds = useBusinessStore((state) => state.selectedBusinesses);
   const myEmployments = useBusinessStore((state) => state.myEmployments);
   const getBusinessOverview = useBusinessStore((state) => state.getBusinessOverview);
@@ -93,7 +95,7 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
       } catch (error: any) {
         if (!mounted) return;
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load work insights");
+        toast.error(error?.message || t("common.failedToLoadWorkInsights"));
       }
     };
 
@@ -102,25 +104,25 @@ const BusinessWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return () => {
       mounted = false;
     };
-  }, [canReadBusinessUserStats, getBusinessOverview, selectedBusinessId]);
+  }, [canReadBusinessUserStats, getBusinessOverview, selectedBusinessId, t]);
 
   return (
     <View className={`${className} px-4`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
-        {title || "Team Insights"}
+        {title || t("common.teamInsights")}
       </Text>
 
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
-          title="Total Employees"
+          title={t("user.jobs.workInsights.totalEmployees")}
           point={insights.totalEmployees}
-          subtitle="Employees"
+          subtitle={t("user.jobs.workInsights.employees")}
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="On Leave Today"
+          title={t("user.jobs.workInsights.onLeaveToday")}
           point={insights.onLeaveToday}
-          subtitle="Employees"
+          subtitle={t("user.jobs.workInsights.employees")}
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>

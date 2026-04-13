@@ -90,6 +90,13 @@
           "best_fit": "Best Fit"
         }
       },
+      "workInsights": {
+        "totalEmployees": "Total Employees",
+        "onLeaveToday": "On Leave Today",
+        "employees": "Employees",
+        "totalNewRatingsThisWeek": "Total New Ratings This Week",
+        "newRatings": "New Ratings"
+      },
       "candidateRequests": {
         "title": "Candidate Requests",
         "failedToFetch": "Failed to fetch candidate requests",
@@ -504,6 +511,12 @@
         "selected": "selected",
         "workStatus": "Work Status",
         "employeeInfo": "Employee Info",
+        "workInsights": {
+          "performanceStatus": "Performance Status",
+          "onTime": "On Time",
+          "reliable": "Reliable",
+          "fiveStarFeedback": "5-Star Feedback"
+        },
         "optionsForExport": "Options for export",
         "selectStyle": "Select Style",
         "generatingCv": "Generating CV...",
@@ -750,11 +763,14 @@
     "open": "Open",
     "closed": "Closed",
     "notSet": "Not set",
+    "average": "average",
     "searchUser": "Search user...",
     "shareProfileMessage": "Check out {{name}} on Hiruu!",
     "thisProfile": "this profile",
     "couldNotShareProfile": "Could not share profile",
     "failedToStartChat": "Failed to start chat",
+    "failedToLoadWorkInsights": "Failed to load work insights",
+    "teamInsights": "Team Insights",
     "failedToLoadAttendanceSummary": "Failed to load attendance summary",
     "failedToLoadPerformanceTrend": "Failed to load performance trends",
     "noJobsAvailable": "No Jobs Available",
