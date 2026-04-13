@@ -165,6 +165,18 @@
       "deleteAccount": "Διαγραφή Λογαριασμού",
       "logout": "Αποσύνδεση",
       "language": "Γλώσσα",
+      "failedToLoadWorkInsights": "Αποτυχία φόρτωσης στατιστικών εργασίας",
+      "workInsights": {
+        "title": "Στατιστικά Εργασίας",
+        "completedShifts": "Ολοκληρωμένες Βάρδιες",
+        "workedHours": "Ώρες Εργασίας",
+        "tasks": "Εργασίες",
+        "hour": "Ώρα",
+        "performanceStatus": "Κατάσταση Απόδοσης",
+        "onTime": "Εγκαίρως",
+        "reliable": "Αξιόπιστος",
+        "fiveStarFeedback": "5-Star Feedback"
+      },
       "smartAlert": "Έξυπνη ειδοποίηση",
       "smartAlertSubtitle": "Ειδοποίησέ με 3 ώρες πριν τη βάρδια",
       "smartAlertTime": "Χρόνος ειδοποίησης",
@@ -829,7 +841,6 @@
     "thisProfile": "αυτό το προφίλ",
     "couldNotShareProfile": "Δεν ήταν δυνατή η κοινοποίηση του προφίλ",
     "failedToStartChat": "Αποτυχία έναρξης συνομιλίας",
-    "failedToLoadWorkInsights": "Αποτυχία φόρτωσης στατιστικών εργασίας",
     "teamInsights": "Στατιστικά Ομάδας",
     "connectSocials": {
       "facebook": "Facebook",

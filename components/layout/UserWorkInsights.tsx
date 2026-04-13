@@ -3,12 +3,14 @@ import { WorkInsightsProps } from "@/types";
 import React, { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
 import StatCardSecondary from "../ui/cards/StatCardSecondary";
 import MonthPicker from "../ui/inputs/MonthPicker";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
 const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
+  const { t } = useTranslation();
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
   const [showModal, setShowModal] = useState(false);
   const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>([]);
@@ -69,7 +71,7 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
         });
       } catch (error: any) {
         if (isExpectedAuthError(error)) return;
-        toast.error(error?.message || "Failed to load work insights");
+        toast.error(error?.message || t("user.profile.failedToLoadWorkInsights"));
       }
     };
 
@@ -84,7 +86,7 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
     <View className={`${className} px-4`}>
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-proximanova-semibold">
-          Work Insights
+          {title || t("user.profile.workInsights.title")}
         </Text>
 
         <View className="bg-[#E5F4FD] flex-row items-center gap-2 px-3 py-1 border border-gray-100 rounded-full">
@@ -107,15 +109,15 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
       {/* stats */}
       <View className="flex-row gap-3 mb-4">
         <StatCardPrimary
-          title="Completed Shifts"
+          title={t("user.profile.workInsights.completedShifts")}
           point={insights.completedShifts}
-          subtitle="Tasks"
+          subtitle={t("user.profile.workInsights.tasks")}
           background={require("@/assets/images/stats-bg.svg")}
         />
         <StatCardPrimary
-          title="Worked Hours"
+          title={t("user.profile.workInsights.workedHours")}
           point={insights.workedHours}
-          subtitle="Hour"
+          subtitle={t("user.profile.workInsights.hour")}
           background={require("@/assets/images/stats-bg.svg")}
         />
       </View>
