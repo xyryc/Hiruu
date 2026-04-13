@@ -215,6 +215,7 @@
       "googlePayBillingNote": "Contact Google Pay to update your payment details or end your billing through Google Pay.",
       "userPlan": "User plan",
       "businessPlan": "Business plan",
+      "password": "Password",
       "mobile": "Mobile",
       "subscriptionAutoRenew": "Subscription auto-renews until manually cancelled.",
       "userPlanScreenTitle": "User Plan",
@@ -731,6 +732,8 @@
       }
     },
     "setup": {
+      "workExperience": "Work Experience",
+      "companyEmployer": "Company/Employer",
       "personalDetails": "Personal Details",
       "yourProgress": "Your Progress: {{percent}}%",
       "name": "Name",
