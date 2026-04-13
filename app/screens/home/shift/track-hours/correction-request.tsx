@@ -49,6 +49,11 @@ const CorrectionRequest = () => {
     () => new Set(issues.map((item) => item.value)),
     [issues]
   );
+  const selectedIssueLabel = useMemo(
+    () =>
+      issues.find((item) => item.value === selectedIssue)?.label || "",
+    [issues, selectedIssue]
+  );
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -213,7 +218,7 @@ const CorrectionRequest = () => {
             label="Reason Type"
             placeholder="Select an issue"
             options={issues}
-            value={selectedIssue}
+            value={selectedIssueLabel}
             onSelect={setSelectedIssue}
           />
         </View>
