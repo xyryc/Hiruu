@@ -125,6 +125,8 @@ type ShiftStoreState = {
   }) => Promise<
     Array<{
       id: string;
+      employmentId?: string;
+      shiftAssignmentId?: string;
       status?: string;
       createdAt?: string;
       updatedAt?: string;
@@ -245,6 +247,22 @@ type ShiftStoreState = {
           shiftAssignmentId: string;
           targetEmploymentIds: string[];
           reason?: string;
+        }
+      | {
+          employmentId: string;
+          type: "manual_attendance";
+          manualAttendanceReasonType:
+            | "missed_punch"
+            | "late_arrival"
+            | "early_departure"
+            | "forgot_to_tap"
+            | "network_issues"
+            | "other";
+          shiftAssignmentId?: string;
+          attendanceDate?: string;
+          clockInTime?: string;
+          clockOutTime?: string;
+          attendanceNotes?: string;
         }
   ) => Promise<any>;
   approveBusinessShiftRequest: (
