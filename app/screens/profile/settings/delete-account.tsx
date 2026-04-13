@@ -2,6 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import LogoutDeleteModal from "@/components/ui/modals/LogoutDeleteModal";
 import { useAuthStore } from "@/stores/authStore";
+import { useProfileStore } from "@/stores/profileStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -18,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 
 const DeleteAccount = () => {
   const { t } = useTranslation();
@@ -25,6 +27,8 @@ const DeleteAccount = () => {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const { deleteMe, isLoading } = useProfileStore();
 
   const [password, setPassword] = useState("");
   const [isWarningChecked, setIsWarningChecked] = useState(false);
@@ -130,8 +134,9 @@ const DeleteAccount = () => {
           <PrimaryButton
             title={t("user.profile.deleteAction")}
             onPress={() => setShowDeleteModal(true)}
-            disabled={!canProceed}
-            className={`${!canProceed ? "opacity-50" : ""}`}
+            disabled={!canProceed || isLoading}
+            loading={isLoading}
+            className={`${!canProceed || isLoading ? "opacity-50" : ""}`}
           />
         </View>
 
@@ -140,7 +145,26 @@ const DeleteAccount = () => {
           onClose={() => setShowDeleteModal(false)}
           data={deleteModalData}
           onConfirm={async () => {
-            setShowDeleteModal(false);
+            try {
+              const result = await deleteMe(password.trim());
+              const messageKey = result?.message || "auth_account_deleted";
+              toast.success(
+                t(`api.${messageKey}`, {
+                  defaultValue: messageKey,
+                })
+              );
+
+              setShowDeleteModal(false);
+              await logout();
+              router.replace("/(auth)/login");
+            } catch (error: any) {
+              const messageKey = error?.message || "UNKNOWN_ERROR";
+              toast.error(
+                t(`api.${messageKey}`, {
+                  defaultValue: messageKey,
+                })
+              );
+            }
           }}
         />
       </SafeAreaView>

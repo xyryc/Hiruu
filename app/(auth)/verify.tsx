@@ -23,6 +23,8 @@ const Verify = () => {
   const router = useRouter();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const didRequestInitialCode = useRef(false);
+  const autoVerifyInFlightRef = useRef(false);
+  const lastAutoSubmittedOtpRef = useRef("");
 
   // Create refs for each input
   const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -101,11 +103,19 @@ const Verify = () => {
     });
   }, [getVerificationType, requestVerifyAccount, source]);
 
-  const handleVerify = async () => {
+  const handleVerify = async (options?: { auto?: boolean }) => {
     if (!isOtpComplete) return;
 
     clearError();
     const otpCode = otp.join("");
+    const isAuto = Boolean(options?.auto);
+
+    if (isAuto) {
+      if (autoVerifyInFlightRef.current) return;
+      if (lastAutoSubmittedOtpRef.current === otpCode) return;
+      autoVerifyInFlightRef.current = true;
+      lastAutoSubmittedOtpRef.current = otpCode;
+    }
 
     try {
       const payload = {
@@ -131,8 +141,22 @@ const Verify = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : t("common.error");
       toast.error(message);
+    } finally {
+      if (isAuto) {
+        autoVerifyInFlightRef.current = false;
+      }
     }
   };
+
+  useEffect(() => {
+    if (!isOtpComplete) {
+      lastAutoSubmittedOtpRef.current = "";
+      return;
+    }
+
+    if (isLoading) return;
+    handleVerify({ auto: true });
+  }, [isOtpComplete, isLoading, otp]);
 
   const handleResendOTP = async () => {
     try {
@@ -216,7 +240,7 @@ const Verify = () => {
           <PrimaryButton
             className="w-full"
             title={isLoading ? "Verifying..." : "Verify"}
-            onPress={handleVerify}
+            onPress={() => handleVerify({ auto: false })}
             loading={isLoading}
           />
         </View>
