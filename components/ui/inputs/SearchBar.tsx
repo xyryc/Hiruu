@@ -1,9 +1,11 @@
 import { SearchBarProps } from "@/types/components/input";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SearchBar({ className, onSearch, value }: SearchBarProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const inputValue = typeof value === "string" ? value : searchQuery;
@@ -32,7 +34,7 @@ export default function SearchBar({ className, onSearch, value }: SearchBarProps
       <TextInput
         style={{ fontFamily: "ProximaNova-Regular" }}
         className="flex-1 py-3"
-        placeholder="Search here..."
+        placeholder={t("common.searchHere")}
         placeholderTextColor="#7A7A7A"
         value={inputValue}
         onChangeText={handleSearchChange}

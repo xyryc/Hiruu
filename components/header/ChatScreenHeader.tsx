@@ -1,6 +1,7 @@
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ChatScreenHeaderProps {
@@ -34,6 +35,7 @@ const ChatScreenHeader = ({
   isStartingAudioCall = false,
   isStartingVideoCall = false,
 }: ChatScreenHeaderProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
@@ -60,11 +62,11 @@ const ChatScreenHeader = ({
           />
           <View className="ml-3 flex-1 min-w-0">
             <Text className="text-lg font-proximanova-semibold text-primary" numberOfLines={1}>
-              {title || "Chat"}
+              {title || t("common.chat.defaultTitle")}
             </Text>
             {typeof isOnline === "boolean" ? (
               <Text className="text-xs font-proximanova-regular text-secondary">
-                {isOnline ? "Online" : "Offline"}
+                {isOnline ? t("common.chat.online") : t("common.chat.offline")}
               </Text>
             ) : null}
           </View>
@@ -111,7 +113,7 @@ const ChatScreenHeader = ({
                 }}
               >
                 <Text className="text-sm font-proximanova-regular text-primary">
-                  See profile
+                  {t("common.chat.seeProfile")}
                 </Text>
               </TouchableOpacity>
 
@@ -126,11 +128,11 @@ const ChatScreenHeader = ({
                 <Text className="text-sm font-proximanova-regular text-primary">
                   {isTogglingBlockUser
                     ? isBlocked
-                      ? "Unblocking..."
-                      : "Blocking..."
+                      ? t("common.chat.unblocking")
+                      : t("common.chat.blocking")
                     : isBlocked
-                      ? "Unblock user"
-                      : "Block user"}
+                      ? t("common.chat.modalUnblockTitle")
+                      : t("common.chat.modalBlockTitle")}
                 </Text>
               </TouchableOpacity>
 
@@ -144,8 +146,8 @@ const ChatScreenHeader = ({
               >
                 <Text className="text-sm font-proximanova-regular text-[#EF4444]">
                   {isDeletingConversation
-                    ? "Deleting conversation..."
-                    : "Delete conversation"}
+                    ? t("common.chat.deletingConversation")
+                    : t("common.chat.modalDeleteTitle")}
                 </Text>
               </TouchableOpacity>
             </View>

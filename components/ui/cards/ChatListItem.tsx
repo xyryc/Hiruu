@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 type ChatListItemProps = {
@@ -22,6 +23,7 @@ const ChatListItem = ({
   unreadCount = 0,
   badgeAvatar,
 }: ChatListItemProps) => {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -38,9 +40,9 @@ const ChatListItem = ({
           }}
           contentFit="cover"
         />
-        {!badgeAvatar && (
+        {!!badgeAvatar && (
           <Image
-            source={badgeAvatar || require("@/assets/images/placeholder.png")}
+            source={badgeAvatar}
             style={{
               width: 25,
               height: 25,
@@ -77,7 +79,7 @@ const ChatListItem = ({
               className="text-sm font-proximanova-regular text-primary w-4/5"
               numberOfLines={1}
             >
-              {subtitle || "No messages yet."}
+              {subtitle || t("common.chat.noMessagesYet")}
             </Text>
           </View>
 

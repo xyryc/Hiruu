@@ -14,6 +14,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   Keyboard,
@@ -48,6 +49,7 @@ const resolveMediaUrl = (value?: string | null) => {
 };
 
 const ChatScreen = () => {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [actualRoomId, setActualRoomId] = useState<string | null>(null);
@@ -56,7 +58,7 @@ const ChatScreen = () => {
   const [startingAudioCall, setStartingAudioCall] = useState(false);
   const [startingVideoCall, setStartingVideoCall] = useState(false);
   const [androidKeyboardOffset, setAndroidKeyboardOffset] = useState(0);
-  const [chatTitle, setChatTitle] = useState("Chat");
+  const [chatTitle, setChatTitle] = useState(t("common.chat.defaultTitle"));
   const [chatAvatar, setChatAvatar] = useState<string | null>(null);
   const [chatIsOnline, setChatIsOnline] = useState<boolean | undefined>(undefined);
   const [roomDetails, setRoomDetails] = useState<any>(null);
@@ -84,7 +86,7 @@ const ChatScreen = () => {
       return;
     }
     if (!roomId) {
-      toast.error("Missing chat room id");
+      toast.error(t("common.chat.missingRoomId"));
       setActualRoomId(null);
       setLoadingRoom(false);
       return;
@@ -106,7 +108,7 @@ const ChatScreen = () => {
         setRoomDetails(room);
 
         if (room.type !== "direct") {
-          setChatTitle(room.name || "Group Chat");
+          setChatTitle(room.name || t("common.chat.groupChat"));
           setChatAvatar(room.avatar || room?.business?.logo || null);
           setChatIsOnline(undefined);
           return;
@@ -120,7 +122,7 @@ const ChatScreen = () => {
           otherParticipant?.nickname ||
           otherParticipant?.user?.name ||
           room.name ||
-          "Direct Chat";
+          t("common.chat.directChat");
 
         setChatTitle(nextTitle);
         setChatAvatar(otherParticipant?.user?.avatar || room.avatar || null);
@@ -131,7 +133,7 @@ const ChatScreen = () => {
         );
       } catch {
         if (isMounted) {
-          setChatTitle("Chat");
+          setChatTitle(t("common.chat.defaultTitle"));
           setChatAvatar(null);
           setChatIsOnline(undefined);
           setRoomDetails(null);
@@ -144,7 +146,7 @@ const ChatScreen = () => {
     return () => {
       isMounted = false;
     };
-  }, [actualRoomId, user?.id]);
+  }, [actualRoomId, t, user?.id]);
 
   const linkedRecruitment = useMemo(() => {
     const recruitment = roomDetails?.referenceRecruitment;
@@ -154,7 +156,7 @@ const ChatScreen = () => {
       recruitment?.role?.role?.name ||
       recruitment?.role?.name ||
       recruitment?.name ||
-      "Job";
+      t("common.chat.jobFallback");
     const business = recruitment?.business || roomDetails?.business || null;
     const businessId = recruitment?.businessId || business?.id;
 
@@ -191,7 +193,7 @@ const ChatScreen = () => {
         : null,
       _count: recruitment?._count,
     };
-  }, [roomDetails]);
+  }, [roomDetails, t]);
 
   const shouldShowJobCard = useMemo(() => {
     const roomType = String(roomDetails?.type || "").toLowerCase();
@@ -243,14 +245,14 @@ const ChatScreen = () => {
     roomId: actualRoomId || '', // Pass empty string if not ready
     onError: (error) => {
       // Show user-friendly error messages
-      const errorMessage = error.message || "Something went wrong";
+      const errorMessage = error.message || t("common.chat.errorFallback");
 
       if (errorMessage.includes("cannot send messages")) {
-        toast.error("You don't have permission to send messages in this chat");
+        toast.error(t("common.chat.noPermissionSend"));
       } else if (errorMessage.includes("not found")) {
-        toast.error("Chat room not found");
+        toast.error(t("common.chat.roomNotFound"));
       } else if (errorMessage.includes("unauthorized")) {
-        toast.error("You need to login again");
+        toast.error(t("common.chat.loginAgain"));
       } else {
         toast.error(errorMessage);
       }
@@ -279,11 +281,11 @@ const ChatScreen = () => {
       a.getMonth() === b.getMonth() &&
       a.getDate() === b.getDate();
 
-    if (isSameDay(date, today)) return "Today";
-    if (isSameDay(date, yesterday)) return "Yesterday";
+    if (isSameDay(date, today)) return t("common.chat.today");
+    if (isSameDay(date, yesterday)) return t("common.chat.yesterday");
 
     return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
-  }, []);
+  }, [t]);
 
   const detectPreviewType = useCallback((input: any): "image" | "video" | null => {
     if (!input) return null;
@@ -443,23 +445,28 @@ const ChatScreen = () => {
       ? (durationFromContent || durationFromAttachments || durationFromPayload)
       : (durationFromPayload || durationFromContent || durationFromAttachments);
 
-    const directionLabel = direction === "incoming" ? "Incoming" : "Outgoing";
-    const typeLabel = callType === "video" ? "video call" : "audio call";
+    const directionLabel =
+      direction === "incoming" ? t("common.chat.callIncoming") : t("common.chat.callOutgoing");
+    const typeLabel =
+      callType === "video" ? t("common.chat.videoCall") : t("common.chat.audioCall");
 
     let label = `${directionLabel} ${typeLabel}`;
     if (rawStatus === "missed") {
-      label = `Missed ${typeLabel}`;
+      label = t("common.chat.callMissedLabel", { type: typeLabel });
     } else if (rawStatus === "declined") {
-      label = `${directionLabel} ${typeLabel} declined`;
+      label = t("common.chat.callDeclinedLabel", {
+        direction: directionLabel,
+        type: typeLabel,
+      });
     }
 
     const subtitle = rawStatus === "missed"
-      ? "No answer"
+      ? t("common.chat.callNoAnswer")
       : rawStatus === "declined"
-        ? "Declined"
+        ? t("common.chat.callDeclined")
         : formattedDuration
-          ? `Call ended - ${formattedDuration}`
-          : "Call ended";
+          ? t("common.chat.callEndedWithDuration", { duration: formattedDuration })
+          : t("common.chat.callEnded");
 
     return {
       type: callType,
@@ -468,7 +475,7 @@ const ChatScreen = () => {
       subtitle,
       duration: formattedDuration,
     };
-  }, []);
+  }, [t]);
 
   const mappedMessages = useMemo(() => {
     const currentUserId = user?.id;
@@ -509,7 +516,7 @@ const ChatScreen = () => {
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permission.status !== "granted") {
-      toast.error("Permission to access media library is required.");
+      toast.error(t("common.chat.mediaPermissionRequired"));
       return;
     }
 
@@ -541,7 +548,7 @@ const ChatScreen = () => {
       .filter((item): item is SelectedMedia => Boolean(item));
 
     if (!pickedMedia.length) {
-      toast.error("Only images and videos are supported right now.");
+      toast.error(t("common.chat.mediaOnlyImagesVideos"));
       return;
     }
 
@@ -686,7 +693,7 @@ const ChatScreen = () => {
         callData?.id || callData?.callId || callData?.call?.id || null;
 
       if (!callId) {
-        toast.error("Call started but call id is missing");
+        toast.error(t("common.chat.callIdMissing"));
         return;
       }
 
@@ -697,7 +704,14 @@ const ChatScreen = () => {
     } catch (error: any) {
       console.error("[ChatScreen] initiate-call error:", error);
       const apiMessage =
-        error?.response?.data?.message || error?.message || `Failed to start ${callType} call`;
+        error?.response?.data?.message ||
+        error?.message ||
+        t("common.chat.failedToStartCall", {
+          type:
+            callType === "video"
+              ? t("common.chat.videoCall")
+              : t("common.chat.audioCall"),
+        });
       const localizedApiMessage =
         typeof apiMessage === "string" ? translateApiMessage(apiMessage) : apiMessage;
 
@@ -771,7 +785,7 @@ const ChatScreen = () => {
 
   const handleSeeProfile = useCallback(() => {
     if (!actualRoomId || !user?.id) {
-      toast.error("User information is unavailable");
+      toast.error(t("common.chat.userInfoUnavailable"));
       return;
     }
 
@@ -784,7 +798,7 @@ const ChatScreen = () => {
     const targetUserId = otherParticipant?.userId || otherParticipant?.user?.id;
 
     if (!targetUserId) {
-      toast.error("User information is unavailable");
+      toast.error(t("common.chat.userInfoUnavailable"));
       return;
     }
 
@@ -796,7 +810,7 @@ const ChatScreen = () => {
 
   const handleToggleBlockUser = useCallback(async () => {
     if (!targetParticipantUserId) {
-      toast.error("User information is unavailable");
+      toast.error(t("common.chat.userInfoUnavailable"));
       return;
     }
 
@@ -828,17 +842,17 @@ const ChatScreen = () => {
         translateApiMessage(
           error?.response?.data?.message ||
           error?.message ||
-          (blockedByMe ? "Failed to unblock user" : "Failed to block user")
+          (blockedByMe ? t("common.chat.failedToUnblockUser") : t("common.chat.failedToBlockUser"))
         )
       );
     } finally {
       setIsBlockingUser(false);
     }
-  }, [blockedByMe, targetParticipantUserId]);
+  }, [blockedByMe, t, targetParticipantUserId]);
 
   const handleDeleteConversation = useCallback(async () => {
     if (!actualRoomId) {
-      toast.error("Chat room information is unavailable");
+      toast.error(t("common.chat.roomInfoUnavailable"));
       return;
     }
 
@@ -856,13 +870,13 @@ const ChatScreen = () => {
         translateApiMessage(
           error?.response?.data?.message ||
             error?.message ||
-            "Failed to delete conversation"
+            t("common.chat.failedToDeleteConversation")
         )
       );
     } finally {
       setIsDeletingConversation(false);
     }
-  }, [actualRoomId, router]);
+  }, [actualRoomId, router, t]);
 
   const handleConfirmAction = useCallback(async () => {
     if (confirmAction === "toggle-block") {
@@ -972,7 +986,7 @@ const ChatScreen = () => {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
         <StatusBar barStyle="dark-content" />
-        <Text className="text-base text-secondary">Loading chat...</Text>
+        <Text className="text-base text-secondary">{t("common.chat.loadingChat")}</Text>
       </SafeAreaView>
     );
   }
@@ -1013,8 +1027,8 @@ const ChatScreen = () => {
           {/* Connection Status */}
           {!connected && (
             <View className="bg-yellow-100 px-4 py-2">
-              <Text className="text-xs text-yellow-800 text-center font-proximanova-regular">
-                Connecting to chat...
+                <Text className="text-xs text-yellow-800 text-center font-proximanova-regular">
+                {t("common.chat.connectingToChat")}
               </Text>
             </View>
           )}
@@ -1022,8 +1036,8 @@ const ChatScreen = () => {
             <View className="bg-[#FEF3C7] px-4 py-2">
               <Text className="text-xs text-[#92400E] text-center font-proximanova-regular">
                 {blockedByMe
-                  ? "You blocked this user. Unblock to continue chatting."
-                  : "You cannot send messages in this chat."}
+                  ? t("common.chat.blockedByMeBanner")
+                  : t("common.chat.blockedByOtherBanner")}
               </Text>
             </View>
           ) : null}
@@ -1074,7 +1088,7 @@ const ChatScreen = () => {
             ListEmptyComponent={
               loading ? (
                 <View className="py-6 items-center">
-                  <Text className="text-sm text-secondary">Loading messages...</Text>
+                  <Text className="text-sm text-secondary">{t("common.chat.loadingMessages")}</Text>
                 </View>
               ) : (
                 <NoMessages />
@@ -1114,24 +1128,24 @@ const ChatScreen = () => {
         visible={confirmAction !== null}
         title={
           confirmAction === "delete"
-            ? "Delete Conversation"
+            ? t("common.chat.modalDeleteTitle")
             : isBlocked
-              ? "Unblock User"
-              : "Block User"
+              ? t("common.chat.modalUnblockTitle")
+              : t("common.chat.modalBlockTitle")
         }
         subtitle={
           confirmAction === "delete"
-            ? "This will permanently remove this chat for you."
+            ? t("common.chat.modalDeleteSubtitle")
             : isBlocked
-              ? "You will be able to message and call this user again."
-              : "You will not be able to message or call this user."
+              ? t("common.chat.modalUnblockSubtitle")
+              : t("common.chat.modalBlockSubtitle")
         }
         confirmLabel={
           confirmAction === "delete"
-            ? "Delete"
+            ? t("common.chat.actionDelete")
             : isBlocked
-              ? "Unblock"
-              : "Block"
+              ? t("common.chat.actionUnblock")
+              : t("common.chat.actionBlock")
         }
         confirmButtonClassName={
           confirmAction === "delete"
