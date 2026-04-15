@@ -99,8 +99,10 @@
       },
       "quickActions": {
         "title": "Quick Actions",
+        "trackHours": "Track Hours",
         "leave": "Leave",
         "shiftRequest": "Shift Request",
+        "swapRequest": "Swap Request",
         "otRequest": "OT Request",
         "teamPanel": "Team Panel",
         "weekSchedule": "Week Schedule"

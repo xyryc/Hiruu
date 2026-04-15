@@ -99,8 +99,10 @@
       },
       "quickActions": {
         "title": "Γρήγορες Ενέργειες",
+        "trackHours": "Καταγραφή Ωρών",
         "leave": "Άδεια",
         "shiftRequest": "Αίτημα Βάρδιας",
+        "swapRequest": "Αίτημα Ανταλλαγής",
         "otRequest": "Αίτημα Υπερωρίας",
         "teamPanel": "Πάνελ Ομάδας",
         "weekSchedule": "Εβδομαδιαίο Πρόγραμμα"

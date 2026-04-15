@@ -9,6 +9,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import ActionIconCard from "../ui/cards/ActionIconCard";
 
@@ -17,6 +18,7 @@ type QuickActionUserProps = {
 };
 
 const QuickActionUser = ({ className }: QuickActionUserProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const getUnresolvedShiftRequestCount = useShiftStore(
@@ -74,26 +76,26 @@ const QuickActionUser = ({ className }: QuickActionUserProps) => {
   return (
     <View className={`${className} px-4`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
-        Quick Actions
+        {t("user.jobs.quickActions.title")}
       </Text>
 
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
         <ActionIconCard
           icon={<Ionicons name="time" size={24} color="#4FB2F3" />}
-          title="Track Hours"
+          title={t("user.jobs.quickActions.trackHours")}
           onPress={() => router.push("/screens/home/shift/track-hours")}
         />
 
         <ActionIconCard
           icon={<MaterialIcons name="timer" size={24} color="#4FB2F3" />}
-          title="OT Request"
+          title={t("user.jobs.quickActions.otRequest")}
           count={counts.overtime_request}
           onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
 
         <ActionIconCard
           icon={<FontAwesome name="users" size={20} color="#4FB2F3" />}
-          title="Leave"
+          title={t("user.jobs.quickActions.leave")}
           onPress={() => router.push("/screens/home/leave/history")}
         />
 
@@ -106,7 +108,7 @@ const QuickActionUser = ({ className }: QuickActionUserProps) => {
               className="bg-[#4FB2F3] rounded-full p-1"
             />
           }
-          title="Swap Request"
+          title={t("user.jobs.quickActions.swapRequest")}
           count={counts.shift_swap}
           onPress={() => router.push("/screens/home/shift/swap-request")}
         />
