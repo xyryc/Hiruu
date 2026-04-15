@@ -107,7 +107,7 @@ export default function Step5({
   const handleSendOtp = async () => {
     const parsed = getPhonePayload();
     if (!parsed.phoneNumber || !parsed.countryCode) {
-      toast.error("Please enter a valid phone number.");
+      toast.error(t("user.setup.pleaseEnterValidPhone"));
       return;
     }
 
@@ -117,7 +117,7 @@ export default function Step5({
       setOtpSent(true);
       setOtp(["", "", "", "", "", ""]);
       setResendCountdown(OTP_RESEND_SECONDS);
-      toast.success("OTP sent successfully!");
+      toast.success(t("user.setup.otpSentSuccess"));
     } catch (error: any) {
       toast.error(error.message || t("common.error"));
     } finally {
@@ -129,7 +129,7 @@ export default function Step5({
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       if (!options?.auto) {
-        toast.error("Please enter the 6-digit OTP.");
+        toast.error(t("user.setup.enterSixDigitOtp"));
       }
       return;
     }
@@ -147,7 +147,7 @@ export default function Step5({
       const parsed = getPhonePayload();
       if (!parsed.phoneNumber || !parsed.countryCode) {
         if (!options?.auto) {
-          toast.error("Please enter a valid phone number.");
+          toast.error(t("user.setup.pleaseEnterValidPhone"));
         }
         return;
       }
@@ -162,7 +162,7 @@ export default function Step5({
         await updateProfile({ onboarding: 5 });
         setOnboardingSent(true);
       }
-      toast.success("Phone number verified!");
+      toast.success(t("user.setup.phoneVerified"));
       onComplete();
     } catch (error: any) {
       if (!options?.auto) {
@@ -195,8 +195,8 @@ export default function Step5({
     >
       <ScreenHeader
         onPressBack={handleBack}
-        title="Mobile Verification"
-        buttonTitle="Skip"
+        title={t("user.setup.mobileVerification")}
+        buttonTitle={t("user.setup.skip")}
         className="mt-3"
         onPress={() => router.replace("/(tabs)/home")}
       />
@@ -205,7 +205,7 @@ export default function Step5({
       <View className="my-7">
         <View className="flex-row items-center justify-between mb-6">
           <Text className="text-sm font-proximanova-semibold">
-            Your Progress: {currentStep * 20}%
+            {t("user.setup.yourProgress", { percent: currentStep * 20 })}
           </Text>
 
           <Text className="text-sm font-proximanova-semibold">
@@ -235,14 +235,14 @@ export default function Step5({
         className="flex-1"
       >
         <View>
-          <Text className="text-sm mb-2 text-[#7A7A7A]">Phone number</Text>
+          <Text className="text-sm mb-2 text-[#7A7A7A]">{t("user.setup.phoneNumber")}</Text>
           <PhoneInput
             value={phoneNumber}
             onChangePhoneNumber={handlePhoneChange}
             selectedCountry={selectedCountry}
             onChangeSelectedCountry={handleSelectedCountry}
             defaultCountry="US"
-            placeholder="Enter phone number"
+            placeholder={t("user.setup.enterPhoneNumber")}
             phoneInputStyles={{
               container: {
                 borderWidth: 1,
@@ -274,13 +274,15 @@ export default function Step5({
               disabled={isSendingOtp || isVerifyingOtp}
             >
               <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                {isSendingOtp ? "Sending OTP..." : "Send OTP"}
+                {isSendingOtp ? t("user.setup.sendingOtp") : t("user.setup.sendOtp")}
               </Text>
             </TouchableOpacity>
           ) : resendCountdown > 0 ? (
             <Text className="text-sm font-proximanova-semibold text-[#7D7D7D]">
-              Resend OTP in {String(Math.floor(resendCountdown / 60)).padStart(2, "0")}:
-              {String(resendCountdown % 60).padStart(2, "0")}
+              {t("user.setup.resendOtpIn", {
+                minutes: String(Math.floor(resendCountdown / 60)).padStart(2, "0"),
+                seconds: String(resendCountdown % 60).padStart(2, "0"),
+              })}
             </Text>
           ) : (
             <TouchableOpacity
@@ -288,7 +290,7 @@ export default function Step5({
               disabled={isSendingOtp || isVerifyingOtp}
             >
               <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                {isSendingOtp ? "Sending OTP..." : "Resend OTP"}
+                {isSendingOtp ? t("user.setup.sendingOtp") : t("user.setup.resendOtp")}
               </Text>
             </TouchableOpacity>
           )}
@@ -296,7 +298,7 @@ export default function Step5({
 
         {otpSent && (
           <View className="mt-4">
-            <Text className="text-sm mb-2 text-[#7D7D7D]">OTP input</Text>
+            <Text className="text-sm mb-2 text-[#7D7D7D]">{t("user.setup.otpInput")}</Text>
             <OTPInput otp={otp} setOtp={setOtp} />
           </View>
         )}
@@ -305,7 +307,7 @@ export default function Step5({
       {/* Button fixed at bottom */}
       <View className="pb-10 pt-4 bg-transparent">
         <PrimaryButton
-          title="Next"
+          title={t("user.setup.next")}
           className="w-full"
           onPress={onComplete}
           loading={isLoading}

@@ -7,8 +7,10 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StatusBar, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 const Complete = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { setProfileComplete } = useProfileStore();
   const insets = useSafeAreaInsets();
@@ -49,8 +51,8 @@ const Complete = () => {
           />
 
           <TitleHeader
-            title="Your Hirru Profile is Ready!"
-            subtitle="Start managing shifts, applying for jobs, and tracking your work, all in one place. Let's get to work!"
+            title={t("user.setup.profileReadyTitle")}
+            subtitle={t("user.setup.profileReadySubtitle")}
           />
         </View>
 
@@ -58,7 +60,7 @@ const Complete = () => {
           <PrimaryButton
             onPress={handleComplete}
             className="w-full"
-            title="Go to Profile"
+            title={t("user.setup.goToProfile")}
             loading={isSubmitting}
             disabled={isSubmitting}
           />
