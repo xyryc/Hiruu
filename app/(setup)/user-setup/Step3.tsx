@@ -4,7 +4,7 @@ import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompan
 import { useProfileStore } from "@/stores/profileStore";
 import { Company } from "@/types";
 import { useRouter } from "expo-router";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import * as Progress from "react-native-progress";
@@ -20,6 +20,7 @@ export default function Step3({
   onComplete,
   handleBack,
 }: any) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
@@ -74,8 +75,8 @@ export default function Step3({
     >
       <ScreenHeader
         onPressBack={handleBack}
-        title="Work Experience"
-        buttonTitle="Skip"
+        title={t("user.setup.workExperience")}
+        buttonTitle={t("user.setup.skip")}
         className="mt-3"
         onPress={handleSkip}
       />
@@ -84,7 +85,7 @@ export default function Step3({
       <View className="mt-7">
         <View className="flex-row items-center justify-between mb-6">
           <Text className="text-sm font-proximanova-semibold">
-            Your Progress: {currentStep * 20}%
+            {t("user.setup.yourProgress", { percent: currentStep * 20 })}
           </Text>
 
           <Text className="text-sm font-proximanova-semibold">
@@ -116,7 +117,7 @@ export default function Step3({
         {/* company  */}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Company/Employer
+            {t("user.setup.companyEmployer")}
           </Text>
 
           <MultiSelectCompanyDropdown
@@ -131,7 +132,7 @@ export default function Step3({
       {/* Button fixed at bottom */}
       <View className="pb-10 pt-4 bg-transparent">
         <PrimaryButton
-          title="Next"
+          title={t("user.setup.next")}
           className="w-full"
           onPress={handleNext}
           loading={isLoading}

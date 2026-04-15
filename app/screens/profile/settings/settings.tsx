@@ -21,7 +21,6 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Settings = () => {
-  const delImg = require("@/assets/images/trash.svg");
   const logOutImg = require("@/assets/images/Logout.svg");
   const [isModal, setIsModal] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
@@ -41,16 +40,6 @@ const Settings = () => {
   const isDark = colorScheme === "dark";
   // language
   const { t } = useTranslation();
-
-  const delData = {
-    title: t("user.profile.deleteAccountTitle"),
-    subtitle: t("user.profile.deleteAccountSubtitle"),
-    img: delImg,
-    color: "#F34F4F26",
-    border: "#F34F4F",
-    buttonName: t("user.profile.deleteAction"),
-    buttonColor: "#F34F4F",
-  };
 
   const logOutData = {
     title: t("user.profile.logoutTitle"),
@@ -87,10 +76,7 @@ const Settings = () => {
   );
 
   const handleClick = (e: string) => {
-    if (e === "delete") {
-      setData(delData);
-      setIsModal(true);
-    } else if (e === "logout") {
+    if (e === "logout") {
       setData(logOutData);
       setIsModal(true);
     }
@@ -250,7 +236,9 @@ const Settings = () => {
           }
         />
 
-        <TouchableOpacity onPress={() => handleClick("delete")}>
+        <TouchableOpacity
+          onPress={() => router.push("/screens/profile/settings/delete-account")}
+        >
           <Text className="text-[#F34F4F] font-proximanova-bold mt-5">
             {t("user.profile.deleteAccount")}
           </Text>

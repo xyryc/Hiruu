@@ -5,8 +5,8 @@ import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useRouter } from "expo-router";
 import { t } from "i18next";
-import { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PhoneInput, {
   getCountryByCca2,
   ICountry,
@@ -17,6 +17,7 @@ import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
 import { toast } from "sonner-native";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
+const OTP_RESEND_SECONDS = 60;
 
 export default function Step5({
   progress,
@@ -34,9 +35,13 @@ export default function Step5({
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [onboardingSent, setOnboardingSent] = useState(false);
+  const autoVerifyInFlightRef = useRef(false);
+  const lastAutoSubmittedOtpRef = useRef("");
   const fallbackCountry = useMemo(() => getCountryByCca2("US"), []);
 
 
@@ -76,6 +81,14 @@ export default function Step5({
     setCountryCode(getDialCode(fallbackCountry) || "");
   }, [fallbackCountry]);
 
+  useEffect(() => {
+    if (!otpSent || resendCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpSent, resendCountdown]);
+
   const getPhonePayload = () => {
     const trimmed = phoneNumber.trim();
     if (!trimmed || !countryCode) {
@@ -99,29 +112,43 @@ export default function Step5({
     }
 
     try {
-      setIsVerifyingOtp(true);
+      setIsSendingOtp(true);
       await addContact(parsed);
       setOtpSent(true);
+      setOtp(["", "", "", "", "", ""]);
+      setResendCountdown(OTP_RESEND_SECONDS);
       toast.success("OTP sent successfully!");
     } catch (error: any) {
       toast.error(error.message || t("common.error"));
     } finally {
-      setIsVerifyingOtp(false);
+      setIsSendingOtp(false);
     }
   };
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = async (options?: { auto?: boolean }) => {
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
-      toast.error("Please enter the 6-digit OTP.");
+      if (!options?.auto) {
+        toast.error("Please enter the 6-digit OTP.");
+      }
       return;
     }
 
     try {
+      const isAuto = Boolean(options?.auto);
+      if (isAuto) {
+        if (autoVerifyInFlightRef.current) return;
+        if (lastAutoSubmittedOtpRef.current === otpCode) return;
+        autoVerifyInFlightRef.current = true;
+        lastAutoSubmittedOtpRef.current = otpCode;
+      }
+
       setIsVerifyingOtp(true);
       const parsed = getPhonePayload();
       if (!parsed.phoneNumber || !parsed.countryCode) {
-        toast.error("Please enter a valid phone number.");
+        if (!options?.auto) {
+          toast.error("Please enter a valid phone number.");
+        }
         return;
       }
 
@@ -136,12 +163,28 @@ export default function Step5({
         setOnboardingSent(true);
       }
       toast.success("Phone number verified!");
+      onComplete();
     } catch (error: any) {
-      toast.error(error.message || t("common.error"));
+      if (!options?.auto) {
+        toast.error(error.message || t("common.error"));
+      }
     } finally {
+      if (options?.auto) {
+        autoVerifyInFlightRef.current = false;
+      }
       setIsVerifyingOtp(false);
     }
   };
+
+  useEffect(() => {
+    const otpCode = otp.join("");
+    if (otpCode.length !== 6) {
+      lastAutoSubmittedOtpRef.current = "";
+      return;
+    }
+    if (!otpSent || isOtpVerified || isVerifyingOtp || isSendingOtp) return;
+    handleVerifyOtp({ auto: true });
+  }, [otp, otpSent, isOtpVerified, isVerifyingOtp, isSendingOtp]);
 
   return (
     <AnimatedView
@@ -224,28 +267,37 @@ export default function Step5({
           )}
         </View>
 
-        <View className="mt-4">
-          <PrimaryButton
-            title={otpSent ? "Resend OTP" : "Send OTP"}
-            onPress={handleSendOtp}
-            loading={isVerifyingOtp}
-            className="w-full"
-          />
+        <View className="mt-4 items-center">
+          {!otpSent ? (
+            <TouchableOpacity
+              onPress={handleSendOtp}
+              disabled={isSendingOtp || isVerifyingOtp}
+            >
+              <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                {isSendingOtp ? "Sending OTP..." : "Send OTP"}
+              </Text>
+            </TouchableOpacity>
+          ) : resendCountdown > 0 ? (
+            <Text className="text-sm font-proximanova-semibold text-[#7D7D7D]">
+              Resend OTP in {String(Math.floor(resendCountdown / 60)).padStart(2, "0")}:
+              {String(resendCountdown % 60).padStart(2, "0")}
+            </Text>
+          ) : (
+            <TouchableOpacity
+              onPress={handleSendOtp}
+              disabled={isSendingOtp || isVerifyingOtp}
+            >
+              <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                {isSendingOtp ? "Sending OTP..." : "Resend OTP"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {otpSent && (
           <View className="mt-4">
             <Text className="text-sm mb-2 text-[#7D7D7D]">OTP input</Text>
             <OTPInput otp={otp} setOtp={setOtp} />
-
-            <View className="mt-4">
-              <PrimaryButton
-                title={isOtpVerified ? "Verified" : "Verify OTP"}
-                onPress={handleVerifyOtp}
-                loading={isVerifyingOtp}
-                className="w-full"
-              />
-            </View>
           </View>
         )}
       </ScrollView>

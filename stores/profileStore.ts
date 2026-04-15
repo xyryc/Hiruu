@@ -111,6 +111,7 @@ interface ProfileState {
 
   updateProfile: (profileData: UpdateProfileData) => Promise<any>;
   updatePreferences: (payload: UpdatePreferencesData) => Promise<any>;
+  deleteMe: (password: string) => Promise<any>;
   startCvBuild: (payload: BuildCvPayload) => Promise<CvBuildResult | null>;
   pollCvBuildStatus: () => Promise<CvBuildResult | null>;
   cancelCvBuild: () => Promise<CvBuildResult | null>;
@@ -212,6 +213,59 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       return response;
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Failed to update preferences");
+      set({ isLoading: false, error: finalError });
+      throw finalError;
+    }
+  },
+
+  deleteMe: async (password: string) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const accessToken = useAuthStore.getState().accessToken;
+      console.log("[ProfileStore] deleteMe request", {
+        url: "/auth/delete-me",
+        hasAccessToken: Boolean(accessToken),
+        passwordLength: password?.length ?? 0,
+      });
+
+      const response = await axiosInstance.delete("/auth/delete-me", {
+        data: { password },
+        headers: accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : undefined,
+      });
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "auth_invalid_credentials");
+      }
+
+      console.log("[ProfileStore] deleteMe success", {
+        statusCode: result?.statusCode,
+        message: result?.message,
+      });
+      set({ isLoading: false });
+      return result;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const apiMessage = error?.response?.data?.message;
+
+      console.log("[ProfileStore] deleteMe error", {
+        status,
+        apiMessage,
+        url: error?.config?.url,
+        method: error?.config?.method,
+      });
+
+      const messageKey =
+        status === 401 || apiMessage === "unauthorized"
+          ? "auth_invalid_credentials"
+          : getApiMessageKey(error, "UNKNOWN_ERROR");
+
+      const finalError = new Error(messageKey);
       set({ isLoading: false, error: finalError });
       throw finalError;
     }

@@ -1,7 +1,7 @@
 import { FontAwesome6 } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Platform, Text, TouchableOpacity, View } from "react-native";
 
 const DatePicker = ({
   className,
@@ -44,13 +44,49 @@ const DatePicker = ({
         <FontAwesome6 name="calendar-days" size={20} color="#4FB2F3" />
       </TouchableOpacity>
 
-      {show && (
+      {show && Platform.OS === "android" && (
         <DateTimePicker
           value={date}
           mode="date"
           display="default"
           onChange={handleChange}
         />
+      )}
+
+      {Platform.OS === "ios" && (
+        <Modal visible={show} transparent animationType="slide" onRequestClose={() => setShow(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setShow(false)}
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                paddingHorizontal: 16,
+                paddingTop: 12,
+                paddingBottom: 24,
+              }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text style={{ color: "#6B7280", fontSize: 16 }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text style={{ color: "#4FB2F3", fontSize: 16, fontWeight: "600" }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="spinner"
+                onChange={handleChange}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
       )}
     </View>
   );

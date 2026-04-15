@@ -291,7 +291,7 @@ const JobCard = ({
           <Image
             source={require("@/assets/images/dotted-line.svg")}
             style={{ height: 1, width: "100%", marginVertical: 10 }}
-            contentFit="contain"
+            contentFit="cover"
           />
 
           <View className="flex-row items-center justify-between">

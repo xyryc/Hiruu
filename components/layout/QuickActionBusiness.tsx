@@ -10,6 +10,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import ActionIconCard from "../ui/cards/ActionIconCard";
 
 type QuickActionBusinessProps = {
@@ -17,6 +18,7 @@ type QuickActionBusinessProps = {
 };
 
 const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const myEmployments = useBusinessStore((state) => state.myEmployments);
@@ -97,13 +99,13 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
   return (
     <View className={`${className} px-4`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
-        Quick Actions
+        {t("user.jobs.quickActions.title")}
       </Text>
 
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
         <ActionIconCard
           icon={<Ionicons name="calendar" size={24} color="#4FB2F3" />}
-          title="Leave"
+          title={t("user.jobs.quickActions.leave")}
           count={counts.leave_request}
           onPress={() => router.push("/screens/home/leave/request")}
         />
@@ -116,13 +118,13 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
               color="#4FB2F3"
             />
           }
-          title="Shift Request"
+          title={t("user.jobs.quickActions.shiftRequest")}
           onPress={() => router.push("/screens/home/team/shift-requests")}
         />
 
         <ActionIconCard
           icon={<MaterialIcons name="timer" size={24} color="#4FB2F3" />}
-          title="OT Request"
+          title={t("user.jobs.quickActions.otRequest")}
           count={counts.overtime_request}
           onPress={() => router.push("/screens/home/shift/overtime-history")}
         />
@@ -130,7 +132,7 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
         {canManageOnboarding ? (
           <ActionIconCard
             icon={<FontAwesome name="users" size={20} color="#4FB2F3" />}
-            title="Team Panel"
+            title={t("user.jobs.quickActions.teamPanel")}
             onPress={() => router.push("/screens/home/team/manage-team")}
           />
         ) : null}
@@ -143,7 +145,7 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
               color="#4FB2F3"
             />
           }
-          title="Week Schedule"
+          title={t("user.jobs.quickActions.weekSchedule")}
           onPress={() => router.push("/screens/schedule/business/weekly-schedule")}
         />
       </ScrollView>

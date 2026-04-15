@@ -4,7 +4,7 @@ import DateTimePicker, {
 import { SimpleLineIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Platform, Text, TouchableOpacity, View } from "react-native";
 
 // ToggleButton Component
 type ToggleButtonProps = {
@@ -210,6 +210,7 @@ const WeeklySchedule = ({
     day: string;
     timeType: "startTime" | "endTime";
   } | null>(null);
+  const [iosPickerTempDate, setIosPickerTempDate] = useState<Date | null>(null);
 
   useEffect(() => {
     setSchedule(initialSchedule);
@@ -253,8 +254,14 @@ const WeeklySchedule = ({
   };
 
   const activePickerDate = pickerState
-    ? parseDisplayTimeToDate(schedule[pickerState.day]?.[pickerState.timeType])
+    ? iosPickerTempDate ||
+      parseDisplayTimeToDate(schedule[pickerState.day]?.[pickerState.timeType])
     : new Date();
+
+  const openPicker = (day: string, timeType: "startTime" | "endTime") => {
+    setPickerState({ day, timeType });
+    setIosPickerTempDate(parseDisplayTimeToDate(schedule[day]?.[timeType]));
+  };
 
   const handlePickerChange = (
     event: DateTimePickerEvent,
@@ -280,11 +287,7 @@ const WeeklySchedule = ({
     }
 
     if (selectedDate) {
-      updateTime(
-        pickerState.day,
-        pickerState.timeType,
-        formatDateToDisplayTime(selectedDate)
-      );
+      setIosPickerTempDate(selectedDate);
     }
   };
 
@@ -319,14 +322,14 @@ const WeeklySchedule = ({
 
             <TimePicker
               time={dayData.startTime}
-              onPress={() => setPickerState({ day, timeType: "startTime" })}
+              onPress={() => openPicker(day, "startTime")}
             />
             <Text className="text-xs text-primary dark:text-dark-primary">
               {t("user.profile.weeklySchedule.to")}
             </Text>
             <TimePicker
               time={dayData.endTime}
-              onPress={() => setPickerState({ day, timeType: "endTime" })}
+              onPress={() => openPicker(day, "endTime")}
             />
           </View>
         ) : (
@@ -361,13 +364,96 @@ const WeeklySchedule = ({
 
       {Object.keys(schedule).map((day) => renderDayRow(day))}
 
-      {pickerState ? (
+      {pickerState && Platform.OS === "android" ? (
         <DateTimePicker
           value={activePickerDate}
           mode="time"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          display="default"
           onChange={handlePickerChange}
         />
+      ) : null}
+
+      {pickerState && Platform.OS === "ios" ? (
+        <Modal
+          visible
+          transparent
+          animationType="slide"
+          onRequestClose={() => {
+            setPickerState(null);
+            setIosPickerTempDate(null);
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {
+              setPickerState(null);
+              setIosPickerTempDate(null);
+            }}
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.35)",
+              justifyContent: "flex-end",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                paddingHorizontal: 16,
+                paddingTop: 12,
+                paddingBottom: 24,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => {
+                    setPickerState(null);
+                    setIosPickerTempDate(null);
+                  }}
+                >
+                  <Text style={{ color: "#6B7280", fontSize: 16 }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (pickerState) {
+                      const nextDate =
+                        iosPickerTempDate ||
+                        parseDisplayTimeToDate(
+                          schedule[pickerState.day]?.[pickerState.timeType]
+                        );
+                      updateTime(
+                        pickerState.day,
+                        pickerState.timeType,
+                        formatDateToDisplayTime(nextDate)
+                      );
+                    }
+                    setPickerState(null);
+                    setIosPickerTempDate(null);
+                  }}
+                >
+                  <Text
+                    style={{ color: "#4FB2F3", fontSize: 16, fontWeight: "600" }}
+                  >
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={activePickerDate}
+                mode="time"
+                display="spinner"
+                onChange={handlePickerChange}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
       ) : null}
     </View>
   );

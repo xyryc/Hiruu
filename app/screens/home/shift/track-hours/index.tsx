@@ -122,6 +122,7 @@ type TodaysShiftLog = {
 
 type IncompleteAttendanceItem = {
   id: string;
+  employmentId?: string;
   shiftAssignmentId?: string;
   status?: string;
   shiftAssignment?: {
@@ -179,9 +180,6 @@ const toTaskCardStatus = (status?: string) => {
 };
 
 const TrackHours = () => {
-  const handleLogin = () => {
-    router.push("./correction-request");
-  };
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isModal, setIsModal] = useState(false);
@@ -494,7 +492,16 @@ const TrackHours = () => {
                     totalMembers={assignedCount}
                     address={city}
                     city={city}
-                    onLoginPress={handleLogin}
+                    onLoginPress={() =>
+                      router.push({
+                        pathname: "/screens/home/shift/track-hours/correction-request",
+                        params: {
+                          attendanceId: item?.id,
+                          employmentId: item?.employmentId,
+                          shiftAssignmentId: item?.shiftAssignmentId,
+                        },
+                      })
+                    }
                     status={toTaskCardStatus(item?.status)}
                     requestLog={true}
                   />

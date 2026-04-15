@@ -3,6 +3,32 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { INTERESTS, Interest } from "@/constants/interests";
 
+const INTEREST_BG_COLOR_MAP: Record<string, string> = {
+  "bg-orange-100": "#FFEDD5",
+  "bg-blue-100": "#DBEAFE",
+  "bg-yellow-100": "#FEF9C3",
+  "bg-green-100": "#DCFCE7",
+  "bg-gray-100": "#F3F4F6",
+  "bg-gray-200": "#E5E7EB",
+  "bg-green-200": "#BBF7D0",
+  "bg-yellow-200": "#FEF08A",
+  "bg-pink-100": "#FCE7F3",
+  "bg-red-100": "#FEE2E2",
+  "bg-orange-200": "#FED7AA",
+  "bg-green-300": "#86EFAC",
+  "bg-blue-200": "#BFDBFE",
+  "bg-cyan-100": "#CFFAFE",
+  "bg-gray-300": "#D1D5DB",
+  "bg-pink-200": "#FBCFE8",
+  "bg-gray-400": "#9CA3AF",
+  "bg-yellow-300": "#FDE047",
+  "bg-orange-300": "#FDBA74",
+  "bg-purple-100": "#F3E8FF",
+  "bg-gray-500": "#6B7280",
+  "bg-green-400": "#4ADE80",
+  "bg-pink-300": "#F9A8D4",
+};
+
 type InterestGridProps = {
   selectedInterests: string[];
   onToggle?: (interestId: string) => void;
@@ -44,8 +70,14 @@ const InterestGrid: React.FC<InterestGridProps> = ({
               <View className="items-center">
                 <View className="relative">
                   <View
-                    className={`w-16 h-16 rounded-full items-center justify-center
-                        ${selected && !readonly ? `border border-primary` : ""} ${interest.color}`}
+                    className="w-16 h-16 rounded-full items-center justify-center"
+                    style={{
+                      backgroundColor:
+                        INTEREST_BG_COLOR_MAP[interest.color] || "#F3F4F6",
+                      borderWidth: selected && !readonly ? 1 : 0,
+                      borderColor: selected && !readonly ? "#111111" : "transparent",
+                      borderRadius: 999,
+                    }}
                   >
                     <Text className="text-2xl">{interest.icon}</Text>
                   </View>

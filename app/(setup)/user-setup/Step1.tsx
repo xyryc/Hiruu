@@ -5,7 +5,7 @@ import DateOfBirthInput from "@/components/ui/inputs/DateOfBirthInput";
 import GenderSelection from "@/components/ui/inputs/GenderSelection";
 import { useProfileStore } from "@/stores/profileStore";
 import { GenderOption, SocialData } from "@/types";
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import * as Progress from "react-native-progress";
@@ -34,6 +34,7 @@ export default function Step1({
   handleBack,
 }: any) {
   const { updateProfile, isLoading } = useProfileStore();
+  const { t: translate } = useTranslation();
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -74,7 +75,7 @@ export default function Step1({
       setIsSearchingLocation(false);
       if (!hasShownGeoapifyMissingKey.current) {
         hasShownGeoapifyMissingKey.current = true;
-        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+        toast.error(translate("user.setup.businessSetup.geoapifyKeyMissing"));
       }
       return;
     }
@@ -147,7 +148,7 @@ export default function Step1({
       } catch (error: any) {
         if (error?.name !== "AbortError") {
           setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
-          toast.error("Failed to fetch location suggestions.");
+          toast.error(translate("user.setup.businessSetup.failedToFetchLocationSuggestions"));
         }
       } finally {
         setIsSearchingLocation(false);
@@ -163,30 +164,30 @@ export default function Step1({
   // Validation with i18n
   const validateStep1 = () => {
     if (!fullName.trim()) {
-      Alert.alert(t("validation.validationError"), t("validation.enterName"));
+      Alert.alert(translate("validation.validationError"), translate("validation.enterName"));
       return false;
     }
 
     if (!selectedLocationOption) {
       Alert.alert(
-        t("validation.validationError"),
-        t("validation.selectLocation")
+        translate("validation.validationError"),
+        translate("validation.selectLocation")
       );
       return false;
     }
 
     if (!dateOfBirth) {
       Alert.alert(
-        t("validation.validationError"),
-        t("validation.selectDateOfBirth"),
+        translate("validation.validationError"),
+        translate("validation.selectDateOfBirth"),
       );
       return false;
     }
 
     if (!selectedGender) {
       Alert.alert(
-        t("validation.validationError"),
-        t("validation.selectGender"),
+        translate("validation.validationError"),
+        translate("validation.selectGender"),
       );
       return false;
     }
@@ -231,7 +232,7 @@ export default function Step1({
       // console.log("Profile updated:", result);
       onComplete();
     } catch (error: any) {
-      toast.error(error.message || t("user.setup.profileUpdateError"));
+      toast.error(error.message || translate("user.setup.profileUpdateError"));
       console.error("Profile update error:", error);
     }
   };
@@ -249,7 +250,7 @@ export default function Step1({
     >
       <ScreenHeader
         onPressBack={handleBack}
-        title="Personal Details"
+        title={translate("user.setup.personalDetails")}
         className="mt-3"
       />
 
@@ -257,7 +258,7 @@ export default function Step1({
       <View className="my-7">
         <View className="flex-row items-center justify-between mb-6">
           <Text className="text-sm font-proximanova-semibold">
-            Your Progress: {currentStep * 20}%
+            {translate("user.setup.yourProgress", { percent: currentStep * 20 })}
           </Text>
 
           <Text className="text-sm font-proximanova-semibold">
@@ -289,10 +290,10 @@ export default function Step1({
       >
         {/* name */}
         <View>
-          <Text className="text-sm font-proximanova-semibold mb-2.5">Name</Text>
+          <Text className="text-sm font-proximanova-semibold mb-2.5">{translate("user.setup.name")}</Text>
 
           <TextInput
-            placeholder="Enter your name"
+            placeholder={translate("user.setup.enterYourName")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -304,7 +305,7 @@ export default function Step1({
         {/* location*/}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Location
+            {translate("user.setup.location")}
           </Text>
 
           <TextInput
@@ -321,7 +322,7 @@ export default function Step1({
                 setLocation(null);
               }
             }}
-            placeholder={t("user.setup.selectLocation")}
+            placeholder={translate("user.setup.selectLocation")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
             autoCapitalize="none"
             editable={!isLoading}
@@ -353,7 +354,7 @@ export default function Step1({
           ) : null}
           {isSearchingLocation ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              Searching locations...
+              {translate("user.setup.searchingLocations")}
             </Text>
           ) : null}
           {isLocationFocused &&
@@ -361,7 +362,7 @@ export default function Step1({
             !isSearchingLocation &&
             locationOptions.length === 0 ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              No locations found.
+              {translate("user.setup.noLocationsFound")}
             </Text>
           ) : null}
         </View>
@@ -369,7 +370,7 @@ export default function Step1({
         {/* date of birth */}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Date of Birth
+            {translate("user.setup.dateOfBirth")}
           </Text>
 
           <DateOfBirthInput value={dateOfBirth} onDateChange={setDateOfBirth} />
@@ -378,7 +379,7 @@ export default function Step1({
         {/* gender */}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Gender
+            {translate("user.setup.gender")}
           </Text>
 
           <GenderSelection
@@ -390,7 +391,7 @@ export default function Step1({
         {/* socials */}
         <View className="mt-7">
           <Text className="text-sm font-proximanova-semibold mb-2.5">
-            Connect Your Socials
+            {translate("user.setup.connectYourSocials")}
           </Text>
 
           <ConnectSocials
@@ -403,7 +404,7 @@ export default function Step1({
       {/* Button fixed at bottom */}
       <View className="pb-10 pt-4 bg-transparent">
         <PrimaryButton
-          title="Next"
+          title={translate("user.setup.next")}
           className="w-full"
           onPress={handleNext}
           loading={isLoading}

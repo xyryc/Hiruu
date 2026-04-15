@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { toast } from "sonner-native";
+import { useTranslation } from "react-i18next";
 import PerformerCard from "../ui/cards/PerformerCard";
 
 type LeaderboardTopItem = {
@@ -24,6 +25,7 @@ type LeaderboardTopItem = {
 };
 
 const TopPerformer = ({ className }: any) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const selectedBusinessId = selectedBusinesses?.[0];
@@ -69,14 +71,14 @@ const TopPerformer = ({ className }: any) => {
     <View className={`${className}`}>
       <View className="flex-row items-center justify-between px-5">
         <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-          Top Performer
+          {t("user.profile.leaderboard.topPerformer")}
         </Text>
 
         <Text
           onPress={() => router.push("/screens/home/leaderboard")}
           className="text-sm font-proximanova-semibold text-[#4FB2F3] p-1"
         >
-          See All
+          {t("common.seeAll")}
         </Text>
       </View>
 

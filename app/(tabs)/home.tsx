@@ -182,8 +182,8 @@ const UserHome = () => {
 
         <JobBoardCta
           className='mt-7'
-          title="Job Board"
-          subtitle="Need more hands? Post  & receiving applicants!"
+          title={t("user.jobs.jobBoard.title")}
+          subtitle={t("user.jobs.jobBoard.subtitle")}
           route="/(tabs)/business-jobs"
         />
 
@@ -202,8 +202,8 @@ const UserHome = () => {
 
               {/* find new job */}
               <JobBoardCta className="mt-7"
-                title="Find New Job"
-                subtitle="Explore All Job Listings"
+                title={t("user.jobs.jobBoard.findNewJob")}
+                subtitle={t("user.jobs.jobBoard.exploreAllJobListings")}
                 route="/(tabs)/user-jobs"
               />
             </>

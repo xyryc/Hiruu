@@ -3,6 +3,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import SimpleStatusBadge from "../badges/SimpleStatusBadge";
 
 const StatCardSecondary = ({
@@ -11,6 +12,7 @@ const StatCardSecondary = ({
   point,
   averageRating = 4.9,
 }: StatCardSecondaryProps) => {
+  const { t } = useTranslation();
   const pointValue = (() => {
     if (typeof point === "number" && Number.isFinite(point)) return point;
     if (typeof point === "string") {
@@ -28,14 +30,14 @@ const StatCardSecondary = ({
     <View className="flex-row justify-between border border-[#EEEEEE] rounded-xl overflow-hidden">
       <View className="px-4 py-5">
         <Text className="text-sm font-proximanova-regular text-secondary">
-          {isUserMode ? "Performance Status" : "Total New Ratings This Week"}
+          {isUserMode ? t("user.profile.workInsights.performanceStatus") : t("user.jobs.workInsights.totalNewRatingsThisWeek")}
         </Text>
 
         <View className="flex-row gap-2">
           <Text
             className={`font-proximanova-bold text-2xl ${isUserMode ? "text-[#4FB2F3]" : "text-[#4FB2F3]"}`}
           >
-            {isUserMode ? point : `${pointValue} New Ratings`}
+            {isUserMode ? point : `${pointValue} ${t("user.jobs.workInsights.newRatings")}`}
           </Text>
 
           {isUserMode && showTrendIcon ? (
@@ -53,21 +55,21 @@ const StatCardSecondary = ({
         <View className="justify-end">
           <SimpleStatusBadge
             className="absolute top-4 right-24 -rotate-12"
-            title="On Time"
+            title={t("user.profile.workInsights.onTime")}
             textColor="#6998EF"
             bgColor="#E9F0FD"
           />
 
           <SimpleStatusBadge
             className="absolute top-2 right-2 rotate-6"
-            title="Reliable"
+            title={t("user.profile.workInsights.reliable")}
             textColor="#3EBF5A"
             bgColor="#3EBF5A1F"
           />
 
           <SimpleStatusBadge
             className="absolute bottom-2 right-2.5"
-            title="5-Star Feedback"
+            title={t("user.profile.workInsights.fiveStarFeedback")}
             textColor="#EAC324"
             bgColor="#EAC3241F"
           />
@@ -81,7 +83,7 @@ const StatCardSecondary = ({
             </Text>
           </View>
           <Text className="capitalize font-proximanova-semibold text-sm text-center">
-            average
+            {t("common.average")}
           </Text>
         </View>
       )}

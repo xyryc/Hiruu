@@ -23,7 +23,9 @@ export interface LoginData {
 
 export interface OAuthData {
   provider: "google" | "apple";
-  oauthId: string;
+  oAuthToken: string;
+  fcmToken?: string;
+  timeZone?: string;
 }
 
 export interface VerifyAccountData {

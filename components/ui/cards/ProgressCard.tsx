@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import { useTranslation } from "react-i18next";
 import PrimaryButton from "../buttons/PrimaryButton";
 
 type ProgressCardProps = {
@@ -11,6 +12,7 @@ type ProgressCardProps = {
 };
 
 const ProgressCard = ({ onboarding }: ProgressCardProps) => {
+  const { t } = useTranslation();
   const totalSteps = 5;
   const safeStep =
     typeof onboarding === "number" && onboarding >= 0 ? onboarding : 0;
@@ -36,7 +38,7 @@ const ProgressCard = ({ onboarding }: ProgressCardProps) => {
           style={{ backgroundColor: tintColor }}
           className={`font-proximanova-semibold text-[10px] text-center text-white py-1.5 px-2.5 rounded-[20px] mb-2`}
         >
-          {progress}% Ready
+          {t("common.percentReady", { percent: progress })}
         </Text>
 
         {/* Progress Arc (Semi-Circle) */}
@@ -75,7 +77,7 @@ const ProgressCard = ({ onboarding }: ProgressCardProps) => {
 
         {/* Bottom Label */}
         <Text className="absolute bottom-0 right-10 text-[10px] font-proximanova-semibold text-center ">
-          Profile
+          {t("common.profile")}
         </Text>
       </View>
 
@@ -93,18 +95,18 @@ const ProgressCard = ({ onboarding }: ProgressCardProps) => {
       {/* right */}
       <View className="justify-center">
         <Text className="font-proximanova-semibold mb-1">
-          Your Profile is {progress}% Ready
+          {t("common.profileReady", { percent: progress })}
         </Text>
         <Text className="font-proximanova-regular text-secondary text-sm">
-          Complete Your Profile To Get
+          {t("common.completeYourProfile")}
         </Text>
         <Text className="font-proximanova-semibold text-[#4FB2F3] text-sm">
-          5 Tokens
+          {t("common.fiveTokens")}
         </Text>
 
         <PrimaryButton
           className="mt-2.5 w-full"
-          title="Complete Profile"
+          title={t("common.completeProfile")}
           iconSize={18}
           onPress={() => router.push("/(setup)/user-setup/progress")}
         />

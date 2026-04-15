@@ -2,12 +2,20 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import TeamShiftRequestCard from "@/components/ui/cards/TeamShiftRequestCard";
 import RequestLogModal from "@/components/ui/modals/RequestLogModal";
 import { useBusinessStore } from "@/stores/businessStore";
+import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -30,6 +38,13 @@ const ShiftRequest = () => {
     getBusinessProfile,
     updateMyBusinessProfile,
   } = useBusinessStore();
+  const {
+    getBusinessShiftRequests,
+    approveBusinessShiftRequest,
+    rejectBusinessShiftRequest,
+    businessShiftRequests,
+    businessShiftRequestsLoading,
+  } = useShiftStore();
   const selectedBusinessId = selectedBusinesses?.[0];
 
   const loadBusinessAttendanceMode = useCallback(async () => {
@@ -54,6 +69,41 @@ const ShiftRequest = () => {
     if (!isModalSettings) return;
     loadBusinessAttendanceMode();
   }, [isModalSettings, loadBusinessAttendanceMode]);
+
+  const loadShiftRequests = useCallback(async () => {
+    if (!selectedBusinessId) return;
+    try {
+      await getBusinessShiftRequests(selectedBusinessId, { page: 1, limit: 50 });
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.message || "Failed to load shift requests"
+        )
+      );
+    }
+  }, [getBusinessShiftRequests, selectedBusinessId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadShiftRequests();
+    }, [loadShiftRequests])
+  );
+
+  const pendingRequests = useMemo(
+    () =>
+      (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
+        (item: any) => String(item?.status || "").toLowerCase() === "pending"
+      ),
+    [businessShiftRequests]
+  );
+
+  const requestHistory = useMemo(
+    () =>
+      (Array.isArray(businessShiftRequests) ? businessShiftRequests : []).filter(
+        (item: any) => String(item?.status || "").toLowerCase() !== "pending"
+      ),
+    [businessShiftRequests]
+  );
 
   const handleSaveAttendanceMode = async (mode: AttendanceMode) => {
     if (!selectedBusinessId) {
@@ -148,22 +198,84 @@ const ShiftRequest = () => {
         {/* pending screen */}
         {selectedTab === "Pending Requests" && (
           <View>
-            <TeamShiftRequestCard status="Missed Clock-out" title="Pending" />
-            <TeamShiftRequestCard status="Late Clock-in" />
-            <TeamShiftRequestCard status="Missed Clock-out" />
-            <TeamShiftRequestCard status="Network Issues" />
-            <TeamShiftRequestCard status="Missed Clock-out" title="Pending" />
+            {businessShiftRequestsLoading ? (
+              <View className="py-6 items-center">
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              </View>
+            ) : null}
+            {pendingRequests.map((item: any, index: number) => (
+              <TeamShiftRequestCard
+                key={item?.id || `pending-${index}`}
+                title={index === 0 ? "Pending" : undefined}
+                request={item}
+                showActions
+                hideAddRequest
+                onApprove={async () => {
+                  if (!selectedBusinessId || !item?.id) {
+                    toast.error("Unable to approve this request");
+                    return;
+                  }
+                  try {
+                    await approveBusinessShiftRequest(selectedBusinessId, item.id);
+                    toast.success(translateApiMessage("shift_request_approved"));
+                    loadShiftRequests();
+                  } catch (error: any) {
+                    toast.error(
+                      translateApiMessage(
+                        error?.message || "Failed to approve shift request"
+                      )
+                    );
+                  }
+                }}
+                onReject={async () => {
+                  if (!selectedBusinessId || !item?.id) {
+                    toast.error("Unable to reject this request");
+                    return;
+                  }
+                  try {
+                    await rejectBusinessShiftRequest(selectedBusinessId, item.id);
+                    toast.success(translateApiMessage("shift_request_declined"));
+                    loadShiftRequests();
+                  } catch (error: any) {
+                    toast.error(
+                      translateApiMessage(
+                        error?.message || "Failed to reject shift request"
+                      )
+                    );
+                  }
+                }}
+              />
+            ))}
+            {!businessShiftRequestsLoading && pendingRequests.length === 0 ? (
+              <Text className="text-center text-sm text-secondary mt-6">
+                No pending requests found.
+              </Text>
+            ) : null}
           </View>
         )}
 
         {/* Request History */}
         {selectedTab === "Request History" && (
           <View>
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
-            <TeamShiftRequestCard isHistory status="Late Clock-in" />
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
-            <TeamShiftRequestCard isHistory status="Network Issues" />
-            <TeamShiftRequestCard isHistory status="Missed Clock-out" />
+            {businessShiftRequestsLoading ? (
+              <View className="py-6 items-center">
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              </View>
+            ) : null}
+            {requestHistory.map((item: any, index: number) => (
+              <TeamShiftRequestCard
+                key={item?.id || `history-${index}`}
+                title={index === 0 ? "History" : undefined}
+                request={item}
+                hideAddRequest
+                footerStatus={item?.status}
+              />
+            ))}
+            {!businessShiftRequestsLoading && requestHistory.length === 0 ? (
+              <Text className="text-center text-sm text-secondary mt-6">
+                No request history found.
+              </Text>
+            ) : null}
           </View>
         )}
       </ScrollView>

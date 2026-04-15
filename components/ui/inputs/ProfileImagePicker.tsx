@@ -5,12 +5,14 @@ import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import React, { useState } from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
   value,
   onImageChange,
   size = 120,
 }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const requestCameraPermission = async () => {
@@ -20,8 +22,8 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
       if (cameraStatus !== "granted") {
         Alert.alert(
-          "Permissions Required",
-          "Please grant camera permission to take a photo."
+          t("user.setup.businessSetup.permissionRequired"),
+          t("user.setup.businessSetup.cameraPermissionMessage")
         );
         return false;
       }
@@ -36,8 +38,8 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
       if (mediaLibraryStatus !== "granted") {
         Alert.alert(
-          "Permissions Required",
-          "Please grant photo library permission to choose an image."
+          t("user.setup.businessSetup.permissionRequired"),
+          t("user.setup.businessSetup.mediaLibraryPermissionMessage")
         );
         return false;
       }
@@ -46,17 +48,17 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
   };
 
   const showImagePicker = () => {
-    Alert.alert("Select Image", "Choose how you want to select an image", [
+    Alert.alert(t("user.setup.businessSetup.chooseOption"), t("common.profileImagePicker.chooseHowToSelect"), [
       {
-        text: "Camera",
+        text: t("user.setup.businessSetup.takePhoto"),
         onPress: openCamera,
       },
       {
-        text: "Photo Library",
+        text: t("user.setup.businessSetup.chooseFromGallery"),
         onPress: openImageLibrary,
       },
       {
-        text: "Cancel",
+        text: t("user.setup.businessSetup.cancel"),
         style: "cancel",
       },
     ]);
@@ -79,7 +81,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
         onImageChange(result.assets[0].uri);
       }
     } catch {
-      Alert.alert("Error", "Failed to open camera");
+      Alert.alert(t("common.error"), t("common.profileImagePicker.failedToOpenCamera"));
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +104,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
         onImageChange(result.assets[0].uri);
       }
     } catch {
-      Alert.alert("Error", "Failed to open image library");
+      Alert.alert(t("common.error"), t("common.profileImagePicker.failedToOpenImageLibrary"));
     } finally {
       setIsLoading(false);
     }
@@ -172,11 +174,11 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
       {/* Upload Text */}
       <Text className="text-sm text-[#212121] mt-3 text-center">
-        {value ? "Tap to change photo" : "Upload profile photo"}
+        {value ? t("common.profileImagePicker.tapToChange") : t("user.setup.businessSetup.uploadProfilePhoto")}
       </Text>
 
       {isLoading && (
-        <Text className="text-xs text-blue-500 mt-1">Processing...</Text>
+        <Text className="text-xs text-blue-500 mt-1">{t("user.profile.processing")}</Text>
       )}
     </View>
   );

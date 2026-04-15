@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React from "react";
 import { Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 type EquippedBadge = {
   id?: string;
@@ -28,6 +29,7 @@ const getBadgeAsset = (tier?: string) => {
 };
 
 const BadgeCard = ({ className, badges = [] }: { className?: string; badges?: EquippedBadge[] }) => {
+  const { t } = useTranslation();
   const equippedBadges = (Array.isArray(badges) ? badges : [])
     .filter((badge) => badge?.isEquipped)
     .sort((a, b) => Number(a?.equippedSlot || 0) - Number(b?.equippedSlot || 0))
@@ -47,7 +49,7 @@ const BadgeCard = ({ className, badges = [] }: { className?: string; badges?: Eq
                 style={{ height: 75, width: 50 }}
               />
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center">
-                {badge?.achievement?.title || "Badge"}
+                {badge?.achievement?.title || t("user.profile.userProfile.badge")}
               </Text>
             </View>
             {index < equippedBadges.length - 1 ? (
@@ -62,7 +64,7 @@ const BadgeCard = ({ className, badges = [] }: { className?: string; badges?: Eq
       ) : (
         <View className="w-full py-6 items-center justify-center">
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            No equipped badges
+            {t("user.profile.userProfile.noEquippedBadges")}
           </Text>
         </View>
       )}

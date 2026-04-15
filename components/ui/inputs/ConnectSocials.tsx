@@ -274,7 +274,7 @@ const ConnectSocials = ({
                   ) : null}
                 </View>
               ) : hideEmpty || !canEdit ? null : (
-                <SmallButton title="Link" onPress={() => startLink(item.id)} />
+                <SmallButton title={t("common.connectSocials.link")} onPress={() => startLink(item.id)} />
               )}
             </View>
 
