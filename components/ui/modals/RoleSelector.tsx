@@ -1,5 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -27,10 +28,11 @@ const RoleSelector = ({
   className,
   roles = [],
   loading = false,
-  placeholder = "Select Role",
+  placeholder,
   onSelectRole,
   selectedRole,
 }: RoleSelectorProps) => {
+  const { t } = useTranslation();
   const [localSelectedRole, setLocalSelectedRole] = useState<RoleItem | null>(
     selectedRole || null
   );
@@ -60,6 +62,7 @@ const RoleSelector = ({
     setIsDropdownOpen(!isDropdownOpen);
     setSearchQuery("");
   };
+  const resolvedPlaceholder = placeholder || t("user.jobs.schedule.selectRole");
 
   return (
     <View className={`${className}`}>
@@ -71,12 +74,12 @@ const RoleSelector = ({
         <Text
           className={`flex-1 font-proximanova-semibold text-sm text-primary dark:text-dark-primary capitalize`}
         >
-          {localSelectedRole ? localSelectedRole.name : placeholder}
+          {localSelectedRole ? localSelectedRole.name : resolvedPlaceholder}
         </Text>
         <View className="flex-row items-center gap-1.5">
           <View className="py-1 px-5 bg-[#11293A] rounded-full">
             <Text className="font-proximanova-semibold text-sm text-[#FFFFFF]">
-              Save
+              {t("user.jobs.schedule.save")}
             </Text>
           </View>
           <Ionicons
@@ -95,7 +98,7 @@ const RoleSelector = ({
             <View className="flex-row items-center border border-[#EEEEEE] rounded-lg px-3 ">
               <Ionicons name="search" size={20} color="#666" className="mr-2" />
               <TextInput
-                placeholder="Search here..."
+                placeholder={t("common.searchHere")}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 className="flex-1 py-3 text-base font-proximanova-regular text-secondary dark:text-dark-secondary"
@@ -143,7 +146,9 @@ const RoleSelector = ({
               ))}
             {!loading && filteredRoles.length === 0 && (
               <View className="p-4 items-center">
-                <Text className="text-base text-gray-600">No roles found</Text>
+                <Text className="text-base text-gray-600">
+                  {t("user.jobs.schedule.noRolesFound")}
+                </Text>
               </View>
             )}
           </ScrollView>

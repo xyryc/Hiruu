@@ -8,6 +8,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Keyboard,
@@ -42,6 +43,7 @@ type PermissionGroup = {
 };
 
 const CreateRole = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -101,7 +103,9 @@ const CreateRole = () => {
           );
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load permissions");
+        toast.error(
+          error?.message || t("user.jobs.schedule.failedToLoadPermissions")
+        );
       } finally {
         if (isMounted) {
           setPermissionsLoading(false);
@@ -113,7 +117,7 @@ const CreateRole = () => {
     return () => {
       isMounted = false;
     };
-  }, [getPermissions]);
+  }, [getPermissions, t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -129,7 +133,7 @@ const CreateRole = () => {
           setRoleOptions(normalized);
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load roles");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoles"));
       } finally {
         if (isMounted) {
           setRolesLoading(false);
@@ -141,7 +145,7 @@ const CreateRole = () => {
     return () => {
       isMounted = false;
     };
-  }, [getRoles]);
+  }, [getRoles, t]);
 
   const filteredGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -191,17 +195,17 @@ const CreateRole = () => {
 
   const handleSaveRole = async () => {
     if (!businessId) {
-      toast.error("Please select a business first.");
+      toast.error(t("user.jobs.schedule.selectBusinessFirst"));
       return;
     }
 
     if (!selectedRole?.id) {
-      toast.error("Please select a predefined role.");
+      toast.error(t("user.jobs.schedule.selectPredefinedRole"));
       return;
     }
 
     if (Object.keys(permissionValues).length === 0) {
-      toast.error("Please select at least one permission.");
+      toast.error(t("user.jobs.schedule.selectAtLeastOnePermission"));
       return;
     }
 
@@ -214,10 +218,10 @@ const CreateRole = () => {
     try {
       setIsSubmitting(true);
       await createBusinessRole(businessId, payload);
-      toast.success("Role created successfully.");
+      toast.success(t("user.jobs.schedule.roleCreatedSuccessfully"));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to create role");
+      toast.error(error?.message || t("user.jobs.schedule.failedToCreateRole"));
     } finally {
       setIsSubmitting(false);
     }
@@ -236,13 +240,13 @@ const CreateRole = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="Create Role"
+          title={t("user.jobs.schedule.createRole")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
           components={
             <TouchableOpacity onPress={handleReset} className='p-2'>
               <Text className="font-proximanova-semibold text-[#4FB2F3]">
-                Reset
+                {t("user.jobs.schedule.reset")}
               </Text>
             </TouchableOpacity>
           }
@@ -252,7 +256,7 @@ const CreateRole = () => {
           {/* predefine role */}
           <View className="mt-4">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Predefined role
+              {t("user.jobs.schedule.predefinedRole")}
             </Text>
 
             <RoleSelector
@@ -265,12 +269,12 @@ const CreateRole = () => {
 
           <View className="mt-6">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Description
+              {t("user.jobs.schedule.description")}
             </Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Add role description"
+              placeholder={t("user.jobs.schedule.addRoleDescription")}
               placeholderTextColor="#7A7A7A"
               multiline
               className="mt-3 min-h-[100px] border border-[#EEEEEE] rounded-[10px] px-4 py-3 font-proximanova-regular text-primary dark:text-dark-primary"
@@ -281,19 +285,19 @@ const CreateRole = () => {
           {/* Permissions Section */}
           <View className="mt-8">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Permissions Section
+              {t("user.jobs.schedule.permissionsSection")}
             </Text>
             <SearchBar onSearch={(text) => setSearch(text)} className="mt-4" />
             <View className="flex-row justify-between items-center px-4 py-3 border border-[#EEEEEE] rounded-[10px] mt-4">
               <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-secondary">
-                Actions
+                {t("user.jobs.schedule.actions")}
               </Text>
               <View className="flex-row items-center gap-7 ">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  View
+                  {t("user.jobs.schedule.view")}
                 </Text>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Edit
+                  {t("user.jobs.schedule.edit")}
                 </Text>
               </View>
             </View>
@@ -344,21 +348,21 @@ const CreateRole = () => {
               filteredGroups.length === 0 && (
                 <View className="py-8 items-center">
                   <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                    No permissions found.
+                    {t("user.jobs.schedule.noPermissionsFound")}
                   </Text>
                 </View>
               )}
             {!permissionsLoading && permissionGroups.length === 0 && (
               <View className="py-8 items-center">
                 <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                  No permissions available.
+                  {t("user.jobs.schedule.noPermissionsAvailable")}
                 </Text>
               </View>
             )}
           </View>
 
           <PrimaryButton
-            title="Save Role"
+            title={t("user.jobs.schedule.saveRole")}
             className="my-10"
             onPress={handleSaveRole}
             loading={isSubmitting}
