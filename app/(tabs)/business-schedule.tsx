@@ -12,6 +12,7 @@ import { useShiftStore } from "@/stores/shiftStore";
 import { Ionicons } from "@expo/vector-icons";
 import { RelativePathString, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -34,6 +35,7 @@ const toYmd = (value: Date) => {
 };
 
 const BusinessScheduleScreen = () => {
+  const { t } = useTranslation();
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() =>
     toYmd(new Date())
   );
@@ -95,12 +97,12 @@ const BusinessScheduleScreen = () => {
 
     return Array.from(uniqueByBusinessId.values()).map((employment: any) => ({
       id: employment.business.id,
-      name: employment.business.name || "Unnamed Business",
+      name: employment.business.name || t("user.jobs.schedule.unnamedBusiness"),
       address: employment.business.address,
       imageUrl: employment.business.logo,
       logo: employment.business.logo,
     }));
-  }, [myEmployments]);
+  }, [myEmployments, t]);
 
   useEffect(() => {
     const businessId = selectedBusinesses?.[0];
@@ -115,13 +117,18 @@ const BusinessScheduleScreen = () => {
         selectedShiftTemplateId !== "all" ? selectedShiftTemplateId : undefined,
       append: false,
     }).catch((error: any) => {
-      toast.error(error?.response?.data?.message || error?.message || "Failed to load shifts");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          t("user.jobs.schedule.failedToLoadShifts")
+      );
     });
   }, [
     fetchBusinessAssignments,
     selectedBusinesses,
     selectedCalendarDate,
     selectedShiftTemplateId,
+    t,
   ]);
 
   useEffect(() => {
@@ -209,7 +216,11 @@ const BusinessScheduleScreen = () => {
         }),
       ]);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error?.message || "Failed to refresh");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          t("user.jobs.schedule.failedToRefresh")
+      );
     } finally {
       setIsRefreshing(false);
     }
@@ -218,14 +229,19 @@ const BusinessScheduleScreen = () => {
   // Get display content for header button
   const getDisplayContent = () => {
     if (selectedBusinesses.length === 0) {
-      return { type: "all", content: "All" };
+      return { type: "all", content: t("common.all") };
     } else if (selectedBusinesses.length === 1) {
       const selectedBusiness = activeBusinesses.find(
         (b) => b.id === selectedBusinesses[0]
       );
       return { type: "single", content: selectedBusiness };
     }
-    return { type: "multi", content: `${selectedBusinesses.length} Selected` };
+    return {
+      type: "multi",
+      content: t("user.jobs.schedule.selectedCount", {
+        count: selectedBusinesses.length,
+      }),
+    };
   };
 
   const displayContent = getDisplayContent();
@@ -269,16 +285,18 @@ const BusinessScheduleScreen = () => {
             : Number.isNaN(templateHour)
               ? 0
               : templateHour;
-        const shiftTemplateName = item?.shiftTemplate?.name || "Shift";
+        const fallbackShiftTemplateName = t("user.jobs.schedule.shift");
+        const normalizedShiftTemplateName =
+          item?.shiftTemplate?.name || fallbackShiftTemplateName;
         const shiftTemplateId = item?.shiftTemplate?.id || "";
         const roleName =
           item?.employment?.roleName ||
           item?.employment?.role?.name ||
-          "Team Member";
+          t("user.jobs.schedule.teamMember");
         const displayName =
           item?.employment?.name ||
           item?.employment?.email ||
-          "Employee";
+          t("user.jobs.schedule.employee");
 
         return {
           id: item?.id,
@@ -290,7 +308,7 @@ const BusinessScheduleScreen = () => {
           shiftDateYmd: isValidStartDate ? toYmd(startsAtDate) : null,
           startHour,
           shiftTemplateId,
-          shiftTemplateName,
+          shiftTemplateName: normalizedShiftTemplateName,
           shiftTime: `${to12Hour(startTime)} - ${to12Hour(endTime)}`,
           location:
             item?.business?.address?.city ||
@@ -304,12 +322,12 @@ const BusinessScheduleScreen = () => {
 
     // console.log("[BusinessSchedule] shifts:", mappedShifts);
     return mappedShifts;
-  }, [businessAssignments]);
+  }, [businessAssignments, t]);
 
   const handleOpenShiftChat = async (shift: any) => {
     const participantId = shift?.userId;
     if (!participantId) {
-      toast.error("User information is unavailable");
+      toast.error(t("common.chat.userInfoUnavailable"));
       return;
     }
 
@@ -318,7 +336,7 @@ const BusinessScheduleScreen = () => {
       const roomId = result?.data?.id;
 
       if (!roomId) {
-        throw new Error("Chat room id is missing");
+        throw new Error(t("user.jobs.schedule.chatRoomIdMissing"));
       }
 
       router.push({
@@ -326,7 +344,7 @@ const BusinessScheduleScreen = () => {
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to start chat");
+      toast.error(error?.message || t("common.failedToStartChat"));
     }
   };
 
@@ -363,10 +381,10 @@ const BusinessScheduleScreen = () => {
     }));
 
     return [
-      { id: "all", label: "All", count: timeFilteredShifts.length },
+      { id: "all", label: t("common.all"), count: timeFilteredShifts.length },
       ...roles,
     ];
-  }, [roleOptions, timeFilteredShifts]);
+  }, [roleOptions, t, timeFilteredShifts]);
 
   useEffect(() => {
     const hasSelected = roleFilters.some((item) => item.id === selectedFilter);
@@ -380,13 +398,18 @@ const BusinessScheduleScreen = () => {
 
   const headerTitle = useMemo(() => {
     if (selectedShiftTemplateId === "all") {
-      return `All Shifts (${visibleShifts.length})`;
+      return t("user.jobs.schedule.allShiftsWithCount", {
+        count: visibleShifts.length,
+      });
     }
     const selectedTemplate = shiftTemplateOptions.find(
       (item) => item.id === selectedShiftTemplateId
     );
-    return `${selectedTemplate?.name || "Shift"} (${visibleShifts.length})`;
-  }, [selectedShiftTemplateId, shiftTemplateOptions, visibleShifts.length]);
+    return t("user.jobs.schedule.shiftWithCount", {
+      name: selectedTemplate?.name || t("user.jobs.schedule.shift"),
+      count: visibleShifts.length,
+    });
+  }, [selectedShiftTemplateId, shiftTemplateOptions, t, visibleShifts.length]);
 
   const headerTimeRange = useMemo(() => {
     if (visibleShifts.length === 0) return "--";
@@ -395,13 +418,13 @@ const BusinessScheduleScreen = () => {
 
   const headerDateLabel = useMemo(() => {
     const parsed = new Date(selectedCalendarDate);
-    if (Number.isNaN(parsed.getTime())) return "Select Date";
+    if (Number.isNaN(parsed.getTime())) return t("user.jobs.schedule.selectDate");
     return parsed.toLocaleDateString(undefined, {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-  }, [selectedCalendarDate]);
+  }, [selectedCalendarDate, t]);
 
   const handleLoadMore = async () => {
     const businessId = selectedBusinesses?.[0];
@@ -423,7 +446,11 @@ const BusinessScheduleScreen = () => {
       });
       setCurrentPage(nextPage);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || error?.message || "Failed to load more");
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          t("user.jobs.schedule.failedToLoadMore")
+      );
     } finally {
       setIsFetchingMore(false);
     }
@@ -448,7 +475,7 @@ const BusinessScheduleScreen = () => {
   const menuItems = [
     {
       id: 1,
-      title: "Create Role",
+      title: t("user.jobs.schedule.createRole"),
       icon: "create-outline",
       onPress: () => {
         checkAndNavigate("/screens/schedule/business/all-created-role" as RelativePathString)
@@ -457,7 +484,7 @@ const BusinessScheduleScreen = () => {
     },
     {
       id: 2,
-      title: "Create Template",
+      title: t("user.jobs.schedule.createTemplate"),
       icon: "document-text-outline",
       hidden: !canManageScheduleTemplates,
       onPress: () => {
@@ -467,7 +494,7 @@ const BusinessScheduleScreen = () => {
     },
     {
       id: 3,
-      title: "Saved Shift Template",
+      title: t("user.jobs.schedule.savedShiftTemplate"),
       icon: "document-attach-outline",
       hidden: !canManageScheduleTemplates,
       onPress: () => {
@@ -477,7 +504,7 @@ const BusinessScheduleScreen = () => {
     },
     {
       id: 4,
-      title: "Weekly Schedule",
+      title: t("user.jobs.schedule.weeklySchedule"),
       icon: "calendar-clear-outline",
       onPress: () => {
         checkAndNavigate("/screens/schedule/business/weekly-schedule" as RelativePathString)
@@ -486,7 +513,7 @@ const BusinessScheduleScreen = () => {
     },
     {
       id: 5,
-      title: "Manage Weekly Schedules",
+      title: t("user.jobs.schedule.manageWeeklySchedules"),
       icon: "calendar-outline",
       onPress: () => {
         checkAndNavigate("/screens/schedule/business/manage-weekly-schedules" as RelativePathString);
@@ -507,7 +534,7 @@ const BusinessScheduleScreen = () => {
           {/* left */}
           <View>
             <Text className="font-proximanova-regular text-primary">
-              All Shift
+              {t("user.jobs.schedule.allShift")}
             </Text>
             <TouchableOpacity
               className="flex-row items-center gap-2"
@@ -567,7 +594,7 @@ const BusinessScheduleScreen = () => {
                   : "text-secondary"
                   }`}
               >
-                All
+                {t("common.all")}
               </Text>
             </TouchableOpacity>
 
@@ -694,7 +721,7 @@ const BusinessScheduleScreen = () => {
         ) : selectedBusinesses.length > 0 ? (
           <HolidayCard
             shift={{
-              subtitle: "Today is a Holiday, No Shifts Scheduled.",
+              subtitle: t("user.jobs.schedule.holidayNoShifts"),
               companyLogo: selectedBusiness?.logo,
               workTime: "--:--",
             }}
@@ -703,7 +730,7 @@ const BusinessScheduleScreen = () => {
         ) : (
           <HolidayCard
             shift={{
-              subtitle: "Today is a Holiday, No Shifts Scheduled.",
+              subtitle: t("user.jobs.schedule.holidayNoShifts"),
               companyLogo: undefined,
               workTime: "--:--",
             }}

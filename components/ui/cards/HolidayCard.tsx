@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 const HolidayCard = ({ shift }) => {
+  const { t } = useTranslation();
+
   return (
     <View className="rounded-2xl border border-[#acdcf8] bg-[#e5f4fdc2] p-4">
 
@@ -57,7 +60,7 @@ const HolidayCard = ({ shift }) => {
 
           <View className="flex-row gap-1">
             <Text className="text-xs font-proximanova-regular text-primary dark:text-dark-primary">
-              Next shift:
+              {t("user.jobs.schedule.nextShift")}
             </Text>
             <Text className="text-xs font-proximanova-semibold text-primary dark:text-dark-primary">
               {shift.workTime}

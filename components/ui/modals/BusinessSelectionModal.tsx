@@ -4,6 +4,7 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React, { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Modal,
@@ -27,6 +28,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
     myEmploymentsLoading,
     getMyEmployments,
   } = useBusinessStore();
+  const { t } = useTranslation();
   const fallbackBusinesses = useMemo(() => {
     const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
       (employment: any) => String(employment?.status || "").toLowerCase() === "active"
@@ -40,7 +42,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
 
       uniqueByBusinessId.set(businessId, {
         id: businessId,
-        name: business?.name || "Business",
+        name: business?.name || t("user.jobs.businessSummary.businessFallback"),
         address: business?.address,
         imageUrl: business?.logo,
         logo: business?.logo,
@@ -48,7 +50,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
     });
 
     return Array.from(uniqueByBusinessId.values());
-  }, [myEmployments]);
+  }, [myEmployments, t]);
   const displayedBusinesses =
     businesses.length > 0 || disableStoreFallback ? businesses : fallbackBusinesses;
   const employmentMetaByBusinessId = useMemo(() => {
@@ -178,7 +180,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
             {/* Header */}
             <View className="px-6 py-7">
               <Text className="font-proximanova-bold text-xl text-center">
-                Select Your Business
+                {t("user.jobs.schedule.selectYourBusiness")}
               </Text>
             </View>
 
@@ -190,7 +192,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                   className="flex-row justify-between items-center"
                 >
                   <Text className="font-proximanova-semibold text-lg text-primary">
-                    Select all
+                    {t("user.jobs.schedule.selectAll")}
                   </Text>
                   <View
                     className="w-12 h-6 rounded-full relative"
@@ -225,7 +227,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
               {(!myEmploymentsLoading || disableStoreFallback) &&
                 displayedBusinesses.length === 0 && (
                   <Text className="text-center text-sm text-gray-500 py-6">
-                    No businesses found.
+                    {t("user.profile.noBusinessesFound")}
                   </Text>
                 )}
               {displayedBusinesses.map((business) => {
@@ -238,7 +240,7 @@ const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
                   employment?.role?.name ||
                   "";
                 const roleText = roleMissing
-                  ? "Role not assigned yet"
+                  ? t("user.profile.roleNotAssignedYet")
                   : roleName
                     ? `${roleName}`
                     : "";

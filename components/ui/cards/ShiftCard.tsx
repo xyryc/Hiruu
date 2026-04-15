@@ -1,10 +1,12 @@
 import { FontAwesome6, SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 
 const ShiftCard = ({ shift, onMessagePress }: any) => {
+  const { t } = useTranslation();
   const avatarSource =
     typeof shift?.avatar === "string" && shift.avatar.trim().length > 0
       ? { uri: shift.avatar }
@@ -60,7 +62,7 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
       <View className="my-4">
         <View className="flex-row justify-between mb-2.5">
           <Text className="text-sm font-proximanova-regular text-secondary">
-            Shift Time:
+            {t("user.jobs.schedule.shiftTime")}
           </Text>
           <Text className="text-sm font-proximanova-regular text-primary">
             {shift.shiftTime}
@@ -69,7 +71,7 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
 
         <View className="flex-row justify-between">
           <Text className="text-sm font-proximanova-regular text-secondary">
-            Location:
+            {t("user.jobs.schedule.location")}
           </Text>
           <Text className="text-sm font-proximanova-regular text-primary">
             {shift.location}
@@ -92,7 +94,7 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
         {/* view details */}
         <TouchableOpacity className="flex-row items-center gap-1">
           <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-            View Details
+            {t("user.jobs.schedule.viewDetails")}
           </Text>
           <FontAwesome6 name="arrow-right-long" size={14} color="#4FB2F3" />
         </TouchableOpacity>

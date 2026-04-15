@@ -1,6 +1,7 @@
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 
 type DisplayContent =
@@ -28,6 +29,7 @@ const BusinessSelectionTrigger = ({
   className = "",
   compact = false,
 }: BusinessSelectionTriggerProps) => {
+  const { t } = useTranslation();
   const paddingClass = compact ? "p-0.5" : "p-1";
   const imageSource =
     displayContent?.content?.logo ||
@@ -36,7 +38,7 @@ const BusinessSelectionTrigger = ({
   const displayName =
     displayContent?.content?.name ||
     displayContent?.content?.business?.name ||
-    "Selected";
+    t("user.jobs.schedule.selected");
 
   return (
     <TouchableOpacity
@@ -45,7 +47,9 @@ const BusinessSelectionTrigger = ({
     >
       {displayContent?.type === "all" ? (
         <View className="pl-2.5 py-1.5">
-          <Text className="font-semibold text-sm text-primary">All</Text>
+          <Text className="font-semibold text-sm text-primary">
+            {t("common.all")}
+          </Text>
         </View>
       ) : displayContent?.type === "single" ? (
         <View>
@@ -66,7 +70,7 @@ const BusinessSelectionTrigger = ({
       ) : (
         <View className="pl-2.5 py-1.5">
           <Text className="font-semibold text-sm text-primary">
-            {displayContent?.content || "Selected"}
+            {displayContent?.content || t("user.jobs.schedule.selected")}
           </Text>
         </View>
       )}
@@ -82,4 +86,3 @@ const BusinessSelectionTrigger = ({
 };
 
 export default BusinessSelectionTrigger;
-
