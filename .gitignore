@@ -59,6 +59,7 @@ android/app/release.keystore
 
 # firebase configs
 google-services.json
+GoogleService-Info.plist
 
 # remove docs folder
 docs
