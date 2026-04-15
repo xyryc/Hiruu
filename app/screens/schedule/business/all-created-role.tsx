@@ -6,6 +6,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -20,6 +21,7 @@ import {
 import { toast } from "sonner-native";
 
 const AllCreatedRole = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -44,11 +46,11 @@ const AllCreatedRole = () => {
       const data = await getMyBusinessRoles(businessId);
       setRoles(Array.isArray(data) ? data : []);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load roles");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoles"));
     } finally {
       setIsLoading(false);
     }
-  }, [businessId, getMyBusinessRoles]);
+  }, [businessId, getMyBusinessRoles, t]);
 
   useEffect(() => {
     if (isFocused) {
@@ -56,20 +58,20 @@ const AllCreatedRole = () => {
     }
   }, [isFocused, loadRoles]);
 
-  const handleDeleteRole = async (roleId: string) => {
+  const handleDeleteRole = useCallback(async (roleId: string) => {
     if (!businessId) return;
     try {
       setDeleting(true);
       await deleteBusinessRole(businessId, roleId);
       setRoles((prev) => prev.filter((role) => role.id !== roleId));
       setMenuRoleId(null);
-      toast.success("Role deleted");
+      toast.success(t("user.jobs.schedule.roleDeleted"));
     } catch (error: any) {
-      toast.error(error?.message || "Failed to delete role");
+      toast.error(error?.message || t("user.jobs.schedule.failedToDeleteRole"));
     } finally {
       setDeleting(false);
     }
-  };
+  }, [businessId, deleteBusinessRole, t]);
 
   return (
     <SafeAreaView
@@ -81,7 +83,7 @@ const AllCreatedRole = () => {
         className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
         onPressBack={() => router.back()}
-        title="All Created Role"
+        title={t("user.jobs.schedule.allCreatedRoleTitle")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -118,7 +120,7 @@ const AllCreatedRole = () => {
                 key={role?.id || index}
               >
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
-                  {role?.role?.name || "Role"}
+                  {role?.role?.name || t("user.jobs.schedule.roleFallback")}
                 </Text>
 
                 {/* three dot dropdown */}
@@ -133,7 +135,7 @@ const AllCreatedRole = () => {
           ) : (
             <View className="py-10 items-center">
               <Text className="text-sm text-secondary dark:text-dark-secondary">
-                No roles found.
+                {t("user.jobs.schedule.noRolesFound")}
               </Text>
             </View>
           )}

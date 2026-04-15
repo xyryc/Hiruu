@@ -2,6 +2,7 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -21,11 +22,18 @@ const DeleteConfirmModal = ({
   deleting = false,
   onClose,
   onConfirm,
-  title = "Delete Role",
-  description = "Are you sure you want to delete this role? This action cannot be undone.",
-  confirmText = "Delete",
-  cancelText = "Cancel",
+  title,
+  description,
+  confirmText,
+  cancelText,
 }: DeleteConfirmModalProps) => {
+  const { t } = useTranslation();
+  const resolvedTitle = title || t("user.jobs.schedule.deleteRoleTitle");
+  const resolvedDescription =
+    description || t("user.jobs.schedule.deleteRoleDescription");
+  const resolvedConfirmText = confirmText || t("user.jobs.schedule.delete");
+  const resolvedCancelText = cancelText || t("user.jobs.schedule.cancel");
+
   return (
     <Modal
       visible={visible}
@@ -52,23 +60,27 @@ const DeleteConfirmModal = ({
           <SafeAreaView edges={["bottom"]}>
             <View className="px-6 pt-8 pb-4">
               <Text className="font-proximanova-bold text-xl text-center text-primary">
-                {title}
+                {resolvedTitle}
               </Text>
               <Text className="font-proximanova-regular text-sm text-center text-secondary mt-2">
-                {description}
+                {resolvedDescription}
               </Text>
             </View>
 
             <View className="px-6 pb-7 flex-row gap-3">
               <PrimaryButton
-                title={cancelText}
+                title={resolvedCancelText}
                 onPress={onClose}
                 showIcon={false}
                 disabled={deleting}
                 className="flex-1 rounded-xl py-3 px-4"
               />
               <PrimaryButton
-                title={deleting ? "Deleting..." : confirmText}
+                title={
+                  deleting
+                    ? t("user.jobs.schedule.deleting")
+                    : resolvedConfirmText
+                }
                 onPress={onConfirm}
                 showIcon={false}
                 loading={deleting}
