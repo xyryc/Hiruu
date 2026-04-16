@@ -8,6 +8,7 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -45,6 +46,8 @@ const parseJobsTypeParam = (value?: string | string[]) => {
   return undefined;
 };
 
+const JOB_CARD_RADIUS = 12;
+
 const AllJobs = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -71,6 +74,7 @@ const AllJobs = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = allJobsFilters.limit ?? 10;
@@ -212,6 +216,7 @@ const AllJobs = () => {
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      setHasLoadedOnce(true);
     }
   }, [allJobsFilters.search, getPublicRecruitments, limit, normalizedFilters, setAllJobsFilters]);
 
@@ -223,6 +228,10 @@ const AllJobs = () => {
   }, [loadJobs]);
 
   const canLoadMore = page < totalPages;
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 4 }, (_, index) => ({ id: `all-jobs-skeleton-${index}` })),
+    []
+  );
 
   const handleLoadMore = async () => {
     if (!canLoadMore || isLoadingMore || isLoading) return;
@@ -297,10 +306,19 @@ const AllJobs = () => {
           </View>
         )}
         ListEmptyComponent={
-          isLoading ? (
-            <View className="px-5 pb-5">
-              <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
-            </View>
+          isLoading || !hasLoadedOnce ? (
+            <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
+              <View className="px-5 pb-5">
+                {skeletonItems.map((item) => (
+                  <View key={item.id} className="mt-4">
+                    <JobCard
+                      job={item as any}
+                      className="bg-white border border-[#EEEEEE] mb-4"
+                    />
+                  </View>
+                ))}
+              </View>
+            </AutoSkeletonView>
           ) : (
             <View className="px-5 pb-5 items-center justify-center">
               <View className="w-full max-w-[320px] bg-white border border-[#EEEEEE] rounded-2xl px-5 py-6 items-center">
