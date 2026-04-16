@@ -39,8 +39,7 @@ const sanitizeHandle = (value: string) =>
 
 const getDialCode = (country?: ICountry | null) => {
   if (!country?.idd?.root) return "";
-  const suffix = country.idd.suffixes?.[0] || "";
-  return `${country.idd.root}${suffix}`;
+  return country.idd.root;
 };
 
 const normalizeSocialLink = (key: SocialKey, rawValue: string) => {
