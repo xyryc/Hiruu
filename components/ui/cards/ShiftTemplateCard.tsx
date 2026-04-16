@@ -1,6 +1,5 @@
 import RoleChip, { DEFAULT_ROLE_CHIPS } from "@/components/ui/badges/RoleChip";
-import { getTimezoneLabel } from "@/constants/timezones";
-import { usePreferencesStore } from "@/stores/preferencesStore";
+import { useTranslation } from "react-i18next";
 import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -26,10 +25,9 @@ const ShiftTemplateCard = ({
   assignmentStatusText,
   isAssignmentComplete,
 }: any) => {
-  const timezone = usePreferencesStore((state) => state.timezone);
+  const { t } = useTranslation();
   const roleChips =
     Array.isArray(roles) && roles.length > 0 ? roles : DEFAULT_ROLE_CHIPS;
-  const timezoneLabel = getTimezoneLabel(timezone);
 
   const to12Hour = (value?: string) => {
     if (!value) return "";
@@ -44,10 +42,10 @@ const ShiftTemplateCard = ({
   };
 
   const resolvedTimeRange = startTime && endTime
-    ? `${to12Hour(startTime)} - ${to12Hour(endTime)} (${timezoneLabel})`
+    ? `${to12Hour(startTime)} - ${to12Hour(endTime)}`
     : timeRange
-      ? `${timeRange} (${timezoneLabel})`
-      : `7:00 AM - 3:00 PM (${timezoneLabel})`;
+      ? `${timeRange}`
+      : `7:00 AM - 3:00 PM`;
 
   const formattedBreakSegments = Array.isArray(breakDurations)
     ? breakDurations
@@ -65,10 +63,10 @@ const ShiftTemplateCard = ({
 
   const resolvedBreakTimeRange =
     formattedBreakSegments.length > 0
-      ? `${formattedBreakSegments.join(", ")} (${timezoneLabel})`
+      ? `${formattedBreakSegments.join(", ")}`
       : breakTimeRange && String(breakTimeRange).trim().length > 0
-        ? `${breakTimeRange} (${timezoneLabel})`
-        : `No break (${timezoneLabel})`;
+        ? `${breakTimeRange}`
+        : `No break`;
 
   return (
     <View className={`${className}`}>
@@ -119,7 +117,7 @@ const ShiftTemplateCard = ({
         <View className="p-4">
           <View className="flex-row justify-between items-center ">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Time:
+              {t("user.jobs.schedule.time")}:
             </Text>
             <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary text-right max-w-[60%]">
               {resolvedTimeRange}
@@ -128,7 +126,7 @@ const ShiftTemplateCard = ({
 
           <View className="flex-row justify-between items-center mt-2.5 ">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Break Time:
+              {t("user.jobs.schedule.breakTime")}:
             </Text>
             <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary text-right max-w-[60%]">
               {resolvedBreakTimeRange}
@@ -137,7 +135,7 @@ const ShiftTemplateCard = ({
 
           <View className="flex-row justify-between items-center mt-2.5">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Location:
+              {t("user.jobs.schedule.location")}:
             </Text>
 
             <Text
@@ -145,14 +143,14 @@ const ShiftTemplateCard = ({
               ellipsizeMode="tail"
               className="font-proximanova-regular text-sm text-primary dark:text-dark-primary w-1/2 text-right"
             >
-              {location || "Location not defined"}
+              {location || t("user.jobs.schedule.locationNotDefined")}
             </Text>
           </View>
 
           <View className="flex-row items-start mt-2.5">
             {/* Label */}
             <Text className="font-proximanova-regular text-[14px] text-secondary dark:text-dark-secondary mt-2">
-              Roles:
+              {t("user.jobs.schedule.roles")}:
             </Text>
 
             {/* Scrollable Role Chips with fade edge */}
@@ -223,7 +221,7 @@ const ShiftTemplateCard = ({
               style={{ width: 30, height: 30, borderRadius: 999 }}
             />
             <Text className="font-proximanova-regular  text-secondary dark:text-dark-secondary">
-              {businessName || "Palm Beach"}
+              {businessName || t("user.jobs.schedule.businessFallback")}
             </Text>
           </View>
         </View>

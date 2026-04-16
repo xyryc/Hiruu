@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -22,6 +23,7 @@ import {
 import { toast } from "sonner-native";
 
 const SavedShiftTemplate = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -44,11 +46,11 @@ const SavedShiftTemplate = () => {
       const data = await getShiftTemplates(businessId);
       setTemplates(Array.isArray(data) ? data : []);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load shift templates");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadShiftTemplates"));
     } finally {
       setIsLoading(false);
     }
-  }, [businessId, getShiftTemplates]);
+  }, [businessId, getShiftTemplates, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,9 +65,9 @@ const SavedShiftTemplate = () => {
       setDeletingId(templateId);
       await deleteShiftTemplate(businessId, templateId);
       setTemplates((prev) => prev.filter((item) => item?.id !== templateId));
-      toast.success("Shift template deleted successfully");
+      toast.success(t("user.jobs.schedule.shiftTemplateDeleted"));
     } catch (error: any) {
-      toast.error(error?.message || "Failed to delete shift template");
+      toast.error(error?.message || t("user.jobs.schedule.failedToDeleteShiftTemplate"));
     } finally {
       setDeletingId(null);
     }
@@ -85,7 +87,7 @@ const SavedShiftTemplate = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="Saved Shift template"
+          title={t("user.jobs.schedule.savedShiftTemplate")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -123,10 +125,10 @@ const SavedShiftTemplate = () => {
           ) : (
             <View className="py-10 items-center px-4">
               <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary text-center">
-                You don&apos;t have any shift template yet
+                {t("user.jobs.schedule.noShiftTemplatesYet")}
               </Text>
               <Text className="mt-2 text-sm text-secondary dark:text-dark-secondary text-center">
-                Create your first one here.
+                {t("user.jobs.schedule.createFirstOne")}
               </Text>
               <TouchableOpacity
                 className="mt-5 bg-[#11293A] rounded-full px-5 py-2.5"
@@ -134,7 +136,7 @@ const SavedShiftTemplate = () => {
                 onPress={() => router.push("/screens/schedule/business/create-template")}
               >
                 <Text className="font-proximanova-semibold text-sm text-white">
-                  Create Shift Template
+                  {t("user.jobs.schedule.createShiftTemplate")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -144,10 +146,10 @@ const SavedShiftTemplate = () => {
         <DeleteConfirmModal
           visible={Boolean(pendingDeleteId)}
           deleting={Boolean(deletingId)}
-          title="Delete Shift Template"
-          description="Are you sure you want to delete this shift template? This action cannot be undone."
-          confirmText="Delete"
-          cancelText="Cancel"
+          title={t("user.jobs.schedule.deleteShiftTemplate")}
+          description={t("user.jobs.schedule.deleteShiftTemplateDescription")}
+          confirmText={t("common.delete")}
+          cancelText={t("common.cancel")}
           onClose={() => {
             if (deletingId) return;
             setPendingDeleteId(null);
