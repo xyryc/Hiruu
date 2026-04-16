@@ -11,6 +11,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -28,6 +29,7 @@ import {
 import { toast } from "sonner-native";
 
 const CreateTemplate = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -64,9 +66,9 @@ const CreateTemplate = () => {
 
   useEffect(() => {
     getMyEmployments().catch((error: any) => {
-      toast.error(error?.message || "Failed to load businesses");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadBusinesses"));
     });
-  }, [getMyEmployments]);
+  }, [getMyEmployments, t]);
 
   const activeBusinesses = useMemo(() => {
     const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
@@ -143,7 +145,7 @@ const CreateTemplate = () => {
         }));
         setRoleOptions(mapped.filter((item: any) => item.value));
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load roles");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoles"));
         setRoleOptions([]);
       } finally {
         setRolesLoading(false);
@@ -151,7 +153,7 @@ const CreateTemplate = () => {
     };
 
     loadRoles();
-  }, [getMyBusinessRoles, selectedBusiness]);
+  }, [getMyBusinessRoles, selectedBusiness, t]);
 
   const selectedRoleOption = useMemo(
     () => roleOptions.find((item) => item.value === selectedRole) || null,
@@ -204,7 +206,7 @@ const CreateTemplate = () => {
     const shiftEndMinutes = toMinutes(shiftEndTime);
 
     if (shiftEndMinutes <= shiftStartMinutes) {
-      return "Shift end time must be after shift start time.";
+      return t("user.jobs.schedule.shiftEndTimeMustBeAfterStartTime");
     }
 
     return null;
@@ -219,14 +221,14 @@ const CreateTemplate = () => {
     const breakEndMinutes = toMinutes(breakEndTime);
 
     if (breakEndMinutes <= breakStartMinutes) {
-      return "Break end time must be after break start time.";
+      return t("user.jobs.schedule.breakEndTimeMustBeAfterStartTime");
     }
 
     if (
       breakStartMinutes < shiftStartMinutes ||
       breakEndMinutes > shiftEndMinutes
     ) {
-      return "Break time must be within the shift time range.";
+      return t("user.jobs.schedule.breakTimeMustBeWithinShiftTimeRange");
     }
 
     return null;
@@ -234,17 +236,17 @@ const CreateTemplate = () => {
 
   const getValidatedPayload = () => {
     if (!selectedBusiness) {
-      toast.error("Please select a business.");
+      toast.error(t("user.jobs.schedule.selectBusinessFirst"));
       return null;
     }
 
     if (!templateName.trim()) {
-      toast.error("Template name is required.");
+      toast.error(t("user.jobs.schedule.templateNameRequired"));
       return null;
     }
 
     if (roleRequirements.length === 0) {
-      toast.error("Please add at least one role slot.");
+      toast.error(t("user.jobs.schedule.addAtLeastOneRoleSlot"));
       return null;
     }
 
@@ -322,19 +324,19 @@ const CreateTemplate = () => {
 
   const previewData = useMemo(
     () => ({
-      templateName: templateName.trim() || "Template",
+      templateName: templateName.trim() || t("user.jobs.schedule.templateNameFallback"),
       shiftTimeRange: `${formatTime12(shiftStartTime)} - ${formatTime12(
         shiftEndTime
       )}`,
       breakTimeRange: hasBreak
         ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
-        : "No break",
+        : t("user.jobs.schedule.noBreak"),
       totalStaff: currentRoleSlotsTotal,
       roles: roleRequirements.map((item) => ({
-        roleName: item.roleName || "Role",
+        roleName: item.roleName || t("user.jobs.schedule.roleFallback"),
         count: item.count || 0,
       })),
-      businessName: selectedBusinessInfo?.name || "Business",
+      businessName: selectedBusinessInfo?.name || t("user.jobs.schedule.businessFallback"),
       businessLogo: selectedBusinessInfo?.logo || undefined,
     }),
     [
@@ -364,7 +366,7 @@ const CreateTemplate = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="Create Template"
+          title={t("user.jobs.schedule.createTemplate")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -374,13 +376,13 @@ const CreateTemplate = () => {
         }}>
           {/* input */}
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            Template Name
+            {t("user.jobs.schedule.templateName")}
           </Text>
           <TextInput
             value={templateName}
             onChangeText={setTemplateName}
             className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary  border border-[#EEEEEE] mt-2.5 rounded-[10px]"
-            placeholder="Morning Shift"
+            placeholder={t("user.jobs.schedule.morningShift")}
             placeholderTextColor="#7D7D7D"
             textAlignVertical="top"
           />
@@ -389,17 +391,17 @@ const CreateTemplate = () => {
           <View className="mt-8">
             <View className="flex-row gap-4 items-center">
               <TimePicker
-                title="Shift Start Time"
+                title={t("user.jobs.schedule.shiftStartTime")}
                 value={shiftStartTime}
                 onChangeTime={setShiftStartTime}
               />
 
               <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                To
+                {t("user.jobs.schedule.to")}
               </Text>
 
               <TimePicker
-                title="Shift End Time"
+                title={t("user.jobs.schedule.shiftEndTime")}
                 value={shiftEndTime}
                 onChangeTime={setShiftEndTime}
               />
@@ -419,7 +421,7 @@ const CreateTemplate = () => {
                 color={hasBreak ? "#4FB2F3" : "#A0A0A0"}
               />
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                Add break (optional)
+                {t("user.jobs.schedule.addBreakOptional")}
               </Text>
             </TouchableOpacity>
 
@@ -456,7 +458,7 @@ const CreateTemplate = () => {
           {/* business info */}
           <View>
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-              Business
+              {t("user.jobs.schedule.business")}
             </Text>
 
             {myEmploymentsLoading ? (
@@ -466,7 +468,7 @@ const CreateTemplate = () => {
             ) : (
               <View className="mt-4 px-4 py-3 border border-[#EEEEEE] rounded-[10px] bg-[#F9FAFB]">
                 <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {selectedBusinessInfo?.name || "No business selected"}
+                  {selectedBusinessInfo?.name || t("user.jobs.schedule.noBusinessSelected")}
                 </Text>
                 {selectedBusinessInfo?.address?.address ? (
                   <Text className="mt-1 text-xs font-proximanova-regular text-secondary">
@@ -480,12 +482,12 @@ const CreateTemplate = () => {
           {/* role required */}
           <View className="mt-8 flex-row items-center justify-between">
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-              Roles
+              {t("user.jobs.schedule.roles")}
             </Text>
             <View className="flex-row items-center gap-1.5">
               <Feather name="users" size={14} color="#4FB2F3" />
               <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
-                Required count: {currentRoleSlotsTotal}
+                {t("user.jobs.schedule.requiredCount")}: {currentRoleSlotsTotal}
               </Text>
             </View>
           </View>
@@ -499,7 +501,7 @@ const CreateTemplate = () => {
             ) : (
               <SelectDropdown
                 placeholder={
-                  selectedBusiness ? "Choose role" : "Select business first"
+                  selectedBusiness ? t("user.jobs.schedule.chooseRole") : t("user.jobs.schedule.selectBusinessFirst")
                 }
                 options={roleOptions}
                 value={selectedRole}
@@ -531,7 +533,7 @@ const CreateTemplate = () => {
             onRoleSlotsChange={handleRoleSlotsChange}
             onPressAddRole={() => {
               if (!selectedBusiness) {
-                toast.error("Select business first.");
+                toast.error(t("user.jobs.schedule.selectBusinessFirst"));
                 return;
               }
               setOpenRoleDropdownTrigger((prev) => prev + 1);
@@ -547,7 +549,7 @@ const CreateTemplate = () => {
                 Boolean(shiftTimeValidationError) ||
                 Boolean(breakTimeValidationError)
               }
-              title="Save Template"
+              title={t("user.jobs.schedule.saveTemplate")}
             />
           </View>
         </ScrollView>
