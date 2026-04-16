@@ -10,8 +10,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+const JOB_CARD_RADIUS = 12;
 
 const normalizeRoleIds = (value?: string[] | string) => {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -81,6 +82,14 @@ const BusinessJobs = () => {
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+  const featuredSkeletonItems = useMemo(
+    () => Array.from({ length: 4 }, (_, index) => ({ id: `featured-skeleton-${index}` })),
+    []
+  );
+  const suggestedSkeletonItems = useMemo(
+    () => Array.from({ length: 4 }, (_, index) => ({ id: `suggested-skeleton-${index}` })),
+    []
+  );
 
   // Get current business ID
   const currentBusinessId = selectedBusinesses?.[0] || null;
@@ -293,9 +302,18 @@ const BusinessJobs = () => {
             </View>
 
             {isLoadingFeatured ? (
-              <View className="py-10 items-center justify-center">
-                <ActivityIndicator size="small" color="#4FB2F3" />
-              </View>
+              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
+                <>
+                  {featuredSkeletonItems.map((profile: any) => (
+                    <BusinessJobCard
+                      key={profile.id}
+                      className="mt-4"
+                      status="featured"
+                      profile={profile}
+                    />
+                  ))}
+                </>
+              </AutoSkeletonView>
             ) : (
               filteredFeaturedProfiles.slice(0, 10).map((profile: any) => (
                 <BusinessJobCard
@@ -331,9 +349,17 @@ const BusinessJobs = () => {
             </View>
 
             {isLoadingSuggested ? (
-              <View className="py-6 items-center">
-                <ActivityIndicator size="small" color="#4FB2F3" />
-              </View>
+              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
+                <>
+                  {suggestedSkeletonItems.map((profile: any) => (
+                    <BusinessJobCard
+                      key={profile.id}
+                      className="mt-4"
+                      profile={profile}
+                    />
+                  ))}
+                </>
+              </AutoSkeletonView>
             ) : (
               filteredSuggestedProfiles.slice(0, 4).map((profile: any) => (
                 <BusinessJobCard

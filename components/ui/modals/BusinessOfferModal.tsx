@@ -6,8 +6,8 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router } from 'expo-router';
 import React, { useEffect, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   Modal,
   ScrollView,
   Text,
@@ -20,6 +20,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import PrimaryButton from "../buttons/PrimaryButton";
 import SmallButton from "../buttons/SmallButton";
+
+const MODAL_SKELETON_RADIUS = 12;
 
 const resolveSalaryTypeLabel = (value?: string | null) => {
   if (!value) return "hr";
@@ -311,6 +313,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         profile?.preferredSalaryType
       )}`
       : "Salary not set";
+  const isModalLoading = isLoadingProfile || isLoadingBusinesses || isLoadingRoles;
 
 
   const hensleNavigateProfile = () => {
@@ -355,123 +358,117 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
                 showsVerticalScrollIndicator={false}
                 style={{ maxHeight: screenHeight * 0.72, width: "100%" }}
               >
-                {isLoadingProfile ? (
-                  <View className="py-8 items-center">
-                    <ActivityIndicator color="#4FB2F3" />
-                  </View>
-                ) : null}
-
-                {/* image */}
-                <TouchableOpacity onPress={hensleNavigateProfile}>
-                  <Image
-                    source={profileAvatar}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      marginHorizontal: "auto",
-                      borderRadius: 999,
-                    }}
-                    contentFit="cover"
-                  />
-
-                  {/* name */}
-                  <Text className="text-xl text-center font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
-                    {profileName}
-                  </Text>
-                </TouchableOpacity>
-                {/* location */}
-                <View className="flex-row items-center justify-center mt-2.5 gap-7">
-                  <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
-                    <SimpleLineIcons
-                      name="location-pin"
-                      size={20}
-                      color="#7A7A7A"
+                <AutoSkeletonView isLoading={isModalLoading} defaultRadius={MODAL_SKELETON_RADIUS}>
+                  {/* image */}
+                  <TouchableOpacity onPress={hensleNavigateProfile}>
+                    <Image
+                      source={profileAvatar}
+                      style={{
+                        width: 100,
+                        height: 100,
+                        marginHorizontal: "auto",
+                        borderRadius: 999,
+                      }}
+                      contentFit="cover"
                     />
-                    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      {profileHeadline}
+
+                    {/* name */}
+                    <Text className="text-xl text-center font-proximanova-semibold text-primary dark:text-dark-primary mt-2.5">
+                      {profileName}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* location */}
+                  <View className="flex-row items-center justify-center mt-2.5 gap-7">
+                    <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
+                      <SimpleLineIcons
+                        name="location-pin"
+                        size={20}
+                        color="#7A7A7A"
+                      />
+                      <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                        {profileHeadline}
+                      </Text>
+                    </View>
+
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                      {salaryLabel} <Fontisto name="star" size={14} color="#F1C400" />
                     </Text>
                   </View>
 
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    {salaryLabel} <Fontisto name="star" size={14} color="#F1C400" />
-                  </Text>
-                </View>
-
-                {/* note */}
-                <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
-                  To apply for this job, please share Details so the business can
-                  contact you.
-                </Text>
-
-                {/* business */}
-                <View className="mb-7">
-                  <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                    Business
+                  {/* note */}
+                  <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
+                    To apply for this job, please share Details so the business can
+                    contact you.
                   </Text>
 
-                  <SelectDropdown
-                    placeholder={
-                      isLoadingBusinesses ? "Loading businesses..." : "Choose a business"
-                    }
-                    options={businessOptions}
-                    value={selectedBusiness}
-                    onSelect={(value) => setSelectedBusiness(value)}
-                    listMaxHeight={320}
-                  />
-                </View>
+                  {/* business */}
+                  <View className="mb-7">
+                    <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
+                      Business
+                    </Text>
 
-                <View className="mb-7">
-                  <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                    Role
-                  </Text>
-
-                  <SelectDropdown
-                    placeholder={isLoadingRoles ? "Loading roles..." : "Choose a role"}
-                    options={roleOptions}
-                    value={selectedRole}
-                    onSelect={(value) => setSelectedRole(value)}
-                    listMaxHeight={320}
-                  />
-                </View>
-
-                <View>
-                  <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                    Salary Per Hour
-                  </Text>
-
-                  <View className="flex-row gap-3">
-                    <TextInput
-                      placeholder="Min: $5"
-                      value={salaryMin}
-                      onChangeText={setSalaryMin}
-                      className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
-                      keyboardType="numeric"
-                      autoCapitalize="none"
-                    />
-
-                    <TextInput
-                      placeholder="Max: $10"
-                      value={salaryMax}
-                      onChangeText={setSalaryMax}
-                      className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
-                      keyboardType="numeric"
-                      autoCapitalize="none"
+                    <SelectDropdown
+                      placeholder="Choose a business"
+                      options={businessOptions}
+                      value={selectedBusiness}
+                      onSelect={(value) => setSelectedBusiness(value)}
+                      listMaxHeight={320}
                     />
                   </View>
-                </View>
 
-                {/* button */}
-                <PrimaryButton
-                  title="Apply Now"
-                  className="mt-7"
-                  onPress={handleApplyNow}
-                  loading={isSubmitting}
-                  disabled={
-                    isLoadingProfile ||
-                    isLoadingBusinesses ||
-                    isLoadingRoles
-                  }
-                />
+                  <View className="mb-7">
+                    <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
+                      Role
+                    </Text>
+
+                    <SelectDropdown
+                      placeholder="Choose a role"
+                      options={roleOptions}
+                      value={selectedRole}
+                      onSelect={(value) => setSelectedRole(value)}
+                      listMaxHeight={320}
+                    />
+                  </View>
+
+                  <View>
+                    <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
+                      Salary Per Hour
+                    </Text>
+
+                    <View className="flex-row gap-3">
+                      <TextInput
+                        placeholder="Min: $5"
+                        value={salaryMin}
+                        onChangeText={setSalaryMin}
+                        className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
+                        keyboardType="numeric"
+                        autoCapitalize="none"
+                      />
+
+                      <TextInput
+                        placeholder="Max: $10"
+                        value={salaryMax}
+                        onChangeText={setSalaryMax}
+                        className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
+                        keyboardType="numeric"
+                        autoCapitalize="none"
+                      />
+                    </View>
+                  </View>
+
+                  {/* button */}
+                  <PrimaryButton
+                    title="Apply Now"
+                    className="mt-7"
+                    onPress={handleApplyNow}
+                    loading={isSubmitting}
+                    disabled={
+                      isLoadingProfile ||
+                      isLoadingBusinesses ||
+                      isLoadingRoles
+                    }
+                  />
+                </AutoSkeletonView>
               </ScrollView>
             </SafeAreaView>
           ) : (
