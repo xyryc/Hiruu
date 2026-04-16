@@ -4,6 +4,7 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   Modal,
@@ -29,6 +30,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const getProfile = useProfileStore((state) => state.getProfile);
   const {
     myEmployments,
@@ -43,6 +45,7 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
     let isMounted = true;
 
     const loadData = async () => {
+      setIsProfileLoading(true);
       try {
         const result = await getProfile();
         if (isMounted) {
@@ -50,6 +53,10 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
         }
       } catch {
         // keep modal usable even if profile fetch fails
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false);
+        }
       }
 
       getMyEmployments(true).catch(() => undefined);
@@ -92,35 +99,55 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
               {t("user.profile.switchProfile")}
             </Text>
 
-            <TouchableOpacity
-              onPress={onSelectUserProfile}
-              className="mt-6 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center"
-            >
-              <Image
-                source={profile?.avatar || require("@/assets/images/placeholder.png")}
-                style={{ width: 34, height: 34, borderRadius: 999 }}
-                contentFit="cover"
-              />
-              <View className="flex-1 ml-3">
-                <Text className="font-proximanova-semibold text-primary">
-                  {profile?.name || t("user.profile.userProfile")}
-                </Text>
-                {!!profile?.email && (
-                  <Text className="text-xs text-secondary">{profile.email}</Text>
+            <AutoSkeletonView isLoading={isProfileLoading} defaultRadius={12}>
+              <TouchableOpacity
+                onPress={onSelectUserProfile}
+                className="mt-6 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center"
+              >
+                <Image
+                  source={profile?.avatar || require("@/assets/images/placeholder.png")}
+                  style={{ width: 34, height: 34, borderRadius: 999 }}
+                  contentFit="cover"
+                />
+                <View className="flex-1 ml-3">
+                  <Text className="font-proximanova-semibold text-primary">
+                    {profile?.name || t("user.profile.userProfile")}
+                  </Text>
+                  {!!profile?.email && (
+                    <Text className="text-xs text-secondary">{profile.email}</Text>
+                  )}
+                </View>
+
+                {selectedBusinessId === null && (
+                  <Ionicons name="checkmark-circle" size={24} color="#4FB2F3" />
                 )}
-              </View>
 
-              {selectedBusinessId === null && (
-                <Ionicons name="checkmark-circle" size={24} color="#4FB2F3" />
-              )}
-
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </AutoSkeletonView>
 
             <Text className='font-proximanova-medium text-lg mt-3'>{t("user.profile.yourBusinessProfiles")}</Text>
 
             <ScrollView
               contentContainerStyle={{ paddingBottom: 30 }}
             >
+              {myEmploymentsLoading ? (
+                <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <View
+                      key={`profile-switch-skeleton-${index}`}
+                      className="mt-3 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center"
+                    >
+                      <View className="h-[34px] w-[34px] rounded-full bg-[#E5E7EB]" />
+                      <View className="flex-1 ml-3">
+                        <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+                        <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-2" />
+                      </View>
+                      <View className="h-5 w-5 rounded-full bg-[#E5E7EB]" />
+                    </View>
+                  ))}
+                </AutoSkeletonView>
+              ) : null}
+
               {!myEmploymentsLoading && activeEmploymentEntries.length === 0 && (
                 <Text className="text-center text-sm text-secondary py-4">
                   {t("user.profile.noBusinessesFound")}

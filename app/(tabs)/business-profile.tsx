@@ -19,6 +19,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -54,7 +55,7 @@ const BusinessProfile = () => {
   const [toggleIsOn, setToggleIsOn] = useState(false);
   const [businessData, setBusinessData] = useState<any>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
-  const [, setLoading] = useState(false);
+  const [isLoadingBusiness, setIsLoadingBusiness] = useState(false);
   const [recruitingUpdateLoading, setRecruitingUpdateLoading] = useState(false);
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
@@ -102,7 +103,7 @@ const BusinessProfile = () => {
     const requestId = ++profileRequestIdRef.current;
 
     try {
-      setLoading(true);
+      setIsLoadingBusiness(true);
       const data = await getBusinessProfile(businessId);
       if (requestId !== profileRequestIdRef.current) return;
       setBusinessData(data);
@@ -112,7 +113,7 @@ const BusinessProfile = () => {
       toast.error(error?.message || t("user.profile.businessProfile.failedToLoadBusiness"));
     } finally {
       if (requestId !== profileRequestIdRef.current) return;
-      setLoading(false);
+      setIsLoadingBusiness(false);
     }
   }, [businessId, getBusinessProfile]);
 
@@ -188,6 +189,7 @@ const BusinessProfile = () => {
   const totalRatings = Number(businessRatingSummary?.totalRatings ?? 0);
   const activeJobPostingCount = businessJobs.length;
   const totalEmployeeCount = Number(businessData?._count?.employments ?? 0);
+  const showInitialSkeleton = isLoadingBusiness && !businessData;
 
   const handleShare = async () => {
     try {
@@ -345,6 +347,39 @@ const BusinessProfile = () => {
           paddingBottom: 40,
         }}
       >
+        {showInitialSkeleton ? (
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View className="relative">
+              <View className="w-full h-[137px] bg-[#E5E7EB]" />
+              <View className="absolute -bottom-11 left-6 h-[90px] w-[90px] rounded-full bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-6 mt-16">
+              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-60 rounded-md bg-[#E5E7EB] mt-3" />
+            </View>
+
+            <View className="mx-5 mt-4 flex-row gap-4">
+              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
+              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-full rounded-md bg-[#E5E7EB] mt-4" />
+              <View className="h-4 w-[80%] rounded-md bg-[#E5E7EB] mt-2.5" />
+            </View>
+
+            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
+              <View className="h-5 w-48 rounded-md bg-[#E5E7EB]" />
+              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-4" />
+              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-3" />
+            </View>
+          </AutoSkeletonView>
+        ) : null}
+
+        {!showInitialSkeleton ? (
+        <>
         {/* cover and profile */}
         <View className="relative">
           {/* cover photo */}
@@ -666,6 +701,8 @@ const BusinessProfile = () => {
             ))}
           </View>
         )}
+        </>
+        ) : null}
       </ScrollView>
 
       <ProfileSwitchModal

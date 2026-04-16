@@ -9,6 +9,7 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -74,7 +75,7 @@ const EditBusinessProfile = () => {
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImageType, setUploadingImageType] = useState<"profile" | "cover" | null>(null);
   const [businessName, setBusinessName] = useState("");
   const [about, setAbout] = useState("");
   const [isEditingBusinessName, setIsEditingBusinessName] = useState(false);
@@ -92,6 +93,14 @@ const EditBusinessProfile = () => {
   const [addressDetails, setAddressDetails] = useState<AddressPayload | null>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
   const [isEditingSocials, setIsEditingSocials] = useState(false);
+  const isProfileUploading = uploadingImageType === "profile";
+  const isCoverUploading = uploadingImageType === "cover";
+  const showInitialSkeleton =
+    loadingProfile &&
+    !businessName &&
+    !about &&
+    !profileImage &&
+    !coverImage;
 
   useEffect(() => {
     if (!locationSearch || locationSearch.trim().length < 3) {
@@ -276,7 +285,7 @@ const EditBusinessProfile = () => {
     result: ImagePicker.ImagePickerResult
   ) => {
     if (!result.canceled && result.assets[0]) {
-      setUploading(true);
+      setUploadingImageType(type);
 
       try {
         // Simulate upload process
@@ -290,7 +299,7 @@ const EditBusinessProfile = () => {
       } catch {
         Alert.alert(t("common.error"), t("user.setup.businessSetup.failedToUploadImage"));
       } finally {
-        setUploading(false);
+        setUploadingImageType((prev) => (prev === type ? null : prev));
       }
     }
   };
@@ -329,7 +338,7 @@ const EditBusinessProfile = () => {
   };
 
   const showImagePickerOptions = (type: "profile" | "cover") => {
-    if (uploading) return;
+    if (uploadingImageType) return;
 
     Alert.alert(
       t(
@@ -472,14 +481,49 @@ const EditBusinessProfile = () => {
               paddingBottom: 120,
             }}
           >
+            {showInitialSkeleton ? (
+              <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                <View className="items-center">
+                  <View className="h-[119px] w-[119px] rounded-full bg-[#E5E7EB]" />
+                  <View className="h-4 w-40 rounded-md bg-[#E5E7EB] mt-3" />
+                </View>
+
+                <View className="mt-8">
+                  <View className="h-4 w-36 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-[150px] w-full rounded-xl bg-[#E5E7EB]" />
+                </View>
+
+                <View className="mt-8">
+                  <View className="h-4 w-32 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
+                </View>
+
+                <View className="mt-8">
+                  <View className="h-4 w-24 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
+                </View>
+
+                <View className="mt-8">
+                  <View className="h-4 w-36 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-[120px] w-full rounded-xl bg-[#E5E7EB]" />
+                </View>
+
+                <View className="mt-8">
+                  <View className="h-4 w-28 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-[220px] w-full rounded-xl bg-[#E5E7EB]" />
+                </View>
+
+                <View className="h-12 w-full rounded-full bg-[#E5E7EB] my-10" />
+              </AutoSkeletonView>
+            ) : (
+              <>
             {/* Profile Photo */}
             <View className="items-center">
               <View className="bg-[#ffffff] h-[119px] w-[119px] flex-row justify-center items-center rounded-full relative">
-                {uploading || loadingProfile ? (
-                  <View className="h-32 w-32 rounded-full bg-gray-200 items-center justify-center">
-                    <ActivityIndicator size="large" color="#4FB2F3" />
-                  </View>
-                ) : (
+                <AutoSkeletonView
+                  isLoading={isProfileUploading || (loadingProfile && !profileImage)}
+                  defaultRadius={100}
+                >
                   <Image
                     source={
                       profileImage || require("@/assets/images/placeholder.png")
@@ -488,9 +532,9 @@ const EditBusinessProfile = () => {
                     transition={300}
                     contentFit="cover"
                   />
-                )}
+                </AutoSkeletonView>
 
-                {!uploading && (
+                {!isProfileUploading && (
                   <TouchableOpacity
                     onPress={() => showImagePickerOptions("profile")}
                     className="h-8 w-8 border border-[#EEEEEE] bg-white rounded-full absolute bottom-2 right-2 flex-row justify-center items-center"
@@ -500,7 +544,7 @@ const EditBusinessProfile = () => {
                 )}
               </View>
               <Text className="pt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary text-center">
-                {uploading
+                {isProfileUploading
                   ? t("user.setup.businessSetup.uploading")
                   : profileImage
                     ? t("user.setup.businessSetup.changeProfilePhoto")
@@ -516,11 +560,14 @@ const EditBusinessProfile = () => {
                   : t("user.setup.businessSetup.uploadCoverPhoto")}
               </Text>
               <View className="relative">
-                {uploading || loadingProfile ? (
-                  <View className="w-full h-32 bg-gray-200 rounded-xl items-center justify-center">
-                    <ActivityIndicator size="large" color="#4FB2F3" />
-                    <Text className="text-gray-500 mt-2">{t("user.setup.businessSetup.uploading")}</Text>
-                  </View>
+                {isCoverUploading ? (
+                  <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                    <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
+                  </AutoSkeletonView>
+                ) : loadingProfile && !coverImage ? (
+                  <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                    <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
+                  </AutoSkeletonView>
                 ) : coverImage ? (
                   <View>
                     <Image
@@ -711,6 +758,8 @@ const EditBusinessProfile = () => {
               onPress={handleSave}
               loading={isLoading}
             />
+              </>
+            )}
           </ScrollView>
         </LinearGradient>
       </SafeAreaView>
