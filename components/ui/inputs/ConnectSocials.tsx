@@ -1,9 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
 import { Linking, Text, TextInput, TouchableOpacity, View } from "react-native";
+import PhoneInput, {
+  getCountryByCca2,
+  getCountryByPhoneNumber,
+  ICountry,
+  isValidPhoneNumber,
+} from "react-native-international-phone-number";
 import SmallButton from "../buttons/SmallButton";
-import { t } from "i18next";
 
 const SOCIAL_ITEMS = [
   { id: "facebook", label: t("common.connectSocials.facebook"), icon: require("@/assets/images/facebook2.svg") },
@@ -30,6 +36,12 @@ const SOCIAL_BASE_URL: Record<SocialKey, string> = {
 
 const sanitizeHandle = (value: string) =>
   value.trim().replace(/^@+/, "").replace(/^\/+/, "");
+
+const getDialCode = (country?: ICountry | null) => {
+  if (!country?.idd?.root) return "";
+  const suffix = country.idd.suffixes?.[0] || "";
+  return `${country.idd.root}${suffix}`;
+};
 
 const normalizeSocialLink = (key: SocialKey, rawValue: string) => {
   const value = rawValue.trim();
@@ -92,9 +104,11 @@ const ConnectSocials = ({
   hideEmpty?: boolean;
   canEdit?: boolean;
 }) => {
+  const fallbackCountry = useMemo<ICountry | null>(() => getCountryByCca2("US") ?? null, []);
   const [localLinks, setLocalLinks] = useState<SocialLinks>(value || {});
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
   const [inputErrors, setInputErrors] = useState<Record<string, string>>({});
+  const [selectedWhatsappCountry, setSelectedWhatsappCountry] = useState<ICountry | null>(fallbackCountry);
   const isControlled = typeof value !== "undefined";
   const links = useMemo(
     () => (isControlled ? (value || {}) : localLinks),
@@ -123,7 +137,23 @@ const ConnectSocials = ({
   const startLink = (id: string) => {
     const key = id as SocialKey;
     const currentValue = links?.[key] || "";
-    setEditingValues((prev) => ({ ...prev, [id]: currentValue }));
+    if (key === "whatsapp") {
+      const digits = currentValue.replace(/[^\d]/g, "");
+      if (digits) {
+        const detectedCountry = getCountryByPhoneNumber(`+${digits}`) ?? fallbackCountry;
+        setSelectedWhatsappCountry(detectedCountry);
+        const detectedDialCode = getDialCode(detectedCountry).replace(/\D/g, "");
+        const localNumber = detectedDialCode && digits.startsWith(detectedDialCode)
+          ? digits.slice(detectedDialCode.length)
+          : digits;
+        setEditingValues((prev) => ({ ...prev, [id]: localNumber }));
+      } else {
+        setSelectedWhatsappCountry(fallbackCountry);
+        setEditingValues((prev) => ({ ...prev, [id]: "" }));
+      }
+    } else {
+      setEditingValues((prev) => ({ ...prev, [id]: currentValue }));
+    }
     setInputErrors((prev) => {
       const next = { ...prev };
       delete next[id];
@@ -136,14 +166,34 @@ const ConnectSocials = ({
     const rawValue = editingValues[id] || "";
 
     if (PHONE_ONLY_SOCIALS.has(key)) {
-      const digits = rawValue.replace(/[^\d]/g, "");
-      if (!digits || digits.length < 7) {
+      const countryToUse = selectedWhatsappCountry ?? fallbackCountry;
+      if (!countryToUse || !isValidPhoneNumber(rawValue, countryToUse)) {
         setInputErrors((prev) => ({
           ...prev,
           [id]: t("common.connectSocials.invalidPhone"),
         }));
         return;
       }
+
+      const localDigits = rawValue.replace(/[^\d]/g, "");
+      const dialDigits = getDialCode(countryToUse).replace(/\D/g, "");
+      const fullDigits = dialDigits && localDigits.startsWith(dialDigits)
+        ? localDigits
+        : `${dialDigits}${localDigits}`;
+
+      if (!fullDigits) return;
+      updateLinks({ ...(links || {}), [key]: `${SOCIAL_BASE_URL.whatsapp}${fullDigits}` });
+      setEditingValues((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setInputErrors((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      return;
     }
 
     const normalized = normalizeSocialLink(key, rawValue);
@@ -178,12 +228,7 @@ const ConnectSocials = ({
   };
 
   const updateDraft = (id: string, value: string) => {
-    const key = id as SocialKey;
-    const nextValue = PHONE_ONLY_SOCIALS.has(key)
-      ? value.replace(/[^\d]/g, "")
-      : value;
-
-    setEditingValues((prev) => ({ ...prev, [id]: nextValue }));
+    setEditingValues((prev) => ({ ...prev, [id]: value }));
     setInputErrors((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
@@ -236,20 +281,44 @@ const ConnectSocials = ({
               </TouchableOpacity>
 
               {isEditing && canEdit ? (
-                <View className="flex-row items-center gap-2 max-w-[56%]">
-                  <TextInput
-                    value={inputValue}
-                    onChangeText={(value) => updateDraft(item.id, value)}
-                    placeholder={
-                      PHONE_ONLY_SOCIALS.has(item.id)
-                        ? t("common.connectSocials.enterPhone")
-                        : t("common.connectSocials.enterHandle", { platform: item.label })
-                    }
-                    className="bg-white border border-[#D8D8D8] rounded-full px-3 py-2 text-xs min-w-[120px]"
-                    keyboardType={
-                      PHONE_ONLY_SOCIALS.has(item.id) ? "phone-pad" : "default"
-                    }
-                  />
+                <View className="flex-row items-center gap-2 max-w-[72%]">
+                  {PHONE_ONLY_SOCIALS.has(item.id) ? (
+                    <View className="min-w-[180px] flex-1">
+                      <PhoneInput
+                        value={inputValue}
+                        onChangePhoneNumber={(value) => updateDraft(item.id, value)}
+                        selectedCountry={selectedWhatsappCountry}
+                        onChangeSelectedCountry={setSelectedWhatsappCountry}
+                        defaultCountry="US"
+                        placeholder={t("common.connectSocials.enterPhone")}
+                        phoneInputStyles={{
+                          container: {
+                            borderWidth: 1,
+                            borderColor: "#D8D8D8",
+                            borderRadius: 999,
+                            backgroundColor: "transparent",
+                            minHeight: 22,
+                          },
+                          input: {
+                            fontSize: 12,
+                            color: "#111827",
+                            paddingVertical: 4,
+                          },
+                          divider: {
+                            backgroundColor: "#E5E7EB",
+                          },
+                        }}
+                      />
+                    </View>
+                  ) : (
+                    <TextInput
+                      value={inputValue}
+                      onChangeText={(value) => updateDraft(item.id, value)}
+                      placeholder={t("common.connectSocials.enterHandle", { platform: item.label })}
+                      className="bg-white border border-[#D8D8D8] rounded-full px-3 py-2 text-xs min-w-[120px]"
+                      keyboardType="default"
+                    />
+                  )}
                   <TouchableOpacity
                     onPress={() => confirmLink(item.id)}
                     className="w-8 h-8 rounded-full bg-[#11293A] items-center justify-center"
