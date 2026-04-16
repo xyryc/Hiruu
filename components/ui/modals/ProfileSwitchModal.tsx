@@ -1,9 +1,10 @@
+import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
@@ -29,8 +30,10 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
   onSelectBusinessProfile,
 }) => {
   const { t } = useTranslation();
-  const [profile, setProfile] = useState<any>(null);
+  const user = useAuthStore((state) => state.user);
+  const [profile, setProfile] = useState<any>(user ?? null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
   const getProfile = useProfileStore((state) => state.getProfile);
   const {
     myEmployments,
@@ -39,34 +42,61 @@ const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
     selectedBusinesses,
   } = useBusinessStore();
   const selectedBusinessId = selectedBusinesses[0] || null;
+  const employmentCount = Array.isArray(myEmployments) ? myEmployments.length : 0;
+  const hasProfile = Boolean(profile);
+
+  useEffect(() => {
+    if (!profile && user) {
+      setProfile(user);
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     if (!visible) return;
     let isMounted = true;
 
     const loadData = async () => {
-      setIsProfileLoading(true);
+      const shouldFetchProfile = !hasLoadedOnceRef.current && !hasProfile;
+      const shouldFetchEmployments =
+        employmentCount === 0;
+
+      if (!shouldFetchProfile && !shouldFetchEmployments) return;
+
+      if (shouldFetchProfile) {
+        setIsProfileLoading(true);
+      }
       try {
-        const result = await getProfile();
+        await Promise.all([
+          shouldFetchProfile
+            ? getProfile()
+                .then((result) => {
+                  if (isMounted) {
+                    setProfile(result.data);
+                  }
+                })
+                .catch(() => undefined)
+            : Promise.resolve(),
+          shouldFetchEmployments
+            ? getMyEmployments(false).catch(() => undefined)
+            : Promise.resolve(),
+        ]);
         if (isMounted) {
-          setProfile(result.data);
+          hasLoadedOnceRef.current = true;
         }
       } catch {
         // keep modal usable even if profile fetch fails
       } finally {
-        if (isMounted) {
+        if (isMounted && shouldFetchProfile) {
           setIsProfileLoading(false);
         }
       }
-
-      getMyEmployments(true).catch(() => undefined);
     };
 
     loadData();
     return () => {
       isMounted = false;
     };
-  }, [visible, getMyEmployments, getProfile]);
+  }, [visible, getMyEmployments, getProfile, employmentCount, hasProfile]);
 
   const activeEmploymentEntries = (Array.isArray(myEmployments) ? myEmployments : [])
     .filter((employment: any) => String(employment?.status || "").toLowerCase() === "active")

@@ -25,7 +25,8 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -36,6 +37,8 @@ const Profile = () => {
   const [showText, setShowText] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState("traditional");
   const [profileData, setProfileData] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const profileRequestIdRef = useRef(0);
   const issues = [
     { label: t("user.profile.userProfile.cvStyles.traditional"), value: "traditional" },
     { label: t("user.profile.userProfile.cvStyles.sidebarLeft"), value: "sidebar-left" },
@@ -90,12 +93,19 @@ const Profile = () => {
       : ["#E5F4FD", "#fff"];
 
   const loadProfile = React.useCallback(async () => {
+    const requestId = ++profileRequestIdRef.current;
     try {
+      setIsLoadingProfile(true);
       const result = await getProfile();
+      if (requestId !== profileRequestIdRef.current) return;
       setProfileData(result.data);
     } catch (error: any) {
+      if (requestId !== profileRequestIdRef.current) return;
       if (isExpectedAuthError(error)) return;
       toast.error(error?.message || t("user.profile.userProfile.failedToLoadProfile"));
+    } finally {
+      if (requestId !== profileRequestIdRef.current) return;
+      setIsLoadingProfile(false);
     }
   }, [getProfile, t]);
 
@@ -149,6 +159,7 @@ const Profile = () => {
   const isFullyVerified = Boolean(
     profileData?.isEmailVerified && profileData?.isNumberVerified
   );
+  const showInitialSkeleton = isLoadingProfile && !profileData;
   const profileAddress =
     profileData?.address?.address ||
     [profileData?.address?.city, profileData?.address?.country]
@@ -315,6 +326,32 @@ const Profile = () => {
           paddingBottom: 80,
         }}
       >
+        {showInitialSkeleton ? (
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View className="mx-5 mt-3.5 h-28 rounded-2xl bg-[#E5E7EB]" />
+
+            <View className="mx-5 mt-5 flex-row items-center justify-between">
+              <View className="h-5 w-28 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-20 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-3.5 h-20 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+
+            <View className="mx-5 mt-7 h-5 w-32 rounded-md bg-[#E5E7EB]" />
+            <View className="mx-5 mt-3 h-4 w-full rounded-md bg-[#E5E7EB]" />
+            <View className="mx-5 mt-2 h-4 w-[82%] rounded-md bg-[#E5E7EB]" />
+
+            <View className="mx-5 mt-7 h-5 w-36 rounded-md bg-[#E5E7EB]" />
+            <View className="mx-5 mt-3 h-20 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+            <View className="mx-5 mt-2.5 h-20 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+
+            <View className="mx-5 mt-7 h-5 w-28 rounded-md bg-[#E5E7EB]" />
+            <View className="mx-5 mt-3 h-24 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+          </AutoSkeletonView>
+        ) : null}
+
+        {!showInitialSkeleton ? (
+          <>
         <TouchableOpacity
           onPress={() => router.push("/screens/profile/rating")}
           className="mx-5 mt-3.5"
@@ -676,10 +713,11 @@ const Profile = () => {
             ) : null}
           </View>
         )}
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
 };
 
 export default Profile;
-
