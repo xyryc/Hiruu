@@ -49,6 +49,7 @@ export interface DateOfBirthInputProps {
   placeholder?: string;
   minDate?: Date;
   maxDate?: Date;
+  disabled?: boolean;
 }
 
 export type GenderOption = "male" | "female" | "other" | null;

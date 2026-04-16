@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
 import { useProfileStore } from "@/stores/profileStore";
-import { Company } from "@/types";
+import { Companies, Company } from "@/types";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -23,7 +23,7 @@ export default function Step3({
   const { t } = useTranslation();
   const router = useRouter();
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
-  const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
+  const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
   const { updateProfile, isLoading } = useProfileStore();
 
   const handleSkip = () => {
@@ -42,17 +42,17 @@ export default function Step3({
       const profileData = {
         experiences: workExperiences.map((exp) => ({
           companyId: exp.companyId,
-          position: exp.position || null,
-          description: exp.description || null,
+          position: exp.position || undefined,
+          description: exp.description || undefined,
           startDate:
             exp.startDate instanceof Date
               ? exp.startDate.toISOString()
-              : exp.startDate || null,
+              : exp.startDate || undefined,
           endDate:
             exp.endDate instanceof Date
               ? exp.endDate.toISOString()
-              : exp.endDate || null,
-          isCurrent: exp.isCurrent || false,
+              : exp.endDate || undefined,
+          isCurrent: Boolean(exp.isCurrent),
         })),
         onboarding: 3,
       };

@@ -4,7 +4,14 @@ import React, { useState } from "react";
 import { Modal, Platform, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const DateOfBirthInput = ({ value, onDateChange }: DateOfBirthInputProps) => {
+const DateOfBirthInput = ({
+  value,
+  onDateChange,
+  placeholder = "dd/mm/yyyy",
+  minDate,
+  maxDate,
+  disabled = false,
+}: DateOfBirthInputProps) => {
   const [show, setShow] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(value || new Date());
 
@@ -32,7 +39,7 @@ const DateOfBirthInput = ({ value, onDateChange }: DateOfBirthInputProps) => {
   };
 
   const formatDate = (date: Date | null) => {
-    if (!date) return "dd/mm/yyyy";
+    if (!date) return placeholder;
 
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -41,21 +48,25 @@ const DateOfBirthInput = ({ value, onDateChange }: DateOfBirthInputProps) => {
     return `${day}/${month}/${year}`;
   };
 
-  // In DateOfBirthInput component, you could make these configurable:
   const getMaxDate = () => {
-    return new Date(); // For work dates, allow up to today
+    return maxDate ?? new Date();
   };
 
   const getMinDate = () => {
-    return new Date(1950, 0, 1); // Reasonable work start date
+    return minDate ?? new Date(1950, 0, 1);
   };
 
   return (
     <View>
       {/* Input Field */}
       <TouchableOpacity
-        onPress={() => setShow(true)}
-        className="w-full px-3 py-4 bg-white rounded-[10px] border border-[#EEEEEE]"
+        onPress={() => {
+          if (!disabled) setShow(true);
+        }}
+        disabled={disabled}
+        className={`w-full px-3 py-4 rounded-[10px] border border-[#EEEEEE] ${
+          disabled ? "bg-[#F9FAFB]" : "bg-white"
+        }`}
       >
         <Text
           className={`text-sm ${value ? "text-primary" : "text-secondary"}`}

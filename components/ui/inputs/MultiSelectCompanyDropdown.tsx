@@ -189,8 +189,12 @@ const MultiSelectCompanyDropdown = ({
       toast.success(t("user.profile.multiSelectCompany.companyAddedSuccessfully"));
     } catch (error) {
       console.error("Error creating company:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("user.profile.multiSelectCompany.failedToAddCompany");
       toast.error(
-        error?.message || t("user.profile.multiSelectCompany.failedToAddCompany")
+        message || t("user.profile.multiSelectCompany.failedToAddCompany")
       );
     } finally {
       setIsAddingCompany(false);
@@ -205,6 +209,19 @@ const MultiSelectCompanyDropdown = ({
     const updatedExperiences = workExperiences.map((exp) =>
       exp.companyId === companyId ? { ...exp, [field]: value } : exp,
     );
+    onWorkExperiencesChange(updatedExperiences);
+  };
+
+  const toggleCurrentExperience = (companyId: string) => {
+    const updatedExperiences = workExperiences.map((exp) => {
+      if (exp.companyId !== companyId) return exp;
+      const nextIsCurrent = !Boolean(exp.isCurrent);
+      return {
+        ...exp,
+        isCurrent: nextIsCurrent,
+        endDate: nextIsCurrent ? null : exp.endDate,
+      };
+    });
     onWorkExperiencesChange(updatedExperiences);
   };
 
@@ -312,6 +329,25 @@ const MultiSelectCompanyDropdown = ({
                     {t("user.profile.multiSelectCompany.period")}
                   </Text>
 
+                  <TouchableOpacity
+                    onPress={() => toggleCurrentExperience(company.id)}
+                    className="flex-row items-center mb-3"
+                    activeOpacity={0.8}
+                  >
+                    <View
+                      className={`w-5 h-5 rounded border mr-2 items-center justify-center ${
+                        experience.isCurrent ? "bg-[#11293A] border-[#11293A]" : "border-[#D1D5DB] bg-white"
+                      }`}
+                    >
+                      {experience.isCurrent ? (
+                        <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+                      ) : null}
+                    </View>
+                    <Text className="text-sm text-gray-800 font-proximanova-regular">
+                      {t("user.setup.stillWorking", { defaultValue: "Still working here" })}
+                    </Text>
+                  </TouchableOpacity>
+
                   <View className="flex-row gap-3">
                     {/* Start Date */}
                     <View className="flex-1">
@@ -338,6 +374,10 @@ const MultiSelectCompanyDropdown = ({
                         onDateChange={(date) =>
                           updateWorkExperience(company.id, "endDate", date)
                         }
+                        disabled={Boolean(experience.isCurrent)}
+                        placeholder={experience.isCurrent
+                          ? t("user.setup.present", { defaultValue: "Present" })
+                          : undefined}
                       />
                     </View>
                   </View>
