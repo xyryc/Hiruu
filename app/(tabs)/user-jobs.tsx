@@ -12,6 +12,8 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -36,64 +38,147 @@ const styles = StyleSheet.create({
   },
 });
 
+const JOBS_PAGE_LIMIT = 10;
+
 const UserJobs = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const getPublicRecruitments = useJobStore((s) => s.getPublicRecruitments);
   const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
+  const [isLoadingMoreFeatured, setIsLoadingMoreFeatured] = useState(false);
+  const [featuredPage, setFeaturedPage] = useState(1);
+  const [hasMoreFeatured, setHasMoreFeatured] = useState(true);
   const [suggestedJobs, setSuggestedJobs] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+  const [isLoadingMoreSuggested, setIsLoadingMoreSuggested] = useState(false);
+  const [suggestedPage, setSuggestedPage] = useState(1);
+  const [hasMoreSuggested, setHasMoreSuggested] = useState(true);
 
   const { unreadCount } = useUnreadApplications({
     autoRefresh: true,
     refreshInterval: 30000,
   });
 
-  const loadFeaturedJobs = useCallback(async () => {
+  const mergeById = (current: any[], incoming: any[]) => {
+    const seen = new Set<string>();
+    const merged = [...current, ...incoming].filter((item) => {
+      const id = String(item?.id || "");
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    return merged;
+  };
+
+  const loadFeaturedJobs = useCallback(async (page = 1, append = false) => {
     try {
-      setIsLoadingFeatured(true);
+      if (append) {
+        setIsLoadingMoreFeatured(true);
+      } else {
+        setIsLoadingFeatured(true);
+      }
       const result = await getPublicRecruitments({
-        page: 1,
-        limit: 10,
+        page,
+        limit: JOBS_PAGE_LIMIT,
         isFeatured: true,
       });
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
         (item: any) => item?.isActive === true
       );
-      setFeaturedJobs(jobs);
+      const totalPages = Number(result?.pagination?.totalPages || 1);
+      setFeaturedPage(page);
+      setHasMoreFeatured(page < totalPages);
+      setFeaturedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
-      setFeaturedJobs([]);
+      if (!append) {
+        setFeaturedJobs([]);
+        setHasMoreFeatured(false);
+      }
       toast.error(error?.message || t("user.jobsTab.failedToLoadFeaturedJobs"));
     } finally {
-      setIsLoadingFeatured(false);
+      if (append) {
+        setIsLoadingMoreFeatured(false);
+      } else {
+        setIsLoadingFeatured(false);
+      }
     }
   }, [getPublicRecruitments, t]);
 
-  const loadSuggestedJobs = useCallback(async () => {
+  const loadSuggestedJobs = useCallback(async (page = 1, append = false) => {
     try {
-      setIsLoadingSuggested(true);
+      if (append) {
+        setIsLoadingMoreSuggested(true);
+      } else {
+        setIsLoadingSuggested(true);
+      }
       const result = await getPublicRecruitments({
-        page: 1,
-        limit: 10,
+        page,
+        limit: JOBS_PAGE_LIMIT,
         isFeatured: false,
       });
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
         (item: any) => item?.isActive === true
       );
-      setSuggestedJobs(jobs);
+      const totalPages = Number(result?.pagination?.totalPages || 1);
+      setSuggestedPage(page);
+      setHasMoreSuggested(page < totalPages);
+      setSuggestedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
-      setSuggestedJobs([]);
+      if (!append) {
+        setSuggestedJobs([]);
+        setHasMoreSuggested(false);
+      }
       toast.error(error?.message || t("user.jobsTab.failedToLoadSuggestedJobs"));
     } finally {
-      setIsLoadingSuggested(false);
+      if (append) {
+        setIsLoadingMoreSuggested(false);
+      } else {
+        setIsLoadingSuggested(false);
+      }
     }
   }, [getPublicRecruitments, t]);
 
+  const loadMoreFeaturedJobs = useCallback(() => {
+    if (isLoadingFeatured || isLoadingMoreFeatured || !hasMoreFeatured) return;
+    void loadFeaturedJobs(featuredPage + 1, true);
+  }, [
+    featuredPage,
+    hasMoreFeatured,
+    isLoadingFeatured,
+    isLoadingMoreFeatured,
+    loadFeaturedJobs,
+  ]);
+
+  const loadMoreSuggestedJobs = useCallback(() => {
+    if (isLoadingSuggested || isLoadingMoreSuggested || !hasMoreSuggested) return;
+    void loadSuggestedJobs(suggestedPage + 1, true);
+  }, [
+    hasMoreSuggested,
+    isLoadingMoreSuggested,
+    isLoadingSuggested,
+    loadSuggestedJobs,
+    suggestedPage,
+  ]);
+
+  const isNearVerticalEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    return layoutMeasurement.height + contentOffset.y >= contentSize.height - 160;
+  };
+
+  const isNearHorizontalEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    return layoutMeasurement.width + contentOffset.x >= contentSize.width - 80;
+  };
+
   useFocusEffect(
     useCallback(() => {
-      loadFeaturedJobs();
-      loadSuggestedJobs();
+      setFeaturedPage(1);
+      setSuggestedPage(1);
+      setHasMoreFeatured(true);
+      setHasMoreSuggested(true);
+      loadFeaturedJobs(1, false);
+      loadSuggestedJobs(1, false);
     }, [loadFeaturedJobs, loadSuggestedJobs])
   );
 
@@ -140,7 +225,15 @@ const UserJobs = () => {
         }
       />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        onScroll={(event) => {
+          if (isNearVerticalEnd(event)) {
+            loadMoreSuggestedJobs();
+          }
+        }}
+        scrollEventThrottle={16}
+      >
         {/* search box */}
         <View className="flex-row items-center gap-1.5 mt-3.5 px-5">
           <TouchableOpacity
@@ -208,26 +301,30 @@ const UserJobs = () => {
               <View className="py-10 px-5 items-center justify-center">
                 <ActivityIndicator />
               </View>
-            ) : featuredJobs.length === 1 ? (
-              <View className="px-5">
-                <JobCard
-                  job={featuredJobs[0]}
-                  className="bg-white border border-[#EEEEEE] mb-4"
-                />
-              </View>
             ) : (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 className="pl-5"
+                onScroll={(event) => {
+                  if (isNearHorizontalEnd(event)) {
+                    loadMoreFeaturedJobs();
+                  }
+                }}
+                scrollEventThrottle={16}
               >
-                {featuredJobs.slice(0, 10).map((item: any) => (
+                {featuredJobs.map((item: any) => (
                   <JobCard
                     key={item?.id}
                     job={item}
                     className="mr-2.5 w-[360px]"
                   />
                 ))}
+                {isLoadingMoreFeatured && (
+                  <View className="w-14 justify-center items-center">
+                    <ActivityIndicator />
+                  </View>
+                )}
               </ScrollView>
             )}
           </View>
@@ -260,13 +357,20 @@ const UserJobs = () => {
                 <ActivityIndicator />
               </View>
             ) : (
-              suggestedJobs.slice(0, 4).map((item: any) => (
-                <JobCard
-                  key={`suggested-${item?.id}`}
-                  job={item}
-                  className="bg-white border border-[#EEEEEE] mb-4"
-                />
-              ))
+              <>
+                {suggestedJobs.map((item: any) => (
+                  <JobCard
+                    key={`suggested-${item?.id}`}
+                    job={item}
+                    className="bg-white border border-[#EEEEEE] mb-4"
+                  />
+                ))}
+                {isLoadingMoreSuggested && (
+                  <View className="py-2 items-center">
+                    <ActivityIndicator />
+                  </View>
+                )}
+              </>
             )}
           </View>
         )}

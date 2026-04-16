@@ -116,13 +116,13 @@ const PostJob = () => {
     return (myBusinesses || []).find((business: any) => business?.id === businessId) || null;
   }, [myBusinesses, selectedBusinesses]);
 
-  const isPremiumBusiness = Boolean(selectedBusiness?.isPremium);
+  const isFeaturedBusiness = Boolean(selectedBusiness?.isFeatured);
 
   useEffect(() => {
-    if (!isPremiumBusiness && isFeatured) {
+    if (!isFeaturedBusiness && isFeatured) {
       setIsFeatured(false);
     }
-  }, [isFeatured, isPremiumBusiness]);
+  }, [isFeatured, isFeaturedBusiness]);
 
   const genderOptions = useMemo(
     () => [
@@ -228,7 +228,7 @@ const PostJob = () => {
       requiredSkills: [],
       salaryType: "hourly" as const,
       numberOfOpenings: parsedOpenings,
-      isFeatured: isPremiumBusiness ? isFeatured : false,
+      isFeatured: isFeaturedBusiness ? isFeatured : false,
     };
 
     try {
@@ -431,14 +431,14 @@ const PostJob = () => {
             placeholderTextColor="#7D7D7D"
           />
 
-            {isPremiumBusiness && (
-              <View className="mt-7 flex-row items-center justify-between border border-[#EEEEEE] rounded-[10px] px-4 py-3">
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {t("user.jobs.postJob.featured")}
-                </Text>
-                <ToggleButton isOn={isFeatured} setIsOn={setIsFeatured} />
-              </View>
-            )}
+          {isFeaturedBusiness && (
+            <View className="mt-7 flex-row items-center justify-between border border-[#EEEEEE] rounded-[10px] px-4 py-3">
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                {t("user.jobs.postJob.featured")}
+              </Text>
+              <ToggleButton isOn={isFeatured} setIsOn={setIsFeatured} />
+            </View>
+          )}
 
           <View className="mt-8 mb-5">
             <PrimaryButton
