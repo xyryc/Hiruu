@@ -135,7 +135,7 @@ const UpdateRole = () => {
           );
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load permissions");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadPermissions"));
       } finally {
         if (isMounted) {
           setPermissionsLoading(false);
@@ -147,7 +147,7 @@ const UpdateRole = () => {
     return () => {
       isMounted = false;
     };
-  }, [getPermissions]);
+  }, [getPermissions, t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -196,7 +196,7 @@ const UpdateRole = () => {
           setPermissionValues({});
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load role details");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoleDetails"));
       } finally {
         if (isMounted) {
           setRoleDetailsLoading(false);
@@ -208,7 +208,7 @@ const UpdateRole = () => {
     return () => {
       isMounted = false;
     };
-  }, [businessId, getBusinessRoleById, targetRoleId]);
+  }, [businessId, getBusinessRoleById, t, targetRoleId]);
 
   const filteredGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -275,22 +275,22 @@ const UpdateRole = () => {
 
   const handleUpdateRole = async () => {
     if (!businessId) {
-      toast.error("Please select a business first.");
+      toast.error(t("user.jobs.schedule.selectBusinessFirst"));
       return;
     }
 
     if (!targetRoleId) {
-      toast.error("Role id is missing.");
+      toast.error(t("user.jobs.schedule.roleIdMissing"));
       return;
     }
 
     if (!selectedRole?.id) {
-      toast.error("Please select a predefined role.");
+      toast.error(t("user.jobs.schedule.selectPredefinedRole"));
       return;
     }
 
     if (Object.keys(permissionValues).length === 0) {
-      toast.error("Please select at least one permission.");
+      toast.error(t("user.jobs.schedule.selectAtLeastOnePermission"));
       return;
     }
 
@@ -303,10 +303,10 @@ const UpdateRole = () => {
     try {
       setIsSubmitting(true);
       await updateBusinessRole(businessId, targetRoleId, payload);
-      toast.success("Role updated successfully.");
+      toast.success(t("user.jobs.schedule.roleUpdatedSuccessfully"));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to update role");
+      toast.error(error?.message || t("user.jobs.schedule.failedToUpdateRole"));
     } finally {
       setIsSubmitting(false);
     }
@@ -326,13 +326,13 @@ const UpdateRole = () => {
             style={{ paddingTop: insets.top + 15, paddingBottom: 20 }}
             className=""
             onPressBack={() => router.back()}
-            title="Update Role"
+            title={t("user.jobs.schedule.updateRole")}
             titleClass="text-primary dark:text-dark-primary"
             iconColor={isDark ? "#fff" : "#111"}
             components={
               <TouchableOpacity onPress={handleReset} className="">
                 <Text className="font-proximanova-semibold text-[#4FB2F3]">
-                  Reset
+                  {t("user.jobs.schedule.reset")}
                 </Text>
               </TouchableOpacity>
             }
@@ -350,12 +350,12 @@ const UpdateRole = () => {
 
           <View className="mt-6">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Description
+              {t("user.jobs.schedule.description")}
             </Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Add role description"
+              placeholder={t("user.jobs.schedule.addRoleDescription")}
               placeholderTextColor="#7A7A7A"
               multiline
               className="mt-3 min-h-[100px] border border-[#EEEEEE] rounded-[10px] px-4 py-3 font-proximanova-regular text-primary dark:text-dark-primary"
@@ -366,19 +366,19 @@ const UpdateRole = () => {
           {/* Permissions Section */}
           <View className="mt-8">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              Permissions Section
+              {t("user.jobs.schedule.permissionsSection")}
             </Text>
             <SearchBar onSearch={(text) => setSearch(text)} className="mt-4" />
             <View className="flex-row justify-between items-center px-4 py-3 border border-[#EEEEEE] rounded-[10px] mt-4">
               <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-secondary">
-                Actions
+                {t("user.jobs.schedule.actions")}
               </Text>
               <View className="flex-row items-center gap-7 ">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  View
+                  {t("user.jobs.schedule.view")}
                 </Text>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Edit
+                  {t("user.jobs.schedule.edit")}
                 </Text>
               </View>
             </View>
@@ -430,7 +430,7 @@ const UpdateRole = () => {
               filteredGroups.length === 0 && (
               <View className="py-8 items-center">
                 <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                  No permissions found.
+                  {t("user.jobs.schedule.noPermissionsFound")}
                 </Text>
               </View>
             )}
@@ -439,14 +439,14 @@ const UpdateRole = () => {
               permissionGroups.length === 0 && (
               <View className="py-8 items-center">
                 <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                  No permissions available.
+                  {t("user.jobs.schedule.noPermissionsAvailable")}
                 </Text>
               </View>
             )}
           </View>
 
           <PrimaryButton
-            title="Update Role"
+            title={t("user.jobs.schedule.updateRole")}
             className="my-10"
             onPress={handleUpdateRole}
             loading={isSubmitting}
