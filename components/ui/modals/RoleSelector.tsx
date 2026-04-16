@@ -1,8 +1,8 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
@@ -122,9 +122,16 @@ const RoleSelector = ({
             contentContainerStyle={{ paddingBottom: 8 }}
           >
             {loading && (
-              <View className="p-4 items-center">
-                <ActivityIndicator size="small" />
-              </View>
+              <AutoSkeletonView isLoading={true} defaultRadius={10}>
+                <View className="px-4 pb-3">
+                  {Array.from({ length: 4 }, (_, index) => (
+                    <View
+                      key={`role-option-skeleton-${index}`}
+                      className="h-10 bg-[#E5E7EB] rounded-md mt-3"
+                    />
+                  ))}
+                </View>
+              </AutoSkeletonView>
             )}
             {!loading &&
               filteredRoles.map((item, index) => (

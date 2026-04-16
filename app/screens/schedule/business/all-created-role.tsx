@@ -8,12 +8,12 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -101,37 +101,51 @@ const AllCreatedRole = () => {
       <ScrollView className="mx-5">
         <View className="mt-4">
           {isLoading ? (
-            <View className="flex-1 items-center">
-              <ActivityIndicator size="large" />
-            </View>
-          ) : roles.length > 0 ? (
-            roles.map((role, index) => (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/screens/schedule/business/update-role",
-                    params: {
-                      businessRoleId: role?.id,
-                      roleId: role?.roleId,
-                    },
-                  })
-                }
-                className="flex-row justify-between items-center border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
-                key={role?.id || index}
-              >
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
-                  {role?.role?.name || t("user.jobs.schedule.roleFallback")}
-                </Text>
-
-                {/* three dot dropdown */}
-                <TouchableOpacity
-                  onPress={() => setMenuRoleId(role.id)}
-                  className="p-2 rounded-full"
+            <AutoSkeletonView isLoading={true} defaultRadius={10}>
+              {Array.from({ length: 5 }, (_, index) => (
+                <View
+                  key={`role-skeleton-${index}`}
+                  className="flex-row justify-between items-center border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
                 >
-                  <Entypo name="dots-three-vertical" size={16} color="black" />
+                  <View className="h-4 w-36 bg-[#E5E7EB] rounded-md" />
+                  <View className="h-4 w-4 bg-[#E5E7EB] rounded-full" />
+                </View>
+              ))}
+            </AutoSkeletonView>
+          ) : roles.length > 0 ? (
+            roles.map((role, index) => {
+              const roleName = String(role?.role?.name || "").trim().toLowerCase();
+              const isOwnerRole = roleName === "owner";
+              return (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/screens/schedule/business/update-role",
+                      params: {
+                        businessRoleId: role?.id,
+                        roleId: role?.roleId,
+                      },
+                    })
+                  }
+                  className="flex-row justify-between items-center border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
+                  key={role?.id || index}
+                >
+                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
+                    {role?.role?.name || t("user.jobs.schedule.roleFallback")}
+                  </Text>
+
+                  {/* three dot dropdown */}
+                  {!isOwnerRole ? (
+                    <TouchableOpacity
+                      onPress={() => setMenuRoleId(role.id)}
+                      className="p-2 rounded-full"
+                    >
+                      <Entypo name="dots-three-vertical" size={16} color="black" />
+                    </TouchableOpacity>
+                  ) : <View className='w-6 h-6' />}
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))
+              );
+            })
           ) : (
             <View className="py-10 items-center">
               <Text className="text-sm text-secondary dark:text-dark-secondary">

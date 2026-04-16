@@ -8,9 +8,9 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -306,9 +306,19 @@ const CreateRole = () => {
           {/* toggle button */}
           <View>
             {permissionsLoading && (
-              <View className="py-8 items-center">
-                <ActivityIndicator size="small" />
-              </View>
+              <AutoSkeletonView isLoading={true} defaultRadius={10}>
+                {Array.from({ length: 3 }, (_, index) => (
+                  <View
+                    key={`permission-skeleton-${index}`}
+                    className="border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
+                  >
+                    <View className="flex-row justify-between items-center">
+                      <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+                      <View className="h-6 w-10 bg-[#E5E7EB] rounded-full" />
+                    </View>
+                  </View>
+                ))}
+              </AutoSkeletonView>
             )}
             {filteredGroups.map((group) => (
               <View
