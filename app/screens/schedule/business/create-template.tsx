@@ -4,6 +4,7 @@ import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
+import { Image } from "expo-image";
 import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -467,9 +468,20 @@ const CreateTemplate = () => {
               </View>
             ) : (
               <View className="mt-4 px-4 py-3 border border-[#EEEEEE] rounded-[10px] bg-[#F9FAFB]">
-                <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {selectedBusinessInfo?.name || t("user.jobs.schedule.noBusinessSelected")}
-                </Text>
+                <View className="flex-row items-center gap-2.5">
+                  <Image
+                    source={
+                      selectedBusinessInfo?.logo
+                        ? { uri: selectedBusinessInfo.logo }
+                        : require("@/assets/images/placeholder.png")
+                    }
+                    style={{ width: 28, height: 28, borderRadius: 999 }}
+                    contentFit="cover"
+                  />
+                  <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary flex-1">
+                    {selectedBusinessInfo?.name || t("user.jobs.schedule.noBusinessSelected")}
+                  </Text>
+                </View>
                 {selectedBusinessInfo?.address?.address ? (
                   <Text className="mt-1 text-xs font-proximanova-regular text-secondary">
                     {selectedBusinessInfo.address.address}

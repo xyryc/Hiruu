@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -29,6 +30,7 @@ import {
 import { toast } from "sonner-native";
 
 const EditTemplate = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -83,9 +85,9 @@ const EditTemplate = () => {
 
   useEffect(() => {
     getMyBusinesses().catch((error: any) => {
-      toast.error(error?.message || "Failed to load businesses");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadBusinesses"));
     });
-  }, [getMyBusinesses]);
+  }, [getMyBusinesses, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -139,14 +141,14 @@ const EditTemplate = () => {
 
           setRoleSlotsResetVersion((prev) => prev + 1);
         } catch (error: any) {
-          toast.error(error?.message || "Failed to load template");
+          toast.error(error?.message || t("user.jobs.schedule.failedToLoadTemplate"));
         } finally {
           setIsLoadingTemplate(false);
         }
       };
 
       loadTemplate();
-    }, [getShiftTemplateById, templateBusinessId, templateIdValue])
+    }, [getShiftTemplateById, t, templateBusinessId, templateIdValue])
   );
 
   useEffect(() => {
@@ -165,7 +167,7 @@ const EditTemplate = () => {
         }));
         setRoleOptions(mapped.filter((item: any) => item.value));
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load roles");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoles"));
         setRoleOptions([]);
       } finally {
         setRolesLoading(false);
@@ -173,7 +175,7 @@ const EditTemplate = () => {
     };
 
     loadRoles();
-  }, [getMyBusinessRoles, selectedBusiness]);
+  }, [getMyBusinessRoles, selectedBusiness, t]);
 
   const businessOptions = useMemo(
     () =>
@@ -222,7 +224,7 @@ const EditTemplate = () => {
     const shiftEndMinutes = toMinutes(shiftEndTime);
 
     if (shiftEndMinutes <= shiftStartMinutes) {
-      return "Shift end time must be after shift start time.";
+      return t("user.jobs.schedule.shiftEndTimeMustBeAfterStartTime");
     }
 
     return null;
@@ -237,14 +239,14 @@ const EditTemplate = () => {
     const breakEndMinutes = toMinutes(breakEndTime);
 
     if (breakEndMinutes <= breakStartMinutes) {
-      return "Break end time must be after break start time.";
+      return t("user.jobs.schedule.breakEndTimeMustBeAfterStartTime");
     }
 
     if (
       breakStartMinutes < shiftStartMinutes ||
       breakEndMinutes > shiftEndMinutes
     ) {
-      return "Break time must be within the shift time range.";
+      return t("user.jobs.schedule.breakTimeMustBeWithinShiftTimeRange");
     }
 
     return null;
@@ -257,17 +259,17 @@ const EditTemplate = () => {
 
   const previewData = useMemo(
     () => ({
-      templateName: templateName.trim() || "Template",
+      templateName: templateName.trim() || t("user.jobs.schedule.templateNameFallback"),
       shiftTimeRange: `${formatTime12(shiftStartTime)} - ${formatTime12(shiftEndTime)}`,
       breakTimeRange: hasBreak
         ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
-        : "No break",
+        : t("user.jobs.schedule.noBreak"),
       totalStaff: currentRoleSlotsTotal,
       roles: roleRequirements.map((item) => ({
-        roleName: item.roleName || "Role",
+        roleName: item.roleName || t("user.jobs.schedule.roleFallback"),
         count: item.count || 0,
       })),
-      businessName: selectedBusinessInfo?.name || "Business",
+      businessName: selectedBusinessInfo?.name || t("user.jobs.schedule.businessFallback"),
       businessLogo: selectedBusinessInfo?.logo || undefined,
     }),
     [
@@ -286,17 +288,17 @@ const EditTemplate = () => {
 
   const getValidatedPayload = () => {
     if (!selectedBusiness || !templateIdValue) {
-      toast.error("Template not found.");
+      toast.error(t("user.jobs.schedule.templateNotFound"));
       return null;
     }
 
     if (!templateName.trim()) {
-      toast.error("Template name is required.");
+      toast.error(t("user.jobs.schedule.templateNameRequired"));
       return null;
     }
 
     if (roleRequirements.length === 0) {
-      toast.error("Please add at least one role slot.");
+      toast.error(t("user.jobs.schedule.addAtLeastOneRoleSlot"));
       return null;
     }
 
@@ -341,11 +343,11 @@ const EditTemplate = () => {
     try {
       setIsSubmitting(true);
       await updateShiftTemplate(selectedBusiness, templateIdValue, payload);
-      toast.success("Shift template updated successfully.");
+      toast.success(t("user.jobs.schedule.shiftTemplateUpdated"));
       setIsPreview(false);
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to update shift template");
+      toast.error(error?.message || t("user.jobs.schedule.failedToUpdateShiftTemplate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -359,18 +361,18 @@ const EditTemplate = () => {
 
   const handleDeleteTemplate = async () => {
     if (!selectedBusiness || !templateIdValue) {
-      toast.error("Template not found.");
+      toast.error(t("user.jobs.schedule.templateNotFound"));
       return;
     }
 
     try {
       setIsDeleting(true);
       await deleteShiftTemplate(selectedBusiness, templateIdValue);
-      toast.success("Shift template deleted successfully.");
+      toast.success(t("user.jobs.schedule.shiftTemplateDeleted"));
       setIsDeleteConfirmOpen(false);
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || "Failed to delete shift template");
+      toast.error(error?.message || t("user.jobs.schedule.failedToDeleteShiftTemplate"));
     } finally {
       setIsDeleting(false);
     }
@@ -389,7 +391,7 @@ const EditTemplate = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="Edit Template"
+          title={t("user.jobs.schedule.editTemplate")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -408,13 +410,13 @@ const EditTemplate = () => {
           ) : (
             <>
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-                Template Name
+                {t("user.jobs.schedule.templateName")}
               </Text>
               <TextInput
                 value={templateName}
                 onChangeText={setTemplateName}
                 className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary border border-[#EEEEEE] mt-2.5 rounded-[10px]"
-                placeholder="Morning Shift"
+                placeholder={t("user.jobs.schedule.morningShift")}
                 placeholderTextColor="#7D7D7D"
                 textAlignVertical="top"
               />
@@ -423,17 +425,17 @@ const EditTemplate = () => {
                 <View className="flex-row gap-4 items-center">
                   <View className="flex-1">
                     <TimePicker
-                      title="Shift Start Time"
+                      title={t("user.jobs.schedule.shiftStartTime")}
                       value={shiftStartTime}
                       onChangeTime={setShiftStartTime}
                     />
                   </View>
                   <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    To
+                    {t("user.jobs.schedule.to")}
                   </Text>
                   <View className="flex-1">
                     <TimePicker
-                      title="Shift End Time"
+                      title={t("user.jobs.schedule.shiftEndTime")}
                       value={shiftEndTime}
                       onChangeTime={setShiftEndTime}
                     />
@@ -453,7 +455,7 @@ const EditTemplate = () => {
                     color={hasBreak ? "#4FB2F3" : "#A0A0A0"}
                   />
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    Add break (optional)
+                    {t("user.jobs.schedule.addBreakOptional")}
                   </Text>
                 </TouchableOpacity>
 
@@ -489,7 +491,7 @@ const EditTemplate = () => {
 
               <View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-                  Select business
+                  {t("user.jobs.schedule.selectBusiness")}
                 </Text>
                 {myBusinessesLoading ? (
                   <View className="mt-4 py-4 items-center border border-[#EEEEEE] rounded-[10px]">
@@ -498,7 +500,7 @@ const EditTemplate = () => {
                 ) : (
                   <SelectDropdown
                     className="mt-4"
-                    placeholder="Choose business"
+                    placeholder={t("user.jobs.schedule.chooseBusiness")}
                     options={businessOptions}
                     value={selectedBusiness}
                     onSelect={(value: string) => {
@@ -512,12 +514,12 @@ const EditTemplate = () => {
 
               <View className="mt-8 flex-row justify-between items-center">
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  Roles
+                  {t("user.jobs.schedule.roles")}
                 </Text>
                 <View className="flex-row items-center gap-1.5">
                   <Feather name="users" size={14} color="#4FB2F3" />
                   <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
-                    Required count: {currentRoleSlotsTotal}
+                    {t("user.jobs.schedule.requiredCount")}: {currentRoleSlotsTotal}
                   </Text>
                 </View>
               </View>
@@ -530,7 +532,7 @@ const EditTemplate = () => {
                 ) : (
                   <SelectDropdown
                     placeholder={
-                      selectedBusiness ? "Choose role" : "Select business first"
+                      selectedBusiness ? t("user.jobs.schedule.chooseRole") : t("user.jobs.schedule.selectBusinessFirst")
                     }
                     options={roleOptions}
                     value={selectedRole}
@@ -557,7 +559,7 @@ const EditTemplate = () => {
                 onRoleSlotsChange={handleRoleSlotsChange}
                 onPressAddRole={() => {
                   if (!selectedBusiness) {
-                    toast.error("Select business first.");
+                    toast.error(t("user.jobs.schedule.selectBusinessFirst"));
                     return;
                   }
                   setOpenRoleDropdownTrigger((prev) => prev + 1);
@@ -574,7 +576,7 @@ const EditTemplate = () => {
                     }`}
                 >
                   <Text className="font-proximanova-semibold text-base text-center text-[#ffffff]">
-                    Delete
+                    {t("common.delete")}
                   </Text>
                 </TouchableOpacity>
                 <PrimaryButton
@@ -586,7 +588,7 @@ const EditTemplate = () => {
                     Boolean(shiftTimeValidationError) ||
                     Boolean(breakTimeValidationError)
                   }
-                  title="Save"
+                  title={t("user.jobs.schedule.save")}
                 />
               </View>
             </>
@@ -603,10 +605,10 @@ const EditTemplate = () => {
           <DeleteConfirmModal
             visible={isDeleteConfirmOpen}
             deleting={isDeleting}
-            title="Delete Shift Template"
-            description="Are you sure you want to delete this shift template? This action cannot be undone."
-            confirmText="Delete"
-            cancelText="Cancel"
+            title={t("user.jobs.schedule.deleteShiftTemplate")}
+            description={t("user.jobs.schedule.deleteShiftTemplateDescription")}
+            confirmText={t("common.delete")}
+            cancelText={t("common.cancel")}
             onClose={() => {
               if (isDeleting) return;
               setIsDeleteConfirmOpen(false);

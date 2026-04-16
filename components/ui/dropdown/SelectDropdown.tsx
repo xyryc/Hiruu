@@ -121,11 +121,10 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
           {!(hideSelectedText && value) && (
             <Text
-              className={`text-sm ml-2.5 font-proximanova-regular ${
-                value
+              className={`text-sm ml-2.5 font-proximanova-regular ${value
                   ? "text-primary dark:text-dark-primary"
                   : "text-placeholder dark:text-dark-placeholder"
-              }`}
+                }`}
             >
               {selectedOption?.label || placeholder}
             </Text>
