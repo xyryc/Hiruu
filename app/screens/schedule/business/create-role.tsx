@@ -5,6 +5,7 @@ import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
@@ -221,7 +222,15 @@ const CreateRole = () => {
       toast.success(t("user.jobs.schedule.roleCreatedSuccessfully"));
       router.back();
     } catch (error: any) {
-      toast.error(error?.message || t("user.jobs.schedule.failedToCreateRole"));
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message;
+      if (typeof messageKey === "string" && messageKey.length > 0) {
+        toast.error(translateApiMessage(messageKey));
+      } else {
+        toast.error(t("user.jobs.schedule.failedToCreateRole"));
+      }
     } finally {
       setIsSubmitting(false);
     }

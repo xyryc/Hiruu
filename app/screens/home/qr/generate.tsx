@@ -274,7 +274,7 @@ const QrGenerate = () => {
 
       <PrimaryButton
         onPress={shareQRCode}
-        title={t("user.profile.qr.scanQrCode")}
+        title={t("user.profile.qr.shareQrCode")}
         className="mx-5 my-10"
       />
     </SafeAreaView>

@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { useBusinessStore } from "@/stores/businessStore";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -187,11 +187,6 @@ const Assign = () => {
             title="Assign"
             titleClass="text-primary dark:text-dark-primary"
             iconColor={isDark ? "#fff" : "#111"}
-            components={
-              <View className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center">
-                <MaterialCommunityIcons name="line-scan" size={18} color="black" />
-              </View>
-            }
           />
 
           <View className="mx-4">

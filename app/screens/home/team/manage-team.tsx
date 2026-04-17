@@ -13,6 +13,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -187,6 +188,22 @@ const ManageTeamPanel = () => {
         return matchesFilter && matchesSearch;
       }),
     [filter, searchQuery, teamMembers]
+  );
+
+  const skeletonTeamMembers = useMemo(
+    () =>
+      Array.from({ length: 5 }, (_, index) => ({
+        id: `manage-team-skeleton-${index}`,
+        userId: "",
+        name: "Loading",
+        roleId: null,
+        role: "Loading",
+        profilePic: null,
+        workHourPeriod: null,
+        workHourAmount: null,
+        location: "Loading",
+      })),
+    []
   );
 
   const loadRoles = useCallback(async () => {
@@ -570,13 +587,55 @@ const ManageTeamPanel = () => {
           ))}
         </ScrollView>
 
-        {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#4FB2F3" />
-          </View>
-        ) : (
-          <FlatList
-            data={filteredTeamMembers}
+	        {loading ? (
+	          <AutoSkeletonView isLoading={true} defaultRadius={24}>
+	            <View pointerEvents="none" className="pb-10">
+	              {skeletonTeamMembers.map((item) => (
+	                <View
+	                  key={item.id}
+	                  className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4"
+	                >
+	                  <View className="flex-row items-start justify-between">
+	                    <View className="flex-row items-center gap-3 flex-1">
+	                      <View className="w-[42px] h-[42px] rounded-full bg-[#E5E7EB]" />
+	                      <View className="flex-1">
+	                        <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+	                        <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+	                      </View>
+	                    </View>
+	                    <View className="flex-row items-center gap-2">
+	                      <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+	                      <View className="w-4 h-4 rounded-full bg-[#E5E7EB]" />
+	                    </View>
+	                  </View>
+
+	                  <View className="mt-4">
+	                    <View className="flex-row justify-between">
+	                      <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
+	                      <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+	                    </View>
+	                    <View className="flex-row justify-between mt-2.5">
+	                      <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+	                      <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+	                    </View>
+	                  </View>
+
+	                  <View className="mt-4 h-[2px] w-full bg-[#E5E7EB] rounded-full" />
+
+	                  <View className="mt-4 flex-row items-center justify-between">
+	                    <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
+	                    <View className="flex-row items-center gap-4">
+	                      <View className="w-7 h-7 rounded-full bg-[#E5E7EB]" />
+	                      <View className="h-9 w-28 rounded-full bg-[#E5E7EB]" />
+	                    </View>
+	                  </View>
+	                </View>
+	              ))}
+	            </View>
+	          </AutoSkeletonView>
+	        ) : (
+	          <FlatList
+	            data={filteredTeamMembers}
             renderItem={renderTeamMember}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 100 }}

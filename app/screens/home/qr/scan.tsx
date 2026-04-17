@@ -245,6 +245,15 @@ const QrScanner = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          onPress={() => router.push("/screens/home/qr/enter-code")}
+          className="mt-6 py-2"
+        >
+          <Text className="text-sm font-proximanova-semibold text-[#4FB2F3] text-center">
+            Enter invite code instead
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Scan Result Modal */}

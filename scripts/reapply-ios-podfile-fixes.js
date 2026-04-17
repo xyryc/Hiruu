@@ -30,7 +30,7 @@ const oldConditionalUseFrameworksRegex =
   /\n\s*use_frameworks!\s*:linkage\s*=>\s*podfile_properties\['ios\.useFrameworks'\]\.to_sym\s*if\s*podfile_properties\['ios\.useFrameworks'\]\s*\n\s*use_frameworks!\s*:linkage\s*=>\s*ENV\['USE_FRAMEWORKS'\]\.to_sym\s*if\s*ENV\['USE_FRAMEWORKS'\]\s*/m;
 
 if (oldConditionalUseFrameworksRegex.test(content)) {
-  content = content.replace(oldConditionalUseFrameworksRegex, `\n${forcedUseFrameworksLine}`);
+  content = content.replace(oldConditionalUseFrameworksRegex, `\n${forcedUseFrameworksLine}\n`);
   changed = true;
 } else if (!content.includes(forcedUseFrameworksLine)) {
   const nativeModulesAnchor = /(config\s*=\s*use_native_modules!\(config_command\)\n)/;
@@ -41,6 +41,13 @@ if (oldConditionalUseFrameworksRegex.test(content)) {
   content = content.replace(nativeModulesAnchor, `$1\n${forcedUseFrameworksLine}\n`);
   changed = true;
 }
+
+// If a previous run produced an invalid Podfile by removing the newline between
+// `use_frameworks!` and `use_react_native!`, repair it.
+content = content.replace(
+  /(\n\s*use_frameworks!\s*:linkage\s*=>\s*:static)\s*use_react_native!\s*\(/m,
+  `$1\n\n  use_react_native!(`
+);
 
 const lines = content.split('\n');
 const postStart = lines.findIndex((line) => line.includes('post_install do |installer|'));
@@ -95,7 +102,7 @@ const patchBlock = [
 ].join('\n');
 
 if (!updatedPostBlock.includes("next unless target.name.start_with?('RNFB')")) {
-  updatedPostBlock = updatedPostBlock.replace(/\nend\s*$/, `${patchBlock}\n  end`);
+  updatedPostBlock = updatedPostBlock.replace(/\n\s*end\s*$/, `${patchBlock}\n  end`);
 }
 
 if (updatedPostBlock !== postBlock) {
