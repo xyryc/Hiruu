@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -78,6 +79,11 @@ const AllProfiles = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 4 }, (_, index) => ({ id: `all-profiles-skeleton-${index}` })),
+    []
+  );
+  const showInlineSkeleton = isLoading && profiles.length > 0 && !isLoadingMore;
   const profilesType = useMemo(() => parseProfilesTypeParam(params.type), [params.type]);
   const screenTitle =
     profilesType === "featured"
@@ -183,22 +189,44 @@ const AllProfiles = () => {
       </View>
 
       <FlatList
-        data={profiles}
+        data={showInlineSkeleton ? skeletonItems : profiles}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => (
           <View className="px-5">
-            <BusinessJobCard
-              className="mt-4"
-              status={profilesType === "featured" ? "featured" : undefined}
-              profile={item}
-            />
+            {showInlineSkeleton ? (
+              <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                <View pointerEvents="none">
+                  <BusinessJobCard
+                    className="mt-4"
+                    status={profilesType === "featured" ? "featured" : undefined}
+                    profile={item as any}
+                  />
+                </View>
+              </AutoSkeletonView>
+            ) : (
+              <BusinessJobCard
+                className="mt-4"
+                status={profilesType === "featured" ? "featured" : undefined}
+                profile={item}
+              />
+            )}
           </View>
         )}
         ListEmptyComponent={
           isLoading ? (
-            <View className="flex-1 items-center justify-center py-10">
-              <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
-            </View>
+            <AutoSkeletonView isLoading={true} defaultRadius={12}>
+              <View className="px-5 pb-5">
+                {skeletonItems.map((item) => (
+                  <View key={item.id}>
+                    <BusinessJobCard
+                      className="mt-4"
+                      status={profilesType === "featured" ? "featured" : undefined}
+                      profile={item as any}
+                    />
+                  </View>
+                ))}
+              </View>
+            </AutoSkeletonView>
           ) : (
             <View className="flex-1 items-center justify-center px-5 py-10">
               <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">

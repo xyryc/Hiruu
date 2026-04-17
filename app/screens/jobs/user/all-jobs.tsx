@@ -232,6 +232,7 @@ const AllJobs = () => {
     () => Array.from({ length: 4 }, (_, index) => ({ id: `all-jobs-skeleton-${index}` })),
     []
   );
+  const showInlineSkeleton = isLoading && jobs.length > 0 && !isLoadingMore;
 
   const handleLoadMore = async () => {
     if (!canLoadMore || isLoadingMore || isLoading) return;
@@ -295,14 +296,25 @@ const AllJobs = () => {
       </View>
 
       <FlatList
-        data={jobs}
+        data={showInlineSkeleton ? skeletonItems : jobs}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => (
           <View className="px-5 mt-4">
-            <JobCard
-              job={item}
-              className="bg-white border border-[#EEEEEE] mb-4"
-            />
+            {showInlineSkeleton ? (
+              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
+                <View pointerEvents="none">
+                  <JobCard
+                    job={item as any}
+                    className="bg-white border border-[#EEEEEE] mb-4"
+                  />
+                </View>
+              </AutoSkeletonView>
+            ) : (
+              <JobCard
+                job={item}
+                className="bg-white border border-[#EEEEEE] mb-4"
+              />
+            )}
           </View>
         )}
         ListEmptyComponent={

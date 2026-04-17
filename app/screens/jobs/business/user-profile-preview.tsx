@@ -17,6 +17,7 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   Alert,
@@ -206,9 +207,209 @@ const UserProfilePreview = () => {
           </View>
         </SafeAreaView>
 
-        <View className="pt-6 items-center">
-          <ActivityIndicator size="small" color="#4FB2F3" />
-        </View>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View className="mx-5 mt-3.5">
+              <View className="bg-white rounded-xl border border-[#4FB2F330] p-4">
+                <View className="flex-row items-center gap-3">
+                  <View
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: 999,
+                      backgroundColor: "#E5E7EB",
+                    }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        height: 16,
+                        width: "70%",
+                        borderRadius: 8,
+                        backgroundColor: "#E5E7EB",
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 12,
+                        width: "45%",
+                        marginTop: 10,
+                        borderRadius: 6,
+                        backgroundColor: "#E5E7EB",
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 12,
+                        width: "55%",
+                        marginTop: 10,
+                        borderRadius: 6,
+                        backgroundColor: "#E5E7EB",
+                      }}
+                    />
+                  </View>
+                </View>
+                <View
+                  style={{
+                    height: 12,
+                    width: "92%",
+                    marginTop: 16,
+                    borderRadius: 6,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+                <View
+                  style={{
+                    height: 12,
+                    width: "78%",
+                    marginTop: 10,
+                    borderRadius: 6,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+              </View>
+            </View>
+
+            {/* Section headers + cards */}
+            <View className="mx-5 mt-6">
+              <View className="flex-row items-center gap-2.5">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+                <View
+                  style={{
+                    height: 18,
+                    width: 140,
+                    borderRadius: 8,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  height: 90,
+                  marginTop: 14,
+                  borderRadius: 12,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="flex-row items-center gap-2.5">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+                <View
+                  style={{
+                    height: 18,
+                    width: 170,
+                    borderRadius: 8,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  height: 12,
+                  width: "96%",
+                  marginTop: 16,
+                  borderRadius: 6,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+              <View
+                style={{
+                  height: 12,
+                  width: "88%",
+                  marginTop: 10,
+                  borderRadius: 6,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+              <View
+                style={{
+                  height: 12,
+                  width: "74%",
+                  marginTop: 10,
+                  borderRadius: 6,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="flex-row items-center gap-2.5">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+                <View
+                  style={{
+                    height: 18,
+                    width: 150,
+                    borderRadius: 8,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  height: 110,
+                  marginTop: 18,
+                  borderRadius: 12,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="flex-row items-center gap-2.5">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+                <View
+                  style={{
+                    height: 18,
+                    width: 160,
+                    borderRadius: 8,
+                    backgroundColor: "#E5E7EB",
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  height: 70,
+                  marginTop: 14,
+                  borderRadius: 12,
+                  backgroundColor: "#E5E7EB",
+                }}
+              />
+            </View>
+          </AutoSkeletonView>
+        </ScrollView>
       </View>
     );
   }
@@ -504,4 +705,3 @@ const UserProfilePreview = () => {
 };
 
 export default UserProfilePreview;
-
