@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { RelativePathString, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -323,6 +324,20 @@ const BusinessScheduleScreen = () => {
     // console.log("[BusinessSchedule] shifts:", mappedShifts);
     return mappedShifts;
   }, [businessAssignments, t]);
+
+  const skeletonShifts = useMemo(
+    () =>
+      Array.from({ length: 4 }, (_, index) => ({
+        id: `business-schedule-skeleton-${index}`,
+        name: "Loading",
+        role: "Loading",
+        avatar: "",
+        shiftTime: "--:-- - --:--",
+        location: "--",
+        status: "upcoming",
+      })),
+    []
+  );
 
   const handleOpenShiftChat = async (shift: any) => {
     const participantId = shift?.userId;
@@ -707,9 +722,13 @@ const BusinessScheduleScreen = () => {
         </View>
 
         {businessAssignmentsLoading ? (
-          <View className="py-8 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
-          </View>
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View pointerEvents="none">
+              {skeletonShifts.map((shift) => (
+                <ShiftCard key={shift.id} shift={shift} onMessagePress={undefined} />
+              ))}
+            </View>
+          </AutoSkeletonView>
         ) : visibleShifts.length > 0 ? (
           visibleShifts.map((shift) => (
             <ShiftCard

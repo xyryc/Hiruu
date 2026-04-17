@@ -4,11 +4,11 @@ import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
 import RoleSlotsInput from "@/components/ui/inputs/RoleSlotsInput";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
-import { Image } from "expo-image";
 import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -467,7 +467,7 @@ const CreateTemplate = () => {
                 <ActivityIndicator size="small" />
               </View>
             ) : (
-              <View className="mt-4 px-4 py-3 border border-[#EEEEEE] rounded-[10px] bg-[#F9FAFB]">
+              <View className="mt-4 px-4 py-1 border border-[#EEEEEE] rounded-[10px]">
                 <View className="flex-row items-center gap-2.5">
                   <Image
                     source={

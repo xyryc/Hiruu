@@ -9,6 +9,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -176,16 +178,6 @@ const EditTemplate = () => {
 
     loadRoles();
   }, [getMyBusinessRoles, selectedBusiness, t]);
-
-  const businessOptions = useMemo(
-    () =>
-      (myBusinesses || []).map((business: any) => ({
-        label: business?.name || "Business",
-        value: business?.id || "",
-        avatar: business?.logo || undefined,
-      })),
-    [myBusinesses]
-  );
 
   const selectedRoleOption = useMemo(
     () => roleOptions.find((item) => item.value === selectedRole) || null,
@@ -404,9 +396,47 @@ const EditTemplate = () => {
           showsVerticalScrollIndicator={false}
         >
           {isLoadingTemplate ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" />
-            </View>
+            <AutoSkeletonView isLoading={true} defaultRadius={12}>
+              <View pointerEvents="none" className="mt-7">
+                {/* Template name */}
+                <View className="h-4 w-32 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-3 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+
+                {/* Description */}
+                <View className="mt-6 h-4 w-40 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-3 h-24 w-full bg-[#E5E7EB] rounded-[10px]" />
+
+                {/* Shift time */}
+                <View className="mt-8 h-4 w-36 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-4 flex-row gap-4">
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                </View>
+
+                {/* Break time */}
+                <View className="mt-8 h-5 w-48 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-4 flex-row gap-4 items-center">
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                  <View className="h-4 w-10 bg-[#E5E7EB] rounded-md" />
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                </View>
+
+                {/* Business selection */}
+                <View className="mt-8 h-4 w-44 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+
+                {/* Roles */}
+                <View className="mt-8 h-4 w-20 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+                <View className="mt-4 h-40 w-full bg-[#E5E7EB] rounded-[10px]" />
+
+                {/* Actions */}
+                <View className="mt-8 mb-5 flex-row gap-2">
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
+                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
+                </View>
+              </View>
+            </AutoSkeletonView>
           ) : (
             <>
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
@@ -472,7 +502,7 @@ const EditTemplate = () => {
                     </View>
 
                     <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                      To
+                      {t("user.jobs.schedule.to")}
                     </Text>
 
                     <TimePicker
@@ -491,24 +521,31 @@ const EditTemplate = () => {
 
               <View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-                  {t("user.jobs.schedule.selectBusiness")}
+                  {t("user.jobs.schedule.businessFallback")}
                 </Text>
+
                 {myBusinessesLoading ? (
                   <View className="mt-4 py-4 items-center border border-[#EEEEEE] rounded-[10px]">
                     <ActivityIndicator size="small" />
                   </View>
                 ) : (
-                  <SelectDropdown
-                    className="mt-4"
-                    placeholder={t("user.jobs.schedule.chooseBusiness")}
-                    options={businessOptions}
-                    value={selectedBusiness}
-                    onSelect={(value: string) => {
-                      setSelectedBusiness(value);
-                      setSelectedRole("");
-                      setRoleSelectionVersion(0);
-                    }}
-                  />
+                  <View className="mt-4 px-4 py-1 border border-[#EEEEEE] rounded-[10px]">
+                    <View className="flex-row items-center gap-2.5">
+                      <Image
+                        source={
+                          selectedBusinessInfo?.logo
+                            ? { uri: selectedBusinessInfo.logo }
+                            : require("@/assets/images/placeholder.png")
+                        }
+                        style={{ width: 28, height: 28, borderRadius: 999 }}
+                        contentFit="cover"
+                      />
+                      <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary flex-1">
+                        {selectedBusinessInfo?.name ||
+                          t("user.jobs.schedule.noBusinessSelected")}
+                      </Text>
+                    </View>
+                  </View>
                 )}
               </View>
 
@@ -526,9 +563,12 @@ const EditTemplate = () => {
 
               <View className="mt-4">
                 {rolesLoading ? (
-                  <View className="py-4 items-center border border-[#EEEEEE] rounded-[10px]">
-                    <ActivityIndicator size="small" />
-                  </View>
+                  <AutoSkeletonView isLoading={true} defaultRadius={10}>
+                    <View
+                      pointerEvents="none"
+                      className="h-12 w-full bg-[#E5E7EB] rounded-[10px]"
+                    />
+                  </AutoSkeletonView>
                 ) : (
                   <SelectDropdown
                     placeholder={
