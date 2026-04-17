@@ -31,6 +31,13 @@ const daysData = [
   { label: "Sunday" },
 ];
 
+const formatDateYmd = (value: Date) => {
+  const year = value.getFullYear();
+  const month = `${value.getMonth() + 1}`.padStart(2, "0");
+  const day = `${value.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const buildRoleAwareAssignment = (template: any, employmentIds: string[]) => {
   const normalizedAssigned = Array.from(
     new Set((Array.isArray(employmentIds) ? employmentIds : []).filter(Boolean))
@@ -97,6 +104,7 @@ const SavedShiftTemplate = () => {
     clearWeeklyRoleAssignments,
   } = useBusinessStore();
   const businessId = selectedBusinesses[0];
+  const todayYmd = formatDateYmd(new Date());
 
   useEffect(() => {
     const hydrateEditSelections = async () => {
@@ -406,7 +414,7 @@ const SavedShiftTemplate = () => {
     }
   };
 
-  const handleNext = async () => {
+	  const handleNext = async () => {
     if (!businessId) {
       toast.error("Please select a business first.");
       return;
@@ -432,11 +440,20 @@ const SavedShiftTemplate = () => {
       return;
     }
 
-    if (isEditMode) {
-      if (typeof params.blockId !== "string" || !params.blockId) {
-        toast.error("Missing weekly block id.");
-        return;
-      }
+	    if (isEditMode) {
+	      if (
+	        typeof params.startDate === "string" &&
+	        params.startDate &&
+	        params.startDate < todayYmd
+	      ) {
+	        toast.error(t("user.jobs.schedule.cannotEditPastWeek"));
+	        return;
+	      }
+
+	      if (typeof params.blockId !== "string" || !params.blockId) {
+	        toast.error("Missing weekly block id.");
+	        return;
+	      }
 
       const slots = buildSlotsPayload();
       if (!Array.isArray(slots) || slots.length === 0) {

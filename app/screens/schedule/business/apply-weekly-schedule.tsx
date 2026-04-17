@@ -83,6 +83,7 @@ const WeeklyScheduleApply = () => {
   const [selectedEndDate, setSelectedEndDate] = useState("");
 
   const businessId = selectedBusinesses[0];
+  const todayYmd = formatDate(new Date());
 
   const isoToYmd = (value?: string) => {
     if (!value) return "";
@@ -130,9 +131,9 @@ const WeeklyScheduleApply = () => {
           );
           const requiredEmployees = Array.isArray(template?.roleRequirements)
             ? template.roleRequirements.reduce(
-                (total: number, role: any) => total + Number(role?.count || 0),
-                0
-              )
+              (total: number, role: any) => total + Number(role?.count || 0),
+              0
+            )
             : employmentIds.length;
 
           return {
@@ -251,6 +252,11 @@ const WeeklyScheduleApply = () => {
   }, [businessId, getWeeklyScheduleBlocks]);
 
   const handleDayPress = (day: DateData) => {
+    if (day.dateString < todayYmd) {
+      toast.error(t("user.jobs.schedule.cannotApplyPastWeek"));
+      return;
+    }
+
     const block = findBlockByDate(day.dateString);
     if (block) {
       toast.info(t("api.weekly_block_manage_from_manage_screen"));
@@ -299,10 +305,20 @@ const WeeklyScheduleApply = () => {
       toast.error("Please select a week start date.");
       return;
     }
+    if (selectedStartDate < todayYmd) {
+      toast.error(
+        t(
+          isEditMode
+            ? "user.jobs.schedule.cannotEditPastWeek"
+            : "user.jobs.schedule.cannotApplyPastWeek"
+        )
+      );
+      return;
+    }
     const selectedDays =
       Math.floor(
         (toDate(selectedEndDate).getTime() - toDate(selectedStartDate).getTime()) /
-          (24 * 60 * 60 * 1000)
+        (24 * 60 * 60 * 1000)
       ) + 1;
     if (selectedDays !== 7) {
       toast.error("Schedule can only be applied for one week (7 days).");
@@ -384,16 +400,17 @@ const WeeklyScheduleApply = () => {
           </Text>
         </View>
 
-        <View className="mt-4 border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-2">
-          <Calendar
-            markingType="period"
-            markedDates={markedDates}
-            onDayPress={handleDayPress}
-            enableSwipeMonths={true}
-            theme={{
-              backgroundColor: "transparent",
-              calendarBackground: "transparent",
-              textSectionTitleColor: isDark ? "#9CA3AF" : "#64748B",
+	        <View className="mt-4 border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-2">
+	          <Calendar
+	            markingType="period"
+	            markedDates={markedDates}
+	            onDayPress={handleDayPress}
+	            minDate={isEditMode ? undefined : todayYmd}
+	            enableSwipeMonths={true}
+	            theme={{
+	              backgroundColor: "transparent",
+	              calendarBackground: "transparent",
+	              textSectionTitleColor: isDark ? "#9CA3AF" : "#64748B",
               selectedDayBackgroundColor: "#4FB2F3",
               selectedDayTextColor: "#FFFFFF",
               todayTextColor: "#4FB2F3",

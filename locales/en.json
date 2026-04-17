@@ -209,7 +209,9 @@
         "weeklySchedule": "Weekly Schedule",
         "manageWeeklySchedules": "Manage Weekly Schedules",
         "allShift": "All Shift",
-        "holidayNoShifts": "Today is a Holiday, No Shifts Scheduled."
+        "holidayNoShifts": "Today is a Holiday, No Shifts Scheduled.",
+        "cannotApplyPastWeek": "You can only apply a weekly schedule from today onwards.",
+        "cannotEditPastWeek": "Past weekly schedules can’t be edited."
       },
       "jobBoard": {
         "title": "Job Board",
