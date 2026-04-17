@@ -1103,6 +1103,7 @@
     "exceptions_business_owner_cannot_join_own_business_using_invitation_code": "Οι ιδιοκτήτες επιχειρήσεων δεν μπορούν να συμμετάσχουν στη δική τους επιχείρηση με κωδικό πρόσκλησης.",
     "exceptions_invalid_or_expired_otp_code": "Μη έγκυρος ή ληγμένος κωδικός OTP.",
     "exceptions_insufficient_coins": "Δεν έχετε αρκετά νομίσματα.",
+    "exceptions_this_role_already_exists_in_this_business": "Αυτός ο ρόλος υπάρχει ήδη σε αυτή την επιχείρηση.",
     "core_redeem_redeemed_successfully": "Η εξαργύρωση ολοκληρώθηκε με επιτυχία.",
     "exceptions_premium_access_required": "Απαιτείται πρόσβαση premium.",
     "appearance_updated_successfully": "Η εμφάνιση ενημερώθηκε με επιτυχία.",

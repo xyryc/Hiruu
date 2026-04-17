@@ -54,9 +54,16 @@ export default function Step5({
   }, [onboardingSent, updateProfile, user?.isNumberVerified]);
 
   const getDialCode = (country?: ICountry | null) => {
-    if (!country?.idd?.root) return "";
-    const suffix = country.idd.suffixes?.[0] || "";
-    return `${country.idd.root}${suffix}`;
+    // IMPORTANT: use only the country calling code.
+    // `idd.suffixes` can contain national destination codes / area codes (e.g. US has many),
+    // and must NOT be appended here.
+    return country?.idd?.root || "";
+  };
+
+  const normalizeCountryCode = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    return `+${digits}`;
   };
 
   const validatePhone = (value: string, country?: ICountry | null) => {
@@ -67,18 +74,20 @@ export default function Step5({
 
   const handlePhoneChange = (value: string) => {
     setPhoneNumber(value);
-    setCountryCode(getDialCode(selectedCountry ?? fallbackCountry) || "");
+    setCountryCode(
+      normalizeCountryCode(getDialCode(selectedCountry ?? fallbackCountry) || "")
+    );
     setIsValidPhone(validatePhone(value));
   };
 
   const handleSelectedCountry = (country: ICountry) => {
     setSelectedCountry(country);
-    setCountryCode(getDialCode(country));
+    setCountryCode(normalizeCountryCode(getDialCode(country)));
     setIsValidPhone(validatePhone(phoneNumber, country));
   };
 
   useEffect(() => {
-    setCountryCode(getDialCode(fallbackCountry) || "");
+    setCountryCode(normalizeCountryCode(getDialCode(fallbackCountry) || ""));
   }, [fallbackCountry]);
 
   useEffect(() => {
@@ -91,17 +100,28 @@ export default function Step5({
 
   const getPhonePayload = () => {
     const trimmed = phoneNumber.trim();
-    if (!trimmed || !countryCode) {
+    const normalizedCountryCode = normalizeCountryCode(countryCode);
+    if (!trimmed || !normalizedCountryCode) {
       return { countryCode: "", phoneNumber: "" };
     }
 
-    const ccDigits = countryCode.replace(/\D/g, "");
+    const ccDigits = normalizedCountryCode.replace(/\D/g, "");
     const numberOnly = trimmed.replace(/\D/g, "");
-    const phoneOnly = numberOnly.startsWith(ccDigits)
-      ? numberOnly.slice(ccDigits.length)
-      : numberOnly;
+    if (!numberOnly) {
+      return { countryCode: "", phoneNumber: "" };
+    }
 
-    return { countryCode, phoneNumber: phoneOnly };
+    // Backend stores countryCode and phoneNumber separately:
+    // - countryCode: "+1"
+    // - phoneNumber: "8888888888" (national number, no +1 prefix)
+    const looksLikeFullNumber =
+      trimmed.startsWith("+") || (ccDigits.length > 0 && numberOnly.startsWith(ccDigits));
+    const nationalNumber =
+      looksLikeFullNumber && numberOnly.length > ccDigits.length
+        ? numberOnly.slice(ccDigits.length)
+        : numberOnly;
+
+    return { countryCode: normalizedCountryCode, phoneNumber: nationalNumber };
   };
 
   const handleSendOtp = async () => {

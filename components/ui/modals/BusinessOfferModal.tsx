@@ -23,13 +23,6 @@ import SmallButton from "../buttons/SmallButton";
 
 const MODAL_SKELETON_RADIUS = 12;
 
-const resolveSalaryTypeLabel = (value?: string | null) => {
-  if (!value) return "hr";
-  if (value === "hourly") return "hr";
-  if (value === "monthly") return "mo";
-  return value;
-};
-
 type DropdownOption = {
   label: string;
   value: string;

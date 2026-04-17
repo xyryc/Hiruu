@@ -74,7 +74,7 @@ const filterProfilesByFeaturedType = (
 const BusinessJobs = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const getJobProfiles = useJobStore((s) => s.getJobProfiles);
+  const getJobProfilesForBusiness = useJobStore((s) => s.getJobProfilesForBusiness);
   const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
   const { selectedBusinesses, getMyEmployments } = useBusinessStore();
   const { canEdit: canPostJobs } = useBusinessPermission("jobs");
@@ -123,7 +123,12 @@ const BusinessJobs = () => {
   const loadFeaturedProfiles = useCallback(async () => {
     try {
       setIsLoadingFeatured(true);
-      const result = await getJobProfiles({
+      if (!currentBusinessId) {
+        setFeaturedProfiles([]);
+        toast.error("Please select a business first.");
+        return;
+      }
+      const result = await getJobProfilesForBusiness(currentBusinessId, {
         page: 1,
         limit: 10,
         ...businessCandidateFilters,
@@ -148,12 +153,17 @@ const BusinessJobs = () => {
     } finally {
       setIsLoadingFeatured(false);
     }
-  }, [businessCandidateFilters, getJobProfiles]);
+  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
 
   const loadSuggestedProfiles = useCallback(async () => {
     try {
       setIsLoadingSuggested(true);
-      const result = await getJobProfiles({
+      if (!currentBusinessId) {
+        setSuggestedProfiles([]);
+        toast.error("Please select a business first.");
+        return;
+      }
+      const result = await getJobProfilesForBusiness(currentBusinessId, {
         page: 1,
         limit: 10,
         ...businessCandidateFilters,
@@ -174,7 +184,7 @@ const BusinessJobs = () => {
     } finally {
       setIsLoadingSuggested(false);
     }
-  }, [businessCandidateFilters, getJobProfiles]);
+  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
 
   useFocusEffect(
     useCallback(() => {

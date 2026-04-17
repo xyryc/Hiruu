@@ -119,6 +119,62 @@ const EMPTY_UNREAD_COUNTS: UnreadCountResponse = {
   business_invited: 0,
 };
 
+const withApiV1Prefix = (path: string) => {
+  // axiosInstance.baseURL is configured from EXPO_PUBLIC_API_URL.
+  // In some environments it's already ".../api/v1" (then we must NOT prefix again),
+  // while in others it may be just the domain (then we DO need "/api/v1").
+  const base = String(axiosInstance.defaults.baseURL || "").replace(/\/$/, "");
+  const needsPrefix = base.length > 0 && !/\/api\/v1$/i.test(base);
+  return `${needsPrefix ? "/api/v1" : ""}${path}`;
+};
+
+const buildJobProfilesParams = (query: any) => {
+  const params: Record<string, string | number | boolean> = {};
+
+  if (query.page) params.page = query.page;
+  if (query.limit) params.limit = query.limit;
+  if (query.search) params.search = query.search;
+  if (query.skills) params.skills = query.skills;
+  if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
+  if (query.role) params.role = query.role;
+  if (query.verifiedOnly !== undefined) params.verifiedOnly = query.verifiedOnly;
+  if (query.isFeatured !== undefined) params.isFeatured = query.isFeatured;
+  if (query.isPremium !== undefined && typeof params.isFeatured === "undefined") {
+    params.isFeatured = query.isPremium;
+  }
+  if (query.location) params.location = query.location;
+  if (query.latitude !== undefined) params.latitude = query.latitude;
+  if (query.longitude !== undefined) params.longitude = query.longitude;
+  if (query.postcode) params.postcode = query.postcode;
+  if (query.maxDistanceKm !== undefined) params.maxDistanceKm = query.maxDistanceKm;
+  if (query.salaryMin !== undefined) params.salaryMin = query.salaryMin;
+  if (query.salaryMax !== undefined) params.salaryMax = query.salaryMax;
+  if (query.availabilityTypes) {
+    params.availabilityTypes = Array.isArray(query.availabilityTypes)
+      ? query.availabilityTypes.join(",")
+      : query.availabilityTypes;
+  }
+  if (query.shiftTypes) {
+    params.shiftTypes = Array.isArray(query.shiftTypes)
+      ? query.shiftTypes.join(",")
+      : query.shiftTypes;
+  }
+  if (query.availableDays) {
+    params.availableDays = Array.isArray(query.availableDays)
+      ? query.availableDays.join(",")
+      : query.availableDays;
+  }
+  if (query.experienceRequirements && query.experienceRequirements.length > 0) {
+    params.experienceRequirements = JSON.stringify(query.experienceRequirements);
+  }
+  if (query.workingDaySlots && query.workingDaySlots.length > 0) {
+    params.workingDaySlots = JSON.stringify(query.workingDaySlots);
+  }
+  if (query.sortBy) params.sortBy = query.sortBy;
+
+  return params;
+};
+
 type MarkAsReadQuery = {
   scope?: RecruitmentApplicationReadScope;
   businessId?: string;
@@ -263,6 +319,10 @@ interface JobState {
     payload: Partial<JobProfileData>
   ) => Promise<JobProfileData | null>;
   getJobProfiles: (query?: JobProfileFilters) => Promise<JobProfileListResponse>;
+  getJobProfilesForBusiness: (
+    businessId: string,
+    query?: JobProfileFilters
+  ) => Promise<JobProfileListResponse>;
   getBusinessApplications: (
     businessId: string,
     query?: RecruitmentApplicationFilterQuery
@@ -847,48 +907,7 @@ export const useJobStore = create<JobState>((set) => ({
 
   getJobProfiles: async (query = {}) => {
     try {
-      const params: Record<string, string | number | boolean> = {};
-
-      if (query.page) params.page = query.page;
-      if (query.limit) params.limit = query.limit;
-      if (query.search) params.search = query.search;
-      if (query.skills) params.skills = query.skills;
-      if (query.preferredRoleId) params.preferredRoleId = query.preferredRoleId;
-      if (query.role) params.role = query.role;
-      if (query.verifiedOnly !== undefined) params.verifiedOnly = query.verifiedOnly;
-      if (query.isFeatured !== undefined) params.isFeatured = query.isFeatured;
-      if (query.isPremium !== undefined && typeof params.isFeatured === "undefined") {
-        params.isFeatured = query.isPremium;
-      }
-      if (query.location) params.location = query.location;
-      if (query.latitude !== undefined) params.latitude = query.latitude;
-      if (query.longitude !== undefined) params.longitude = query.longitude;
-      if (query.postcode) params.postcode = query.postcode;
-      if (query.maxDistanceKm !== undefined) params.maxDistanceKm = query.maxDistanceKm;
-      if (query.salaryMin !== undefined) params.salaryMin = query.salaryMin;
-      if (query.salaryMax !== undefined) params.salaryMax = query.salaryMax;
-      if (query.availabilityTypes) {
-        params.availabilityTypes = Array.isArray(query.availabilityTypes)
-          ? query.availabilityTypes.join(",")
-          : query.availabilityTypes;
-      }
-      if (query.shiftTypes) {
-        params.shiftTypes = Array.isArray(query.shiftTypes)
-          ? query.shiftTypes.join(",")
-          : query.shiftTypes;
-      }
-      if (query.availableDays) {
-        params.availableDays = Array.isArray(query.availableDays)
-          ? query.availableDays.join(",")
-          : query.availableDays;
-      }
-      if (query.experienceRequirements && query.experienceRequirements.length > 0) {
-        params.experienceRequirements = JSON.stringify(query.experienceRequirements);
-      }
-      if (query.workingDaySlots && query.workingDaySlots.length > 0) {
-        params.workingDaySlots = JSON.stringify(query.workingDaySlots);
-      }
-      if (query.sortBy) params.sortBy = query.sortBy;
+      const params = buildJobProfilesParams(query);
       const response = await axiosInstance.get("/job-profile/open-to-work", {
         params,
       });
@@ -916,6 +935,50 @@ export const useJobStore = create<JobState>((set) => ({
     } catch (error) {
       const axiosError = error as AxiosError<any>;
       console.error("[JobStore] getJobProfiles exception:", {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+      });
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to fetch job profiles";
+      throw new Error(message);
+    }
+  },
+
+  getJobProfilesForBusiness: async (businessId, query = {}) => {
+    try {
+      if (!businessId || String(businessId).trim().length === 0) {
+        throw new Error("BUSINESS_ID_REQUIRED");
+      }
+
+      const params = buildJobProfilesParams(query);
+      const url = withApiV1Prefix(`/job-profile/${businessId}/open-to-work`);
+      const response = await axiosInstance.get(url, { params });
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        console.error("[JobStore] getJobProfilesForBusiness error:", result?.message);
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
+      }
+
+      return {
+        data: Array.isArray(result?.data) ? result.data : [],
+        pagination: {
+          page: Number(result?.pagination?.page || query.page || 1),
+          limit: Number(result?.pagination?.limit || query.limit || 20),
+          total: Number(result?.pagination?.total || 0),
+          totalPages: Number(result?.pagination?.totalPages || 1),
+          hasNext: Boolean(result?.pagination?.hasNext),
+          hasPrev: Boolean(result?.pagination?.hasPrev),
+        },
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      console.error("[JobStore] getJobProfilesForBusiness exception:", {
         message: axiosError.message,
         response: axiosError.response?.data,
       });
