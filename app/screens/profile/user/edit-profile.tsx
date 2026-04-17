@@ -22,7 +22,8 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useEffect, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -51,6 +52,7 @@ const Edit = () => {
     "art",
   ]);
   const [profileData, setProfileData] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [shortIntro, setShortIntro] = useState("");
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [isEditingSocials, setIsEditingSocials] = useState(false);
@@ -63,6 +65,7 @@ const Edit = () => {
   const [profileColor, setProfileColor] = useState(DEFAULT_PROFILE_COLOR);
   const [gradientColors, setGradientColors] =
     useState<[string, string]>(DEFAULT_GRADIENT_COLORS);
+  const profileRequestIdRef = useRef(0);
   const user = useAuthStore((state) => state.user);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const getProfile = useProfileStore((state) => state.getProfile);
@@ -74,6 +77,7 @@ const Edit = () => {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const equippedNameplate = profileData?.appearance?.nameplate;
+  const showInitialSkeleton = isLoadingProfile && !profileData;
   const profileAddress =
     profileData?.address?.address ||
     [profileData?.address?.city, profileData?.address?.country]
@@ -81,8 +85,11 @@ const Edit = () => {
       .join(", ");
 
   const loadProfile = useCallback(async () => {
+    const requestId = ++profileRequestIdRef.current;
     try {
+      setIsLoadingProfile(true);
       const result = await getProfile();
+      if (requestId !== profileRequestIdRef.current) return;
       setProfileData(result.data);
       setShortIntro(result.data?.bio || "");
       if (Array.isArray(result.data?.interest)) {
@@ -121,6 +128,9 @@ const Edit = () => {
       }
     } catch {
       // Silent fail to keep edit screen stable.
+    } finally {
+      if (requestId !== profileRequestIdRef.current) return;
+      setIsLoadingProfile(false);
     }
   }, [getProfile]);
 
@@ -240,6 +250,39 @@ const Edit = () => {
       </DynamicBackground>
 
       <ScrollView contentContainerClassName='mt-6'>
+        {showInitialSkeleton ? (
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View className="mx-5">
+              <View className="h-6 w-40 rounded-md bg-[#E5E7EB] mb-3" />
+              <View className="h-28 rounded-2xl bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="h-6 w-28 rounded-md bg-[#E5E7EB] mb-3" />
+              <View className="h-20 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="h-6 w-32 rounded-md bg-[#E5E7EB] mb-3" />
+              <View className="h-14 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="h-6 w-28 rounded-md bg-[#E5E7EB] mb-3" />
+              <View className="h-14 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+            </View>
+
+            <View className="mx-5 mt-8">
+              <View className="h-6 w-36 rounded-md bg-[#E5E7EB] mb-3" />
+              <View className="h-44 rounded-2xl border border-[#EEEEEE] bg-[#F3F4F6]" />
+            </View>
+
+            <View className="mx-5 my-10 h-14 rounded-full bg-[#E5E7EB]" />
+          </AutoSkeletonView>
+        ) : null}
+
+        {!showInitialSkeleton ? (
+          <>
         <View className="mx-5">
           <View className="flex-row justify-between items-center mb-2.5">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
@@ -473,6 +516,8 @@ const Edit = () => {
           loading={isSaving}
           className='mx-5 my-10'
         />
+          </>
+        ) : null}
       </ScrollView>
 
       <ColorPickerModal
