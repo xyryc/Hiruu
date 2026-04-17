@@ -438,7 +438,7 @@ const CreateTemplate = () => {
 
 
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  To
+                  {t("user.jobs.schedule.to")}
                 </Text>
 
 
@@ -459,7 +459,7 @@ const CreateTemplate = () => {
           {/* business info */}
           <View>
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
-              {t("user.jobs.schedule.business")}
+              {t("user.jobs.schedule.businessFallback")}
             </Text>
 
             {myEmploymentsLoading ? (

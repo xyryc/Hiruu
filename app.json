@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.xyryc.hiruu",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
+        "NSCameraUsageDescription": "Allow Hiruu to access your camera to scan QR codes.",
         "NSMicrophoneUsageDescription": "Allow Hiruu to access your microphone for audio calls."
       }
     },
@@ -50,6 +51,12 @@
           "ios": {
             "useFrameworks": "static"
           }
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Hiruu to access your camera to scan QR codes."
         }
       ],
       "@react-native-firebase/app",

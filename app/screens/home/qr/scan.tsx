@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Modal,
   Text,
   TouchableOpacity,
@@ -31,11 +32,10 @@ const QrScanner = () => {
   const { joinBusiness, isJoiningBusiness } = useBusinessStore();
 
   useEffect(() => {
-
-    if (permission && !permission.granted) {
+    if (permission?.status === "undetermined") {
       requestPermission();
     }
-  }, [permission, requestPermission]);
+  }, [permission?.status, requestPermission]);
 
   const handleBarCodeScanned = ({
     type,
@@ -153,8 +153,8 @@ const QrScanner = () => {
       {/* Main Content */}
       <View className="flex-1 justify-center items-center px-5">
         {/* Scanner Preview */}
-        <View className="w-full aspect-square rounded-2xl overflow-hidden mb-8">
-          {permission.granted ? (
+	        <View className="w-full aspect-square rounded-2xl overflow-hidden mb-8">
+	          {permission.granted ? (
             <CameraView
               style={{ flex: 1 }}
               facing={facing}
@@ -179,19 +179,33 @@ const QrScanner = () => {
                 </Text>
               </View>
             </CameraView>
-          ) : (
-            <View className="flex-1 bg-gray-200 dark:bg-gray-800 justify-center items-center">
-              <Feather
-                name="camera-off"
-                size={64}
-                color={isDark ? "#9CA3AF" : "#6B7280"}
-              />
-              <Text className="text-gray-600 dark:text-gray-400 text-center mt-4 text-lg">
-                Camera access required
-              </Text>
-            </View>
-          )}
-        </View>
+	          ) : (
+	            <View className="flex-1 bg-gray-200 dark:bg-gray-800 justify-center items-center">
+	              <Feather
+	                name="camera-off"
+	                size={64}
+	                color={isDark ? "#9CA3AF" : "#6B7280"}
+	              />
+	              <Text className="text-gray-600 dark:text-gray-400 text-center mt-4 text-lg">
+	                Camera access required
+	              </Text>
+	              <TouchableOpacity
+	                className="mt-4 px-5 py-3 rounded-full bg-primary dark:bg-dark-primary"
+	                onPress={() => {
+	                  if (permission.canAskAgain) {
+	                    requestPermission();
+	                    return;
+	                  }
+	                  Linking.openSettings();
+	                }}
+	              >
+	                <Text className="text-white font-proximanova-semibold">
+	                  {permission.canAskAgain ? "Allow Camera" : "Open Settings"}
+	                </Text>
+	              </TouchableOpacity>
+	            </View>
+	          )}
+	        </View>
 
         {/* Scanner Controls */}
         <View className="flex-row justify-between items-center space-x-8 w-full">
