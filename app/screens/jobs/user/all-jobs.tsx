@@ -12,6 +12,7 @@ import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
@@ -75,6 +76,7 @@ const AllJobs = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = allJobsFilters.limit ?? 10;
@@ -184,12 +186,16 @@ const AllJobs = () => {
     allJobsFilters.isFeatured,
   ]);
 
-  const loadJobs = useCallback(async (targetPage = 1, append = false) => {
+  const loadJobs = useCallback(async (
+    targetPage = 1,
+    append = false,
+    options?: { silent?: boolean }
+  ) => {
     try {
       if (append) {
         setIsLoadingMore(true);
       } else {
-        setIsLoading(true);
+        if (!options?.silent) setIsLoading(true);
       }
 
       const result = await getPublicRecruitments({
@@ -220,6 +226,16 @@ const AllJobs = () => {
     }
   }, [allJobsFilters.search, getPublicRecruitments, limit, normalizedFilters, setAllJobsFilters]);
 
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await loadJobs(1, false, { silent: true });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, loadJobs]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadJobs(1, false);
@@ -232,7 +248,7 @@ const AllJobs = () => {
     () => Array.from({ length: 4 }, (_, index) => ({ id: `all-jobs-skeleton-${index}` })),
     []
   );
-  const showInlineSkeleton = isLoading && jobs.length > 0 && !isLoadingMore;
+  const showInlineSkeleton = isLoading && jobs.length > 0 && !isLoadingMore && !isRefreshing;
 
   const handleLoadMore = async () => {
     if (!canLoadMore || isLoadingMore || isLoading) return;
@@ -298,6 +314,13 @@ const AllJobs = () => {
       <FlatList
         data={showInlineSkeleton ? skeletonItems : jobs}
         keyExtractor={(item) => String(item?.id)}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? "#fff" : "#111"}
+          />
+        }
         renderItem={({ item }) => (
           <View className="px-5 mt-4">
             {showInlineSkeleton ? (

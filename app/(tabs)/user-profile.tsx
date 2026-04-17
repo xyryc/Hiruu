@@ -28,7 +28,14 @@ import { StatusBar } from "expo-status-bar";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Linking,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -38,6 +45,7 @@ const Profile = () => {
   const [selectedIssue, setSelectedIssue] = useState("traditional");
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const profileRequestIdRef = useRef(0);
   const issues = [
     { label: t("user.profile.userProfile.cvStyles.traditional"), value: "traditional" },
@@ -133,6 +141,22 @@ const Profile = () => {
       return () => { };
     }, [getAnalyticsSummary])
   );
+
+  const handleRefresh = React.useCallback(async () => {
+    if (isRefreshing) return;
+    try {
+      setIsRefreshing(true);
+      await Promise.all([
+        loadProfile(),
+        getMyJobProfile().catch(() => null),
+        getAnalyticsSummary().catch(() => null),
+      ]);
+    } catch (error: any) {
+      toast.error(error?.message || t("common.failedToRefresh"));
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [getAnalyticsSummary, getMyJobProfile, isRefreshing, loadProfile, t]);
 
   const bioText =
     typeof profileData?.bio === "string" ? profileData.bio.trim() : "";
@@ -319,13 +343,16 @@ const Profile = () => {
         </View>
       </DynamicBackground>
 
-      <ScrollView
-        className="bg-white"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 80,
-        }}
-      >
+	      <ScrollView
+	        className="bg-white"
+	        showsVerticalScrollIndicator={false}
+	        contentContainerStyle={{
+	          paddingBottom: 80,
+	        }}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          }
+	      >
         {showInitialSkeleton ? (
           <AutoSkeletonView isLoading={true} defaultRadius={12}>
             <View className="mx-5 mt-3.5 h-28 rounded-2xl bg-[#E5E7EB]" />

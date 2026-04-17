@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -11,6 +12,7 @@ import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
@@ -69,21 +71,24 @@ const AllProfiles = () => {
   const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const getJobProfiles = useJobStore((s) => s.getJobProfiles);
+  const getJobProfilesForBusiness = useJobStore((s) => s.getJobProfilesForBusiness);
   const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
   const setBusinessCandidateFilters = useJobStore((s) => s.setBusinessCandidateFilters);
+  const selectedBusinesses = useBusinessStore((s) => s.selectedBusinesses);
   const params = useLocalSearchParams<{ type?: string }>();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
+  const currentBusinessId = selectedBusinesses?.[0] || null;
   const skeletonItems = useMemo(
     () => Array.from({ length: 4 }, (_, index) => ({ id: `all-profiles-skeleton-${index}` })),
     []
   );
-  const showInlineSkeleton = isLoading && profiles.length > 0 && !isLoadingMore;
+  const showInlineSkeleton = isLoading && profiles.length > 0 && !isLoadingMore && !isRefreshing;
   const profilesType = useMemo(() => parseProfilesTypeParam(params.type), [params.type]);
   const screenTitle =
     profilesType === "featured"
@@ -93,15 +98,25 @@ const AllProfiles = () => {
         : t("user.jobs.allProfiles.all");
 
   const loadProfiles = useCallback(
-    async (targetPage = 1, append = false) => {
+    async (targetPage = 1, append = false, options?: { silent?: boolean }) => {
       try {
         if (append) {
           setIsLoadingMore(true);
         } else {
-          setIsLoading(true);
+          if (!options?.silent) setIsLoading(true);
         }
 
-        const result = await getJobProfiles({
+        if (!currentBusinessId) {
+          if (!append) {
+            setProfiles([]);
+            setPage(1);
+            setTotalPages(1);
+          }
+          toast.error("Please select a business first.");
+          return;
+        }
+
+        const result = await getJobProfilesForBusiness(currentBusinessId, {
           page: targetPage,
           limit,
           ...businessCandidateFilters,
@@ -134,8 +149,25 @@ const AllProfiles = () => {
         setIsLoadingMore(false);
       }
     },
-    [businessCandidateFilters, getJobProfiles, limit, profilesType]
+    [
+      businessCandidateFilters,
+      currentBusinessId,
+      getJobProfilesForBusiness,
+      limit,
+      profilesType,
+      t,
+    ]
   );
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await loadProfiles(1, false, { silent: true });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, loadProfiles]);
 
   useEffect(() => {
     loadProfiles(1, false);
@@ -191,6 +223,13 @@ const AllProfiles = () => {
       <FlatList
         data={showInlineSkeleton ? skeletonItems : profiles}
         keyExtractor={(item) => String(item?.id)}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? "#fff" : "#111"}
+          />
+        }
         renderItem={({ item }) => (
           <View className="px-5">
             {showInlineSkeleton ? (

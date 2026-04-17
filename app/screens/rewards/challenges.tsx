@@ -14,10 +14,12 @@ import { router } from "expo-router";
 import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -61,6 +63,7 @@ const Challenges = () => {
   const isDark = colorScheme === "dark";
   const [isActive, setIsActive] = useState("One-Time");
   const [page, setPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const limit = 10;
   const currentType = achievementTypeByTab[isActive];
   const {
@@ -130,6 +133,24 @@ const Challenges = () => {
       void handleLoadMore();
     }
   };
+
+  const handleRefresh = useCallback(async () => {
+    if (isLoadingAchievements) return;
+    try {
+      setIsRefreshing(true);
+      setPage(1);
+      await getAchievements(currentType, 1, limit, false);
+    } catch (error: any) {
+      toast.error(error?.message || t("user.profile.challenges.failedToLoadChallenges"));
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [currentType, getAchievements, isLoadingAchievements]);
+
+  const skeletonRows = React.useMemo(
+    () => Array.from({ length: 5 }, (_, index) => ({ id: `challenge-skeleton-${index}` })),
+    []
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
@@ -208,11 +229,84 @@ const Challenges = () => {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={150}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
-        {isLoadingAchievements ? (
-          <View className="py-10 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
-          </View>
+        {isLoadingAchievements && achievements.length === 0 ? (
+          skeletonRows.map((item, index) => (
+            <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={12}>
+              <View pointerEvents="none">
+                <View className={`flex-row gap-4 ${index === 0 ? "mt-4" : "mt-5"}`}>
+                  <View>
+                    <Image
+                      source={require("@/assets/images/reward/giftbox.svg")}
+                      contentFit="contain"
+                      style={{ height: 87, width: 63 }}
+                    />
+                  </View>
+
+                  <View className="flex-1">
+                    <View className="flex-row justify-between items-start">
+                      <View className="flex-1 pr-3 mt-2">
+                        <View className="flex-row items-center flex-wrap gap-2">
+                          <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                            Loading
+                          </Text>
+                          <View className="flex-row items-center">
+                            <Image
+                              source={require("@/assets/images/hiruu-coin.svg")}
+                              style={{ width: 20, height: 20 }}
+                              contentFit="contain"
+                            />
+                            <View className="px-3 py-1 bg-[#DDF1FF] -ml-2 -z-10 rounded-r-[40px]">
+                              <Text className="text-xs font-proximanova-semibold">0</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        disabled={true}
+                        className="mt-2 self-start rounded-full bg-[#8FA7B8]"
+                      >
+                        <Text className="px-4 py-2 font-proximanova-semibold text-sm text-[#ffffff] text-center">
+                          Loading
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-0.5">
+                      Loading
+                    </Text>
+
+                    <View className="mt-3.5 flex-row items-center gap-3">
+                      <View className="flex-1">
+                        <CoinProgressSlider achieved={0} max={1} />
+                      </View>
+                      <Text className="min-w-[40px] text-right font-proximanova-regular text-sm text-primary dark:text-dark-primary">
+                        <Text className="text-[#4FB2F3]">0</Text>/0
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {index !== skeletonRows.length - 1 ? (
+                  <Image
+                    source={require("@/assets/images/dotted-line.svg")}
+                    contentFit="contain"
+                    style={{
+                      width: "100%",
+                      height: 2,
+                      marginHorizontal: "auto",
+                      marginTop: 20,
+                    }}
+                  />
+                ) : null}
+              </View>
+            </AutoSkeletonView>
+          ))
         ) : achievements.length > 0 ? (
           achievements.map((achievement, index) => {
             const progress = Number(achievement?.userProgress?.progress || 0);

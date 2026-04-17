@@ -13,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { RelativePathString, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -25,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -120,8 +120,8 @@ const BusinessScheduleScreen = () => {
     }).catch((error: any) => {
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          t("user.jobs.schedule.failedToLoadShifts")
+        error?.message ||
+        t("user.jobs.schedule.failedToLoadShifts")
       );
     });
   }, [
@@ -219,8 +219,8 @@ const BusinessScheduleScreen = () => {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          t("user.jobs.schedule.failedToRefresh")
+        error?.message ||
+        t("user.jobs.schedule.failedToRefresh")
       );
     } finally {
       setIsRefreshing(false);
@@ -463,8 +463,8 @@ const BusinessScheduleScreen = () => {
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
-          error?.message ||
-          t("user.jobs.schedule.failedToLoadMore")
+        error?.message ||
+        t("user.jobs.schedule.failedToLoadMore")
       );
     } finally {
       setIsFetchingMore(false);
@@ -721,14 +721,15 @@ const BusinessScheduleScreen = () => {
           </Text>
         </View>
 
-        {businessAssignmentsLoading ? (
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
-            <View pointerEvents="none">
-              {skeletonShifts.map((shift) => (
-                <ShiftCard key={shift.id} shift={shift} onMessagePress={undefined} />
-              ))}
-            </View>
-          </AutoSkeletonView>
+	        {businessAssignmentsLoading ? (
+	          <View pointerEvents="none">
+	            {skeletonShifts.map((shift) => (
+	              <AutoSkeletonView key={shift.id} isLoading={true} defaultRadius={12}>
+	                <ShiftCard shift={shift} onMessagePress={undefined} />
+	              </AutoSkeletonView>
+	            ))}
+	          </View>
+
         ) : visibleShifts.length > 0 ? (
           visibleShifts.map((shift) => (
             <ShiftCard

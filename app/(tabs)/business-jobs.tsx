@@ -12,6 +12,7 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -95,6 +96,7 @@ const BusinessJobs = () => {
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(false);
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const featuredSkeletonItems = useMemo(
     () => Array.from({ length: 4 }, (_, index) => ({ id: `featured-skeleton-${index}` })),
     []
@@ -133,9 +135,9 @@ const BusinessJobs = () => {
   const filteredSuggestedProfiles = useMemo(() => {
     return suggestedProfiles.filter(profile => !isAlreadyEmployed(profile));
   }, [suggestedProfiles, isAlreadyEmployed]);
-  const loadFeaturedProfiles = useCallback(async () => {
+  const loadFeaturedProfiles = useCallback(async (options?: { silent?: boolean }) => {
     try {
-      setIsLoadingFeatured(true);
+      if (!options?.silent) setIsLoadingFeatured(true);
       if (!currentBusinessId) {
         setFeaturedProfiles([]);
         toast.error("Please select a business first.");
@@ -166,13 +168,13 @@ const BusinessJobs = () => {
       setFeaturedProfiles([]);
       toast.error(error?.message || "Failed to load featured profiles");
     } finally {
-      setIsLoadingFeatured(false);
+      if (!options?.silent) setIsLoadingFeatured(false);
     }
   }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
 
-  const loadSuggestedProfiles = useCallback(async () => {
+  const loadSuggestedProfiles = useCallback(async (options?: { silent?: boolean }) => {
     try {
-      setIsLoadingSuggested(true);
+      if (!options?.silent) setIsLoadingSuggested(true);
       if (!currentBusinessId) {
         setSuggestedProfiles([]);
         toast.error("Please select a business first.");
@@ -199,9 +201,23 @@ const BusinessJobs = () => {
       setSuggestedProfiles([]);
       toast.error(error?.message || "Failed to load suggested profiles");
     } finally {
-      setIsLoadingSuggested(false);
+      if (!options?.silent) setIsLoadingSuggested(false);
     }
   }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await getMyEmployments().catch(() => undefined);
+      await Promise.all([
+        loadFeaturedProfiles({ silent: true }),
+        loadSuggestedProfiles({ silent: true }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [getMyEmployments, isRefreshing, loadFeaturedProfiles, loadSuggestedProfiles]);
 
   useFocusEffect(
     useCallback(() => {
@@ -259,6 +275,13 @@ const BusinessJobs = () => {
         contentContainerStyle={{
           paddingBottom: 40,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? "#fff" : "#111"}
+          />
+        }
       >
         {/* search and filter button */}
         <View className="flex-row items-center mt-4">

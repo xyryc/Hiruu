@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
+  RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
@@ -56,6 +57,7 @@ const BusinessProfile = () => {
   const [businessData, setBusinessData] = useState<any>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
   const [isLoadingBusiness, setIsLoadingBusiness] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [recruitingUpdateLoading, setRecruitingUpdateLoading] = useState(false);
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
@@ -115,7 +117,7 @@ const BusinessProfile = () => {
       if (requestId !== profileRequestIdRef.current) return;
       setIsLoadingBusiness(false);
     }
-  }, [businessId, getBusinessProfile]);
+  }, [businessId, getBusinessProfile, t]);
 
   const loadBusinessJobs = useCallback(async () => {
     if (!businessId) {
@@ -158,6 +160,30 @@ const BusinessProfile = () => {
     loadBusiness();
     loadBusinessJobs();
   }, [loadBusiness, loadBusinessJobs]);
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    try {
+      setIsRefreshing(true);
+      await Promise.all([
+        getMyEmployments(true).catch(() => undefined),
+        loadBusiness(),
+        loadBusinessJobs(),
+        loadRatingSummary(),
+      ]);
+    } catch (error: any) {
+      toast.error(error?.message || t("common.failedToRefresh"));
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [
+    getMyEmployments,
+    isRefreshing,
+    loadBusiness,
+    loadBusinessJobs,
+    loadRatingSummary,
+    t,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -346,6 +372,9 @@ const BusinessProfile = () => {
         contentContainerStyle={{
           paddingBottom: 40,
         }}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         {showInitialSkeleton ? (
           <AutoSkeletonView isLoading={true} defaultRadius={12}>
