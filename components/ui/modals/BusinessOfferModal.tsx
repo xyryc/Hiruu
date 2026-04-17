@@ -6,7 +6,6 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router } from 'expo-router';
 import React, { useEffect, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   Modal,
   ScrollView,
@@ -16,6 +15,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import PrimaryButton from "../buttons/PrimaryButton";
@@ -40,6 +40,8 @@ type BusinessOfferModalProps = {
   visible: boolean;
   onClose: () => void;
   userId: string;
+  alreadyOffered?: boolean;
+  onOfferSent?: () => void;
 };
 
 const normalizeRoleLabel = (item: any) =>
@@ -49,7 +51,13 @@ const normalizeRoleLabel = (item: any) =>
   item?.title ||
   "";
 
-const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProps) => {
+const BusinessOfferModal = ({
+  visible,
+  onClose,
+  userId,
+  alreadyOffered = false,
+  onOfferSent,
+}: BusinessOfferModalProps) => {
   const getJobProfileByUserId = useJobStore((state) => state.getJobProfileByUserId);
   const inviteCandidateToRecruitment = useJobStore(
     (state) => state.inviteCandidateToRecruitment
@@ -239,6 +247,10 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
   };
 
   const handleApplyNow = async () => {
+    if (alreadyOffered) {
+      toast.info("Offer already sent.");
+      return;
+    }
     if (!selectedBusiness) {
       toast.error("Please select a business.");
       return;
@@ -271,6 +283,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
         maxSalary: parsedMaxSalary,
       });
       toast.success("Offer sent successfully.");
+      onOfferSent?.();
       setShowDetails(true);
     } catch (error: any) {
       toast.error(error?.message || "Failed to send offer");
@@ -307,12 +320,8 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
   const profileAvatar = profile?.user?.avatar || require('@/assets/images/placeholder.png')
   const profileName = profile?.user?.name || "Candidate";
   const profileHeadline = profile?.headline || profile?.highlightedExperience || "Open to work";
-  const salaryLabel =
-    salaryMin || salaryMax
-      ? `${salaryMin || "-"}-${salaryMax || "-"}$/${resolveSalaryTypeLabel(
-        profile?.preferredSalaryType
-      )}`
-      : "Salary not set";
+  const ratingValue = Number(profile?.user?.rating ?? 0);
+  const ratingLabel = Number.isFinite(ratingValue) ? ratingValue.toFixed(1) : "0.0";
   const isModalLoading = isLoadingProfile || isLoadingBusinesses || isLoadingRoles;
 
 
@@ -391,7 +400,7 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
                     </View>
 
                     <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                      {salaryLabel} <Fontisto name="star" size={14} color="#F1C400" />
+                      {ratingLabel} <Fontisto name="star" size={14} color="#F1C400" />
                     </Text>
                   </View>
 
@@ -458,14 +467,15 @@ const BusinessOfferModal = ({ visible, onClose, userId }: BusinessOfferModalProp
 
                   {/* button */}
                   <PrimaryButton
-                    title="Apply Now"
+                    title={alreadyOffered ? "Already Sent" : "Send Offer"}
                     className="mt-7"
                     onPress={handleApplyNow}
                     loading={isSubmitting}
                     disabled={
                       isLoadingProfile ||
                       isLoadingBusinesses ||
-                      isLoadingRoles
+                      isLoadingRoles ||
+                      alreadyOffered
                     }
                   />
                 </AutoSkeletonView>

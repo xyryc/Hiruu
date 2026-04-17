@@ -11,7 +11,7 @@ import {
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
@@ -43,7 +43,15 @@ const BusinessJobCard = ({
   const [showModal, setShowModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [isCreatingCall, setIsCreatingCall] = useState(false);
+  const [offerSent, setOfferSent] = useState(Boolean(profile?.alreadyOffered));
   const isSkeleton = !profile?.user && !profile?.headline && !profile?.highlightedExperience;
+  const alreadyOffered = offerSent || Boolean(profile?.alreadyOffered);
+  const modalDisabled = Boolean(disableModalOpen) || alreadyOffered;
+
+  useEffect(() => {
+    // Keep local state in sync when the profile changes (e.g. refresh/list reload).
+    setOfferSent(Boolean(profile?.alreadyOffered));
+  }, [profile?.alreadyOffered]);
 
   // Extract profile data
   const userName = profile?.user?.name || "Md Talath Un Nabi Anik";
@@ -172,13 +180,17 @@ const BusinessJobCard = ({
   };
 
   const handleOpenOfferModal = () => {
+    if (alreadyOffered) {
+      toast.info("Offer already sent.");
+      return;
+    }
     setShowModal(true);
   };
 
   return (
     <TouchableOpacity
-      onPress={disableModalOpen ? undefined : handleOpenOfferModal}
-      activeOpacity={disableModalOpen ? 1 : 0.2}
+      onPress={modalDisabled ? undefined : handleOpenOfferModal}
+      activeOpacity={modalDisabled ? 1 : 0.2}
       className={`${className}
       ${status === "featured" && "bg-[#E5F4FD]"}
       p-2.5 rounded-xl border border-[#4FB2F330]`}
@@ -186,6 +198,13 @@ const BusinessJobCard = ({
       <AutoSkeletonView isLoading={isSkeleton} defaultRadius={JOB_CARD_RADIUS}>
         {/* top */}
         <View className="relative">
+          {alreadyOffered && (
+            <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
+              <Text className="text-xs font-proximanova-semibold text-white">
+                Offer Sent
+              </Text>
+            </View>
+          )}
           {/* content */}
           <View className="flex-row items-center gap-2.5 p-1 z-10">
             {/* profile image */}
@@ -429,6 +448,8 @@ const BusinessJobCard = ({
         visible={showModal}
         onClose={() => setShowModal(false)}
         userId={profile?.userId || profile?.user?.id || ""}
+        alreadyOffered={alreadyOffered}
+        onOfferSent={() => setOfferSent(true)}
       />
     </TouchableOpacity>
   );
