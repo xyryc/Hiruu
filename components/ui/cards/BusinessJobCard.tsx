@@ -1,7 +1,6 @@
 import { chatService } from "@/services/chatService";
-import { callService } from "@/services/callService";
 import { BusinessJobCardProps } from "@/types";
-import { translateApiMessage } from "@/utils/apiMessages";
+import { buildDialablePhoneNumber } from "@/utils/phone";
 import {
   FontAwesome,
   Ionicons,
@@ -15,6 +14,7 @@ import React, { useEffect, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   Text,
   TouchableOpacity,
@@ -88,6 +88,11 @@ const BusinessJobCard = ({
         ? "hr"
         : rawSalaryType;
   const distanceKm = profile?.distanceKm;
+  const dialPhoneNumber =
+    (typeof profile?.user?.dialPhoneNumber === "string" && profile.user.dialPhoneNumber.trim())
+      ? profile.user.dialPhoneNumber.trim()
+      : buildDialablePhoneNumber(profile?.user?.countryCode, profile?.user?.phoneNumber);
+  const canCall = Boolean(dialPhoneNumber);
 
   // Check if user is open to work from jobProfile
   const isOpenToWork = profile?.isOpenToWork ?? profile?.user?.jobProfile?.isOpenToWork ?? false;
@@ -125,38 +130,16 @@ const BusinessJobCard = ({
   };
 
   const handleCallClick = async () => {
-    const participantId = profile?.userId || profile?.user?.id;
-
-    if (!participantId) {
-      toast.error("User information is unavailable");
+    if (!dialPhoneNumber) {
+      toast.error("Phone number is unavailable");
       return;
     }
 
     try {
       setIsCreatingCall(true);
-      const roomResult = await chatService.createDirectChat(participantId);
-      const roomId = roomResult?.data?.id;
-
-      if (!roomId) {
-        throw new Error("Chat room id is missing");
-      }
-
-      const response = await callService.initiateAudioCall(roomId);
-      const callData = response?.data;
-      const callId =
-        callData?.id || callData?.callId || callData?.call?.id || null;
-
-      if (!callId) {
-        throw new Error("Call started but call id is missing");
-      }
-
-      router.push({
-        pathname: "/screens/inbox/audio-call",
-        params: { callId, roomId, mode: "outgoing", callType: "audio" },
-      });
+      await Linking.openURL(`tel:${dialPhoneNumber.replace(/\s+/g, "")}`);
     } catch (error: any) {
-      const apiMessage = error?.response?.data?.message || error?.message || "Failed to start call";
-      toast.error(typeof apiMessage === "string" ? translateApiMessage(apiMessage) : apiMessage);
+      toast.error(error?.message || "Failed to open phone dialer");
     } finally {
       setIsCreatingCall(false);
     }
@@ -350,15 +333,20 @@ const BusinessJobCard = ({
               />
 
               <Pressable
-                onPress={handleCallClick}
-                disabled={isCreatingChat || isCreatingCall}
+                onPress={canCall ? handleCallClick : undefined}
+                disabled={!canCall || isCreatingChat || isCreatingCall}
                 className={`h-10 w-10 rounded-full flex-row items-center justify-center
-             ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}`}
+             ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}
+             ${canCall ? "" : "opacity-60 bg-[#E5E7EB]"}`}
               >
                 {isCreatingCall ? (
                   <ActivityIndicator size="small" color="#4FB2F3" />
                 ) : (
-                  <Ionicons name="call" size={20} color="#4FB2F3" />
+                  <Ionicons
+                    name="call"
+                    size={20}
+                    color={canCall ? "#4FB2F3" : "#9CA3AF"}
+                  />
                 )}
               </Pressable>
             </View>

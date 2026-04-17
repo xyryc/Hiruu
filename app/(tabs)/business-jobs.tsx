@@ -21,6 +21,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+import { buildDialablePhoneNumber } from "@/utils/phone";
 
 const styles = StyleSheet.create({
   compactEmptyState: {
@@ -69,6 +70,18 @@ const filterProfilesByFeaturedType = (
       ? profile?.isFeatured === true
       : profile?.isFeatured !== true
   );
+};
+
+const withDialPhoneNumber = (profiles: any[]) => {
+  if (!Array.isArray(profiles)) return [];
+  return profiles.map((profile) => {
+    const user = profile?.user && typeof profile.user === "object" ? profile.user : null;
+    const dialPhoneNumber = buildDialablePhoneNumber(user?.countryCode, user?.phoneNumber);
+    return {
+      ...profile,
+      user: user ? { ...user, dialPhoneNumber } : profile?.user,
+    };
+  });
 };
 
 const BusinessJobs = () => {
@@ -138,10 +151,12 @@ const BusinessJobs = () => {
       //   JSON.stringify(result, null, 2)
       // );
       setFeaturedProfiles(
-        filterProfilesByFeaturedType(result.data, "featured")
+        withDialPhoneNumber(
+          filterProfilesByFeaturedType(result.data, "featured")
           .filter((profile) =>
             matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
           )
+        )
       );
 
 
@@ -173,10 +188,12 @@ const BusinessJobs = () => {
       //   JSON.stringify(result, null, 2)
       // );
       setSuggestedProfiles(
-        filterProfilesByFeaturedType(result.data, "suggested")
+        withDialPhoneNumber(
+          filterProfilesByFeaturedType(result.data, "suggested")
           .filter((profile) =>
             matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
           )
+        )
       );
     } catch (error: any) {
       setSuggestedProfiles([]);
