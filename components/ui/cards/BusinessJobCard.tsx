@@ -11,6 +11,7 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
@@ -40,6 +41,7 @@ const BusinessJobCard = ({
   actionLoading,
 }: BusinessJobCardProps) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [isCreatingCall, setIsCreatingCall] = useState(false);
@@ -54,13 +56,13 @@ const BusinessJobCard = ({
   }, [profile?.alreadyOffered]);
 
   // Extract profile data
-  const userName = profile?.user?.name || "Md Talath Un Nabi Anik";
+  const userName = profile?.user?.name || t("common.user");
   const userAvatarUri =
     typeof profile?.user?.avatar === "string" ? profile.user.avatar.trim() : "";
   const userAvatarSource = userAvatarUri
     ? { uri: userAvatarUri }
     : require("@/assets/images/placeholder.png");
-  const headline = profile?.headline || "Cashier";
+  const headline = profile?.headline || t("common.notSet");
   const isPremium = profile?.isPremium || false;
   const applicationStatus = String(profile?.applicationStatus || "").toLowerCase();
   const finalReceivedStatus =
@@ -69,12 +71,12 @@ const BusinessJobCard = ({
       : null;
 
   // Handle address - check for user.address.address structure
-  let address = "New York, North Bergen";
+  let address = t("common.addressUnavailable");
   if (profile?.user?.address) {
     if (typeof profile.user.address === "string") {
       address = profile.user.address;
     } else if (typeof profile.user.address === "object") {
-      address = profile.user.address.city || "New York, North Bergen";
+      address = profile.user.address.city || t("common.addressUnavailable");
     }
   }
 
@@ -83,9 +85,9 @@ const BusinessJobCard = ({
   const rawSalaryType = String(profile?.preferredSalaryType || "hourly").toLowerCase();
   const salaryType =
     rawSalaryType === "monthly"
-      ? "mo"
+      ? t("user.jobs.businessJobCard.salaryType.monthly")
       : rawSalaryType === "hourly"
-        ? "hr"
+        ? t("user.jobs.businessJobCard.salaryType.hourly")
         : rawSalaryType;
   const distanceKm = profile?.distanceKm;
   const dialPhoneNumber =
@@ -105,7 +107,7 @@ const BusinessJobCard = ({
     const participantId = profile?.userId || profile?.user?.id;
 
     if (!participantId) {
-      toast.error("User information is unavailable");
+      toast.error(t("user.jobs.businessJobCard.userInfoUnavailable"));
       return;
     }
 
@@ -115,7 +117,7 @@ const BusinessJobCard = ({
       const roomId = result?.data?.id;
 
       if (!roomId) {
-        throw new Error("Chat room id is missing");
+        throw new Error(t("user.jobs.businessJobCard.chatRoomIdMissing"));
       }
 
       router.push({
@@ -123,7 +125,7 @@ const BusinessJobCard = ({
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to start chat");
+      toast.error(error?.message || t("user.jobs.businessJobCard.failedToStartChat"));
     } finally {
       setIsCreatingChat(false);
     }
@@ -131,7 +133,7 @@ const BusinessJobCard = ({
 
   const handleCallClick = async () => {
     if (!dialPhoneNumber) {
-      toast.error("Phone number is unavailable");
+      toast.error(t("user.jobs.businessJobCard.phoneUnavailable"));
       return;
     }
 
@@ -139,7 +141,7 @@ const BusinessJobCard = ({
       setIsCreatingCall(true);
       await Linking.openURL(`tel:${dialPhoneNumber.replace(/\s+/g, "")}`);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to open phone dialer");
+      toast.error(error?.message || t("user.jobs.businessJobCard.failedToOpenDialer"));
     } finally {
       setIsCreatingCall(false);
     }
@@ -149,7 +151,7 @@ const BusinessJobCard = ({
     const userId = profile?.userId || profile?.user?.id;
 
     if (!userId) {
-      toast.error("User information is unavailable");
+      toast.error(t("user.jobs.businessJobCard.userInfoUnavailable"));
       return;
     }
 
@@ -164,7 +166,7 @@ const BusinessJobCard = ({
 
   const handleOpenOfferModal = () => {
     if (alreadyOffered) {
-      toast.info("Offer already sent.");
+      toast.info(t("user.jobs.businessJobCard.offerAlreadySent"));
       return;
     }
     setShowModal(true);
@@ -184,7 +186,7 @@ const BusinessJobCard = ({
           {alreadyOffered && (
             <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
               <Text className="text-xs font-proximanova-semibold text-white">
-                Offer Sent
+                {t("user.jobs.businessJobCard.offerSent")}
               </Text>
             </View>
           )}
@@ -246,7 +248,7 @@ const BusinessJobCard = ({
               {salaryMin}-{salaryMax}$
             </Text>
             <Text className="text-lg font-proximanova-regular text-secondary">
-              /{salaryType}{' '}
+              /{salaryType}{" "}
             </Text>
           </View>
         </View>
@@ -257,7 +259,7 @@ const BusinessJobCard = ({
             <View className="flex-row gap-1.5 items-center px-2.5 py-1 bg-[#3F98FF4D] rounded-full">
               <MaterialIcons name="verified" size={16} color="#3090FF" />
               <Text className="text-xs font-proximanova-regular text-primary">
-                Verified
+                {t("common.verified")}
               </Text>
             </View>
           ) : (
@@ -278,7 +280,9 @@ const BusinessJobCard = ({
                 ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
           `}
           >
-            <Text className="text-xs font-proximanova-regular">Full Time</Text>
+            <Text className="text-xs font-proximanova-regular">
+              {t("user.jobs.postJob.options.fullTime")}
+            </Text>
           </View>
 
           {distanceKm !== null && distanceKm !== undefined && (
@@ -287,7 +291,9 @@ const BusinessJobCard = ({
                 ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
           `}
             >
-              <Text className="text-xs font-proximanova-regular">{distanceKm.toFixed(1)}km away</Text>
+              <Text className="text-xs font-proximanova-regular">
+                {t("common.kmAway", { distance: Number(distanceKm.toFixed(1)) })}
+              </Text>
             </View>
           )}
         </View>
@@ -357,7 +363,7 @@ const BusinessJobCard = ({
             ) : (
               <View onStartShouldSetResponder={() => true}>
                 <SmallButton
-                  title="View Profile"
+                  title={t("common.viewProfile")}
                   onPress={handleViewProfile}
                 />
               </View>
@@ -371,7 +377,7 @@ const BusinessJobCard = ({
             {/* left */}
             <View onStartShouldSetResponder={() => true}>
               <SecondaryButton
-                title="View Details"
+                title={t("common.viewDetails")}
                 onPress={handleViewProfile}
                 textClass="text-[#4FB2F3]"
                 iconBackground="bg-white"

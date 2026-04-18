@@ -2,6 +2,7 @@
   "user": {
     "jobsTab": {
       "findJob": "Find Job",
+      "findEmployee": "Find Employee",
       "featuredJob": "Featured Job",
       "suggestedJob": "Suggested Job",
       "seeAll": "See All",
@@ -68,6 +69,19 @@
         "salarySuffix": {
           "monthly": "/mo",
           "hourly": "/hr"
+        }
+      },
+      "businessJobCard": {
+        "offerSent": "Offer Sent",
+        "offerAlreadySent": "Offer already sent.",
+        "userInfoUnavailable": "User information is unavailable",
+        "chatRoomIdMissing": "Chat room id is missing",
+        "failedToStartChat": "Failed to start chat",
+        "phoneUnavailable": "Phone number is unavailable",
+        "failedToOpenDialer": "Failed to open phone dialer",
+        "salaryType": {
+          "monthly": "mo",
+          "hourly": "hr"
         }
       },
       "allProfiles": {
@@ -1049,11 +1063,14 @@
     "kmAway": "{{distance}} Km Away",
     "addressUnavailable": "Address unavailable",
     "cityUnavailable": "City unavailable",
+    "verified": "Verified",
     "unknown": "Unknown",
     "login": "Login",
     "logout": "Logout",
     "view": "View",
     "all": "All",
+    "viewProfile": "View Profile",
+    "viewDetails": "View Details",
     "user": "User",
     "open": "Open",
     "closed": "Closed",

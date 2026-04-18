@@ -2,6 +2,7 @@
   "user": {
     "jobsTab": {
       "findJob": "Εύρεση εργασίας",
+      "findEmployee": "Βρες εργαζόμενο",
       "featuredJob": "Προτεινόμενη θέση",
       "suggestedJob": "Προτεινόμενη εργασία",
       "seeAll": "Δες όλα",
@@ -68,6 +69,19 @@
         "salarySuffix": {
           "monthly": "/μήνα",
           "hourly": "/ώρα"
+        }
+      },
+      "businessJobCard": {
+        "offerSent": "Η προσφορά στάλθηκε",
+        "offerAlreadySent": "Η προσφορά έχει ήδη σταλεί.",
+        "userInfoUnavailable": "Οι πληροφορίες χρήστη δεν είναι διαθέσιμες",
+        "chatRoomIdMissing": "Λείπει το αναγνωριστικό συνομιλίας",
+        "failedToStartChat": "Αποτυχία έναρξης συνομιλίας",
+        "phoneUnavailable": "Ο αριθμός τηλεφώνου δεν είναι διαθέσιμος",
+        "failedToOpenDialer": "Αποτυχία ανοίγματος του τηλεφώνου",
+        "salaryType": {
+          "monthly": "μήνα",
+          "hourly": "ώρα"
         }
       },
       "allProfiles": {
@@ -1049,10 +1063,13 @@
     "kmAway": "{{distance}} χλμ μακριά",
     "addressUnavailable": "Διεύθυνση μη διαθέσιμη",
     "cityUnavailable": "Πόλη μη διαθέσιμη",
+    "verified": "Επαληθευμένο",
     "unknown": "Άγνωστο",
     "login": "Σύνδεση",
     "logout": "Αποσύνδεση",
     "all": "Όλα",
+    "viewProfile": "Προβολή προφίλ",
+    "viewDetails": "Προβολή λεπτομερειών",
     "today": "Σήμερα",
     "dateWithToday": "{{date}} (Σήμερα)",
     "na": "Μ/Δ",

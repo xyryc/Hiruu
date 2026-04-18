@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import {
   RefreshControl,
   ScrollView,
@@ -88,6 +89,7 @@ const withDialPhoneNumber = (profiles: any[]) => {
 const BusinessJobs = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
   const getJobProfilesForBusiness = useJobStore((s) => s.getJobProfilesForBusiness);
   const businessCandidateFilters = useJobStore((s) => s.businessCandidateFilters);
   const { selectedBusinesses, getMyEmployments } = useBusinessStore();
@@ -140,7 +142,7 @@ const BusinessJobs = () => {
       if (!options?.silent) setIsLoadingFeatured(true);
       if (!currentBusinessId) {
         setFeaturedProfiles([]);
-        toast.error("Please select a business first.");
+        toast.error(t("user.profile.noBusinessSelected"));
         return;
       }
       const result = await getJobProfilesForBusiness(currentBusinessId, {
@@ -166,18 +168,18 @@ const BusinessJobs = () => {
     } catch (error: any) {
       console.error("[BusinessJobs] Failed to load featured profiles:", error);
       setFeaturedProfiles([]);
-      toast.error(error?.message || "Failed to load featured profiles");
+      toast.error(error?.message || t("user.jobs.allProfiles.failedToFetchProfiles"));
     } finally {
       if (!options?.silent) setIsLoadingFeatured(false);
     }
-  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
+  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness, t]);
 
   const loadSuggestedProfiles = useCallback(async (options?: { silent?: boolean }) => {
     try {
       if (!options?.silent) setIsLoadingSuggested(true);
       if (!currentBusinessId) {
         setSuggestedProfiles([]);
-        toast.error("Please select a business first.");
+        toast.error(t("user.profile.noBusinessSelected"));
         return;
       }
       const result = await getJobProfilesForBusiness(currentBusinessId, {
@@ -199,11 +201,11 @@ const BusinessJobs = () => {
       );
     } catch (error: any) {
       setSuggestedProfiles([]);
-      toast.error(error?.message || "Failed to load suggested profiles");
+      toast.error(error?.message || t("user.jobs.allProfiles.failedToFetchProfiles"));
     } finally {
       if (!options?.silent) setIsLoadingSuggested(false);
     }
-  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness]);
+  }, [businessCandidateFilters, currentBusinessId, getJobProfilesForBusiness, t]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -235,7 +237,7 @@ const BusinessJobs = () => {
       <ScreenHeader
         className="my-4 mx-5"
         onPressBack={() => router.back()}
-        title="Find Employee"
+        title={t("user.jobsTab.findEmployee")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -297,7 +299,7 @@ const BusinessJobs = () => {
 
               {/* Input */}
               <TextInput
-                placeholder="Search"
+                placeholder={t("user.jobs.filters.searchTitle")}
                 placeholderTextColor="#9CA3AF"
                 className="flex-1 ml-2 text-base text-gray-800 dark:text-gray-200"
               />
@@ -322,8 +324,8 @@ const BusinessJobs = () => {
               <StatusStateCard
                 style={styles.compactEmptyState}
                 image={require("@/assets/images/toolbox.svg")}
-                title="No Candidates Available"
-                text="There are no job seekers available at the moment. Check back later or post a job to attract candidates."
+                title={t("user.jobs.allProfiles.noProfilesFound")}
+                text={t("user.jobs.allProfiles.adjustFilters")}
                 titleStyle={styles.compactEmptyStateTitle}
                 textStyle={styles.compactEmptyStateText}
               />
@@ -335,7 +337,7 @@ const BusinessJobs = () => {
           <View className="mt-8">
             <View className="flex-row justify-between">
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                Featured Profile
+                {t("user.jobs.allProfiles.featured")}
               </Text>
               <TouchableOpacity
                 onPress={() =>
@@ -346,7 +348,7 @@ const BusinessJobs = () => {
                 }
               >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
-                  See All
+                  {t("common.seeAll")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -382,7 +384,7 @@ const BusinessJobs = () => {
           <View className="mt-8">
             <View className="flex-row justify-between">
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                Suggested Profile
+                {t("user.jobs.allProfiles.suggested")}
               </Text>
               <TouchableOpacity
                 onPress={() =>
@@ -393,7 +395,7 @@ const BusinessJobs = () => {
                 }
               >
                 <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
-                  See All
+                  {t("common.seeAll")}
                 </Text>
               </TouchableOpacity>
             </View>
