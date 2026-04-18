@@ -80,7 +80,7 @@ const UserCalendarScheduleModal = ({
                 textDisabledColor: "#D1D5DB",
                 arrowColor: "#4FB2F3",
                 monthTextColor: "#111111",
-                indicatorColor: "#4FB2F3",
+                indicatorColor: "#4FB2F3"
               }}
             />
           </SafeAreaView>

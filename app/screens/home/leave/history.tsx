@@ -10,8 +10,9 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -59,10 +60,39 @@ const styles = StyleSheet.create({
   },
 });
 
+const LeaveHistoryCardSkeleton = () => {
+  return (
+    <View className="p-3.5 mx-5 mb-7 border border-gray-200 rounded-xl bg-white dark:bg-dark-background">
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row gap-2 items-center">
+          <View className="w-[30px] h-[30px] rounded-full bg-[#E5E7EB]" />
+          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+        </View>
+
+        <View className="h-6 w-20 bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="my-[14px] h-px w-full bg-[#E5E7EB] rounded-full" />
+
+      <View className="flex-row justify-between items-center">
+        <View>
+          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md" />
+          <View className="mt-2 h-3 w-24 bg-[#E5E7EB] rounded-md" />
+        </View>
+
+        <View className="h-7 w-24 bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="mt-3 h-3 w-56 bg-[#E5E7EB] rounded-md" />
+    </View>
+  );
+};
+
 const LeaveHistory = () => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORIES)[number]>("all");
   const [onCalendar, setOnCalendar] = useState(false);
@@ -77,10 +107,12 @@ const LeaveHistory = () => {
       await getShiftRequests({ startDate: DEFAULT_START_DATE, type: "leave_request" });
     } catch (error: any) {
       toast.error(
-        translateApiMessage(error?.message || "Failed to fetch shift requests")
+        translateApiMessage(
+          error?.message || t("user.profile.leaveHistory.failedToFetch")
+        )
       );
     }
-  }, [getShiftRequests]);
+  }, [getShiftRequests, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -94,7 +126,9 @@ const LeaveHistory = () => {
       await fetchLeaveHistory();
     } catch (error: any) {
       toast.error(
-        translateApiMessage(error?.message || "Failed to fetch shift requests")
+        translateApiMessage(
+          error?.message || t("user.profile.leaveHistory.failedToFetch")
+        )
       );
     } finally {
       setRefreshing(false);
@@ -103,7 +137,7 @@ const LeaveHistory = () => {
 
   const leaveItems = useMemo<LeaveItem[]>(() => {
     const toDisplayDate = (start?: string, end?: string) => {
-      if (!start) return "N/A";
+      if (!start) return t("common.na");
       const startDate = new Date(start);
       const endDate = end ? new Date(end) : null;
       const startLabel = startDate.toLocaleDateString("en-US", {
@@ -125,7 +159,7 @@ const LeaveHistory = () => {
     };
 
     const toLeaveTypeTitle = (leaveType?: string) => {
-      if (!leaveType) return "Leave";
+      if (!leaveType) return t("user.jobs.quickActions.leave");
       return leaveType
         .replace(/_/g, " ")
         .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -157,15 +191,16 @@ const LeaveHistory = () => {
             item?.employment?.addedByEmploymentId ||
             item?.employment?.user?.id ||
             undefined,
-          name: item?.business?.name || "Business",
+          name:
+            item?.business?.name || t("user.profile.businessSummary.businessFallback"),
           status,
           date: toDisplayDate(item?.startDate, item?.endDate),
           coses: toLeaveTypeTitle(item?.leaveType),
-          details: item?.reason || "-",
-          duration: item?.isHalfDay ? "Half Day" : undefined,
+          details: item?.reason || t("common.na"),
+          duration: item?.isHalfDay ? t("user.profile.leaveHistory.halfDay") : undefined,
         };
       });
-  }, [shiftRequests]);
+  }, [shiftRequests, t]);
 
   const filteredData =
     selectedCategory === "all"
@@ -183,6 +218,23 @@ const LeaveHistory = () => {
     {} as Record<string, number>
   );
 
+  const categoryLabels = useMemo(
+    () => ({
+      all: t("common.all"),
+      approved: t("user.profile.leaveHistory.categories.approved"),
+      pending: t("user.profile.leaveHistory.categories.pending"),
+      rejected: t("user.profile.leaveHistory.categories.rejected"),
+      cancelled: t("user.profile.leaveHistory.categories.cancelled"),
+      expired: t("user.profile.leaveHistory.categories.expired"),
+    }),
+    [t]
+  );
+
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => ({ id: `leave-history-skeleton-${index}` })),
+    []
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -191,7 +243,7 @@ const LeaveHistory = () => {
       <ScreenHeader
         className="mx-5 pt-4"
         onPressBack={() => router.back()}
-        title="Leave"
+        title={t("user.jobs.quickActions.leave")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -221,7 +273,7 @@ const LeaveHistory = () => {
 
       <View className="flex-row items-center mt-4 mx-5">
         <Text className="text-xl font-proximanova-bold text-primary dark:text-dark-primary">
-          Leave History
+          {t("user.profile.leaveHistory.title")}
         </Text>
       </View>
 
@@ -234,6 +286,8 @@ const LeaveHistory = () => {
           contentContainerStyle={{ paddingHorizontal: 12 }}
           renderItem={({ item }) => {
             const selected = selectedCategory === item;
+            const label =
+              categoryLabels[item as keyof typeof categoryLabels] || String(item);
             return (
               <TouchableOpacity
                 onPress={() =>
@@ -246,7 +300,7 @@ const LeaveHistory = () => {
                   <Text
                     className={`font-proximanova-semibold text-sm ${selected ? "text-white" : "text-[#111]"}`}
                   >
-                    <Text className="capitalize">{item}</Text>
+                    {label}
                     {` (${categoryCounts[item] || 0})`}
                   </Text>
                 </View>
@@ -257,13 +311,22 @@ const LeaveHistory = () => {
       </View>
 
       <Text className="font-semibold text-xl mx-5 text-[#111] mb-3">
-        Leave Request List
+        {t("user.profile.leaveHistory.requestListTitle")}
       </Text>
 
       {shiftRequestsLoading && leaveItems.length === 0 ? (
-        <View className="flex-1 items-center justify-center py-10">
-          <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
-        </View>
+        <FlatList
+          data={skeletonItems}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: 40 }}
+          renderItem={() => (
+            <AutoSkeletonView isLoading={true} defaultRadius={12}>
+              <View pointerEvents="none">
+                <LeaveHistoryCardSkeleton />
+              </View>
+            </AutoSkeletonView>
+          )}
+        />
       ) : (
         <FlatList
           ListEmptyComponent={
@@ -271,8 +334,8 @@ const LeaveHistory = () => {
               <StatusStateCard
                 style={styles.compactEmptyState}
                 image={require("@/assets/images/leave-pending.svg")}
-                title="No Leave Requests"
-                text="There are no leave requests to show right now."
+                title={t("user.profile.leaveHistory.emptyTitle")}
+                text={t("user.profile.leaveHistory.emptyText")}
                 titleStyle={styles.compactEmptyStateTitle}
                 textStyle={styles.compactEmptyStateText}
               />

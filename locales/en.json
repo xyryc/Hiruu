@@ -524,6 +524,40 @@
           }
         }
       },
+      "leaveHistory": {
+        "title": "Leave History",
+        "requestListTitle": "Request List",
+        "emptyTitle": "No Leave Requests",
+        "emptyText": "There are no leave requests to show right now.",
+        "failedToFetch": "Failed to load leave history",
+        "halfDay": "Half day",
+        "categories": {
+          "approved": "Approved",
+          "pending": "Pending",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "expired": "Expired"
+        }
+      },
+      "swapRequest": {
+        "screenTitle": "Swap Requests",
+        "tabs": {
+          "sent": "Send Request",
+          "received": "Received"
+        },
+        "failedToLoadSent": "Failed to load swap requests",
+        "failedToLoadReceived": "Failed to load pending swaps",
+        "unableToProcess": "Unable to process this swap request",
+        "accepted": "Swap request accepted",
+        "rejected": "Swap request rejected",
+        "failedToUpdate": "Failed to update swap request",
+        "empty": {
+          "sentTitle": "No Swap Requests",
+          "sentText": "There are no swap requests to show right now.",
+          "receivedTitle": "No Received Requests",
+          "receivedText": "No received swap request available yet."
+        }
+      },
       "attendanceSummary": {
         "title": "Today's Attendance Summary",
         "arrivedOnTime": "Employees Arrived On Time",
@@ -1007,6 +1041,7 @@
     "open": "Open",
     "closed": "Closed",
     "notSet": "Not set",
+    "na": "N/A",
     "average": "average",
     "findNow": "Find Now",
     "seeAll": "See All",
