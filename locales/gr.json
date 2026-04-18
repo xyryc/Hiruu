@@ -486,6 +486,44 @@
         "viewShiftReport": "Προβολή αναφοράς βαρδιών",
         "failedToLoad": "Αποτυχία φόρτωσης σύνοψης σημερινών βαρδιών"
       },
+      "trackHours": {
+        "monthOverviewTitle": "Σύνοψη μήνα",
+        "totalHoursLabel": "Συνολικές ώρες",
+        "completedShiftLabel": "Ολοκληρωμένες βάρδιες",
+        "overHoursLabel": "Υπερωρίες",
+        "statusLabel": "Κατάσταση:",
+        "onTrackLabel": "Σε καλό δρόμο",
+        "belowTargetLabel": "Κάτω από τον στόχο",
+        "dailyShiftLogTitle": "Ημερήσιο αρχείο βάρδιας",
+        "workingHoursRange": "Ώρες εργασίας ({{start}} - {{end}})",
+        "viewAttendanceLog": "Προβολή αρχείου παρουσιών",
+        "missingLogActivitiesTitle": "Δραστηριότητες με ελλιπές αρχείο",
+        "noMissingLogsTitle": "Χωρίς ελλείψεις",
+        "noMissingLogsText": "Είσαι εντάξει. Δεν υπάρχουν δραστηριότητες με ελλιπές αρχείο.",
+        "untitledShift": "Βάρδια χωρίς τίτλο",
+        "workPatternTitle": "Το μοτίβο εργασίας σου",
+        "earnedTokensThisWeekTitle": "Κερδισμένα tokens αυτή την εβδομάδα",
+        "failedToLoad": "Αποτυχία φόρτωσης ωρών εργασίας",
+        "failedToLoadMissingLogs": "Αποτυχία φόρτωσης δραστηριοτήτων με ελλιπές αρχείο",
+        "attendanceLog": {
+          "title": "Αρχείο παρουσιών",
+          "emptyTitle": "Δεν υπάρχουν παρουσίες",
+          "emptyText": "Δεν υπάρχουν παρουσίες για εμφάνιση αυτή τη στιγμή.",
+          "failedToLoad": "Αποτυχία φόρτωσης αρχείου παρουσιών",
+          "card": {
+            "startTime": "Ώρα έναρξης",
+            "endTime": "Ώρα λήξης",
+            "workingTime": "Χρόνος εργασίας"
+          },
+          "status": {
+            "completed": "Ολοκληρώθηκε",
+            "missed": "Απουσία",
+            "pending": "Σε εκκρεμότητα",
+            "ongoing": "Σε εξέλιξη",
+            "earlyLeave": "Πρόωρη αποχώρηση"
+          }
+        }
+      },
       "attendanceSummary": {
         "title": "Σύνοψη σημερινής παρουσίας",
         "arrivedOnTime": "Εργαζόμενοι που προσήλθαν εγκαίρως",
@@ -960,8 +998,11 @@
     "searchHere": "Αναζήτηση εδώ...",
     "addressUnavailable": "Διεύθυνση μη διαθέσιμη",
     "cityUnavailable": "Πόλη μη διαθέσιμη",
+    "unknown": "Άγνωστο",
     "login": "Σύνδεση",
     "logout": "Αποσύνδεση",
+    "today": "Σήμερα",
+    "dateWithToday": "{{date}} (Σήμερα)",
     "noJobsAvailable": "Δεν υπάρχουν διαθέσιμες θέσεις εργασίας",
     "noJobsAvailableDescription": "Δεν υπάρχουν ανοιχτές θέσεις εργασίας αυτή τη στιγμή. Ελέγξτε ξανά αργότερα για νέες ευκαιρίες.",
     "noShiftsAvailable": "Δεν υπάρχουν διαθέσιμες βάρδιες",

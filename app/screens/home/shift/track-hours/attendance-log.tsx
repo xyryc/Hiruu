@@ -3,12 +3,15 @@ import AttendanceLogCard from "@/components/ui/cards/AttendanceLogCard";
 import TrackHoursFilter, {
   TrackHoursTimeframe,
 } from "@/components/ui/modals/TrackHoursFilter";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useShiftStore } from "@/stores/shiftStore";
 import { StatusBadgeProps } from "@/types";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -92,45 +95,113 @@ const formatDisplayTime = (value?: string | null) => {
 };
 
 const mapStatusSummaryToBadge = (
-  statusSummary?: string | null
+  statusSummary: string | null | undefined,
+  t: (key: string, options?: any) => string
 ): { status: StatusBadgeProps["status"]; label: string; workTimeColor?: string } => {
   const normalized = String(statusSummary || "").toLowerCase();
 
   switch (normalized) {
     case "completed":
-      return { status: "completed", label: "Completed", workTimeColor: "#3EBF5A" };
+      return {
+        status: "completed",
+        label: t("user.profile.trackHours.attendanceLog.status.completed"),
+        workTimeColor: "#3EBF5A",
+      };
     case "missed":
-      return { status: "missed", label: "Missed", workTimeColor: "#F34F4F" };
+      return {
+        status: "missed",
+        label: t("user.profile.trackHours.attendanceLog.status.missed"),
+        workTimeColor: "#F34F4F",
+      };
     case "pending":
-      return { status: "pending", label: "Pending", workTimeColor: "#F3934F" };
+      return {
+        status: "pending",
+        label: t("user.profile.trackHours.attendanceLog.status.pending"),
+        workTimeColor: "#F3934F",
+      };
     case "ongoing":
-      return { status: "ongoing", label: "Ongoing", workTimeColor: "#F3934F" };
+      return {
+        status: "ongoing",
+        label: t("user.profile.trackHours.attendanceLog.status.ongoing"),
+        workTimeColor: "#F3934F",
+      };
     case "early_leave":
-      return { status: "early_leave", label: "Early Leave", workTimeColor: "#F3934F" };
+      return {
+        status: "early_leave",
+        label: t("user.profile.trackHours.attendanceLog.status.earlyLeave"),
+        workTimeColor: "#F3934F",
+      };
     default:
-      return { status: "pending", label: statusSummary || "Pending" };
+      return {
+        status: "pending",
+        label:
+          (typeof statusSummary === "string" && statusSummary.trim()) ||
+          t("user.profile.trackHours.attendanceLog.status.pending"),
+      };
   }
+};
+
+const AttendanceLogCardSkeleton = () => {
+  return (
+    <View className="mt-3 p-4 border-hairline border-secondary dark:border-dark-secondary rounded-xl bg-white dark:bg-dark-background">
+      <View className="flex-row justify-between">
+        <View className="flex-row justify-between gap-5">
+          <View>
+            <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+            <View className="mt-2 h-4 w-16 bg-[#E5E7EB] rounded-md" />
+          </View>
+          <View className="border-r-hairline border-secondary dark:border-dark-secondary" />
+          <View>
+            <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+            <View className="mt-2 h-4 w-16 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+
+        <View>
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="mt-2 h-4 w-14 bg-[#E5E7EB] rounded-md" />
+        </View>
+      </View>
+
+      <View className="border-b-hairline border-secondary dark:border-dark-secondary mt-3" />
+
+      <View className="mt-3 flex-row justify-between items-center">
+        <View className="flex-row gap-2 items-center">
+          <View className="h-[30px] w-[30px] rounded-full bg-[#E5E7EB]" />
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="h-6 w-20 bg-[#E5E7EB] rounded-full" />
+      </View>
+    </View>
+  );
 };
 
 const AttendanceLog = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
   const [isModal, setIsModal] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<TrackHoursTimeframe>("all_time");
   const [attendanceLogs, setAttendanceLogs] = useState<AttendanceLogItem[]>([]);
+  const [attendanceLogsLoading, setAttendanceLogsLoading] = useState(false);
   const getAttendanceLog = useShiftStore((s) => s.getAttendanceLog);
 
   const loadAttendanceLogs = useCallback(
     async (timeframe: TrackHoursTimeframe) => {
+      setAttendanceLogsLoading(true);
       try {
         const logs = await getAttendanceLog(getDateRangeByTimeframe(timeframe));
         setAttendanceLogs(Array.isArray(logs) ? logs : []);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load attendance log");
+        toast.error(
+          error?.message || t("user.profile.trackHours.attendanceLog.failedToLoad")
+        );
+      } finally {
+        setAttendanceLogsLoading(false);
       }
     },
-    [getAttendanceLog]
+    [getAttendanceLog, t]
   );
 
   useEffect(() => {
@@ -161,6 +232,17 @@ const AttendanceLog = () => {
     setSelectedTimeframe(timeframe);
   };
 
+  const skeletonGroups = useMemo(
+    () =>
+      Array.from({ length: 2 }, (_, groupIndex) => ({
+        id: `attendance-log-skeleton-group-${groupIndex}`,
+        cards: Array.from({ length: 2 }, (_, cardIndex) => ({
+          id: `attendance-log-skeleton-card-${groupIndex}-${cardIndex}`,
+        })),
+      })),
+    []
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
@@ -170,7 +252,7 @@ const AttendanceLog = () => {
       <ScreenHeader
         className="mx-5 my-2.5"
         onPressBack={() => router.back()}
-        title="Attendance Log"
+        title={t("user.profile.trackHours.attendanceLog.title")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -190,11 +272,33 @@ const AttendanceLog = () => {
           paddingHorizontal: 20,
         }}
       >
-        {groupedDates.length === 0 ? (
-          <View className="pt-8">
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              No attendance log found.
-            </Text>
+        {attendanceLogsLoading ? (
+          <View pointerEvents="none" className="pt-2">
+            {skeletonGroups.map((group, groupIndex) => (
+              <View key={group.id} className={groupIndex === 0 ? "" : "mt-8"}>
+                <AutoSkeletonView isLoading={true} defaultRadius={8}>
+                  <View className="h-4 w-36 bg-[#E5E7EB] rounded-md" />
+                </AutoSkeletonView>
+
+                {group.cards.map((card) => (
+                  <AutoSkeletonView
+                    key={card.id}
+                    isLoading={true}
+                    defaultRadius={12}
+                  >
+                    <AttendanceLogCardSkeleton />
+                  </AutoSkeletonView>
+                ))}
+              </View>
+            ))}
+          </View>
+        ) : groupedDates.length === 0 ? (
+          <View className="pt-6">
+            <StatusStateCard
+              image={require("@/assets/images/leave-pending.svg")}
+              title={t("user.profile.trackHours.attendanceLog.emptyTitle")}
+              text={t("user.profile.trackHours.attendanceLog.emptyText")}
+            />
           </View>
         ) : (
           groupedDates.map((dateKey, groupIndex) => (
@@ -204,7 +308,7 @@ const AttendanceLog = () => {
               </Text>
 
               {groupedAttendanceLogs[dateKey].map((item) => {
-                const badge = mapStatusSummaryToBadge(item?.statusSummary);
+                const badge = mapStatusSummaryToBadge(item?.statusSummary, t);
                 return (
                   <AttendanceLogCard
                     key={item.id}
@@ -215,7 +319,10 @@ const AttendanceLog = () => {
                     statusLabel={badge.label}
                     workTimeColor={badge.workTimeColor}
                     businessLogo={item?.business?.logo || null}
-                    businessName={item?.business?.name || "Business"}
+                    businessName={
+                      item?.business?.name ||
+                      t("user.profile.businessSummary.businessFallback")
+                    }
                   />
                 );
               })}

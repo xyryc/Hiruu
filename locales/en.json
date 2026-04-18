@@ -486,6 +486,44 @@
         "viewShiftReport": "View Shift Report",
         "failedToLoad": "Failed to load today's shifts summary"
       },
+      "trackHours": {
+        "monthOverviewTitle": "This Month’s Overview",
+        "totalHoursLabel": "Total Hours",
+        "completedShiftLabel": "Completed Shift",
+        "overHoursLabel": "Over Hours",
+        "statusLabel": "Status:",
+        "onTrackLabel": "On Track",
+        "belowTargetLabel": "Below Target",
+        "dailyShiftLogTitle": "Daily Shift Log",
+        "workingHoursRange": "Working Hours ({{start}} - {{end}})",
+        "viewAttendanceLog": "View Attendance log",
+        "missingLogActivitiesTitle": "Missing log Activities",
+        "noMissingLogsTitle": "No Missing Logs",
+        "noMissingLogsText": "You're all caught up. No missing log activities found.",
+        "untitledShift": "Untitled Shift",
+        "workPatternTitle": "Your Work Pattern",
+        "earnedTokensThisWeekTitle": "Shows Earned Tokens This Week",
+        "failedToLoad": "Failed to load track hours",
+        "failedToLoadMissingLogs": "Failed to load missing log activities",
+        "attendanceLog": {
+          "title": "Attendance Log",
+          "emptyTitle": "No Attendance Logs",
+          "emptyText": "There are no attendance logs to show right now.",
+          "failedToLoad": "Failed to load attendance log",
+          "card": {
+            "startTime": "Start Time",
+            "endTime": "End Time",
+            "workingTime": "Working Time"
+          },
+          "status": {
+            "completed": "Completed",
+            "missed": "Missed",
+            "pending": "Pending",
+            "ongoing": "Ongoing",
+            "earlyLeave": "Early Leave"
+          }
+        }
+      },
       "attendanceSummary": {
         "title": "Today's Attendance Summary",
         "arrivedOnTime": "Employees Arrived On Time",
@@ -960,6 +998,7 @@
     "searchHere": "Search here...",
     "addressUnavailable": "Address unavailable",
     "cityUnavailable": "City unavailable",
+    "unknown": "Unknown",
     "login": "Login",
     "logout": "Logout",
     "view": "View",
@@ -971,6 +1010,8 @@
     "average": "average",
     "findNow": "Find Now",
     "seeAll": "See All",
+    "today": "Today",
+    "dateWithToday": "{{date}} (Today)",
     "hello": "👋 Hello, {{name}}",
     "readyForTodaysTask": "Ready for today's task?",
     "welcomeTo": "Welcome to",

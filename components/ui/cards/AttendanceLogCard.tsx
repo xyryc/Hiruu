@@ -3,6 +3,7 @@ import React from "react";
 import { Text, View } from "react-native";
 import { StatusBadgeProps } from "@/types";
 import StatusBadge from "../badges/StatusBadge";
+import { useTranslation } from "react-i18next";
 
 type AttendanceLogCardProps = {
   startTime: string;
@@ -25,6 +26,7 @@ const AttendanceLogCard = ({
   businessLogo,
   businessName,
 }: AttendanceLogCardProps) => {
+  const { t } = useTranslation();
   const businessLogoSource =
     typeof businessLogo === "string" && businessLogo.trim().length > 0
       ? { uri: businessLogo }
@@ -36,7 +38,7 @@ const AttendanceLogCard = ({
         <View className="flex-row justify-between gap-5">
           <View>
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              Start Time
+              {t("user.profile.trackHours.attendanceLog.card.startTime")}
             </Text>
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
               {startTime}
@@ -45,7 +47,7 @@ const AttendanceLogCard = ({
           <View className="border-r-hairline border-secondary dark:border-dark-secondary" />
           <View>
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              End Time
+              {t("user.profile.trackHours.attendanceLog.card.endTime")}
             </Text>
             <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
               {endTime}
@@ -55,7 +57,7 @@ const AttendanceLogCard = ({
 
         <View>
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            Working Time
+            {t("user.profile.trackHours.attendanceLog.card.workingTime")}
           </Text>
           <Text
             className="font-proximanova-semibold text-base"
@@ -74,7 +76,7 @@ const AttendanceLogCard = ({
             style={{ height: 30, width: 30, borderRadius: 15 }}
           />
           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            {businessName || "Business"}
+            {businessName || t("user.profile.businessSummary.businessFallback")}
           </Text>
         </View>
 

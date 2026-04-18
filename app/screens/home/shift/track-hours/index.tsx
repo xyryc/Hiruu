@@ -8,6 +8,7 @@ import WorkHoursChart from "@/components/ui/cards/WorkHourChart";
 import TrackHoursFilter, {
   TrackHoursTimeframe,
 } from "@/components/ui/modals/TrackHoursFilter";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useShiftStore } from "@/stores/shiftStore";
 import {
   Entypo,
@@ -18,6 +19,8 @@ import {
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -77,10 +80,13 @@ const getDateRangeByTimeframe = (
   };
 };
 
-const formatDisplayDate = (value?: string | null) => {
-  if (!value) return "Today";
+const formatDisplayDate = (
+  value: string | null | undefined,
+  t: (key: string, options?: any) => string
+) => {
+  if (!value) return t("common.today");
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "Today";
+  if (Number.isNaN(parsed.getTime())) return t("common.today");
 
   const now = new Date();
   const isToday =
@@ -95,7 +101,7 @@ const formatDisplayDate = (value?: string | null) => {
     year: "numeric",
   });
 
-  return isToday ? `${base} (Today)` : base;
+  return isToday ? t("common.dateWithToday", { date: base }) : base;
 };
 
 const formatDisplayTime = (value?: string | null) => {
@@ -179,9 +185,45 @@ const toTaskCardStatus = (status?: string) => {
   return "missed" as const;
 };
 
+const MissingLogActivityCardSkeleton = () => {
+  return (
+    <View className="w-[320px] shrink-0 mr-4 rounded-[14px] px-4 pb-4 pt-4 bg-[#e5f4fd83] border border-[#4fb1f359]">
+      <View className="flex-row items-center gap-3">
+        <View className="w-20 h-20 rounded-[10px] bg-[#E5E7EB]" />
+        <View className="flex-1">
+          <View className="h-4 w-44 bg-[#E5E7EB] rounded-md mb-3" />
+          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md" />
+
+          <View className="mt-4 flex-row items-center justify-between">
+            <View className="flex-row">
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB]" />
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
+            </View>
+            <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+      </View>
+
+      <View className="items-center my-4">
+        <View className="h-px w-full bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="flex-row justify-between items-center gap-4">
+        <View className="flex-row items-center flex-1">
+          <View className="mr-2 h-[34px] w-[34px] bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="h-9 w-24 bg-[#E5E7EB] rounded-full" />
+      </View>
+    </View>
+  );
+};
+
 const TrackHours = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
   const [isModal, setIsModal] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<TrackHoursTimeframe>("all_time");
@@ -202,6 +244,7 @@ const TrackHours = () => {
     { date: string; workedHours: number; completedShifts: number }[]
   >([]);
   const [missingLogItems, setMissingLogItems] = useState<IncompleteAttendanceItem[]>([]);
+  const [missingLogsLoading, setMissingLogsLoading] = useState(false);
   const [todaysShiftLog, setTodaysShiftLog] = useState<TodaysShiftLog>(null);
 
   const loadTrackHours = useCallback(
@@ -244,10 +287,10 @@ const TrackHours = () => {
 
         setTodaysShiftLog(analytics?.todaysShiftLog ?? null);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load track hours");
+        toast.error(error?.message || t("user.profile.trackHours.failedToLoad"));
       }
     },
-    [getTrackHoursAnalytics]
+    [getTrackHoursAnalytics, t]
   );
 
   useEffect(() => {
@@ -256,16 +299,21 @@ const TrackHours = () => {
 
   const loadMissingLogs = useCallback(
     async (timeframe: TrackHoursTimeframe) => {
+      setMissingLogsLoading(true);
       try {
         const data = await getMyLatestIncompleteAttendance(
           getDateRangeByTimeframe(timeframe)
         );
         setMissingLogItems(Array.isArray(data) ? data : []);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load missing log activities");
+        toast.error(
+          error?.message || t("user.profile.trackHours.failedToLoadMissingLogs")
+        );
+      } finally {
+        setMissingLogsLoading(false);
       }
     },
-    [getMyLatestIncompleteAttendance]
+    [getMyLatestIncompleteAttendance, t]
   );
 
   useEffect(() => {
@@ -287,8 +335,8 @@ const TrackHours = () => {
   );
 
   const shiftLogDateLabel = useMemo(
-    () => formatDisplayDate(todaysShiftLog?.date || null),
-    [todaysShiftLog?.date]
+    () => formatDisplayDate(todaysShiftLog?.date || null, t),
+    [t, todaysShiftLog?.date]
   );
 
   const shiftLogWorkingStart = useMemo(
@@ -312,8 +360,12 @@ const TrackHours = () => {
   );
 
   const workingHoursLabel = useMemo(
-    () => `Working Hours (${shiftLogWorkingStart} - ${shiftLogWorkingEnd})`,
-    [shiftLogWorkingEnd, shiftLogWorkingStart]
+    () =>
+      t("user.profile.trackHours.workingHoursRange", {
+        start: shiftLogWorkingStart,
+        end: shiftLogWorkingEnd,
+      }),
+    [shiftLogWorkingEnd, shiftLogWorkingStart, t]
   );
 
   return (
@@ -325,7 +377,7 @@ const TrackHours = () => {
       <ScreenHeader
         className="mx-5 my-2.5"
         onPressBack={() => router.back()}
-        title="Track Hours"
+        title={t("user.jobs.quickActions.trackHours")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -345,7 +397,7 @@ const TrackHours = () => {
       >
         <View className="mx-5">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            This Month’s Overview
+            {t("user.profile.trackHours.monthOverviewTitle")}
           </Text>
 
           <View className="mt-2 bg-[#E5F4FD] dark:bg-dark-background rounded-2xl  border-hairline border-[#4FB2F3]">
@@ -363,7 +415,7 @@ const TrackHours = () => {
 
                 {/* Text Labels */}
                 <Text className="mt-1.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Total Hours
+                  {t("user.profile.trackHours.totalHoursLabel")}
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                   {totalHoursLabel}
@@ -378,7 +430,7 @@ const TrackHours = () => {
 
                 {/* Text Labels */}
                 <Text className="mt-1.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Completed Shift
+                  {t("user.profile.trackHours.completedShiftLabel")}
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                   {summary.completedShifts}
@@ -393,7 +445,7 @@ const TrackHours = () => {
 
                 {/* Text Labels */}
                 <Text className="mt-1.5 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  Over Hours
+                  {t("user.profile.trackHours.overHoursLabel")}
                 </Text>
                 <Text className="mt-2.5 font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
                   {overHoursLabel}
@@ -404,17 +456,17 @@ const TrackHours = () => {
             {/* bottom */}
             <View className="flex-row gap-2 items-center mx-4 my-6">
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                Status:
+                {t("user.profile.trackHours.statusLabel")}
               </Text>
-              <StatusBadge status="accepted" label="On Track " />
-              <StatusBadge status="upcoming" label="Below Target" />
+              <StatusBadge status="accepted" label={t("user.profile.trackHours.onTrackLabel")} />
+              <StatusBadge status="upcoming" label={t("user.profile.trackHours.belowTargetLabel")} />
             </View>
           </View>
         </View>
 
         <View className="mt-8 mx-5">
           <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Daily Shift Log
+            {t("user.profile.trackHours.dailyShiftLogTitle")}
           </Text>
           <ShiftLogCard
             dateLabel={shiftLogDateLabel}
@@ -428,20 +480,22 @@ const TrackHours = () => {
             onPress={() =>
               router.push("/screens/home/shift/track-hours/attendance-log")
             }
-            title="View Attendance log"
+            title={t("user.profile.trackHours.viewAttendanceLog")}
             className="mt-4"
           />
 
           {/* missing log activity */}
           <View className="flex-row justify-between mt-8">
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              Missing log Activities
+              {t("user.profile.trackHours.missingLogActivitiesTitle")}
             </Text>
 
             <TouchableOpacity
               onPress={() => router.push("/screens/home/shift/track-hours/missing-log")}
             >
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">See All</Text>
+              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
+                {t("common.seeAll")}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -450,11 +504,25 @@ const TrackHours = () => {
             horizontal={true}
             showsHorizontalScrollIndicator={false}
           >
-            {missingLogItems.length === 0 ? (
-              <View className="py-4">
-                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  No missing log activities found.
-                </Text>
+            {missingLogsLoading ? (
+              <View pointerEvents="none" className="flex-row py-1">
+                {Array.from({ length: 3 }, (_, index) => (
+                  <AutoSkeletonView
+                    key={`missing-log-skeleton-${index}`}
+                    isLoading={true}
+                    defaultRadius={14}
+                  >
+                    <MissingLogActivityCardSkeleton />
+                  </AutoSkeletonView>
+                ))}
+              </View>
+            ) : missingLogItems.length === 0 ? (
+              <View className="w-[320px] mr-4">
+                <StatusStateCard
+                  image={require("@/assets/images/leave-pending.svg")}
+                  title={t("user.profile.trackHours.noMissingLogsTitle")}
+                  text={t("user.profile.trackHours.noMissingLogsText")}
+                />
               </View>
             ) : (
               missingLogItems.map((item) => {
@@ -472,14 +540,16 @@ const TrackHours = () => {
                   item?.shiftAttendanceSummary?.presentColleagueAvatarPreview || [];
                 const teamMembers = buildPresentTeamMembers(preview, presentCount);
                 const business = item?.shiftAssignment?.shiftTemplate?.business || null;
-                const city = business?.city || business?.address?.city || "City unavailable";
+                const city =
+                  business?.city || business?.address?.city || t("common.cityUnavailable");
 
                 return (
                   <TaskCard
                     key={item.id}
                     shiftId={item?.shiftAssignmentId}
                     shiftTitle={
-                      item?.shiftAssignment?.shiftTemplate?.name || "Untitled Shift"
+                      item?.shiftAssignment?.shiftTemplate?.name ||
+                      t("user.profile.trackHours.untitledShift")
                     }
                     startTime={formatDisplayTime(startsAt)}
                     endTime={formatDisplayTime(endsAt)}
@@ -513,7 +583,7 @@ const TrackHours = () => {
           {/* work pattern */}
           <View className="mt-7">
             <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary mb-6">
-              Your Work Pattern
+              {t("user.profile.trackHours.workPatternTitle")}
             </Text>
 
             <WorkHoursChart workPattern={workPattern} />
@@ -522,8 +592,8 @@ const TrackHours = () => {
           {/* token */}
           <View className="mt-8">
             <ActionCard
-              title="Shows Earned Tokens This Week"
-              buttonTitle="View"
+              title={t("user.profile.trackHours.earnedTokensThisWeekTitle")}
+              buttonTitle={t("common.view")}
               rightImage={require("@/assets/images/engagement.svg")}
               imageClass="right-4.5 -bottom-5"
               imageWidth={131}

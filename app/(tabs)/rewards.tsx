@@ -18,6 +18,7 @@ import { StatusBar } from "expo-status-bar";
 import { DateTime } from "luxon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "i18next";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   Dimensions,
   RefreshControl,
@@ -36,6 +37,7 @@ const UserRewards = () => {
   const [refreshing, setRefreshing] = useState(false);
   const getBoard = useAchievementStore((state) => state.getBoard);
   const board = useAchievementStore((state) => state.board);
+  const isLoadingBoard = useAchievementStore((state) => state.isLoadingBoard);
   const recentAchievement = board?.recentAchievement ?? null;
   const standardChallenges = board?.standardChallenges ?? EMPTY_CHALLENGES;
   const timezone = usePreferencesStore((state) => state.timezone);
@@ -180,11 +182,24 @@ const UserRewards = () => {
   ]);
 
   const fallbackChallengeImage = require("@/assets/images/reward/giftbox.svg");
-  const challengeCardStyleCycle = [
-    { border: "#3EBF5A", back: "#ECF9EF" },
-    { border: "#F3934F", back: "#FEEFE5" },
-    { border: "#788CFF", back: "#788CFF10" },
-  ] as const;
+  const challengeCardStyleCycle = useMemo(
+    () =>
+      [
+        { border: "#3EBF5A", back: "#ECF9EF" },
+        { border: "#F3934F", back: "#FEEFE5" },
+        { border: "#788CFF", back: "#788CFF10" },
+      ] as const,
+    []
+  );
+
+  const skeletonChallenges = useMemo(
+    () =>
+      Array.from({ length: 4 }, (_, index) => ({
+        id: `rewards-skeleton-challenge-${index}`,
+        style: challengeCardStyleCycle[index % challengeCardStyleCycle.length],
+      })),
+    [challengeCardStyleCycle]
+  );
 
   const toTwoLineTitle = useCallback((title?: string | null) => {
     const words = String(title || "")
@@ -266,47 +281,69 @@ const UserRewards = () => {
             </Text>
 
             <View className="bg-[#4FB2F3] p-4 rounded-2xl mt-8">
-              <Text className="font-proximanova-semibold text-lg text-[#FFFFFF]">
-                {recentAchievementTitle}
-              </Text>
+              {isLoadingBoard && !recentAchievement ? (
+                <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                  <View pointerEvents="none">
+                    <View className="h-5 w-40 bg-[#E5E7EB] rounded-md" />
 
-              <View className="flex-row gap-2 mt-3">
-                <View>
-                  <Image
-                    source={require("@/assets/images/reward/reward-complete-spark.svg")}
-                    contentFit="contain"
-                    style={{ width: 44, height: 44 }}
-                  />
-                </View>
-                <View className="flex-1">
-                  <View className="flex-row justify-between">
-                    <Text className="font-proximanova-regular text-sm text-[#ffffff]">
-                      <Text className="text-[#ffffff]/70">
-                        {recentAchievementProgressLabel}
-                      </Text>
-                    </Text>
-                    <Text className="font-proximanova-semibold text-sm text-[#ffffff]">
-                      {recentAchievementRewardTokens} {t("user.profile.rewards.tokens")}
-                    </Text>
-                  </View>
-
-                  <View className="h-6 w-full justify-center">
-                    <View
-                      className="w-full bg-white/35 overflow-hidden"
-                      style={{ height: 16, borderRadius: 10 }}
-                    >
-                      <View
-                        className="h-full"
-                        style={{
-                          width: `${recentAchievementProgressPercent}%`,
-                          backgroundColor: recentAchievementProgressColor,
-                          borderRadius: 10,
-                        }}
-                      />
+                    <View className="flex-row gap-2 mt-3">
+                      <View className="w-[44px] h-[44px] bg-[#E5E7EB] rounded-xl" />
+                      <View className="flex-1">
+                        <View className="flex-row justify-between">
+                          <View className="h-3 w-44 bg-[#E5E7EB] rounded-md" />
+                          <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+                        </View>
+                        <View className="mt-3 h-4 w-full bg-[#E5E7EB] rounded-full" />
+                      </View>
                     </View>
                   </View>
-                </View>
-              </View>
+                </AutoSkeletonView>
+              ) : (
+                <>
+                  <Text className="font-proximanova-semibold text-lg text-[#FFFFFF]">
+                    {recentAchievementTitle}
+                  </Text>
+
+                  <View className="flex-row gap-2 mt-3">
+                    <View>
+                      <Image
+                        source={require("@/assets/images/reward/reward-complete-spark.svg")}
+                        contentFit="contain"
+                        style={{ width: 44, height: 44 }}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <View className="flex-row justify-between">
+                        <Text className="font-proximanova-regular text-sm text-[#ffffff]">
+                          <Text className="text-[#ffffff]/70">
+                            {recentAchievementProgressLabel}
+                          </Text>
+                        </Text>
+                        <Text className="font-proximanova-semibold text-sm text-[#ffffff]">
+                          {recentAchievementRewardTokens}{" "}
+                          {t("user.profile.rewards.tokens")}
+                        </Text>
+                      </View>
+
+                      <View className="h-6 w-full justify-center">
+                        <View
+                          className="w-full bg-white/35 overflow-hidden"
+                          style={{ height: 16, borderRadius: 10 }}
+                        >
+                          <View
+                            className="h-full"
+                            style={{
+                              width: `${recentAchievementProgressPercent}%`,
+                              backgroundColor: recentAchievementProgressColor,
+                              borderRadius: 10,
+                            }}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             <View className="items-center">
@@ -357,8 +394,12 @@ const UserRewards = () => {
               className="mt-4"
               showsHorizontalScrollIndicator={false}
             >
-              {standardChallenges.map((challenge, index) => {
+              {(isLoadingBoard && standardChallenges.length === 0
+                ? skeletonChallenges
+                : standardChallenges
+              ).map((challenge: any, index: number) => {
                 const cardStyle =
+                  challenge?.style ||
                   challengeCardStyleCycle[index % challengeCardStyleCycle.length];
                 const titleLines = toTwoLineTitle(challenge?.title);
                 const rewardTokens = Number(challenge?.rewardTokens || 0);
@@ -366,6 +407,38 @@ const UserRewards = () => {
                   typeof challenge?.icon === "string" && challenge.icon.trim()
                     ? { uri: challenge.icon.trim() }
                     : fallbackChallengeImage;
+
+                if (isLoadingBoard && standardChallenges.length === 0) {
+                  return (
+                    <AutoSkeletonView
+                      key={challenge?.id || String(index)}
+                      isLoading={true}
+                      defaultRadius={12}
+                    >
+                      <View
+                        pointerEvents="none"
+                        style={{ width: screenWidth * 0.3 }}
+                        className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
+                      >
+                        <View
+                          className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl bg-[#E5E7EB]"
+                          style={{
+                            borderColor: cardStyle.border,
+                          }}
+                        />
+                        <View className="mt-3 h-4 w-20 bg-[#E5E7EB] rounded-md" />
+                        <View className="mt-2 h-4 w-16 bg-[#E5E7EB] rounded-md" />
+
+                        <View className="flex-row items-center justify-between gap-2 mt-3">
+                          <View className="h-[22px] w-[22px] bg-[#E5E7EB] rounded-full" />
+                          <View className="h-5 w-10 bg-[#E5E7EB] rounded-full" />
+                          <View className="h-[18px] w-[18px] bg-[#E5E7EB] rounded-md" />
+                        </View>
+                      </View>
+                    </AutoSkeletonView>
+                  );
+                }
+
                 return (
                   <TouchableOpacity
                     key={challenge?.id || String(index)}

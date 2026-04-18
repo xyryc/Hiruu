@@ -3,11 +3,14 @@ import TaskCard from "@/components/ui/cards/TaskCard";
 import TrackHoursFilter, {
   TrackHoursTimeframe,
 } from "@/components/ui/modals/TrackHoursFilter";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useShiftStore } from "@/stores/shiftStore";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -54,10 +57,14 @@ const getDateRangeByTimeframe = (
   return { startDate: formatDateParam(start), endDate: formatDateParam(end) };
 };
 
-const formatDisplayDate = (value?: string | null) => {
+const formatDisplayDate = (
+  value: string | null | undefined,
+  t: (key: string, options?: any) => string
+) => {
   if (!value) return "-";
+  if (value === "unknown") return t("common.unknown");
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
+  if (Number.isNaN(parsed.getTime())) return t("common.unknown");
   const base = parsed.toLocaleDateString(undefined, {
     day: "2-digit",
     month: "long",
@@ -70,7 +77,7 @@ const formatDisplayDate = (value?: string | null) => {
     parsed.getMonth() === now.getMonth() &&
     parsed.getFullYear() === now.getFullYear();
 
-  return isToday ? `${base} Today` : base;
+  return isToday ? t("common.dateWithToday", { date: base }) : base;
 };
 
 const formatDisplayTime = (value?: string | null) => {
@@ -144,29 +151,71 @@ const toTaskCardStatus = (status?: string) => {
   return "missed" as const;
 };
 
+const MissingLogActivityCardSkeleton = () => {
+  return (
+    <View className="w-full rounded-[14px] px-4 pb-4 pt-4 bg-[#e5f4fd83] border border-[#4fb1f359]">
+      <View className="flex-row items-center gap-3">
+        <View className="w-20 h-20 rounded-[10px] bg-[#E5E7EB]" />
+        <View className="flex-1">
+          <View className="h-4 w-44 bg-[#E5E7EB] rounded-md mb-3" />
+          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md" />
+
+          <View className="mt-4 flex-row items-center justify-between">
+            <View className="flex-row">
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB]" />
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
+              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
+            </View>
+            <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+      </View>
+
+      <View className="items-center my-4">
+        <View className="h-px w-full bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="flex-row justify-between items-center gap-4">
+        <View className="flex-row items-center flex-1">
+          <View className="mr-2 h-[34px] w-[34px] bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="h-9 w-24 bg-[#E5E7EB] rounded-full" />
+      </View>
+    </View>
+  );
+};
+
 const MissingLog = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t } = useTranslation();
   const [isModal, setIsModal] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] =
     useState<TrackHoursTimeframe>("all_time");
   const [items, setItems] = useState<IncompleteAttendanceItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const getMyLatestIncompleteAttendance = useShiftStore(
     (s) => s.getMyLatestIncompleteAttendance
   );
 
   const loadLatestIncomplete = useCallback(
     async (timeframe: TrackHoursTimeframe) => {
+      setLoading(true);
       try {
         const data = await getMyLatestIncompleteAttendance(
           getDateRangeByTimeframe(timeframe)
         );
         setItems(Array.isArray(data) ? data : []);
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load missing log activities");
+        toast.error(
+          error?.message || t("user.profile.trackHours.failedToLoadMissingLogs")
+        );
+      } finally {
+        setLoading(false);
       }
     },
-    [getMyLatestIncompleteAttendance]
+    [getMyLatestIncompleteAttendance, t]
   );
 
   useEffect(() => {
@@ -202,6 +251,16 @@ const MissingLog = () => {
     setSelectedTimeframe(timeframe);
   };
 
+  const skeletonGroups = useMemo(
+    () =>
+      Array.from({ length: 2 }, (_, groupIndex) => ({
+        id: `missing-log-skeleton-group-${groupIndex}`,
+        cards: Array.from({ length: 2 }, (_, cardIndex) => ({
+          id: `missing-log-skeleton-card-${groupIndex}-${cardIndex}`,
+        })),
+      })),
+    []
+  );
 
   return (
     <SafeAreaView
@@ -212,7 +271,7 @@ const MissingLog = () => {
       <ScreenHeader
         className="mx-5 my-4 rounded-3xl"
         onPressBack={() => router.back()}
-        title="Missing Log Activities"
+        title={t("user.profile.trackHours.missingLogActivitiesTitle")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
         components={
@@ -226,18 +285,42 @@ const MissingLog = () => {
       />
 
       <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
-        {groupedDateKeys.length === 0 ? (
+        {loading ? (
+          <View pointerEvents="none" className="pt-4 pb-10">
+            {skeletonGroups.map((group, groupIndex) => (
+              <View key={group.id} className={groupIndex > 0 ? "mt-7" : ""}>
+                <AutoSkeletonView isLoading={true} defaultRadius={8}>
+                  <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+                </AutoSkeletonView>
+
+                {group.cards.map((card) => (
+                  <AutoSkeletonView
+                    key={card.id}
+                    isLoading={true}
+                    defaultRadius={14}
+                  >
+                    <View className="mt-3">
+                      <MissingLogActivityCardSkeleton />
+                    </View>
+                  </AutoSkeletonView>
+                ))}
+              </View>
+            ))}
+          </View>
+        ) : groupedDateKeys.length === 0 ? (
           <View className="pt-6">
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              No missing log activities found.
-            </Text>
+            <StatusStateCard
+              image={require("@/assets/images/leave-pending.svg")}
+              title={t("user.profile.trackHours.noMissingLogsTitle")}
+              text={t("user.profile.trackHours.noMissingLogsText")}
+            />
           </View>
         ) : (
           groupedDateKeys.map((dateKey, dateIndex) => (
             <View key={dateKey} className={dateIndex > 0 ? "mt-7" : ""}>
               <View className="flex-row justify-between">
                 <Text className="font-proximanova-semibold text-sm text-secondary dark:text-dark-sectext-secondary">
-                  {formatDisplayDate(dateKey)}
+                  {formatDisplayDate(dateKey, t)}
                 </Text>
               </View>
 
@@ -260,14 +343,15 @@ const MissingLog = () => {
                 const city =
                   business?.city ||
                   business?.address?.city ||
-                  "City unavailable";
+                  t("common.cityUnavailable");
 
                 return (
                   <View key={item.id} className="mb-4 mt-3">
                     <TaskCard
                       shiftId={item?.shiftAssignmentId}
                       shiftTitle={
-                        item?.shiftAssignment?.shiftTemplate?.name || "Untitled Shift"
+                        item?.shiftAssignment?.shiftTemplate?.name ||
+                        t("user.profile.trackHours.untitledShift")
                       }
                       startTime={formatDisplayTime(startsAt)}
                       endTime={formatDisplayTime(endsAt)}
