@@ -11,20 +11,21 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Animated, Easing, Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 import SmallButton from "../buttons/SmallButton";
 import JobApplyModal from "../modals/JobApplyModal";
 import OwnerJobActionsModal from "../modals/OwnerJobActionsModal";
 
-const getAddressLabel = (value: unknown): string => {
+const getAddressLabel = (value: unknown, fallbackLabel: string): string => {
   if (typeof value === "string") return value;
-  if (!value || typeof value !== "object") return "-";
+  if (!value || typeof value !== "object") return fallbackLabel;
 
   const addr = value as { address?: unknown };
   return typeof addr.address === "string" && addr.address.trim().length > 0
     ? addr.address.trim()
-    : "-";
+    : fallbackLabel;
 };
 
 const MarqueeText = ({
@@ -103,29 +104,35 @@ const JobCard = ({
   job,
 }: JobCardProps) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showOwnerMenuModal, setShowOwnerMenuModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const salarySuffix = useMemo(
-    () => (job?.salaryType === "monthly" ? "/mo" : "/hr"),
-    [job?.salaryType]
+    () =>
+      job?.salaryType === "monthly"
+        ? t("user.jobs.card.salarySuffix.monthly")
+        : t("user.jobs.card.salarySuffix.hourly"),
+    [job?.salaryType, t]
   );
-  const roleName = job?.role?.role?.name || job?.name || "-";
+  const roleName = job?.role?.role?.name || job?.name || t("common.na");
   const hasSalary =
     typeof job?.salaryMin === "number" && typeof job?.salaryMax === "number";
   const isFeatured = Boolean(job?.isFeatured);
   const isPlainSurface = !isFeatured;
   const isPremiumBusiness = Boolean(job?.business?.isPremium);
-  const metaBadgeLabel = isFeatured ? "Featured" : "Standard";
+  const metaBadgeLabel = isFeatured
+    ? t("user.jobs.postJob.featured")
+    : t("user.jobs.card.standard");
   const shareCount =
     typeof job?.shareCount === "number" ? job.shareCount : 0;
   const distanceValue = job?.distanceKm || null;
   const distanceLabel = Number.isFinite(distanceValue)
-    ? `${distanceValue} Km Away`
+    ? t("common.kmAway", { distance: distanceValue })
     : null;
   const formatLabel = (value?: string) =>
-    (value || "-")
+    (value || t("common.na"))
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
   const typeLabel =
@@ -146,8 +153,8 @@ const JobCard = ({
     ? `${formatCompactNumber(job?.salaryMin as number)}-${formatCompactNumber(
       job?.salaryMax as number
     )}$${salarySuffix}`
-    : "-";
-  const addressLabel = getAddressLabel(job?.business?.address?.city);
+    : t("common.na");
+  const addressLabel = getAddressLabel(job?.business?.address?.city, t("common.na"));
 
   return (
     <View
@@ -195,7 +202,7 @@ const JobCard = ({
               numberOfLines={1}
               className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary"
             >
-              {job?.business?.name || "-"}
+              {job?.business?.name || t("common.na")}
             </Text>
           </View>
         </TouchableOpacity>
@@ -240,7 +247,9 @@ const JobCard = ({
         >
           <MaterialIcons name="verified" size={16} color="#3090FF" />
           <Text className="text-xs font-proximanova-regular text-primary">
-            {isPremiumBusiness ? "Premium" : "Business"}
+            {isPremiumBusiness
+              ? t("user.jobs.card.premium")
+              : t("user.jobs.card.business")}
           </Text>
         </View>
 
@@ -326,7 +335,7 @@ const JobCard = ({
             {!hideApplyButton ? (
               <SmallButton
                 className="w-28"
-                title="Apply Now"
+                title={t("common.applyNow")}
                 onPress={() => setShowModal(true)}
               />
             ) : <Ionicons name="information-circle-outline" size={20} color="#7A7A7A" />}
@@ -358,7 +367,7 @@ const JobCard = ({
             await onPressOwnerDelete();
           } catch (error: any) {
             toast.error(
-              translateApiMessage(error?.message || "Failed to delete job")
+              translateApiMessage(error?.message || t("user.jobs.failedToDeleteJob"))
             );
           } finally {
             setIsDeleting(false);

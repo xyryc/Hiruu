@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StatusBar,
@@ -63,6 +64,7 @@ const parseExperienceRequirements = (value?: string) => {
 };
 
 const FindJobFilters = () => {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     from?: string;
     page?: string;
@@ -92,14 +94,14 @@ const FindJobFilters = () => {
   const [selectedLocationOption, setSelectedLocationOption] =
     useState<LocationOption | null>(
       params.location &&
-      typeof initialLatitude === "number" &&
-      typeof initialLongitude === "number"
+        typeof initialLatitude === "number" &&
+        typeof initialLongitude === "number"
         ? {
-            label: params.location,
-            value: params.location,
-            latitude: initialLatitude,
-            longitude: initialLongitude,
-          }
+          label: params.location,
+          value: params.location,
+          latitude: initialLatitude,
+          longitude: initialLongitude,
+        }
         : null
     );
   const [selectedCoords, setSelectedCoords] = useState<{
@@ -108,9 +110,9 @@ const FindJobFilters = () => {
   } | null>(
     typeof initialLatitude === "number" && typeof initialLongitude === "number"
       ? {
-          latitude: initialLatitude,
-          longitude: initialLongitude,
-        }
+        latitude: initialLatitude,
+        longitude: initialLongitude,
+      }
       : null
   );
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
@@ -149,14 +151,14 @@ const FindJobFilters = () => {
 
   const sortLabelToValue: Record<string, RecruitmentSortBy> = {
     Newest: "newest",
-    "Highest Rated": "highest_rating",
-    "Most Experience": "most_experience",
+    "Highest Rating": "highest_rating",
+    "Most Experienced": "most_experience",
     "Best Fit": "best_fit",
   };
   const sortValueToLabel: Record<RecruitmentSortBy, string> = {
     newest: "Newest",
-    highest_rating: "Highest Rated",
-    most_experience: "Most Experience",
+    highest_rating: "Highest Rating",
+    most_experience: "Most Experienced",
     best_fit: "Best Fit",
   };
   const sortOptions = Object.keys(sortLabelToValue);
@@ -184,32 +186,19 @@ const FindJobFilters = () => {
     return selectedShiftOption === option;
   };
 
-  const badgeToValue: Record<string, string> = {
-    "Full Time": "full_time",
-    "Part Time": "part_time",
-    Hourly: "hourly",
-    Contract: "contract",
-    Freelance: "freelance",
-    Internship: "internship",
-  };
-
   const initialSelectedBadges = (params.jobTypes || "")
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean)
-    .map((value) =>
-      Object.entries(badgeToValue).find(([, mapped]) => mapped === value)?.[0]
-    )
-    .filter((item): item is string => Boolean(item));
+    .filter(Boolean);
 
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const badgeOptions = [
-    "Full Time",
-    "Part Time",
-    "Hourly",
-    "Contract",
-    "Freelance",
-    "Internship",
+    "full_time",
+    "part_time",
+    "hourly",
+    "contract",
+    "freelance",
+    "internship",
   ];
 
   React.useEffect(() => {
@@ -219,19 +208,19 @@ const FindJobFilters = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleBadgePress = (badgeTitle: string) => {
+  const handleBadgePress = (badgeValue: string) => {
     setSelectedBadges((prev) => {
-      if (prev.includes(badgeTitle)) {
+      if (prev.includes(badgeValue)) {
         // Deselect if already selected
-        return prev.filter((title) => title !== badgeTitle);
+        return prev.filter((title) => title !== badgeValue);
       } else {
         // Select new badge
-        return [...prev, badgeTitle];
+        return [...prev, badgeValue];
       }
     });
   };
-  const isBadgeSelected = (badgeTitle: string) => {
-    return selectedBadges.includes(badgeTitle);
+  const isBadgeSelected = (badgeValue: string) => {
+    return selectedBadges.includes(badgeValue);
   };
 
   useEffect(() => {
@@ -285,7 +274,7 @@ const FindJobFilters = () => {
       (slot) =>
         slot.roleId === selectedRoleToAdd.id ||
         slot.roleName.trim().toLowerCase() ===
-          selectedRoleToAdd.name.trim().toLowerCase()
+        selectedRoleToAdd.name.trim().toLowerCase()
     );
 
     if (!alreadyExists) {
@@ -317,7 +306,7 @@ const FindJobFilters = () => {
       setIsSearchingLocation(false);
       if (!hasShownGeoapifyMissingKey.current) {
         hasShownGeoapifyMissingKey.current = true;
-        toast.error("Geoapify API key missing. Set EXPO_PUBLIC_GEOAPIFY_API_KEY.");
+        toast.error(t("user.jobs.filters.geoapifyKeyMissing"));
       }
       return;
     }
@@ -391,7 +380,7 @@ const FindJobFilters = () => {
       } catch (error: any) {
         if (error?.name !== "AbortError") {
           setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
-          toast.error("Failed to fetch location suggestions.");
+          toast.error(t("user.jobs.filters.failedToFetchLocationSuggestions"));
         }
       } finally {
         setIsSearchingLocation(false);
@@ -402,15 +391,12 @@ const FindJobFilters = () => {
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [locationSearch, selectedLocationOption]);
+  }, [locationSearch, selectedLocationOption, t]);
 
   const handleApplyFilters = () => {
     const sortBy = selectedOption ? sortLabelToValue[selectedOption] : undefined;
     const shiftTypes = selectedShiftOption?.toLowerCase();
-    const jobTypes = selectedBadges
-      .map((badge) => badgeToValue[badge])
-      .filter(Boolean)
-      .join(",");
+    const jobTypes = selectedBadges.filter(Boolean).join(",");
     const nextSearch = jobCategory.trim();
     const hasSelectedCoords =
       typeof selectedCoords?.latitude === "number" &&
@@ -432,8 +418,8 @@ const FindJobFilters = () => {
       jobTypes: jobTypes || undefined,
       maxSalary:
         isSalaryRangeTouched &&
-        Math.round(salaryRange) > 0 &&
-        Math.round(salaryRange) < 10000
+          Math.round(salaryRange) > 0 &&
+          Math.round(salaryRange) < 10000
           ? Math.round(salaryRange)
           : undefined,
       location: undefined,
@@ -464,7 +450,7 @@ const FindJobFilters = () => {
 
       {/* Header */}
       <ScreenHeader
-        title="Find Job Filters"
+        title={t("user.jobs.filters.title")}
         className="mx-5"
         onPressBack={() => router.back()}
       />
@@ -477,13 +463,13 @@ const FindJobFilters = () => {
         {/* Search */}
         <View className="pt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Search
+            {t("user.jobs.filters.searchTitle")}
           </Text>
 
           <TextInput
             value={jobCategory}
             onChangeText={setJobCategory}
-            placeholder="Search jobs..."
+            placeholder={t("user.jobs.filters.searchPlaceholder")}
             className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-proximanova-regular"
           />
         </View>
@@ -491,7 +477,7 @@ const FindJobFilters = () => {
         {/* Sort by */}
         <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Sort by
+            {t("user.jobs.filters.sortBy")}
           </Text>
 
           <View className="flex-row flex-wrap gap-2.5">
@@ -509,7 +495,7 @@ const FindJobFilters = () => {
                 )}
 
                 <Text className="text-sm font-proximanova-regular">
-                  {option}
+                  {t(`user.jobs.filters.sortOptions.${option.toLowerCase().replace(/ /g, "_")}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -519,7 +505,7 @@ const FindJobFilters = () => {
         {/* Location */}
         <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-4">
-            Location
+            {t("user.jobs.filters.location")}
           </Text>
 
           <TextInput
@@ -542,15 +528,15 @@ const FindJobFilters = () => {
                 setSelectedCoords(null);
               }
             }}
-            placeholder="Search location"
+            placeholder={t("user.jobs.filters.searchLocation")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
             autoCapitalize="none"
             maxLength={ADDRESS_MAX_LENGTH}
           />
 
           {isLocationFocused &&
-          locationSearch.trim().length >= 3 &&
-          locationOptions.length > 0 ? (
+            locationSearch.trim().length >= 3 &&
+            locationOptions.length > 0 ? (
             <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
               {locationOptions.map((item, index) => (
                 <TouchableOpacity
@@ -567,16 +553,16 @@ const FindJobFilters = () => {
 
           {isSearchingLocation ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              Searching locations...
+              {t("user.jobs.filters.searchingLocations")}
             </Text>
           ) : null}
 
           {isLocationFocused &&
-          locationSearch.trim().length >= 3 &&
-          !isSearchingLocation &&
-          locationOptions.length === 0 ? (
+            locationSearch.trim().length >= 3 &&
+            !isSearchingLocation &&
+            locationOptions.length === 0 ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
-              No locations found.
+              {t("user.jobs.filters.noLocationsFound")}
             </Text>
           ) : null}
 
@@ -594,14 +580,14 @@ const FindJobFilters = () => {
             className="mt-1"
           />
           <Text className="text-sm font-proximanova-regular text-secondary mt-1">
-            {Math.round(distance)}km Within Selected Area
+            {t("user.jobs.filters.withinSelectedArea", { distance: Math.round(distance) })}
           </Text>
         </View>
 
         {/* Shift Type */}
         <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Shift Type
+            {t("user.jobs.postJob.shiftType")}
           </Text>
 
           <View className="flex-row gap-2.5">
@@ -619,7 +605,7 @@ const FindJobFilters = () => {
                 )}
 
                 <Text className="text-sm font-proximanova-regular">
-                  {option}
+                  {t(`user.jobs.postJob.options.${option.toLowerCase()}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -629,19 +615,31 @@ const FindJobFilters = () => {
         {/* Job Type */}
         <View className="mt-7">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Job Type
+            {t("user.jobs.postJob.jobType")}
           </Text>
           <View className="flex-row flex-wrap gap-2.5">
-            {badgeOptions.map((badgeTitle) => (
+            {badgeOptions.map((badgeValue) => (
               <SimpleStatusBadge
-                key={badgeTitle}
-                title={badgeTitle}
-                className={`border ${
-                  isBadgeSelected(badgeTitle) ? "" : "border-[#EEEEEE]"
-                }`}
-                bgColor={isBadgeSelected(badgeTitle) ? "#11293A" : "#FFFFFF"}
-                textColor={isBadgeSelected(badgeTitle) ? "#FFFFFF" : "#111111"}
-                onPress={() => handleBadgePress(badgeTitle)}
+                key={badgeValue}
+                title={
+                  badgeValue === "freelance"
+                    ? t("user.jobs.postJob.options.freelance")
+                    : t(
+                      `user.jobs.postJob.options.${badgeValue
+                        .split("_")
+                        .map((part, index) =>
+                          index === 0
+                            ? part
+                            : part.charAt(0).toUpperCase() + part.slice(1)
+                        )
+                        .join("")}`
+                    )
+                }
+                className={`border ${isBadgeSelected(badgeValue) ? "" : "border-[#EEEEEE]"
+                  }`}
+                bgColor={isBadgeSelected(badgeValue) ? "#11293A" : "#FFFFFF"}
+                textColor={isBadgeSelected(badgeValue) ? "#FFFFFF" : "#111111"}
+                onPress={() => handleBadgePress(badgeValue)}
               />
             ))}
           </View>
@@ -650,7 +648,7 @@ const FindJobFilters = () => {
         {/* Salary Range */}
         <View className="py-5 border-b border-gray-100">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Salary Range
+            {t("user.jobs.filters.salaryRange")}
           </Text>
           <Slider
             value={salaryRange}
@@ -678,28 +676,28 @@ const FindJobFilters = () => {
         </View>
 
         {/* Experience Level */}
-        <View className="py-5 mb-5">
+        <View className="py-5">
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
-            Experience Level
+            {t("user.jobs.filters.experienceLevel")}
           </Text>
           <Text className="text-sm font-proximanova-regular text-secondary mb-2">
-            Select a role first, then set the minimum years of experience.
+            {t("user.jobs.filters.selectRoleFirst")}
           </Text>
           <View className="border border-[#EEEEEE] rounded-xl px-3 pt-1 pb-3 bg-white">
             <Text className="mt-3 text-sm font-proximanova-semibold text-primary">
-              Select Role
+              {t("user.jobs.filters.selectRole")}
             </Text>
             <RoleSelector
               className="mt-1"
               roles={roleOptions}
               loading={rolesLoading}
               selectedRole={selectedRoleToAdd}
-              placeholder="Choose a role"
+              placeholder={t("user.jobs.postJob.selectRole")}
               onSelectRole={(role) => setSelectedRoleToAdd(role)}
             />
             {selectedRoleToAdd?.name ? (
               <Text className="text-xs font-proximanova-regular text-[#4FB2F3] mt-1">
-                Selected: {selectedRoleToAdd.name}
+                {t("user.jobs.filters.selected", { name: selectedRoleToAdd.name })}
               </Text>
             ) : null}
           </View>
@@ -717,12 +715,10 @@ const FindJobFilters = () => {
             }}
           />
         </View>
-      </ScrollView>
 
-      {/* button */}
-      <View className="mx-5 pt-5">
-        <PrimaryButton title="Apply Filters" onPress={handleApplyFilters} />
-      </View>
+        {/* button */}
+        <PrimaryButton title={t("user.jobs.filters.applyFilters")} onPress={handleApplyFilters} />
+      </ScrollView>
     </SafeAreaView>
   );
 };

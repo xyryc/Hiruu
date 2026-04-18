@@ -9,6 +9,7 @@
       "failedToLoadSuggestedJobs": "Failed to load suggested jobs"
     },
     "jobs": {
+      "failedToDeleteJob": "Failed to delete job",
       "postJob": {
         "postJob": "Post Job",
         "role": "Role",
@@ -56,7 +57,17 @@
           "partTime": "Part-time",
           "hourly": "Hourly",
           "contract": "Contract",
+          "freelance": "Freelance",
           "internship": "Internship"
+        }
+      },
+      "card": {
+        "premium": "Premium",
+        "business": "Business",
+        "standard": "Standard",
+        "salarySuffix": {
+          "monthly": "/mo",
+          "hourly": "/hr"
         }
       },
       "allProfiles": {
@@ -68,6 +79,9 @@
         "adjustFilters": "Try adjusting your filters or search."
       },
       "filters": {
+        "title": "Find Job Filters",
+        "searchTitle": "Search",
+        "searchPlaceholder": "Search jobs...",
         "hiringFilter": "Hiring Filter",
         "verifiedCandidatesOnly": "Verified Candidates only",
         "sortBy": "Sort by",
@@ -1029,7 +1043,10 @@
     "cancel": "Cancel",
     "yes": "YES",
     "no": "NO",
+    "applyNow": "Apply Now",
+    "ninePlus": "9+",
     "searchHere": "Search here...",
+    "kmAway": "{{distance}} Km Away",
     "addressUnavailable": "Address unavailable",
     "cityUnavailable": "City unavailable",
     "unknown": "Unknown",

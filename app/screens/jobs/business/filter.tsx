@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import WeeklySchedule from "@/components/ui/buttons/WeeklySchedule";
@@ -10,6 +9,7 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ScrollView,
   StatusBar,
@@ -43,14 +43,14 @@ const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
 const ADDRESS_MAX_LENGTH = 200;
 
 const AVAILABILITY_BADGE_OPTIONS = [
-  { label: "Full Time", value: "full_time" },
-  { label: "Part Time", value: "part_time" },
-  { label: "Hourly", value: "hourly" },
-  { label: "Contract", value: "contract" },
-  { label: "Internship", value: "internship" },
-  { label: "On-site", value: "onsite" },
-  { label: "Remote", value: "remote" },
-  { label: "Hybrid", value: "hybrid" },
+  { labelKey: "user.jobs.postJob.options.fullTime", value: "full_time" },
+  { labelKey: "user.jobs.postJob.options.partTime", value: "part_time" },
+  { labelKey: "user.jobs.postJob.options.hourly", value: "hourly" },
+  { labelKey: "user.jobs.postJob.options.contract", value: "contract" },
+  { labelKey: "user.jobs.postJob.options.internship", value: "internship" },
+  { labelKey: "user.jobs.postJob.options.onsite", value: "onsite" },
+  { labelKey: "user.jobs.postJob.options.remote", value: "remote" },
+  { labelKey: "user.jobs.postJob.options.hybrid", value: "hybrid" },
 ] as const;
 
 const FindJobFilters = () => {
@@ -441,10 +441,10 @@ const FindJobFilters = () => {
       experienceRequirements:
         experienceSlots.length > 0
           ? experienceSlots.map((slot) => ({
-              roleId: slot.roleId || undefined,
-              role: slot.roleName,
-              minYears: slot.count,
-            }))
+            roleId: slot.roleId || undefined,
+            role: slot.roleName,
+            minYears: slot.count,
+          }))
           : undefined,
     });
 
@@ -460,8 +460,8 @@ const FindJobFilters = () => {
 
       {/* Header */}
       <ScreenHeader
-        title={t("user.jobs.filters.hiringFilter")}
-        className="mx-5 mt-7"
+        title={t("user.jobs.filters.title")}
+        className="mx-5"
         onPressBack={() => router.back()}
       />
 
@@ -762,12 +762,10 @@ const FindJobFilters = () => {
             </View>
           )}
         </View>
-      </ScrollView>
 
-      {/* button */}
-      <View className="mx-5 pt-5">
+        {/* button */}
         <PrimaryButton title={t("user.jobs.filters.applyFilters")} onPress={handleApplyFilters} />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

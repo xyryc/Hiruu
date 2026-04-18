@@ -218,7 +218,9 @@ const UserJobs = () => {
               <Ionicons name="newspaper-outline" size={20} color="#4b5563" />
               {unreadCount > 0 && (
                 <View className="bg-[#4FB2F3] absolute top-1.5 right-2 w-3.5 h-3.5 items-center rounded-full">
-                  <Text className="text-[10px] text-white">{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                  <Text className="text-[10px] text-white">
+                    {unreadCount > 9 ? t("common.ninePlus") : unreadCount}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
