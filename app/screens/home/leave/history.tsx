@@ -10,7 +10,15 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -36,6 +44,20 @@ const CATEGORIES = [
   "expired",
 ] as const;
 const DEFAULT_START_DATE = "2026-03-13";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
 
 const LeaveHistory = () => {
   const router = useRouter();
@@ -238,28 +260,35 @@ const LeaveHistory = () => {
         Leave Request List
       </Text>
 
-      <FlatList
-        ListEmptyComponent={
-          !shiftRequestsLoading ? (
-            <View className="mx-5 mt-2">
+      {shiftRequestsLoading && leaveItems.length === 0 ? (
+        <View className="flex-1 items-center justify-center py-10">
+          <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
+        </View>
+      ) : (
+        <FlatList
+          ListEmptyComponent={
+            <View className="px-5 pt-6">
               <StatusStateCard
+                style={styles.compactEmptyState}
                 image={require("@/assets/images/leave-pending.svg")}
                 title="No Leave Requests"
                 text="There are no leave requests to show right now."
+                titleStyle={styles.compactEmptyStateTitle}
+                textStyle={styles.compactEmptyStateText}
               />
             </View>
-          ) : null
-        }
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        data={filteredData}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        renderItem={({ item }) => (
-          <SickLeaveCard item={item} selectedCategory={selectedCategory} />
-        )}
-      />
+          }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          data={filteredData}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          renderItem={({ item }) => (
+            <SickLeaveCard item={item} selectedCategory={selectedCategory} />
+          )}
+        />
+      )}
 
       <UserCalendarScheduleModal
         visible={onCalendar}

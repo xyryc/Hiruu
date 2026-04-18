@@ -206,6 +206,47 @@ const ManageTeamPanel = () => {
     []
   );
 
+  const TeamMemberCardSkeleton = () => {
+    return (
+      <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4 bg-white dark:bg-dark-background">
+        <View className="flex-row items-start justify-between">
+          <View className="flex-row items-center gap-3 flex-1">
+            <View className="w-[42px] h-[42px] rounded-full bg-[#E5E7EB]" />
+            <View className="flex-1">
+              <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+            </View>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+            <View className="w-4 h-4 rounded-full bg-[#E5E7EB]" />
+          </View>
+        </View>
+
+        <View className="mt-4">
+          <View className="flex-row justify-between">
+            <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
+            <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          </View>
+          <View className="flex-row justify-between mt-2.5">
+            <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+            <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+
+        <View className="mt-4 h-[2px] w-full bg-[#E5E7EB] rounded-full" />
+
+        <View className="mt-4 flex-row items-center justify-between">
+          <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="flex-row items-center gap-4">
+            <View className="w-7 h-7 rounded-full bg-[#E5E7EB]" />
+            <View className="h-9 w-28 rounded-full bg-[#E5E7EB]" />
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const loadRoles = useCallback(async () => {
     if (!resolvedBusinessId) return;
 
@@ -587,53 +628,15 @@ const ManageTeamPanel = () => {
           ))}
         </ScrollView>
 
-	        {loading ? (
-	          <AutoSkeletonView isLoading={true} defaultRadius={24}>
-	            <View pointerEvents="none" className="pb-10">
-	              {skeletonTeamMembers.map((item) => (
-	                <View
-	                  key={item.id}
-	                  className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4"
-	                >
-	                  <View className="flex-row items-start justify-between">
-	                    <View className="flex-row items-center gap-3 flex-1">
-	                      <View className="w-[42px] h-[42px] rounded-full bg-[#E5E7EB]" />
-	                      <View className="flex-1">
-	                        <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
-	                        <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
-	                      </View>
-	                    </View>
-	                    <View className="flex-row items-center gap-2">
-	                      <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
-	                      <View className="w-4 h-4 rounded-full bg-[#E5E7EB]" />
-	                    </View>
-	                  </View>
-
-	                  <View className="mt-4">
-	                    <View className="flex-row justify-between">
-	                      <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
-	                      <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
-	                    </View>
-	                    <View className="flex-row justify-between mt-2.5">
-	                      <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
-	                      <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
-	                    </View>
-	                  </View>
-
-	                  <View className="mt-4 h-[2px] w-full bg-[#E5E7EB] rounded-full" />
-
-	                  <View className="mt-4 flex-row items-center justify-between">
-	                    <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
-	                    <View className="flex-row items-center gap-4">
-	                      <View className="w-7 h-7 rounded-full bg-[#E5E7EB]" />
-	                      <View className="h-9 w-28 rounded-full bg-[#E5E7EB]" />
-	                    </View>
-	                  </View>
-	                </View>
-	              ))}
-	            </View>
-	          </AutoSkeletonView>
-	        ) : (
+        {loading ? (
+          <View pointerEvents="none" className="pb-10">
+            {skeletonTeamMembers.map((item) => (
+              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
+                <TeamMemberCardSkeleton />
+              </AutoSkeletonView>
+            ))}
+          </View>
+        ) : (
 	          <FlatList
 	            data={filteredTeamMembers}
             renderItem={renderTeamMember}

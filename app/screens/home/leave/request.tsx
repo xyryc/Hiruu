@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import LeaveRequestCard from "@/components/ui/cards/LeaveRequestCard";
 import LeaveRequestApprovalModal from "@/components/ui/modals/LeaveRequestApprovalModal";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { router } from "expo-router";
@@ -8,9 +9,10 @@ import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -20,6 +22,52 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
+
+const LeaveRequestCardSkeleton = ({ showActions }: { showActions?: boolean }) => {
+  return (
+    <View className="border border-[#EEEEEE] dark:border-[#222] rounded-3xl p-4 mb-3 bg-white dark:bg-dark-background">
+      <View className="flex-row items-start justify-between">
+        <View className="flex-row items-center gap-3 flex-1">
+          <View className="w-11 h-11 rounded-full bg-[#E5E7EB]" />
+          <View className="flex-1">
+            <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+            <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+        <View className="h-7 w-20 bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="mt-4">
+        <View className="flex-row justify-between">
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="mt-2 h-3 w-44 bg-[#E5E7EB] rounded-md" />
+      </View>
+
+      {showActions ? (
+        <View className="mt-4 flex-row gap-3">
+          <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
+          <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
+        </View>
+      ) : null}
+    </View>
+  );
+};
 
 const LeaveRequest = () => {
   const { colorScheme } = useColorScheme();
@@ -40,6 +88,11 @@ const LeaveRequest = () => {
     rejectBusinessShiftRequest,
     approveShiftRequestLoading,
   } = useShiftStore();
+
+  const skeletonRequests = useMemo(
+    () => Array.from({ length: 5 }, (_, index) => ({ id: `skeleton-${index}` })),
+    []
+  );
 
   const loadRequests = useCallback(async () => {
     if (!businessId) return;
@@ -123,25 +176,45 @@ const LeaveRequest = () => {
       </View>
 
       <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
-        {/* pending screen */}
+        {/* Approved Tab */}
         {selectedTab === "Approved" && (
           <View>
-            {approvedRequests.map((item: any, i: number) => (
-              <LeaveRequestCard
-                key={item?.id || i}
-                approved
-                request={item}
-                onPressCard={() => {
-                  setReject(false);
-                  setSelectedRequest(item);
-                  setIssuccess(true);
-                }}
-              />
-            ))}
+            <View className="pt-4 pb-2">
+              {businessShiftRequestsLoading
+                ? skeletonRequests.map((item) => (
+                    <AutoSkeletonView
+                      key={item.id}
+                      isLoading={true}
+                      defaultRadius={24}
+                    >
+                      <LeaveRequestCardSkeleton />
+                    </AutoSkeletonView>
+                  ))
+                : approvedRequests.map((item: any, i: number) => (
+                    <LeaveRequestCard
+                      key={item?.id || i}
+                      approved
+                      request={item}
+                      onPressCard={() => {
+                        setReject(false);
+                        setSelectedRequest(item);
+                        setIssuccess(true);
+                      }}
+                    />
+                  ))}
+            </View>
+
             {!businessShiftRequestsLoading && approvedRequests.length === 0 ? (
-              <Text className="text-center text-sm text-secondary mt-6">
-                No approved requests found.
-              </Text>
+              <View className="pt-6">
+                <StatusStateCard
+                  style={styles.compactEmptyState}
+                  image={require("@/assets/images/leave-pending.svg")}
+                  title="No Approved Requests"
+                  text="There are no approved leave requests to show right now."
+                  titleStyle={styles.compactEmptyStateTitle}
+                  textStyle={styles.compactEmptyStateText}
+                />
+              </View>
             ) : null}
           </View>
         )}
@@ -149,61 +222,75 @@ const LeaveRequest = () => {
         {/* New Request Tab */}
         {selectedTab === "New Request" && (
           <View>
-            {pendingRequests.map((item: any, i: number) => (
-              <LeaveRequestCard
-                key={item?.id || i}
-                request={item}
-                showReviewActions
-                userId={item?.employment?.user?.id}
-                onAccept={() => {
-                  if (!businessId || !item?.id) {
-                    toast.error("Unable to approve this request");
-                    return;
-                  }
+            <View className="pt-4 pb-2">
+              {businessShiftRequestsLoading
+                ? skeletonRequests.map((item) => (
+                    <AutoSkeletonView
+                      key={item.id}
+                      isLoading={true}
+                      defaultRadius={24}
+                    >
+                      <LeaveRequestCardSkeleton showActions />
+                    </AutoSkeletonView>
+                  ))
+                : pendingRequests.map((item: any, i: number) => (
+                    <LeaveRequestCard
+                      key={item?.id || i}
+                      request={item}
+                      showReviewActions
+                      userId={item?.employment?.user?.id}
+                      onAccept={() => {
+                        if (!businessId || !item?.id) {
+                          toast.error("Unable to approve this request");
+                          return;
+                        }
 
-                  approveBusinessShiftRequest(businessId, item.id)
-                    .then(() => {
-                      toast.success(t("api.shift_request_approved"));
-                      loadRequests();
-                    })
-                    .catch((error: any) => {
-                      toast.error(
-                        error?.message || "Failed to approve leave request"
-                      );
-                    });
-                }}
-                onReject={() => {
-                  if (!businessId || !item?.id) {
-                    toast.error("Unable to reject this request");
-                    return;
-                  }
+                        approveBusinessShiftRequest(businessId, item.id)
+                          .then(() => {
+                            toast.success(t("api.shift_request_approved"));
+                            loadRequests();
+                          })
+                          .catch((error: any) => {
+                            toast.error(
+                              error?.message || "Failed to approve leave request"
+                            );
+                          });
+                      }}
+                      onReject={() => {
+                        if (!businessId || !item?.id) {
+                          toast.error("Unable to reject this request");
+                          return;
+                        }
 
-                  rejectBusinessShiftRequest(businessId, item.id)
-                    .then(() => {
-                      toast.success(t("api.shift_request_declined"));
-                      loadRequests();
-                    })
-                    .catch((error: any) => {
-                      toast.error(
-                        error?.message || "Failed to reject leave request"
-                      );
-                    });
-                }}
-              />
-            ))}
+                        rejectBusinessShiftRequest(businessId, item.id)
+                          .then(() => {
+                            toast.success(t("api.shift_request_declined"));
+                            loadRequests();
+                          })
+                          .catch((error: any) => {
+                            toast.error(
+                              error?.message || "Failed to reject leave request"
+                            );
+                          });
+                      }}
+                    />
+                  ))}
+            </View>
+
             {!businessShiftRequestsLoading && pendingRequests.length === 0 ? (
-              <Text className="text-center text-sm text-secondary mt-6">
-                No pending requests found.
-              </Text>
+              <View className="pt-6">
+                <StatusStateCard
+                  style={styles.compactEmptyState}
+                  image={require("@/assets/images/leave-pending.svg")}
+                  title="No Pending Requests"
+                  text="There are no pending leave requests to show right now."
+                  titleStyle={styles.compactEmptyStateTitle}
+                  textStyle={styles.compactEmptyStateText}
+                />
+              </View>
             ) : null}
           </View>
         )}
-
-        {businessShiftRequestsLoading ? (
-          <View className="py-6 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
-          </View>
-        ) : null}
 
         <LeaveRequestApprovalModal
           visible={isSuccess}

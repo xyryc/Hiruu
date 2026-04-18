@@ -1,6 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import TeamShiftRequestCard from "@/components/ui/cards/TeamShiftRequestCard";
 import RequestLogModal from "@/components/ui/modals/RequestLogModal";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
@@ -9,9 +10,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -23,6 +25,61 @@ import {
 import { toast } from "sonner-native";
 
 type AttendanceMode = "automatic" | "manual";
+
+const styles = StyleSheet.create({
+  compactEmptyState: {
+    paddingVertical: 28,
+  },
+  compactEmptyStateTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  compactEmptyStateText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});
+
+const ShiftRequestCardSkeleton = ({ showActions }: { showActions?: boolean }) => {
+  return (
+    <View className="border border-[#EEEEEE] dark:border-[#222] rounded-3xl p-4 mb-3 bg-white dark:bg-dark-background">
+      <View className="h-4 w-24 bg-[#E5E7EB] rounded-md mb-3" />
+
+      <View className="flex-row items-start justify-between">
+        <View className="flex-row items-center gap-3 flex-1">
+          <View className="w-11 h-11 rounded-full bg-[#E5E7EB]" />
+          <View className="flex-1">
+            <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+            <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+          </View>
+        </View>
+        <View className="h-7 w-20 bg-[#E5E7EB] rounded-full" />
+      </View>
+
+      <View className="mt-4">
+        <View className="flex-row justify-between">
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between mt-2.5">
+          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+        </View>
+      </View>
+
+      {showActions ? (
+        <View className="mt-4 flex-row gap-3">
+          <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
+          <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
+        </View>
+      ) : (
+        <View className="mt-4 items-end">
+          <View className="h-8 w-24 bg-[#E5E7EB] rounded-full" />
+        </View>
+      )}
+    </View>
+  );
+};
 
 const ShiftRequest = () => {
   const { colorScheme } = useColorScheme();
@@ -103,6 +160,11 @@ const ShiftRequest = () => {
         (item: any) => String(item?.status || "").toLowerCase() !== "pending"
       ),
     [businessShiftRequests]
+  );
+
+  const skeletonRequests = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => ({ id: `shift-requests-skeleton-${index}` })),
+    []
   );
 
   const handleSaveAttendanceMode = async (mode: AttendanceMode) => {
@@ -195,88 +257,108 @@ const ShiftRequest = () => {
       </View>
 
       <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
-        {/* pending screen */}
-        {selectedTab === "Pending Requests" && (
-          <View>
-            {businessShiftRequestsLoading ? (
-              <View className="py-6 items-center">
-                <ActivityIndicator size="small" color="#4FB2F3" />
-              </View>
-            ) : null}
-            {pendingRequests.map((item: any, index: number) => (
-              <TeamShiftRequestCard
-                key={item?.id || `pending-${index}`}
-                title={index === 0 ? "Pending" : undefined}
-                request={item}
-                showActions
-                hideAddRequest
-                onApprove={async () => {
-                  if (!selectedBusinessId || !item?.id) {
-                    toast.error("Unable to approve this request");
-                    return;
-                  }
-                  try {
-                    await approveBusinessShiftRequest(selectedBusinessId, item.id);
-                    toast.success(translateApiMessage("shift_request_approved"));
-                    loadShiftRequests();
-                  } catch (error: any) {
-                    toast.error(
-                      translateApiMessage(
-                        error?.message || "Failed to approve shift request"
-                      )
-                    );
-                  }
-                }}
-                onReject={async () => {
-                  if (!selectedBusinessId || !item?.id) {
-                    toast.error("Unable to reject this request");
-                    return;
-                  }
-                  try {
-                    await rejectBusinessShiftRequest(selectedBusinessId, item.id);
-                    toast.success(translateApiMessage("shift_request_declined"));
-                    loadShiftRequests();
-                  } catch (error: any) {
-                    toast.error(
-                      translateApiMessage(
-                        error?.message || "Failed to reject shift request"
-                      )
-                    );
-                  }
-                }}
-              />
+        {businessShiftRequestsLoading ? (
+          <View pointerEvents="none" className="pt-4 pb-10">
+            {skeletonRequests.map((item) => (
+              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
+                <ShiftRequestCardSkeleton
+                  showActions={selectedTab === "Pending Requests"}
+                />
+              </AutoSkeletonView>
             ))}
-            {!businessShiftRequestsLoading && pendingRequests.length === 0 ? (
-              <Text className="text-center text-sm text-secondary mt-6">
-                No pending requests found.
-              </Text>
-            ) : null}
           </View>
-        )}
+        ) : (
+          <>
+            {/* pending screen */}
+            {selectedTab === "Pending Requests" && (
+              <View>
+                {pendingRequests.map((item: any, index: number) => (
+                  <TeamShiftRequestCard
+                    key={item?.id || `pending-${index}`}
+                    title={index === 0 ? "Pending" : undefined}
+                    request={item}
+                    showActions
+                    hideAddRequest
+                    onApprove={async () => {
+                      if (!selectedBusinessId || !item?.id) {
+                        toast.error("Unable to approve this request");
+                        return;
+                      }
+                      try {
+                        await approveBusinessShiftRequest(selectedBusinessId, item.id);
+                        toast.success(translateApiMessage("shift_request_approved"));
+                        loadShiftRequests();
+                      } catch (error: any) {
+                        toast.error(
+                          translateApiMessage(
+                            error?.message || "Failed to approve shift request"
+                          )
+                        );
+                      }
+                    }}
+                    onReject={async () => {
+                      if (!selectedBusinessId || !item?.id) {
+                        toast.error("Unable to reject this request");
+                        return;
+                      }
+                      try {
+                        await rejectBusinessShiftRequest(selectedBusinessId, item.id);
+                        toast.success(translateApiMessage("shift_request_declined"));
+                        loadShiftRequests();
+                      } catch (error: any) {
+                        toast.error(
+                          translateApiMessage(
+                            error?.message || "Failed to reject shift request"
+                          )
+                        );
+                      }
+                    }}
+                  />
+                ))}
 
-        {/* Request History */}
-        {selectedTab === "Request History" && (
-          <View>
-            {businessShiftRequestsLoading ? (
-              <View className="py-6 items-center">
-                <ActivityIndicator size="small" color="#4FB2F3" />
+                {pendingRequests.length === 0 ? (
+                  <View className="pt-6">
+                    <StatusStateCard
+                      style={styles.compactEmptyState}
+                      image={require("@/assets/images/leave-pending.svg")}
+                      title="No Pending Requests"
+                      text="There are no pending shift requests to show right now."
+                      titleStyle={styles.compactEmptyStateTitle}
+                      textStyle={styles.compactEmptyStateText}
+                    />
+                  </View>
+                ) : null}
               </View>
-            ) : null}
-            {requestHistory.map((item: any, index: number) => (
-              <TeamShiftRequestCard
-                key={item?.id || `history-${index}`}
-                title={index === 0 ? "History" : undefined}
-                request={item}
-                hideAddRequest
-                footerStatus={item?.status}
-              />
-            ))}
-            {!businessShiftRequestsLoading && requestHistory.length === 0 ? (
-              <Text className="text-center text-sm text-secondary mt-6">
-                No request history found.
-              </Text>
-            ) : null}
-          </View>
+            )}
+
+            {/* Request History */}
+            {selectedTab === "Request History" && (
+              <View>
+                {requestHistory.map((item: any, index: number) => (
+                  <TeamShiftRequestCard
+                    key={item?.id || `history-${index}`}
+                    title={index === 0 ? "History" : undefined}
+                    request={item}
+                    hideAddRequest
+                    footerStatus={item?.status}
+                  />
+                ))}
+
+                {requestHistory.length === 0 ? (
+                  <View className="pt-6">
+                    <StatusStateCard
+                      style={styles.compactEmptyState}
+                      image={require("@/assets/images/leave-pending.svg")}
+                      title="No Request History"
+                      text="There are no shift request history items to show right now."
+                      titleStyle={styles.compactEmptyStateTitle}
+                      textStyle={styles.compactEmptyStateText}
+                    />
+                  </View>
+                ) : null}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

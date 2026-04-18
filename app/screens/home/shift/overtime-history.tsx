@@ -10,8 +10,8 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -47,6 +47,55 @@ const formatApiTime = (time?: string | null) => {
   const suffix = hours >= 12 ? "PM" : "AM";
   const twelveHour = hours % 12 === 0 ? 12 : hours % 12;
   return `${twelveHour}:${String(minutes).padStart(2, "0")} ${suffix}`;
+};
+
+const OvertimeRequestCardSkeleton = ({
+  showActions,
+}: {
+  showActions?: boolean;
+}) => {
+  return (
+    <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-[14px] p-4 bg-white dark:bg-dark-background">
+      <View className="h-5 w-48 bg-[#E5E7EB] rounded-md mb-3" />
+
+      <View className="gap-2.5">
+        <View className="flex-row justify-between">
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between">
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between">
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between">
+          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
+        </View>
+      </View>
+
+      <View className="my-4 h-px w-full bg-[#E5E7EB] rounded-full" />
+
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row gap-2 items-center">
+          <View className="h-[30px] w-[30px] rounded-full bg-[#E5E7EB]" />
+          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
+        </View>
+
+        {showActions ? (
+          <View className="flex-row gap-2">
+            <View className="h-8 w-20 bg-[#E5E7EB] rounded-3xl" />
+            <View className="h-8 w-20 bg-[#E5E7EB] rounded-3xl" />
+          </View>
+        ) : (
+          <View className="h-6 w-24 bg-[#E5E7EB] rounded-full" />
+        )}
+      </View>
+    </View>
+  );
 };
 
 const OvertimeHistory = () => {
@@ -124,6 +173,11 @@ const OvertimeHistory = () => {
         return haystack.includes(q);
       });
   }, [filter, requests, searchQuery]);
+
+  const skeletonRequests = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => ({ id: `overtime-skeleton-${index}` })),
+    []
+  );
 
   const getFilterCount = useCallback(
     (status: string) => {
@@ -343,10 +397,19 @@ const OvertimeHistory = () => {
           />
         </View>
 
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
-          </View>
+        {isLoading && requests.length === 0 ? (
+          <FlatList
+            data={skeletonRequests}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingBottom: 20, paddingTop: 6 }}
+            renderItem={() => (
+              <AutoSkeletonView isLoading={true} defaultRadius={14}>
+                <View pointerEvents="none">
+                  <OvertimeRequestCardSkeleton showActions={isBusinessProfile} />
+                </View>
+              </AutoSkeletonView>
+            )}
+          />
         ) : (
           <FlatList
             data={filteredRequests}
