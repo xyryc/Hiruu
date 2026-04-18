@@ -131,6 +131,12 @@
         "selectedCount": "{{count}} Selected",
         "selected": "Selected",
         "shift": "Shift",
+        "requestLog": "Request Log",
+        "taskCard": {
+          "ongoingLabel": "Ongoing:",
+          "shiftStartsInLabel": "Shift starts in:",
+          "missedLabel": "Missed:"
+        },
         "reset": "Reset",
         "save": "Save",
         "selectRole": "Select Role",
@@ -321,6 +327,16 @@
       "logoutTitle": "Are you sure you want to logout your account?",
       "logoutSubtitle": "You will be signed out from your account. Your data will remain safe and intact.",
       "logoutAction": "Logout",
+      "shiftLogout": {
+        "title": "Log out from this shift?",
+        "subtitle": "You can log back in anytime during your active shift window."
+      },
+      "noTaskCard": {
+        "title": "No Shift – It’s a Holiday!",
+        "subtitle": "No shifts are scheduled today. Take time to relax and recharge.",
+        "nextShiftLabel": "Next shift:",
+        "nextShiftTimeFallback": "Thu, 10:00 AM"
+      },
       "cancelPlanTitle": "Cancel Your Plan?",
       "cancelPlanSubtitle": "Your current plan will remain active until [expiry date]. You can continue using features until then.",
       "cancelPlan": "Cancel Plan",
@@ -459,6 +475,9 @@
         "completion": "Completion",
         "complete": "Complete"
       },
+      "todayShifts": {
+        "title": "Your Today's Shifts"
+      },
       "todayShiftsSummary": {
         "title": "Today's Shifts Summary",
         "totalScheduledShifts": "Total scheduled shifts",
@@ -475,6 +494,7 @@
       },
       "leaderboard": {
         "seeRank": "See employee rank on board",
+        "seeYourRank": "See your rank on board",
         "title": "Leaderboard",
         "topPerformer": "Top Performer",
         "resultsIn": "Next Top Performer Results in",
@@ -938,6 +958,10 @@
     "yes": "YES",
     "no": "NO",
     "searchHere": "Search here...",
+    "addressUnavailable": "Address unavailable",
+    "cityUnavailable": "City unavailable",
+    "login": "Login",
+    "logout": "Logout",
     "view": "View",
     "all": "All",
     "user": "User",
@@ -1066,6 +1090,7 @@
     "company_duplicate_name": "A company with this name already exists.",
     "shift_template_name_exists": "A shift template with this name already exists.",
     "shift_template_not_found": "Shift template not found.",
+    "shift_assignment_not_found": "Shift assignment not found.",
     "otp_expired": "OTP has expired. Please request a new one.",
     "otp_invalid_code": "Invalid OTP code. Please try again.",
     "employment_created_successfully": "Employment created successfully.",

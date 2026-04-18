@@ -7,6 +7,7 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 import SmallButton from "../buttons/SmallButton";
@@ -33,6 +34,7 @@ const TaskCard = ({
   requestLog = false,
 }: WorkShiftCardProps) => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [nowMs, setNowMs] = useState(() => Date.now());
   const startRaw = startsAt || startDateTime;
@@ -135,14 +137,14 @@ const TaskCard = ({
   const getStatusText = () => {
     switch (liveStatus) {
       case "ongoing":
-        return "Ongoing:";
+        return t("user.jobs.schedule.taskCard.ongoingLabel");
       case "upcoming":
-        return "Shift starts in:";
+        return t("user.jobs.schedule.taskCard.shiftStartsInLabel");
       case "missed":
-        return "Missed:";
+        return t("user.jobs.schedule.taskCard.missedLabel");
 
       default:
-        return "Ongoing:";
+        return t("user.jobs.schedule.taskCard.ongoingLabel");
     }
   };
 
@@ -327,19 +329,19 @@ const TaskCard = ({
             className="font-proximanova-regular text-sm text-primary"
             numberOfLines={2}
           >
-            {city || "City unavailable"}
+            {city || t("common.cityUnavailable")}
           </Text>
         </View>
 
         {/* Button */}
         {requestLog ? (
-          <SmallButton title="Request Log" onPress={onLoginPress} />
+          <SmallButton title={t("user.jobs.schedule.requestLog")} onPress={onLoginPress} />
         ) : (
           <>
             {liveStatus === "upcoming" &&
               (isUpcomingLoginWindow ? (
                 <SmallButton
-                  title={isLoggedIn ? "Logout" : "Login"}
+                  title={isLoggedIn ? t("common.logout") : t("common.login")}
                   className={isLoggedIn ? "px-8 bg-[#EF4444]" : "px-8"}
                   onPress={isLoggedIn ? onLogoutPress || onLoginPress : onLoginPress}
                 />
@@ -349,14 +351,14 @@ const TaskCard = ({
             {liveStatus === "ongoing" && (
               isLoggedIn ? (
                 <SmallButton
-                  title="Logout"
+                  title={t("common.logout")}
                   className="px-8 bg-[#EF4444]"
                   onPress={onLogoutPress || onLoginPress}
                 />
               ) : isOngoingLoginWindow ? (
-                <SmallButton title="Login" className="px-8" onPress={onLoginPress} />
+                <SmallButton title={t("common.login")} className="px-8" onPress={onLoginPress} />
               ) : (
-                <SmallButton title="Request Log" onPress={onLoginPress} />
+                <SmallButton title={t("user.jobs.schedule.requestLog")} onPress={onLoginPress} />
               )
             )}
             {liveStatus === "completed" && <StatusBadge status={liveStatus} />}

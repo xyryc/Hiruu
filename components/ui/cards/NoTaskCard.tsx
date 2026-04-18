@@ -2,19 +2,22 @@ import { NoTaskCardProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 const NoTaskCard = ({ className }: NoTaskCardProps) => {
+  const { t } = useTranslation();
+
   return (
     <View
       className={`${className} p-4 flex-row items-center justify-between border border-[#4FB2F3] rounded-[14px] bg-[#E5F4FD]`}
     >
       <View className="w-1/2">
         <Text className="font-proximanova-semibold text-lg mb-1">
-          No Shift – It’s a Holiday!
+          {t("user.profile.noTaskCard.title")}
         </Text>
         <Text className="font-proximanova-regular text-sm text-secondary mb-2.5">
-          No shifts are scheduled today. Take time to relax and recharge.
+          {t("user.profile.noTaskCard.subtitle")}
         </Text>
 
         <View className="flex-row items-center gap-1">
@@ -27,10 +30,10 @@ const NoTaskCard = ({ className }: NoTaskCardProps) => {
 
           <View className="flex-row gap-1">
             <Text className="text-xs font-proximanova-regular">
-              Next shift:
+              {t("user.profile.noTaskCard.nextShiftLabel")}
             </Text>
             <Text className="text-xs font-proximanova-semibold">
-              Thu, 10:00 AM
+              {t("user.profile.noTaskCard.nextShiftTimeFallback")}
             </Text>
           </View>
 
