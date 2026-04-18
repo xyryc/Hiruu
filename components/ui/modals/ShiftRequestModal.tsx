@@ -49,7 +49,7 @@ const ShiftRequestModal = ({ visible, onClose }: any) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >
@@ -152,18 +152,16 @@ const ShiftRequestModal = ({ visible, onClose }: any) => {
                               setSelectedReason(reason.id);
                               setIsDropdownOpen(false);
                             }}
-                            className={`flex-row items-center p-3 border-b border-gray-100 ${
-                              selectedReason === reason.id
+                            className={`flex-row items-center p-3 border-b border-gray-100 ${selectedReason === reason.id
                                 ? "bg-blue-50"
                                 : "bg-white"
-                            }`}
+                              }`}
                           >
                             <View
-                              className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
-                                selectedReason === reason.id
+                              className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${selectedReason === reason.id
                                   ? "bg-[#11293A]"
                                   : "bg-gray-100"
-                              }`}
+                                }`}
                             >
                               <FontAwesome5
                                 name={reason.icon as any}
@@ -176,11 +174,10 @@ const ShiftRequestModal = ({ visible, onClose }: any) => {
                               />
                             </View>
                             <Text
-                              className={`text-base font-medium ${
-                                selectedReason === reason.id
+                              className={`text-base font-medium ${selectedReason === reason.id
                                   ? "text-[#11293A]"
                                   : "text-gray-700"
-                              }`}
+                                }`}
                             >
                               {reason.label}
                             </Text>

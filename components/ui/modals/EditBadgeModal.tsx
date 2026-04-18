@@ -1,5 +1,5 @@
-import axiosInstance from "@/utils/axios";
 import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
 import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -199,7 +199,7 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >

@@ -1,8 +1,8 @@
 import {
   TIMEZONE_OPTIONS,
-  getTimezoneTranslationKey,
   getTimezoneLabel,
   getTimezoneOffsetLabel,
+  getTimezoneTranslationKey,
 } from "@/constants/timezones";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { getDeviceTimezone } from "@/utils/date";
@@ -49,7 +49,7 @@ const TimezoneSwitcherModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={onClose}
     >

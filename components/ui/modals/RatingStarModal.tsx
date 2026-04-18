@@ -41,7 +41,7 @@ const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >

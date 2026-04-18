@@ -67,7 +67,7 @@ const TrackHoursFilter = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={handleDone}
     >
@@ -101,22 +101,20 @@ const TrackHoursFilter = ({
                       className={`items-center py-2.5 ${index === 0 || "border-t border-[#EEEEEE]"}`}
                     >
                       <View
-                        className={`py-3 px-5 ${
-                          (selectedTimeframe
+                        className={`py-3 px-5 ${(selectedTimeframe
                             ? selectedTimeframe === item.key
                             : isSelectTime === index)
                             ? "bg-[#4FB2F3] rounded-full"
                             : ""
-                        }`}
+                          }`}
                       >
                         <Text
-                          className={`capitalize text-center font-proximanova-semibold ${
-                            (selectedTimeframe
+                          className={`capitalize text-center font-proximanova-semibold ${(selectedTimeframe
                               ? selectedTimeframe === item.key
                               : isSelectTime === index)
                               ? "text-white "
                               : "text-primary dark:text-dark-primary"
-                          }`}
+                            }`}
                         >
                           {item.name}
                         </Text>

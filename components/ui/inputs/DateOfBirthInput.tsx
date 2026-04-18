@@ -64,9 +64,8 @@ const DateOfBirthInput = ({
           if (!disabled) setShow(true);
         }}
         disabled={disabled}
-        className={`w-full px-3 py-4 rounded-[10px] border border-[#EEEEEE] ${
-          disabled ? "bg-[#F9FAFB]" : "bg-white"
-        }`}
+        className={`w-full px-3 py-4 rounded-[10px] border border-[#EEEEEE] ${disabled ? "bg-[#F9FAFB]" : "bg-white"
+          }`}
       >
         <Text
           className={`text-sm ${value ? "text-primary" : "text-secondary"}`}
@@ -92,7 +91,7 @@ const DateOfBirthInput = ({
         <Modal
           visible={true}
           transparent
-          animationType="fade"
+          animationType="slide"
           onRequestClose={handleCancel}
         >
           <View className="flex-1 justify-end bg-black/50">

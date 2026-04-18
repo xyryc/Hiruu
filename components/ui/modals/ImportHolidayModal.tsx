@@ -73,7 +73,7 @@ const ImportHolidayModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={handleDone}
     >
@@ -133,9 +133,8 @@ const ImportHolidayModal = ({
                         <TouchableOpacity
                           key={country.cca2}
                           onPress={() => handleSelectCountry(country)}
-                          className={`px-3 py-3 flex-row items-center justify-between ${
-                            isSelected ? "bg-[#F5FAFE]" : "bg-white"
-                          }`}
+                          className={`px-3 py-3 flex-row items-center justify-between ${isSelected ? "bg-[#F5FAFE]" : "bg-white"
+                            }`}
                         >
                           <View className="flex-row items-center gap-2.5 flex-1">
                             <Text className="text-2xl">{country.flag}</Text>
@@ -172,9 +171,8 @@ const ImportHolidayModal = ({
                 onPress={handleImport}
                 disabled={isImporting}
                 activeOpacity={0.85}
-                className={`mt-5 bg-[#11293A] rounded-full px-5 py-4 flex-row items-center justify-center relative ${
-                  isImporting ? "opacity-80" : ""
-                }`}
+                className={`mt-5 bg-[#11293A] rounded-full px-5 py-4 flex-row items-center justify-center relative ${isImporting ? "opacity-80" : ""
+                  }`}
               >
                 <Text className="font-proximanova-semibold text-white text-base">
                   {isImporting ? "Importing..." : "Import Holidays"}

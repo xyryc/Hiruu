@@ -10,7 +10,6 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -320,11 +319,9 @@ const LeaveHistory = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingTop: 8, paddingBottom: 40 }}
           renderItem={() => (
-            <AutoSkeletonView isLoading={true} defaultRadius={12}>
-              <View pointerEvents="none">
-                <LeaveHistoryCardSkeleton />
-              </View>
-            </AutoSkeletonView>
+            <View pointerEvents="none">
+              <LeaveHistoryCardSkeleton />
+            </View>
           )}
         />
       ) : (

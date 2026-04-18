@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { GestureViewer } from "react-native-gesture-image-viewer";
 import React, { useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { GestureViewer } from "react-native-gesture-image-viewer";
 import VideoPlayerModal from "../modals/VideoPlayerModal";
 
 const getStatusMeta = (status: string) => {
@@ -220,7 +220,7 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
       <Modal
         visible={viewerVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => {
           setViewerVisible(false);
         }}

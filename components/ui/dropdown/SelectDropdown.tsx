@@ -122,8 +122,8 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
           {!(hideSelectedText && value) && (
             <Text
               className={`text-sm ml-2.5 font-proximanova-regular ${value
-                  ? "text-primary dark:text-dark-primary"
-                  : "text-placeholder dark:text-dark-placeholder"
+                ? "text-primary dark:text-dark-primary"
+                : "text-placeholder dark:text-dark-placeholder"
                 }`}
             >
               {selectedOption?.label || placeholder}
@@ -136,7 +136,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
       <Modal
         visible={isVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsVisible(false)}
       >
         <TouchableOpacity

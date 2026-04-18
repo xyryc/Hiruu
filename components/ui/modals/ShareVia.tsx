@@ -17,7 +17,7 @@ const ShareVia = ({ visible, onClose }: any) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={handleDone}
     >

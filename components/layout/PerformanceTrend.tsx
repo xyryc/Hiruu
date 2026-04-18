@@ -1,7 +1,7 @@
 import { useBusinessStore } from "@/stores/businessStore";
-import { t } from "i18next";
 import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -283,7 +283,7 @@ const PerformanceTrend = ({ className }: any) => {
 
       <Modal
         visible={showGraphMenu}
-        animationType="fade"
+        animationType="slide"
         transparent
         onRequestClose={() => setShowGraphMenu(false)}
       >

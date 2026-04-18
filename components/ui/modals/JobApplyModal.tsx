@@ -173,7 +173,7 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={handleDone}
     >
@@ -257,38 +257,38 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
                 transform: [{ translateX: slideAnim }],
               }}
             >
-            <SafeAreaView
-              edges={["bottom"]}
-              className="px-5 pt-7 pb-7"
-            >
-              <View className="items-center">
-                <Image
-                  source={require("@/assets/images/complete.svg")}
-                  style={{
-                    width: 156,
-                    height: 120,
-                    alignSelf: "center",
-                  }}
-                  contentFit="cover"
+              <SafeAreaView
+                edges={["bottom"]}
+                className="px-5 pt-7 pb-7"
+              >
+                <View className="items-center">
+                  <Image
+                    source={require("@/assets/images/complete.svg")}
+                    style={{
+                      width: 156,
+                      height: 120,
+                      alignSelf: "center",
+                    }}
+                    contentFit="cover"
+                  />
+
+                  <Text className="text-center text-lg font-proximanova-semibold mt-3 mb-2">
+                    Application Sent! successfully
+                  </Text>
+
+                  <Text className="w-4/6 mx-auto text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
+                    You applied to {companyName}. They may contact you soon. Good
+                    luck!
+                  </Text>
+                </View>
+
+                <SmallButton
+                  onPress={handleBackToJobBoard}
+                  className="bg-white border-hairline mt-7"
+                  title="Back to Job Board"
+                  textClass="!text-primary"
                 />
-
-                <Text className="text-center text-lg font-proximanova-semibold mt-3 mb-2">
-                  Application Sent! successfully
-                </Text>
-
-                <Text className="w-4/6 mx-auto text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
-                  You applied to {companyName}. They may contact you soon. Good
-                  luck!
-                </Text>
-              </View>
-
-              <SmallButton
-                onPress={handleBackToJobBoard}
-                className="bg-white border-hairline mt-7"
-                title="Back to Job Board"
-                textClass="!text-primary"
-              />
-            </SafeAreaView>
+              </SafeAreaView>
             </Animated.View>
           ) : null}
         </View>

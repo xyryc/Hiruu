@@ -27,7 +27,7 @@ const LanguageSwitcherModal = ({ visible, onClose }: any) => {
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >
@@ -55,19 +55,17 @@ const LanguageSwitcherModal = ({ visible, onClose }: any) => {
                 <TouchableOpacity
                   key={language.code}
                   onPress={() => changeLanguage(language.code)}
-                  className={`flex-row items-center justify-between p-4 rounded-xl ${
-                    currentLanguage === language.code
+                  className={`flex-row items-center justify-between p-4 rounded-xl ${currentLanguage === language.code
                       ? "bg-[#E5F4FD] dark:bg-primary/20"
                       : "bg-gray-50 dark:bg-gray-800"
-                  } ${index !== languages.length - 1 ? "mb-3" : ""}`}
+                    } ${index !== languages.length - 1 ? "mb-3" : ""}`}
                 >
                   <View className="flex-row items-center gap-3">
                     <View
-                      className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                        currentLanguage === language.code
+                      className={`w-6 h-6 rounded-full border-2 items-center justify-center ${currentLanguage === language.code
                           ? "border-[#4FB2F3] bg-[#4FB2F3]"
                           : "border-gray-300"
-                      }`}
+                        }`}
                     >
                       {currentLanguage === language.code && (
                         <Ionicons name="checkmark" size={16} color="white" />
@@ -75,11 +73,10 @@ const LanguageSwitcherModal = ({ visible, onClose }: any) => {
                     </View>
                     <View>
                       <Text
-                        className={`text-base font-proximanova-semibold ${
-                          currentLanguage === language.code
+                        className={`text-base font-proximanova-semibold ${currentLanguage === language.code
                             ? "text-[#4FB2F3]"
                             : "text-primary dark:text-dark-primary"
-                        }`}
+                          }`}
                       >
                         {language.nativeName}
                       </Text>

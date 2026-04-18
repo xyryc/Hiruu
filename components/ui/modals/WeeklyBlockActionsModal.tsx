@@ -26,7 +26,7 @@ const WeeklyBlockActionsModal = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
       <BlurView intensity={80} tint="dark" className="flex-1 justify-end">

@@ -35,7 +35,7 @@ const RejectionReasonModal = () => {
       <Modal
         visible={isVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsVisible(false)}
       >
         <View className="flex-1 bg-black/80 justify-end">

@@ -83,7 +83,7 @@ const WorkingHourSettingsModal: React.FC<any> = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >

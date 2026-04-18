@@ -34,11 +34,10 @@ const Dropdown = ({
         className="flex-row items-center justify-between px-3 py-3 bg-white dark:bg-dark-surface rounded-[10px] border border-[#EEEEEE] dark:border-dark-border"
       >
         <Text
-          className={`text-sm font-proximanova-regular ${
-            value
+          className={`text-sm font-proximanova-regular ${value
               ? "text-primary dark:text-dark-primary"
               : "text-placeholder dark:text-dark-placeholder"
-          }`}
+            }`}
         >
           {value || placeholder}
         </Text>
@@ -48,7 +47,7 @@ const Dropdown = ({
       <Modal
         visible={isVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsVisible(false)}
       >
         <TouchableOpacity

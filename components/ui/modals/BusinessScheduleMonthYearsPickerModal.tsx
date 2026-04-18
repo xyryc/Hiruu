@@ -20,7 +20,7 @@ const BusinessScheduleMonthYearsPickerModal = ({
   return (
     <Modal
       visible={showPicker}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={() => {
         setShowPicker(false);
@@ -87,18 +87,16 @@ const BusinessScheduleMonthYearsPickerModal = ({
                     <TouchableOpacity
                       key={month}
                       onPress={() => handleMonthSelect(index)}
-                      className={`w-[23%]  mb-3 rounded-xl items-center ${
-                        index === currentMonth
+                      className={`w-[23%]  mb-3 rounded-xl items-center ${index === currentMonth
                           ? "bg-blue-500"
                           : "border border-[#EEEEEE]"
-                      }`}
+                        }`}
                     >
                       <Text
-                        className={`font-proximanova-semibold text-primary dark:text-dark-primary px-2 py-6 ${
-                          index === currentMonth
+                        className={`font-proximanova-semibold text-primary dark:text-dark-primary px-2 py-6 ${index === currentMonth
                             ? "text-white"
                             : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         {month}
                       </Text>
@@ -111,16 +109,14 @@ const BusinessScheduleMonthYearsPickerModal = ({
                     <TouchableOpacity
                       key={year}
                       onPress={() => handleYearSelect(year)}
-                      className={`w-[23%]  mb-3 rounded-xl items-center ${
-                        year === currentYear
+                      className={`w-[23%]  mb-3 rounded-xl items-center ${year === currentYear
                           ? "bg-blue-500"
                           : "border border-[#EEEEEE]"
-                      }`}
+                        }`}
                     >
                       <Text
-                        className={`font-proximanova-semibold text-primary dark:text-dark-primary px-2 py-6 ${
-                          year === currentYear ? "text-white" : "text-gray-700"
-                        }`}
+                        className={`font-proximanova-semibold text-primary dark:text-dark-primary px-2 py-6 ${year === currentYear ? "text-white" : "text-gray-700"
+                          }`}
                       >
                         {year}
                       </Text>

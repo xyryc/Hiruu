@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect } from "react";
-import { Modal, Text, TouchableOpacity, View } from "react-native";
+import { Modal, TouchableOpacity, View } from "react-native";
 
 interface VideoPlayerModalProps {
   visible: boolean;
@@ -44,7 +44,7 @@ const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ visible, videoUri, 
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black justify-center items-center">

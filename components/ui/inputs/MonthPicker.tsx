@@ -77,7 +77,7 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
         />
       </TouchableOpacity>
 
-      <Modal visible={show} transparent animationType="fade" onRequestClose={handleCancel}>
+      <Modal visible={show} transparent animationType="slide" onRequestClose={handleCancel}>
         <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
           <TouchableOpacity activeOpacity={1} onPress={handleCancel} className="absolute inset-0" />
 

@@ -37,7 +37,7 @@ const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationMo
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >

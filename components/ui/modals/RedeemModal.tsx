@@ -1,10 +1,10 @@
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
+import { t } from "i18next";
 import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PrimaryButton from "../buttons/PrimaryButton";
-import { t } from "i18next";
 
 const RedeemModal = ({
   visible,
@@ -39,7 +39,7 @@ const RedeemModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent
       onRequestClose={onClose}
     >

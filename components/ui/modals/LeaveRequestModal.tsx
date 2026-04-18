@@ -56,7 +56,7 @@ const LeaveRequestModal = ({
       <Modal
         visible={isVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsVisible(false)}
       >
         <TouchableOpacity

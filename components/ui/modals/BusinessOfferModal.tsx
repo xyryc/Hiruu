@@ -338,7 +338,7 @@ const BusinessOfferModal = ({
   return (
     <Modal
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       onRequestClose={handleDone}
     >

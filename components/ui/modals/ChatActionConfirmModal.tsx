@@ -33,7 +33,7 @@ const ChatActionConfirmModal = ({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
         <TouchableOpacity activeOpacity={1} onPress={handleClose} className="absolute inset-0" />
 
