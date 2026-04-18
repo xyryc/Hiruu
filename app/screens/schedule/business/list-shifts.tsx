@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,6 +27,7 @@ const ListofShifts = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ day?: string }>();
   const day = typeof params.day === "string" ? params.day : "";
   const {
@@ -40,13 +42,13 @@ const ListofShifts = () => {
   const [selectedShiftIds, setSelectedShiftIds] = useState<string[]>([]);
 
   const to12Hour = (value?: string) => {
-    if (!value) return "--:--";
+    if (!value) return t("common.timePlaceholder");
     const [rawHour = "0", rawMinute = "0"] = value.split(":");
     const hour = Number(rawHour);
     const minute = Number(rawMinute);
     if (Number.isNaN(hour) || Number.isNaN(minute)) return value;
 
-    const period = hour >= 12 ? "PM" : "AM";
+    const period = hour >= 12 ? t("common.pm") : t("common.am");
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
   };
@@ -71,11 +73,11 @@ const ListofShifts = () => {
         setSelectedShiftIds(preselectedIds);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch shifts");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadShiftTemplates"));
     } finally {
       setIsLoading(false);
     }
-  }, [businessId, day, getShiftTemplates, weeklyShiftSelections]);
+  }, [businessId, day, getShiftTemplates, t, weeklyShiftSelections]);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,7 +93,7 @@ const ListofShifts = () => {
 
   const handleNext = () => {
     if (selectedShiftIds.length === 0) {
-      toast.error("Please select at least one shift template.");
+      toast.error(t("user.jobs.schedule.selectAtLeastOneTemplate"));
       return;
     }
 
@@ -100,7 +102,7 @@ const ListofShifts = () => {
         selectedShiftIds.includes(template?.id)
       );
       if (selectedTemplates.length === 0) {
-        toast.error("Selected shift templates not found.");
+        toast.error(t("user.jobs.schedule.selectedTemplatesNotFound"));
         return;
       }
       setWeeklyShiftSelection(day, selectedTemplates);
@@ -124,7 +126,7 @@ const ListofShifts = () => {
           className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
           onPressBack={() => router.back()}
-          title="List of Shifts"
+          title={t("user.jobs.schedule.listOfShiftsTitle")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -151,10 +153,10 @@ const ListofShifts = () => {
               />
               <View className="flex-1">
                 <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {item?.name || "Shift"}
+                  {item?.name || t("user.jobs.schedule.shiftFallback")}
                 </Text>
                 <Text className="text-sm text-secondary dark:text-dark-secondary font-proximanova-regular">
-                  {`${to12Hour(item?.startTime)} to ${to12Hour(item?.endTime)}`}
+                  {`${to12Hour(item?.startTime)} ${t("user.profile.weeklySchedule.to")} ${to12Hour(item?.endTime)}`}
                 </Text>
               </View>
 
@@ -179,10 +181,10 @@ const ListofShifts = () => {
                 {businessId ? (
                   <>
                     <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary text-center">
-                      You don&apos;t have any shift template yet
+                      {t("user.jobs.schedule.noShiftTemplatesYet")}
                     </Text>
                     <Text className="mt-2 text-sm text-secondary dark:text-dark-secondary text-center">
-                      Create your first one here.
+                      {t("user.jobs.schedule.createFirstOne")}
                     </Text>
                     <TouchableOpacity
                       className="mt-5 bg-[#11293A] rounded-full px-5 py-2.5"
@@ -192,13 +194,13 @@ const ListofShifts = () => {
                       }
                     >
                       <Text className="font-proximanova-semibold text-sm text-white">
-                        Create Shift Template
+                        {t("user.jobs.schedule.createShiftTemplate")}
                       </Text>
                     </TouchableOpacity>
                   </>
                 ) : (
                   <Text className="text-sm text-secondary dark:text-dark-secondary">
-                    Select a business first.
+                    {t("common.selectBusinessFirst")}
                   </Text>
                 )}
               </View>
@@ -210,7 +212,7 @@ const ListofShifts = () => {
         <View className='absolute bottom-10 w-full'>
           <PrimaryButton
             className="mx-5"
-            title="Next"
+            title={t("common.next")}
             onPress={handleNext}
             disabled={selectedShiftIds.length === 0}
           />

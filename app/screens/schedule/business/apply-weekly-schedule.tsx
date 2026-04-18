@@ -208,10 +208,13 @@ const WeeklyScheduleApply = () => {
   }, [existingBlocks, selectedEndDate, selectedStartDate]);
 
   const selectedRangeLabel = useMemo(() => {
-    if (!selectedStartDate) return "No date selected";
+    if (!selectedStartDate) return t("user.jobs.schedule.noDateSelected");
     if (!selectedEndDate) return selectedStartDate;
-    return `${selectedStartDate} to ${selectedEndDate}`;
-  }, [selectedEndDate, selectedStartDate]);
+    return t("user.jobs.schedule.dateRange", {
+      start: selectedStartDate,
+      end: selectedEndDate,
+    });
+  }, [selectedEndDate, selectedStartDate, t]);
 
   const doesRangeOverlapExistingBlocks = useCallback(
     (startYmd: string, endYmd: string, skipBlockId?: string) => {
@@ -264,7 +267,7 @@ const WeeklyScheduleApply = () => {
     }
 
     if (isEditMode) {
-      toast.info("Date range is locked in edit mode.");
+      toast.info(t("user.jobs.schedule.dateRangeLockedEditMode"));
       return;
     }
 
@@ -274,7 +277,7 @@ const WeeklyScheduleApply = () => {
     const nextEnd = formatDate(endDate);
 
     if (doesRangeOverlapExistingBlocks(nextStart, nextEnd)) {
-      toast.error("A weekly schedule already exists in this date range.");
+      toast.error(t("user.jobs.schedule.weeklyScheduleExistsInRange"));
       return;
     }
 
@@ -298,11 +301,11 @@ const WeeklyScheduleApply = () => {
 
   const handleApply = async () => {
     if (!businessId) {
-      toast.error("Please select a business first.");
+      toast.error(t("common.selectBusinessFirst"));
       return;
     }
     if (!selectedStartDate || !selectedEndDate) {
-      toast.error("Please select a week start date.");
+      toast.error(t("user.jobs.schedule.selectWeekStartDate"));
       return;
     }
     if (selectedStartDate < todayYmd) {
@@ -321,17 +324,17 @@ const WeeklyScheduleApply = () => {
         (24 * 60 * 60 * 1000)
       ) + 1;
     if (selectedDays !== 7) {
-      toast.error("Schedule can only be applied for one week (7 days).");
+      toast.error(t("user.jobs.schedule.onlyOneWeek"));
       return;
     }
     if (selectedTemplateCount === 0) {
-      toast.error("No schedule items found.");
+      toast.error(t("user.jobs.schedule.noScheduleItems"));
       return;
     }
 
     const payload = buildPayload();
     if (!Array.isArray(payload.slots) || payload.slots.length === 0) {
-      toast.error("No schedule items found.");
+      toast.error(t("user.jobs.schedule.noScheduleItems"));
       return;
     }
     if (
@@ -341,7 +344,7 @@ const WeeklyScheduleApply = () => {
         isEditMode && typeof params.blockId === "string" ? params.blockId : undefined
       )
     ) {
-      toast.error("A weekly schedule already exists in this date range.");
+      toast.error(t("user.jobs.schedule.weeklyScheduleExistsInRange"));
       return;
     }
 
@@ -365,7 +368,8 @@ const WeeklyScheduleApply = () => {
         error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
       toast.error(
         t(`api.${apiMessageKey}`, {
-          defaultValue: apiMessageKey || "Failed to apply weekly schedule.",
+          defaultValue:
+            apiMessageKey || t("user.jobs.schedule.failedToApplyWeeklySchedule"),
         })
       );
     } finally {
@@ -382,7 +386,11 @@ const WeeklyScheduleApply = () => {
         className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
         onPressBack={() => router.back()}
-        title={isEditMode ? "Update Weekly Schedule" : "Apply Weekly Schedule"}
+        title={
+          isEditMode
+            ? t("user.jobs.schedule.updateWeeklySchedule")
+            : t("user.jobs.schedule.applyWeeklySchedule")
+        }
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -390,10 +398,10 @@ const WeeklyScheduleApply = () => {
       <ScrollView className="mx-5 pt-4" showsVerticalScrollIndicator={false}>
         <View className="border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-4">
           <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-            Select Date Range
+            {t("user.jobs.schedule.selectDateRange")}
           </Text>
           <Text className="mt-1 font-proximanova-regular text-secondary dark:text-dark-secondary text-xs">
-            Tap a start date. A 7-day week will be selected automatically.
+            {t("user.jobs.schedule.selectDateRangeHint")}
           </Text>
           <Text className="mt-3 font-proximanova-semibold text-[#4FB2F3]">
             {selectedRangeLabel}
@@ -425,11 +433,11 @@ const WeeklyScheduleApply = () => {
 
         <View className="mt-4 border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-4">
           <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-            Summary
+            {t("common.summary")}
           </Text>
           <View className="flex-row items-center justify-between mt-3">
             <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Templates selected
+              {t("user.jobs.schedule.summary.templatesSelectedLabel")}
             </Text>
             <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
               {selectedTemplateCount}
@@ -437,7 +445,7 @@ const WeeklyScheduleApply = () => {
           </View>
           <View className="flex-row items-center justify-between mt-2">
             <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Apply range
+              {t("user.jobs.schedule.summary.applyRangeLabel")}
             </Text>
             <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
               {selectedRangeLabel}
@@ -453,12 +461,18 @@ const WeeklyScheduleApply = () => {
           }}
         >
           <Text className="font-proximanova-semibold text-[#4FB2F3]">
-            Clear selection
+            {t("common.clearSelection")}
           </Text>
         </TouchableOpacity>
 
         <PrimaryButton
-          title={isApplying ? "Applying..." : isEditMode ? "Update Schedule" : "Apply Schedule"}
+          title={
+            isApplying
+              ? t("common.applying")
+              : isEditMode
+                ? t("user.jobs.schedule.updateSchedule")
+                : t("user.jobs.schedule.applySchedule")
+          }
           className="mt-6 mb-5"
           onPress={handleApply}
           loading={isApplying}

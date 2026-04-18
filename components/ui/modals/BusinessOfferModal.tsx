@@ -6,6 +6,7 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router } from 'expo-router';
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   ScrollView,
@@ -51,6 +52,7 @@ const BusinessOfferModal = ({
   alreadyOffered = false,
   onOfferSent,
 }: BusinessOfferModalProps) => {
+  const { t } = useTranslation();
   const getJobProfileByUserId = useJobStore((state) => state.getJobProfileByUserId);
   const inviteCandidateToRecruitment = useJobStore(
     (state) => state.inviteCandidateToRecruitment
@@ -128,7 +130,7 @@ const BusinessOfferModal = ({
 
         const normalized = (Array.isArray(businesses) ? businesses : [])
           .map((item: any) => ({
-            label: item?.name || "Business",
+            label: item?.name || t("user.profile.businessSummary.businessFallback"),
             value: item?.id || "",
             avatar: item?.logo || undefined,
           }))
@@ -151,7 +153,7 @@ const BusinessOfferModal = ({
       } catch (error: any) {
         if (!active) return;
         setBusinessOptions([]);
-        toast.error(error?.message || "Failed to load businesses");
+        toast.error(error?.message || t("user.profile.failedToLoadBusinesses"));
       } finally {
         if (active) {
           setIsLoadingBusinesses(false);
@@ -164,7 +166,7 @@ const BusinessOfferModal = ({
     return () => {
       active = false;
     };
-  }, [getMyBusinesses, selectedBusinesses, visible]);
+  }, [getMyBusinesses, selectedBusinesses, t, visible]);
 
   useEffect(() => {
     if (!visible || !selectedBusiness) {
@@ -214,7 +216,7 @@ const BusinessOfferModal = ({
         if (!active) return;
         setRoleOptions([]);
         setSelectedRole("");
-        toast.error(error?.message || "Failed to load invite options");
+        toast.error(error?.message || t("user.jobs.businessOfferModal.failedToLoadInviteOptions"));
       } finally {
         if (active) {
           setIsLoadingRoles(false);
@@ -231,6 +233,7 @@ const BusinessOfferModal = ({
     getBusinessRolesDetailed,
     getMyBusinessRoles,
     selectedBusiness,
+    t,
     visible,
   ]);
 
@@ -241,16 +244,16 @@ const BusinessOfferModal = ({
 
   const handleApplyNow = async () => {
     if (alreadyOffered) {
-      toast.info("Offer already sent.");
+      toast.info(t("user.jobs.businessJobCard.offerAlreadySent"));
       return;
     }
     if (!selectedBusiness) {
-      toast.error("Please select a business.");
+      toast.error(t("user.jobs.businessOfferModal.selectBusinessRequired"));
       return;
     }
 
     if (!selectedRole) {
-      toast.error("Please select a role.");
+      toast.error(t("user.jobs.businessOfferModal.selectRoleRequired"));
       return;
     }
 
@@ -258,12 +261,12 @@ const BusinessOfferModal = ({
     const parsedMaxSalary = Number(salaryMax);
 
     if (!Number.isFinite(parsedMinSalary) || !Number.isFinite(parsedMaxSalary)) {
-      toast.error("Please enter a valid salary range.");
+      toast.error(t("user.jobs.businessOfferModal.invalidSalaryRange"));
       return;
     }
 
     if (parsedMinSalary > parsedMaxSalary) {
-      toast.error("Minimum salary cannot be greater than maximum salary.");
+      toast.error(t("user.jobs.businessOfferModal.minGreaterThanMax"));
       return;
     }
 
@@ -275,11 +278,11 @@ const BusinessOfferModal = ({
         minSalary: parsedMinSalary,
         maxSalary: parsedMaxSalary,
       });
-      toast.success("Offer sent successfully.");
+      toast.success(t("user.jobs.businessOfferModal.offerSentSuccessToast"));
       onOfferSent?.();
       setShowDetails(true);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to send offer");
+      toast.error(error?.message || t("user.jobs.businessOfferModal.failedToSendOffer"));
     } finally {
       setIsSubmitting(false);
     }
@@ -311,8 +314,11 @@ const BusinessOfferModal = ({
   }, [profile, visible]);
 
   const profileAvatar = profile?.user?.avatar || require('@/assets/images/placeholder.png')
-  const profileName = profile?.user?.name || "Candidate";
-  const profileHeadline = profile?.headline || profile?.highlightedExperience || "Open to work";
+  const profileName = profile?.user?.name || t("user.jobs.businessOfferModal.candidateFallback");
+  const profileHeadline =
+    profile?.headline ||
+    profile?.highlightedExperience ||
+    t("user.jobs.businessOfferModal.openToWorkFallback");
   const ratingValue = Number(profile?.user?.rating ?? 0);
   const ratingLabel = Number.isFinite(ratingValue) ? ratingValue.toFixed(1) : "0.0";
   const isModalLoading = isLoadingProfile || isLoadingBusinesses || isLoadingRoles;
@@ -322,7 +328,7 @@ const BusinessOfferModal = ({
     const userId = profile?.userId || profile?.user?.id;
 
     if (!userId) {
-      toast.error("User information is unavailable");
+      toast.error(t("user.jobs.businessJobCard.userInfoUnavailable"));
       return;
     }
 
@@ -399,18 +405,17 @@ const BusinessOfferModal = ({
 
                   {/* note */}
                   <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2.5">
-                    To apply for this job, please share Details so the business can
-                    contact you.
+                    {t("user.jobs.businessOfferModal.note")}
                   </Text>
 
                   {/* business */}
                   <View className="mb-7">
                     <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                      Business
+                      {t("user.profile.businessSummary.businessFallback")}
                     </Text>
 
                     <SelectDropdown
-                      placeholder="Choose a business"
+                      placeholder={t("user.jobs.businessOfferModal.chooseBusiness")}
                       options={businessOptions}
                       value={selectedBusiness}
                       onSelect={(value) => setSelectedBusiness(value)}
@@ -420,11 +425,11 @@ const BusinessOfferModal = ({
 
                   <View className="mb-7">
                     <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                      Role
+                      {t("user.jobs.postJob.role")}
                     </Text>
 
                     <SelectDropdown
-                      placeholder="Choose a role"
+                      placeholder={t("user.jobs.businessOfferModal.chooseRole")}
                       options={roleOptions}
                       value={selectedRole}
                       onSelect={(value) => setSelectedRole(value)}
@@ -434,12 +439,12 @@ const BusinessOfferModal = ({
 
                   <View>
                     <Text className="font-proximanova-semibold text-sm text-primary mb-2.5">
-                      Salary Per Hour
+                      {t("user.jobs.businessOfferModal.salaryPerHour")}
                     </Text>
 
                     <View className="flex-row gap-3">
                       <TextInput
-                        placeholder="Min: $5"
+                        placeholder={t("user.jobs.businessOfferModal.salaryMinPlaceholder", { amount: 5 })}
                         value={salaryMin}
                         onChangeText={setSalaryMin}
                         className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
@@ -448,7 +453,7 @@ const BusinessOfferModal = ({
                       />
 
                       <TextInput
-                        placeholder="Max: $10"
+                        placeholder={t("user.jobs.businessOfferModal.salaryMaxPlaceholder", { amount: 10 })}
                         value={salaryMax}
                         onChangeText={setSalaryMax}
                         className="w-[48%] px-4 py-3.5 bg-white border border-[#EEEEEE] rounded-xl text-[#7A7A7A] placeholder:font-proximanova-regular text-sm"
@@ -460,7 +465,11 @@ const BusinessOfferModal = ({
 
                   {/* button */}
                   <PrimaryButton
-                    title={alreadyOffered ? "Already Sent" : "Send Offer"}
+                    title={
+                      alreadyOffered
+                        ? t("user.jobs.businessOfferModal.alreadySent")
+                        : t("user.jobs.businessOfferModal.sendOffer")
+                    }
                     className="mt-7"
                     onPress={handleApplyNow}
                     loading={isSubmitting}
@@ -487,12 +496,11 @@ const BusinessOfferModal = ({
               />
 
               <Text className="text-center text-lg font-proximanova-semibold mt-3 mb-2">
-                Offer sent successfully!
+                {t("user.jobs.businessOfferModal.successTitle")}
               </Text>
 
               <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center">
-                You sent offer to {profileName}. He may contact you
-                soon. Good luck!
+                {t("user.jobs.businessOfferModal.successText", { name: profileName })}
               </Text>
 
 
@@ -500,7 +508,7 @@ const BusinessOfferModal = ({
                 <SmallButton
                   onPress={handleBackToJobBoard}
                   className="w-full bg-white border-hairline"
-                  title="Back to Job Board"
+                  title={t("user.jobs.businessOfferModal.backToJobBoard")}
                   textClass="!text-primary"
                 />
               </View>

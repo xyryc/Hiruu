@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Image,
@@ -24,6 +25,7 @@ const Assign = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ day?: string; templateId?: string }>();
   const day = typeof params.day === "string" ? params.day : "";
   const templateId = typeof params.templateId === "string" ? params.templateId : "";
@@ -74,11 +76,11 @@ const Assign = () => {
       setSelectedRoleId(null);
       setSelectedEmployeesByRole(weeklyRoleAssignments[assignmentKey] || {});
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load role data");
+      toast.error(error?.message || t("user.jobs.schedule.failedToLoadRoleData"));
     } finally {
       setIsLoading(false);
     }
-  }, [assignmentKey, businessId, getBusinessRolesDetailed, weeklyRoleAssignments]);
+  }, [assignmentKey, businessId, getBusinessRolesDetailed, t, weeklyRoleAssignments]);
 
   useFocusEffect(
     useCallback(() => {
@@ -90,7 +92,7 @@ const Assign = () => {
     if (requiredRoles.length === 0) {
       return rolesDetailed.map((role: any) => ({
         id: role?.id,
-        label: role?.role || "Role",
+        label: role?.role || t("user.jobs.postJob.role"),
         requiredCount: 0,
         selectedCount: selectedEmployeesByRole[role?.id]?.length || 0,
       }));
@@ -103,12 +105,12 @@ const Assign = () => {
           required?.businessRoleName ||
           required?.roleName ||
           rolesDetailed.find((role) => role?.id === required?.roleId)?.role ||
-          "Role",
+          t("user.jobs.postJob.role"),
         requiredCount: Number(required?.count || 0),
         selectedCount: selectedEmployeesByRole[required?.roleId]?.length || 0,
       };
     });
-  }, [requiredRoles, rolesDetailed, selectedEmployeesByRole]);
+  }, [requiredRoles, rolesDetailed, selectedEmployeesByRole, t]);
 
   useEffect(() => {
     if (!selectedRoleId && tabs.length > 0) {
@@ -156,7 +158,7 @@ const Assign = () => {
 
   const handleAssign = () => {
     if (!isAssignEnabled) {
-      toast.error("Required role count not met.");
+      toast.error(t("user.jobs.schedule.requiredRoleCountNotMet"));
       return;
     }
     setWeeklyRoleAssignment(assignmentKey, selectedEmployeesByRole);
@@ -184,7 +186,7 @@ const Assign = () => {
             className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
             style={{ paddingTop: insets.top + 10, paddingBottom: 16 }}
             onPressBack={() => router.back()}
-            title="Assign"
+            title={t("user.jobs.schedule.assignTitle")}
             titleClass="text-primary dark:text-dark-primary"
             iconColor={isDark ? "#fff" : "#111"}
           />
@@ -220,7 +222,7 @@ const Assign = () => {
             style={{ marginRight: 10 }}
           />
           <TextInput
-            placeholder="Search here..."
+            placeholder={t("common.searchHere")}
             value={search}
             onChangeText={setSearch}
             placeholderTextColor={isDark ? "#fff" : "#7A7A7A"}
@@ -245,13 +247,13 @@ const Assign = () => {
           ) : !selectedRoleId ? (
             <View className="py-10 items-center">
               <Text className="text-sm text-secondary dark:text-dark-secondary">
-                Select a role to assign employees.
+                {t("user.jobs.schedule.selectRoleToAssign")}
               </Text>
             </View>
           ) : members.length === 0 ? (
             <View className="py-10 items-center">
               <Text className="text-sm text-secondary dark:text-dark-secondary">
-                No employees found.
+                {t("user.jobs.schedule.noEmployeesFound")}
               </Text>
             </View>
           ) : (
@@ -279,10 +281,10 @@ const Assign = () => {
                 />
                 <View className="flex-1">
                   <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
-                    {item?.user?.name || "Unknown"}
+                    {item?.user?.name || t("common.unknown")}
                   </Text>
                   <Text className="text-sm text-secondary dark:text-dark-secondary font-proximanova-regular">
-                    {item?.user?.email || "No email"}
+                    {item?.user?.email || t("common.noEmail")}
                   </Text>
                 </View>
                 <Ionicons
@@ -306,7 +308,7 @@ const Assign = () => {
         <View className="absolute bottom-10 w-full">
           <PrimaryButton
             className="mx-5"
-            title="Assign"
+            title={t("user.jobs.schedule.assignAction")}
             onPress={handleAssign}
             disabled={!isAssignEnabled}
           />

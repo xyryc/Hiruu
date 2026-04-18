@@ -22,13 +22,13 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { toast } from "sonner-native";
 
 const daysData = [
-  { label: "Monday" },
-  { label: "Tuesday" },
-  { label: "Wednesday" },
-  { label: "Thursday" },
-  { label: "Friday" },
-  { label: "Saturday" },
-  { label: "Sunday" },
+  { key: "monday", label: "Monday" },
+  { key: "tuesday", label: "Tuesday" },
+  { key: "wednesday", label: "Wednesday" },
+  { key: "thursday", label: "Thursday" },
+  { key: "friday", label: "Friday" },
+  { key: "saturday", label: "Saturday" },
+  { key: "sunday", label: "Sunday" },
 ];
 
 const formatDateYmd = (value: Date) => {
@@ -161,7 +161,7 @@ const SavedShiftTemplate = () => {
           });
         });
       } catch (error: any) {
-        toast.error(error?.message || "Failed to load weekly block details.");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadWeeklyBlock"));
       } finally {
         setIsHydratingEdit(false);
       }
@@ -178,6 +178,7 @@ const SavedShiftTemplate = () => {
     params.blockId,
     setWeeklyRoleAssignment,
     setWeeklyShiftSelection,
+    t,
   ]);
 
   useFocusEffect(
@@ -293,7 +294,7 @@ const SavedShiftTemplate = () => {
 
   const handleFillWithAI = async () => {
     if (!businessId) {
-      toast.error("Please select a business first.");
+      toast.error(t("user.profile.noBusinessSelected"));
       return;
     }
 
@@ -307,7 +308,7 @@ const SavedShiftTemplate = () => {
       if (aiSlots.length === 0) {
         toast.error(
           t("api.invalid_ai_schedule_payload", {
-            defaultValue: "AI returned no schedule slots.",
+            defaultValue: t("user.jobs.schedule.aiNoSlots"),
           })
         );
         return;
@@ -379,7 +380,7 @@ const SavedShiftTemplate = () => {
       if (!hasMappedTemplates) {
         toast.error(
           t("api.invalid_ai_schedule_payload", {
-            defaultValue: "AI slots could not be mapped to available templates.",
+            defaultValue: t("user.jobs.schedule.aiSlotsUnmapped"),
           })
         );
         return;
@@ -406,7 +407,8 @@ const SavedShiftTemplate = () => {
         error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
       toast.error(
         t(`api.${apiMessageKey}`, {
-          defaultValue: apiMessageKey || "Failed to auto-fill weekly schedule.",
+          defaultValue:
+            apiMessageKey || t("user.jobs.schedule.failedToAutoFillWeeklySchedule"),
         })
       );
     } finally {
@@ -416,15 +418,15 @@ const SavedShiftTemplate = () => {
 
 	  const handleNext = async () => {
     if (!businessId) {
-      toast.error("Please select a business first.");
+      toast.error(t("user.profile.noBusinessSelected"));
       return;
     }
     if (!hasAtLeastOneTemplate) {
-      toast.error("Please select at least one shift template.");
+      toast.error(t("user.jobs.schedule.selectAtLeastOneTemplate"));
       return;
     }
     if (!isAllAssignmentsComplete) {
-      toast.error("Please assign required people for all selected shifts.");
+      toast.error(t("user.jobs.schedule.assignRequiredPeople"));
       return;
     }
 
@@ -436,7 +438,7 @@ const SavedShiftTemplate = () => {
     }, 0);
 
     if (selectedTemplateCount === 0) {
-      toast.error("No schedule items found.");
+      toast.error(t("user.jobs.schedule.noScheduleItems"));
       return;
     }
 
@@ -451,13 +453,13 @@ const SavedShiftTemplate = () => {
 	      }
 
 	      if (typeof params.blockId !== "string" || !params.blockId) {
-	        toast.error("Missing weekly block id.");
+	        toast.error(t("user.jobs.schedule.missingWeeklyBlockId"));
 	        return;
 	      }
 
       const slots = buildSlotsPayload();
       if (!Array.isArray(slots) || slots.length === 0) {
-        toast.error("No schedule items found.");
+        toast.error(t("user.jobs.schedule.noScheduleItems"));
         return;
       }
 
@@ -477,7 +479,8 @@ const SavedShiftTemplate = () => {
           error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
         toast.error(
           t(`api.${apiMessageKey}`, {
-            defaultValue: apiMessageKey || "Failed to update weekly schedule.",
+            defaultValue:
+              apiMessageKey || t("user.jobs.schedule.failedToUpdateWeeklySchedule"),
           })
         );
       } finally {
@@ -508,7 +511,11 @@ const SavedShiftTemplate = () => {
           className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
           style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
           onPressBack={() => router.back()}
-          title={isEditMode ? "Edit Weekly Schedule" : "Weekly Schedule"}
+          title={
+            isEditMode
+              ? t("user.jobs.schedule.editWeeklySchedule")
+              : t("user.jobs.schedule.weeklySchedule")
+          }
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
           components={
@@ -518,7 +525,7 @@ const SavedShiftTemplate = () => {
               className={`${isHydratingEdit || isUpdating || isFillingAI ? "opacity-50" : ""}`}
             >
               <Text className="font-proximanova-semibold text-[#4FB2F3]">
-                Clear
+                {t("common.clear")}
               </Text>
             </TouchableOpacity>
           }
@@ -528,7 +535,7 @@ const SavedShiftTemplate = () => {
           <View className="mx-5 flex-1 items-center justify-center gap-3">
             <ActivityIndicator size="large" color="#4FB2F3" />
             <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-              Loading weekly schedule...
+              {t("user.jobs.schedule.loadingWeeklySchedule")}
             </Text>
           </View>
         ) : (
@@ -539,6 +546,7 @@ const SavedShiftTemplate = () => {
               const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
                 ? weeklyShiftSelections[day.label]
                 : [];
+              const dayLabelLocalized = t(`user.profile.weeklyDays.${day.key}`);
 
               return (
                 <View key={day.label}>
@@ -555,12 +563,14 @@ const SavedShiftTemplate = () => {
                     <SimpleLineIcons name="plus" size={24} color="#4FB2F3" />
                     <View className="flex-1">
                       <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                        {day.label}
+                        {dayLabelLocalized}
                       </Text>
                       <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                         {selectedTemplates.length > 0
-                          ? `${selectedTemplates.length} template(s) selected`
-                          : "No shift selected"}
+                          ? t("user.jobs.schedule.templatesSelected", {
+                              count: selectedTemplates.length,
+                            })
+                          : t("user.jobs.schedule.noShiftSelected")}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -579,7 +589,7 @@ const SavedShiftTemplate = () => {
                             role?.businessRoleName ||
                             role?.roleName ||
                             role?.name ||
-                            "Role";
+                            t("user.jobs.postJob.role");
                           const requiredCount = Number(role?.count || 0);
                           const selectedCount = Array.isArray(selectedByRole[roleId])
                             ? selectedByRole[roleId].length
@@ -596,23 +606,36 @@ const SavedShiftTemplate = () => {
                       const isAssignmentComplete = missingRoles.length === 0;
                       const assignmentStatusText =
                         requiredRoles.length === 0
-                          ? "No role requirements"
+                          ? t("user.jobs.schedule.assignment.noRoleRequirements")
                           : isAssignmentComplete
-                            ? "Complete"
-                            : `Incomplete: ${missingRoles
-                                .map((item: any) => `${item.roleName} ${item.remaining} needed`)
-                                .join(", ")}`;
+                            ? t("user.jobs.schedule.assignment.complete")
+                            : t("user.jobs.schedule.assignment.incomplete", {
+                                missing: missingRoles
+                                  .map((item: any) =>
+                                    t("user.jobs.schedule.assignment.needed", {
+                                      role: item.roleName,
+                                      count: item.remaining,
+                                    })
+                                  )
+                                  .join(", "),
+                              });
 
                       return (
                         <ShiftTemplateCard
                           weekly={true}
                           key={`${day.label}-${template?.id}`}
                           className="mt-3"
-                          title={template?.name || `${day.label} Shift`}
+                          title={
+                            template?.name ||
+                            t("user.jobs.schedule.dayShiftTitle", { day: dayLabelLocalized })
+                          }
                           startTime={template?.startTime}
                           endTime={template?.endTime}
                           breakDurations={template?.breakDuration}
-                          location={template?.business?.name || "Location not defined"}
+                          location={
+                            template?.business?.name ||
+                            t("user.jobs.schedule.locationNotDefined")
+                          }
                           roles={template?.roleRequirements || []}
                           businessName={template?.business?.name}
                           businessLogo={template?.business?.logo}
@@ -632,13 +655,23 @@ const SavedShiftTemplate = () => {
 
             <GradientButton
               className="mt-10"
-              title={isFillingAI ? "Filling..." : "Fill With AI"}
+              title={
+                isFillingAI
+                  ? t("user.jobs.schedule.fillingAi")
+                  : t("user.jobs.schedule.fillWithAi")
+              }
               icon={<Ionicons name="sparkles-outline" size={20} color="white" />}
               onPress={handleFillWithAI}
               disabled={isHydratingEdit || isUpdating || isFillingAI}
             />
             <PrimaryButton
-              title={isEditMode ? (isUpdating ? "Updating..." : "Update") : "Next"}
+              title={
+                isEditMode
+                  ? isUpdating
+                    ? t("common.updating")
+                    : t("common.update")
+                  : t("common.next")
+              }
               className="my-4"
               onPress={handleNext}
               loading={isUpdating}

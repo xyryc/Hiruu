@@ -80,12 +80,12 @@ const ManageWeeklySchedules = () => {
         );
       } catch (error: any) {
         setExistingBlocks([]);
-        toast.error(error?.message || "Failed to load weekly schedules.");
+        toast.error(error?.message || t("user.jobs.schedule.failedToLoadWeeklySchedules"));
       }
     };
 
     loadBlocks();
-  }, [businessId, getWeeklyScheduleBlocks]);
+  }, [businessId, getWeeklyScheduleBlocks, t]);
 
   const markedDates = useMemo(() => {
     const marks: CalendarMarkedDates = {};
@@ -157,17 +157,14 @@ const ManageWeeklySchedules = () => {
       setExistingBlocks((prev) => prev.filter((block) => block.id !== selectedBlock.id));
       setShowBlockActions(false);
       setSelectedBlock(null);
-      toast.success(
-        t("api.weekly_block_deleted_successfully", {
-          defaultValue: "Weekly schedule deleted successfully.",
-        })
-      );
+      toast.success(t("api.weekly_block_deleted_successfully"));
     } catch (error: any) {
       const apiMessageKey =
         error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
       toast.error(
         t(`api.${apiMessageKey}`, {
-          defaultValue: apiMessageKey || "Failed to delete weekly schedule.",
+          defaultValue:
+            apiMessageKey || t("user.jobs.schedule.failedToDeleteWeeklySchedule"),
         })
       );
     } finally {
@@ -188,13 +185,13 @@ const ManageWeeklySchedules = () => {
 
       uniqueByBusinessId.set(businessId, {
         id: businessId,
-        name: business?.name || "Business",
+        name: business?.name || t("user.profile.businessSummary.businessFallback"),
         logo: business?.logo,
       });
     });
 
     return Array.from(uniqueByBusinessId.values());
-  }, [myEmployments]);
+  }, [myEmployments, t]);
 
   const selectedBusiness = activeBusinesses.find(
     (business) => business.id === selectedBusinesses[0]
@@ -209,7 +206,7 @@ const ManageWeeklySchedules = () => {
         className="capitalize bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl px-5"
         style={{ paddingTop: insets.top + 10, paddingBottom: 20 }}
         onPressBack={() => router.back()}
-        title="Manage Weekly Schedules"
+        title={t("user.jobs.schedule.manageWeeklySchedules")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -226,16 +223,18 @@ const ManageWeeklySchedules = () => {
                 />
               ) : (
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {selectedBusiness?.name?.slice(0, 1)?.toUpperCase() || "B"}
+                  {(selectedBusiness?.name || t("user.profile.businessSummary.businessFallback"))
+                    .slice(0, 1)
+                    .toUpperCase()}
                 </Text>
               )}
             </View>
             <Text className="flex-1 font-proximanova-semibold text-primary dark:text-dark-primary">
-              {selectedBusiness?.name || "No business selected"}
+              {selectedBusiness?.name || t("user.profile.noBusinessSelected")}
             </Text>
           </View>
           <Text className="mt-3 font-proximanova-regular text-secondary dark:text-dark-secondary text-xs">
-            Tap an occupied date range to update or delete its weekly block.
+            {t("user.jobs.schedule.manageHint")}
           </Text>
         </View>
 
@@ -270,11 +269,14 @@ const ManageWeeklySchedules = () => {
         }}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
-        title="Weekly Block Actions"
+        title={t("user.jobs.schedule.weeklyBlockActionsTitle")}
         subtitle={
           selectedBlock
-            ? `${formatDisplayDate(selectedBlock.startDate)} - ${formatDisplayDate(selectedBlock.endDate)}`
-            : "Selected block"
+            ? t("user.jobs.schedule.blockRange", {
+                start: formatDisplayDate(selectedBlock.startDate),
+                end: formatDisplayDate(selectedBlock.endDate),
+              })
+            : t("user.jobs.schedule.selectedBlockFallback")
         }
       />
     </SafeAreaView>
