@@ -662,6 +662,29 @@
           "receivedText": "No received swap request available yet."
         }
       },
+      "manageTeam": {
+        "titleWithCount": "Team Panel ({{count}})",
+        "failedToLoadTeamMembers": "Failed to load team members",
+        "failedToLoadRoleList": "Failed to load role list",
+        "selectRoleRequired": "Please select a role.",
+        "employeeInfoUnavailable": "Employee information is unavailable",
+        "workHoursRequired": "Please provide work hour period and amount.",
+        "workHoursLabel": "Work Hours (Amount/Period)",
+        "manageRole": "Manage Role",
+        "emptyTitle": "No Team Members",
+        "emptyText": "There are no team members to show right now.",
+        "noRolesFound": "No roles found on this business."
+      },
+      "tokenActivity": {
+        "title": "Token Activity",
+        "tabs": {
+          "all": "All",
+          "earned": "Earned",
+          "spent": "Spent"
+        },
+        "empty": "No transactions found.",
+        "transactionFallback": "Token transaction"
+      },
       "attendanceSummary": {
         "title": "Today's Attendance Summary",
         "arrivedOnTime": "Employees Arrived On Time",
@@ -1144,6 +1167,7 @@
     "timePlaceholder": "--:--",
     "am": "AM",
     "pm": "PM",
+    "hoursShort": "hrs",
     "noEmail": "No email",
     "applyNow": "Apply Now",
     "ninePlus": "9+",

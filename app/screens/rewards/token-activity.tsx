@@ -6,6 +6,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -38,6 +39,8 @@ const formatYmd = (value: Date) => {
 const TokenActivity = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { t, i18n } = useTranslation();
+  const intlLocale = i18n.language === "gr" ? "el-GR" : "en-US";
   const topTabs: ("all" | TransactionType)[] = ["all", "earned", "spent"];
   const [isTabs, setIsTabs] = useState<"all" | TransactionType>("all");
   const [reportMonth, setReportMonth] = useState<Date | null>(new Date());
@@ -70,8 +73,8 @@ const TokenActivity = () => {
   );
 
   const walletCoinsLabel = useMemo(
-    () => new Intl.NumberFormat("en-US").format(walletCoins),
-    [walletCoins]
+    () => new Intl.NumberFormat(intlLocale).format(walletCoins),
+    [intlLocale, walletCoins]
   );
 
   const loadTransactions = useCallback(
@@ -181,12 +184,12 @@ const TokenActivity = () => {
 
   const getTransactionDateLabel = (createdAt: string) => {
     const d = new Date(createdAt);
-    return d.toLocaleDateString("en-US", { day: "numeric", month: "long" });
+    return d.toLocaleDateString(intlLocale, { day: "numeric", month: "long" });
   };
 
   const getGroupLabel = (key: string) => {
     const [year, month] = key.split("-").map(Number);
-    return new Date(year, month, 1).toLocaleDateString("en-US", {
+    return new Date(year, month, 1).toLocaleDateString(intlLocale, {
       month: "long",
       year: "numeric",
     });
@@ -207,7 +210,7 @@ const TokenActivity = () => {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-5 pb-5 pt-2"
-        title="Token Activity"
+        title={t("user.profile.tokenActivity.title")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111111"}
         components={
@@ -241,7 +244,7 @@ const TokenActivity = () => {
                 onPress={() => setIsTabs(tab)}
                 className={`text-sm capitalize ${tab === isTabs ? "text-[#ffff] font-proximanova-bold" : "text-primary dark:text-dark-primary font-proximanova-semibold"} `}
               >
-                {tab}
+                {t(`user.profile.tokenActivity.tabs.${tab}`)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -253,11 +256,11 @@ const TokenActivity = () => {
         >
           <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary">
             {reportMonth
-              ? reportMonth.toLocaleDateString("en-US", {
+              ? reportMonth.toLocaleDateString(intlLocale, {
                   month: "short",
                   year: "numeric",
                 })
-              : "Select"}
+              : t("common.select")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -270,7 +273,7 @@ const TokenActivity = () => {
         ) : groupedTransactions.length === 0 ? (
           <View className="py-8 items-center">
             <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              No transactions found.
+              {t("user.profile.tokenActivity.empty")}
             </Text>
           </View>
         ) : (
@@ -303,7 +306,7 @@ const TokenActivity = () => {
                             numberOfLines={1}
                             className="font-proximanova-semibold text-primary dark:text-dark-primary"
                           >
-                            {item.description || "Token transaction"}
+                            {item.description || t("user.profile.tokenActivity.transactionFallback")}
                           </Text>
                           <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                             {getTransactionDateLabel(item.createdAt)}

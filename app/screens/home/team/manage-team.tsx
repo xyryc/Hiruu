@@ -14,6 +14,7 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -38,17 +39,22 @@ type TeamMember = {
   location: string;
 };
 
-const formatWorkHourPeriod = (period?: string | null) => {
-  if (!period) return "Not set";
+const formatWorkHourPeriod = (period: string | null | undefined, notSetLabel: string) => {
+  if (!period) return notSetLabel;
   return period.charAt(0).toUpperCase() + period.slice(1);
 };
 
-const formatWorkHourAmount = (amount?: number | null) => {
-  if (typeof amount !== "number" || Number.isNaN(amount)) return "Not set";
-  return `${amount} hrs`;
+const formatWorkHourAmount = (
+  amount: number | null | undefined,
+  notSetLabel: string,
+  hoursLabel: string
+) => {
+  if (typeof amount !== "number" || Number.isNaN(amount)) return notSetLabel;
+  return `${amount} ${hoursLabel}`;
 };
 
 const ManageTeamPanel = () => {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -112,12 +118,15 @@ const ManageTeamPanel = () => {
             return {
               id: String(item.id),
               userId: String(user.id),
-              name: user?.name || "N/A",
+              name: user?.name || t("common.na"),
               roleId:
                 (typeof item?.role?.id === "string" && item.role.id) ||
                 (typeof item?.roleId === "string" && item.roleId) ||
                 null,
-              role: item?.role?.role?.name || item?.role?.name || "Not assigned",
+              role:
+                item?.role?.role?.name ||
+                item?.role?.name ||
+                t("user.profile.roleNotAssignedYet"),
               profilePic: user?.avatar || null,
               workHourPeriod:
                 typeof item?.workHourPeriod === "string"
@@ -126,9 +135,9 @@ const ManageTeamPanel = () => {
               workHourAmount:
                 typeof item?.workHourAmount === "number" &&
                   Number.isFinite(item.workHourAmount)
-                  ? item.workHourAmount
-                  : null,
-              location: location || "Location unavailable",
+                    ? item.workHourAmount
+                    : null,
+              location: location || t("common.cityUnavailable"),
             } as TeamMember;
           })
           .filter(Boolean) as TeamMember[];
@@ -138,7 +147,9 @@ const ManageTeamPanel = () => {
         }
       } catch (error: any) {
         toast.error(
-          translateApiMessage(error?.message || "Failed to load team members")
+          translateApiMessage(
+            error?.message || t("user.profile.manageTeam.failedToLoadTeamMembers")
+          )
         );
         if (isMounted) {
           setTeamMembers([]);
@@ -154,7 +165,7 @@ const ManageTeamPanel = () => {
     return () => {
       isMounted = false;
     };
-  }, [resolvedBusinessId, getBusinessEmployees]);
+  }, [getBusinessEmployees, resolvedBusinessId, t]);
 
   const filterOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -172,8 +183,11 @@ const ManageTeamPanel = () => {
       count,
     }));
 
-    return [{ label: "All", value: "all", count: teamMembers.length }, ...roleFilters];
-  }, [teamMembers]);
+    return [
+      { label: t("common.all"), value: "all", count: teamMembers.length },
+      ...roleFilters,
+    ];
+  }, [t, teamMembers]);
 
   const filteredTeamMembers = useMemo(
     () =>
@@ -195,13 +209,13 @@ const ManageTeamPanel = () => {
       Array.from({ length: 5 }, (_, index) => ({
         id: `manage-team-skeleton-${index}`,
         userId: "",
-        name: "Loading",
+        name: "",
         roleId: null,
-        role: "Loading",
+        role: "",
         profilePic: null,
         workHourPeriod: null,
         workHourAmount: null,
-        location: "Loading",
+        location: "",
       })),
     []
   );
@@ -268,12 +282,14 @@ const ManageTeamPanel = () => {
         }));
       setRoles(mappedRoles);
     } catch (error: any) {
-      toast.error(translateApiMessage(error?.message || "Failed to load role list"));
+      toast.error(
+        translateApiMessage(error?.message || t("user.profile.manageTeam.failedToLoadRoleList"))
+      );
       setRoles([]);
     } finally {
       setRolesLoading(false);
     }
-  }, [getMyBusinessRoles, resolvedBusinessId]);
+  }, [getMyBusinessRoles, resolvedBusinessId, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -292,7 +308,7 @@ const ManageTeamPanel = () => {
 
   const handleApplyRole = async () => {
     if (!resolvedBusinessId || !selectedEmploymentId || !selectedAssignRole) {
-      toast.error(translateApiMessage("Please select a role."));
+      toast.error(translateApiMessage(t("user.profile.manageTeam.selectRoleRequired")));
       return;
     }
 
@@ -337,11 +353,13 @@ const ManageTeamPanel = () => {
     workHourAmount: number | null;
   }) => {
     if (!selectedWorkingHourEmploymentId) {
-      toast.error(translateApiMessage("Employee information is unavailable"));
+      toast.error(translateApiMessage(t("user.profile.manageTeam.employeeInfoUnavailable")));
       return;
     }
     if (!payload.workHourPeriod || payload.workHourAmount == null) {
-      toast.error(translateApiMessage("Please provide work hour period and amount."));
+      toast.error(
+        translateApiMessage(t("user.profile.manageTeam.workHoursRequired"))
+      );
       return;
     }
 
@@ -404,7 +422,7 @@ const ManageTeamPanel = () => {
 
   const handleMessagePress = async (participantId: string) => {
     if (!participantId) {
-      toast.error(translateApiMessage("User information is unavailable"));
+      toast.error(translateApiMessage(t("common.chat.userInfoUnavailable")));
       return;
     }
 
@@ -414,7 +432,7 @@ const ManageTeamPanel = () => {
       const roomId = result?.data?.id;
 
       if (!roomId) {
-        throw new Error("Chat room id is missing");
+        throw new Error(t("common.chat.missingRoomId"));
       }
 
       router.push({
@@ -422,7 +440,9 @@ const ManageTeamPanel = () => {
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(translateApiMessage(error?.message || "Failed to start chat"));
+      toast.error(
+        translateApiMessage(error?.message || t("common.failedToStartChat"))
+      );
     } finally {
       setCreatingChatForUserId(null);
     }
@@ -430,7 +450,7 @@ const ManageTeamPanel = () => {
 
   const openUserProfile = (userId: string) => {
     if (!userId) {
-      toast.error(translateApiMessage("Employee information is unavailable"));
+      toast.error(translateApiMessage(t("user.profile.manageTeam.employeeInfoUnavailable")));
       return;
     }
 
@@ -492,16 +512,22 @@ const ManageTeamPanel = () => {
         <View>
           <View className="flex-row justify-between mt-4">
             <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
-              Work Hours (Amount/Period)
+              {t("user.profile.manageTeam.workHoursLabel")}
             </Text>
             <Text className="text-primary dark:text-dark-primary text-sm font-proximanova-semibold">
-              {formatWorkHourAmount(item.workHourAmount)} / {formatWorkHourPeriod(item.workHourPeriod)}
+              {formatWorkHourAmount(
+                item.workHourAmount,
+                t("common.notSet"),
+                t("common.hoursShort")
+              )}{" "}
+              /{" "}
+              {formatWorkHourPeriod(item.workHourPeriod, t("common.notSet"))}
             </Text>
           </View>
 
           <View className="flex-row justify-between mt-2.5">
             <Text className="text-secondary dark:text-dark-secondary text-sm font-proximanova-regular">
-              Location:
+              {t("user.jobs.schedule.location")}:
             </Text>
             <Text
               className="text-primary dark:text-dark-primary text-sm font-proximanova-regular"
@@ -526,7 +552,7 @@ const ManageTeamPanel = () => {
             onPress={() => openUserProfile(item.userId)}
           >
             <Text className="text-[#4FB2F3] text-sm font-proximanova-semibold">
-              View Profile
+              {t("common.viewProfile")}
             </Text>
             <Ionicons name="arrow-forward" size={16} color="#4FB2F3" />
           </TouchableOpacity>
@@ -545,7 +571,7 @@ const ManageTeamPanel = () => {
                 className="bg-[#11293A] px-5 py-2 rounded-full"
               >
                 <Text className="text-[#ffffff] text-sm font-proximanova-semibold">
-                  Manage Role
+                  {t("user.profile.manageTeam.manageRole")}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -573,7 +599,9 @@ const ManageTeamPanel = () => {
         <ScreenHeader
           className="px-5 pt-2.5 pb-4"
           onPressBack={() => router.back()}
-          title={`Team Panel(${teamMembers.length})`}
+          title={t("user.profile.manageTeam.titleWithCount", {
+            count: teamMembers.length,
+          })}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111111"}
         />
@@ -583,7 +611,7 @@ const ManageTeamPanel = () => {
         <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 my-5">
           <EvilIcons name="search" size={24} color="#666" />
           <TextInput
-            placeholder="Search here..."
+            placeholder={t("common.searchHere")}
             className="ml-2 py-1.5 text-gray-700 dark:text-dark-primary"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -647,8 +675,8 @@ const ManageTeamPanel = () => {
               <View className="px-5 pt-10">
                 <StatusStateCard
                   image={require("@/assets/images/male.svg")}
-                  title="No Team Members"
-                  text="There are no team members to show right now."
+                  title={t("user.profile.manageTeam.emptyTitle")}
+                  text={t("user.profile.manageTeam.emptyText")}
                 />
               </View>
             }
@@ -669,7 +697,7 @@ const ManageTeamPanel = () => {
         visible={showModal}
         onClose={() => setShowModal(false)}
         assignRole={roles}
-        emptyStateText="No roles found on this business."
+        emptyStateText={t("user.profile.manageTeam.noRolesFound")}
         loading={rolesLoading}
         onApply={handleApplyRole}
         applying={assigningRole}

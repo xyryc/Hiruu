@@ -662,6 +662,29 @@
           "receivedText": "Δεν υπάρχουν ακόμη ληφθέντα αιτήματα ανταλλαγής."
         }
       },
+      "manageTeam": {
+        "titleWithCount": "Πάνελ ομάδας ({{count}})",
+        "failedToLoadTeamMembers": "Αποτυχία φόρτωσης μελών ομάδας",
+        "failedToLoadRoleList": "Αποτυχία φόρτωσης λίστας ρόλων",
+        "selectRoleRequired": "Επίλεξε έναν ρόλο.",
+        "employeeInfoUnavailable": "Οι πληροφορίες εργαζομένου δεν είναι διαθέσιμες",
+        "workHoursRequired": "Συμπλήρωσε περίοδο και ποσό ωρών εργασίας.",
+        "workHoursLabel": "Ώρες εργασίας (Ποσό/Περίοδος)",
+        "manageRole": "Διαχείριση ρόλου",
+        "emptyTitle": "Δεν υπάρχουν μέλη ομάδας",
+        "emptyText": "Δεν υπάρχουν μέλη ομάδας για εμφάνιση αυτή τη στιγμή.",
+        "noRolesFound": "Δεν βρέθηκαν ρόλοι σε αυτή την επιχείρηση."
+      },
+      "tokenActivity": {
+        "title": "Δραστηριότητα μαρκών",
+        "tabs": {
+          "all": "Όλα",
+          "earned": "Κερδισμένες",
+          "spent": "Ξοδεμένες"
+        },
+        "empty": "Δεν βρέθηκαν συναλλαγές.",
+        "transactionFallback": "Συναλλαγή μαρκών"
+      },
       "attendanceSummary": {
         "title": "Σύνοψη σημερινής παρουσίας",
         "arrivedOnTime": "Εργαζόμενοι που προσήλθαν εγκαίρως",
@@ -1144,6 +1167,7 @@
     "timePlaceholder": "--:--",
     "am": "ΠΜ",
     "pm": "ΜΜ",
+    "hoursShort": "ώρες",
     "noEmail": "Χωρίς email",
     "applyNow": "Κάνε αίτηση",
     "ninePlus": "9+",
