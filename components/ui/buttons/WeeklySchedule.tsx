@@ -71,14 +71,45 @@ type WeeklyAvailabilityItem = {
   endTime?: string;
 };
 
+const DEFAULT_OPEN_START_TIME_DISPLAY = "9:00 AM";
+const DEFAULT_OPEN_END_TIME_DISPLAY = "5:00 PM";
+
 const DEFAULT_WEEK_SCHEDULE: WeekSchedule = {
-  Monday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Tuesday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Wednesday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Thursday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Friday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Saturday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
-  Sunday: { isOn: false, startTime: "10:00 AM", endTime: "10:00 AM" },
+  Monday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Tuesday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Wednesday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Thursday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Friday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Saturday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
+  Sunday: {
+    isOn: true,
+    startTime: DEFAULT_OPEN_START_TIME_DISPLAY,
+    endTime: DEFAULT_OPEN_END_TIME_DISPLAY,
+  },
 };
 
 const dayKeyMap: Record<string, keyof typeof DEFAULT_WEEK_SCHEDULE> = {
@@ -92,7 +123,7 @@ const dayKeyMap: Record<string, keyof typeof DEFAULT_WEEK_SCHEDULE> = {
 };
 
 const formatApiTime = (value?: string) => {
-  if (!value) return "10:00 AM";
+  if (!value) return DEFAULT_OPEN_START_TIME_DISPLAY;
   const match = value.match(/^(\d{2}):(\d{2})$/);
   if (!match) return value;
 
@@ -176,10 +207,19 @@ const mapAvailabilityToSchedule = (
     const mappedDay = dayKeyMap[item.day?.toLowerCase?.() || ""];
     if (!mappedDay) return;
 
+    const isOn = Boolean(item.isOpen);
     nextSchedule[mappedDay] = {
-      isOn: Boolean(item.isOpen),
-      startTime: formatApiTime(item.startTime),
-      endTime: formatApiTime(item.endTime),
+      isOn,
+      startTime: isOn
+        ? item.startTime
+          ? formatApiTime(item.startTime)
+          : DEFAULT_OPEN_START_TIME_DISPLAY
+        : nextSchedule[mappedDay].startTime,
+      endTime: isOn
+        ? item.endTime
+          ? formatApiTime(item.endTime)
+          : DEFAULT_OPEN_END_TIME_DISPLAY
+        : nextSchedule[mappedDay].endTime,
     };
   });
 

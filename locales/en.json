@@ -408,7 +408,7 @@
       "appSound": "App Sound",
       "themeMode": "Theme Mode",
       "lightMode": "Light Mode",
-      "availableWorkingDays": "Available Working Days",
+      "availableWorkingDays": "Preferable Working Days",
       "weeklySchedule": {
         "to": "to",
         "closed": "Closed"
