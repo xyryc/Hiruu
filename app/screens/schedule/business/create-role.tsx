@@ -8,7 +8,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
@@ -69,6 +69,13 @@ const CreateRole = () => {
   );
 
   const businessId = selectedBusinesses[0];
+
+  const localizePermissionText = useCallback((raw: string) => {
+    const key = String(raw || "").trim();
+    if (!key) return "";
+    const translated = t(key);
+    return translated === key ? raw : translated;
+  }, [t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -155,10 +162,10 @@ const CreateRole = () => {
     return permissionGroups.map((group) => ({
       ...group,
       permissions: group.permissions.filter((permission) =>
-        permission.title.toLowerCase().includes(query)
+        localizePermissionText(permission.title).toLowerCase().includes(query)
       ),
     })).filter((group) => group.permissions.length > 0);
-  }, [permissionGroups, search]);
+  }, [localizePermissionText, permissionGroups, search]);
 
   const handleGroupToggle = (groupId: string) => {
     setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
@@ -336,7 +343,7 @@ const CreateRole = () => {
               >
                 <View className="flex-row justify-between items-center ">
                   <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
-                    {group.label}
+                    {localizePermissionText(group.label)}
                   </Text>
                   <ToggleButton
                     isOn={Boolean(expandedGroups[group.id])}
@@ -352,7 +359,7 @@ const CreateRole = () => {
                     return (
                       <CheckButton
                         key={permission.key}
-                        title={permission.title}
+                        title={localizePermissionText(permission.title)}
                         viewChecked={Boolean(value & 1)}
                         editChecked={Boolean(value & 2)}
                         onToggleView={() => togglePermission(permission.key, 1)}

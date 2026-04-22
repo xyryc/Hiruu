@@ -115,18 +115,23 @@ const AllCreatedRole = () => {
           ) : roles.length > 0 ? (
             roles.map((role, index) => {
               const roleName = String(role?.role?.name || "").trim().toLowerCase();
-              const isOwnerRole = roleName === "owner";
+              const isOwnerRole =
+                roleName === "owner" ||
+                Boolean(role?.isSystemLocked) ||
+                Boolean(role?.role?.isSystemLocked);
               return (
                 <TouchableOpacity
-                  onPress={() =>
+                  onPress={() => {
+                    if (isOwnerRole) return;
                     router.push({
                       pathname: "/screens/schedule/business/update-role",
                       params: {
                         businessRoleId: role?.id,
                         roleId: role?.roleId,
                       },
-                    })
-                  }
+                    });
+                  }}
+                  disabled={isOwnerRole}
                   className="flex-row justify-between items-center border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
                   key={role?.id || index}
                 >
