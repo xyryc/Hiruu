@@ -1,5 +1,5 @@
 import { SecondaryButtonProps } from "@/types";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { Feather } from '@expo/vector-icons';
 import React from "react";
 import { Text, TouchableOpacity } from "react-native";
 
@@ -23,9 +23,9 @@ const SecondaryButton = ({
         {title}
       </Text>
 
-      <AntDesign
+      <Feather
         name="arrow-right"
-        size={18}
+        size={17}
         color={iconColor}
         className={`${iconBackground} p-2 rounded-full absolute right-0.5`}
       />

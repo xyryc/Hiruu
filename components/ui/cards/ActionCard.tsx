@@ -30,7 +30,7 @@ const ActionCard = ({
 
         {buttonTitle && (
           <View className="mt-4">
-            <SecondaryButton title={buttonTitle} onPress={onPress} />
+            <SecondaryButton className='w-40' title={buttonTitle} onPress={onPress} />
           </View>
         )}
       </View>
