@@ -15,6 +15,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as ExpoLinking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,9 @@ import {
 import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const APP_LINK_BASE_URL =
+  (process.env.EXPO_PUBLIC_APP_LINK_BASE_URL || "https://hiruu.app").replace(/\/+$/, "");
 
 type PreviewParams = {
   userId?: string;
@@ -167,8 +171,22 @@ const UserProfilePreview = () => {
 
   const handleShare = async () => {
     try {
+      const targetUserId = profile?.userId || profile?.user?.id || userId;
+      if (!targetUserId) {
+        Alert.alert(t("common.error"), t("common.couldNotShareProfile"));
+        return;
+      }
+
+      const appLink = `${APP_LINK_BASE_URL}/u/${encodeURIComponent(targetUserId)}`;
+      const deepLink = ExpoLinking.createURL("/u/[userId]", {
+        queryParams: { userId: targetUserId },
+      });
+
       await Share.share({
-        message: t("common.shareProfileMessage", { name: profile?.user?.name || t("common.thisProfile") }),
+        message: `${t("common.shareProfileMessage", {
+          name: profile?.user?.name || t("common.thisProfile"),
+        })}\n${deepLink}\n${appLink}`,
+        url: deepLink,
         title: `${profile?.user?.name || t("common.user")}'s ${t("user.profile.userProfile.profile")}`,
       });
     } catch {
