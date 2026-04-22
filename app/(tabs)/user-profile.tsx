@@ -87,18 +87,32 @@ const Profile = () => {
   };
 
   // color
+  const apiTheme = profileData?.appearance?.profileTheme;
   const pickerType =
-    user?.profileAppearance?.pickerType === "gradient" ? "gradient" : "solid";
+    apiTheme?.type === "gradient"
+      ? "gradient"
+      : user?.profileAppearance?.pickerType === "gradient"
+        ? "gradient"
+        : "solid";
   const profileColor =
-    user?.profileAppearance?.profileColor || "#E5F4FD";
+    String(
+      apiTheme?.solidColor ||
+      user?.profileAppearance?.profileColor ||
+      "#E5F4FD"
+    );
   const gradientColors: [string, string] =
-    Array.isArray(user?.profileAppearance?.gradientColors) &&
-      user.profileAppearance.gradientColors.length >= 2
+    Array.isArray(apiTheme?.gradientColors) && apiTheme.gradientColors.length >= 2
       ? [
-        String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
-        String(user.profileAppearance.gradientColors[1] || "#fff"),
+        String(apiTheme.gradientColors[0] || "#E5F4FD"),
+        String(apiTheme.gradientColors[1] || "#fff"),
       ]
-      : ["#E5F4FD", "#fff"];
+      : Array.isArray(user?.profileAppearance?.gradientColors) &&
+          user.profileAppearance.gradientColors.length >= 2
+        ? [
+          String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
+          String(user.profileAppearance.gradientColors[1] || "#fff"),
+        ]
+        : ["#E5F4FD", "#fff"];
 
   const loadProfile = React.useCallback(async () => {
     const requestId = ++profileRequestIdRef.current;

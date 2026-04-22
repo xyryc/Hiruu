@@ -14,6 +14,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { Companies, Company } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
 import {
   FontAwesome6,
   Ionicons,
@@ -65,6 +66,7 @@ const Edit = () => {
   const [profileColor, setProfileColor] = useState(DEFAULT_PROFILE_COLOR);
   const [gradientColors, setGradientColors] =
     useState<[string, string]>(DEFAULT_GRADIENT_COLORS);
+  const [isAppearanceDirty, setIsAppearanceDirty] = useState(false);
   const profileRequestIdRef = useRef(0);
   const user = useAuthStore((state) => state.user);
   const updateProfile = useProfileStore((state) => state.updateProfile);
@@ -146,6 +148,23 @@ const Edit = () => {
   );
 
   useEffect(() => {
+    if (isAppearanceDirty || isSaving) return;
+
+    const apiTheme = profileData?.appearance?.profileTheme;
+    if (apiTheme && typeof apiTheme === "object") {
+      setPickerType(apiTheme.type === "gradient" ? "gradient" : "solid");
+      setProfileColor(String(apiTheme.solidColor || DEFAULT_PROFILE_COLOR));
+      setGradientColors(
+        Array.isArray(apiTheme.gradientColors) && apiTheme.gradientColors.length >= 2
+          ? [
+            String(apiTheme.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
+            String(apiTheme.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
+          ]
+          : DEFAULT_GRADIENT_COLORS
+      );
+      return;
+    }
+
     const appearance = user?.profileAppearance;
     if (!appearance) return;
 
@@ -160,9 +179,11 @@ const Edit = () => {
         ]
         : DEFAULT_GRADIENT_COLORS
     );
-  }, [user?.profileAppearance]);
+  }, [isAppearanceDirty, isSaving, profileData?.appearance?.profileTheme, user?.profileAppearance]);
 
   const handleColorSelect = (color: string | string[]) => {
+    setIsAppearanceDirty(true);
+
     if (Array.isArray(color)) {
       setGradientColors([
         String(color[0] || DEFAULT_GRADIENT_COLORS[0]),
@@ -172,6 +193,11 @@ const Edit = () => {
     }
 
     setProfileColor(color);
+  };
+
+  const handlePickerTypeChange = (nextType: "solid" | "gradient") => {
+    setIsAppearanceDirty(true);
+    setPickerType(nextType);
   };
 
   const handleSaveProfile = async () => {
@@ -193,6 +219,20 @@ const Edit = () => {
       };
 
       const result = await updateProfile(payload);
+      const profileThemePayload =
+        pickerType === "gradient"
+          ? {
+            type: "gradient" as const,
+            gradientColors: [gradientColors[0], gradientColors[1]],
+          }
+          : {
+            type: "solid" as const,
+            solidColor: profileColor,
+          };
+
+      await axiosInstance.patch("/cosmetics/appearance", {
+        profileTheme: profileThemePayload,
+      });
       await setLocalProfileAppearance({
         pickerType,
         profileColor,
@@ -211,7 +251,13 @@ const Edit = () => {
         params: { refreshAt: Date.now().toString() },
       });
     } catch (error: any) {
-      const messageKey = error?.message || "UNKNOWN_ERROR";
+      const messageKey =
+        (Array.isArray(error?.response?.data?.data) &&
+          error.response.data.data.length > 0 &&
+          String(error.response.data.data[0])) ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "UNKNOWN_ERROR";
       toast.error(translateApiMessage(messageKey));
     } finally {
       setIsSaving(false);
@@ -522,7 +568,7 @@ const Edit = () => {
 
       <ColorPickerModal
         pickerType={pickerType}
-        setPickerType={setPickerType}
+        setPickerType={handlePickerTypeChange}
         visible={showColorPicker}
         onClose={() => setShowColorPicker(false)}
         onSelectColor={handleColorSelect}

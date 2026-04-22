@@ -40,6 +40,11 @@ export interface UpdateProfileData {
   fcmToken?: string;
   onboarding?: number;
   social?: SocialData;
+  appearance?: {
+    type: "solid" | "gradient";
+    solidColor: string;
+    gradientColors: [string, string];
+  };
   experiences?: ExperienceData[];
   avatar?: {
     uri: string;

@@ -11,6 +11,35 @@ const STORAGE_KEYS = {
   PROFILE_COMPLETE: "profile_complete",
 };
 
+const DEFAULT_PROFILE_COLOR = "#E5F4FD";
+const DEFAULT_GRADIENT_COLORS: [string, string] = ["#E5F4FD", "#FFFFFF"];
+
+const resolveProfileAppearance = (profileData: any, currentUser: any) => {
+  const serverAppearance = profileData?.appearance;
+  const profileTheme = serverAppearance?.profileTheme;
+
+  if (profileTheme && typeof profileTheme === "object") {
+    const type =
+      profileTheme?.type === "gradient" ? "gradient" : "solid";
+    const gradient =
+      Array.isArray(profileTheme?.gradientColors) &&
+      profileTheme.gradientColors.length >= 2
+        ? [
+            String(profileTheme.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
+            String(profileTheme.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
+          ]
+        : DEFAULT_GRADIENT_COLORS;
+
+    return {
+      pickerType: type,
+      profileColor: String(profileTheme?.solidColor || DEFAULT_PROFILE_COLOR),
+      gradientColors: gradient as [string, string],
+    };
+  }
+
+  return currentUser?.profileAppearance ?? undefined;
+};
+
 const CV_POLL_INTERVAL_MS = 5000;
 const CV_POLL_TIMEOUT_MS = 180000;
 
@@ -171,9 +200,16 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const response = await profileService.updateProfile(profileData);
 
       const currentUser = useAuthStore.getState().user;
+      const resolvedProfileAppearance = resolveProfileAppearance(
+        response?.data,
+        currentUser
+      );
       const updatedUser = {
         ...currentUser,
         ...response.data,
+        ...(resolvedProfileAppearance
+          ? { profileAppearance: resolvedProfileAppearance }
+          : {}),
       };
 
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
@@ -469,9 +505,16 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const response = await profileService.getProfile();
       const currentUser = useAuthStore.getState().user;
+      const resolvedProfileAppearance = resolveProfileAppearance(
+        response?.data,
+        currentUser
+      );
       const updatedUser = {
         ...currentUser,
         ...response.data,
+        ...(resolvedProfileAppearance
+          ? { profileAppearance: resolvedProfileAppearance }
+          : {}),
       };
 
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
