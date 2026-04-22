@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Dimensions, Text, View } from "react-native";
+import { Dimensions, ScrollView, Text, View } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 const { width } = Dimensions.get("window");
 
@@ -131,57 +131,60 @@ const ShiftsLineChart = ({
   return (
     <View className="bg-[#E5F4FD] p-4 rounded-2xl border border-[#4FB2F350] overflow-hidden">
       {/* Chart */}
-      <LineChart
-        data={chartCompleted}
-        data2={chartMissed}
-        height={180}
-        width={chartWidth}
-        parentWidth={visibleChartWidth}
-        adjustToWidth={false}
-        spacing={spacing}
-        initialSpacing={initialSpacing}
-        endSpacing={endSpacing}
-        color1="#22C55E"
-        color2="#EF4444"
-        thickness={2.5}
-        curved
-        curvature={0.18}
-        hideDataPoints={false}
-        showValuesAsDataPointsText
-        dataPointsRadius={2.5}
-        dataPointsColor="#22C55E"
-        dataPointsColor2="#EF4444"
-        hideRules={false}
-        hideYAxisText={false}
-        yAxisColor="transparent"
-        xAxisColor="transparent"
-        yAxisTextStyle={{
-          color: "#6B7280",
-          fontSize: 12,
-          fontWeight: "400",
-        }}
-        xAxisLabelTextStyle={{
-          color: "#6B7280",
-          fontSize: 12,
-          textAlign: "center",
-          marginTop: 4,
-        }}
-        noOfSections={4}
-        maxValue={maxValue}
-        stepValue={stepValue}
-        backgroundColor="transparent"
-        isAnimated
-        animationDuration={800}
-        areaChart={false}
-        startOpacity={0}
-        endOpacity={0}
-        disableScroll={false}
-        showScrollIndicator
+      <ScrollView
+        horizontal
         nestedScrollEnabled
-        scrollRef={chartScrollRef}
-        scrollAnimation={false}
-        xAxisTextNumberOfLines={1}
-      />
+        showsHorizontalScrollIndicator
+        ref={chartScrollRef}
+      >
+        <LineChart
+          data={chartCompleted}
+          data2={chartMissed}
+          height={180}
+          width={chartWidth}
+          parentWidth={visibleChartWidth}
+          adjustToWidth={false}
+          spacing={spacing}
+          initialSpacing={initialSpacing}
+          endSpacing={endSpacing}
+          color1="#22C55E"
+          color2="#EF4444"
+          thickness={2.5}
+          curved
+          curvature={0.18}
+          hideDataPoints={false}
+          showValuesAsDataPointsText
+          dataPointsRadius={2.5}
+          dataPointsColor="#22C55E"
+          dataPointsColor2="#EF4444"
+          hideRules={false}
+          hideYAxisText={false}
+          yAxisColor="transparent"
+          xAxisColor="transparent"
+          yAxisTextStyle={{
+            color: "#6B7280",
+            fontSize: 12,
+            fontWeight: "400",
+          }}
+          xAxisLabelTextStyle={{
+            color: "#6B7280",
+            fontSize: 12,
+            textAlign: "center",
+            marginTop: 4,
+          }}
+          noOfSections={4}
+          maxValue={maxValue}
+          stepValue={stepValue}
+          backgroundColor="transparent"
+          isAnimated
+          animationDuration={800}
+          areaChart={false}
+          startOpacity={0}
+          endOpacity={0}
+          disableScroll
+          xAxisTextNumberOfLines={1}
+        />
+      </ScrollView>
 
       {/* Legend */}
       <View className="flex-row gap-6 mt-6">
