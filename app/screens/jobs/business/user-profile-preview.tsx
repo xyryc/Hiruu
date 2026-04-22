@@ -3,6 +3,7 @@ import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
@@ -149,6 +150,19 @@ const UserProfilePreview = () => {
     const previewUserId = profile?.userId || profile?.user?.id;
     return Boolean(previewUserId && currentUser?.id && previewUserId === currentUser.id);
   }, [currentUser?.id, profile?.user?.id, profile?.userId]);
+
+  const profileTheme = profile?.user?.appearance?.profileTheme;
+  const pickerType =
+    profileTheme?.type === "gradient" ? "gradient" : "solid";
+  const profileColor = String(profileTheme?.solidColor || "#E5F4FD");
+  const gradientColors: [string, string] =
+    Array.isArray(profileTheme?.gradientColors) &&
+    profileTheme.gradientColors.length >= 2
+      ? [
+        String(profileTheme.gradientColors[0] || "#E5F4FD"),
+        String(profileTheme.gradientColors[1] || "#FFFFFF"),
+      ]
+      : ["#E5F4FD", "#FFFFFF"];
 
   const handleShare = async () => {
     try {
@@ -416,7 +430,12 @@ const UserProfilePreview = () => {
 
   return (
     <View className="bg-white pb-32 dark:bg-dark-background">
-      <View className="bg-[#E5F4FD] rounded-b-xl">
+      <DynamicBackground
+        className="rounded-b-xl"
+        pickerType={pickerType}
+        profileColor={profileColor}
+        gradientColors={gradientColors}
+      >
         <SafeAreaView>
           <View className={`flex-row justify-between items-center mt-5 mx-5`}>
             <TouchableOpacity onPress={handleBack}>
@@ -438,7 +457,7 @@ const UserProfilePreview = () => {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-      </View>
+      </DynamicBackground>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -485,14 +504,19 @@ const UserProfilePreview = () => {
         {/* Badge item */}
         <View className="mx-5 flex-row justify-between mt-5 items-center">
           <View className="flex-row gap-2.5 items-center">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center ">
+            <DynamicBackground
+              className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+              pickerType={pickerType}
+              profileColor={profileColor}
+              gradientColors={gradientColors}
+            >
               <MaterialCommunityIcons
                 className="rotate-180"
                 name="medal-outline"
                 size={16}
                 color="black"
               />
-            </View>
+            </DynamicBackground>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
               {t("user.profile.userProfile.badge")}
             </Text>
@@ -502,9 +526,14 @@ const UserProfilePreview = () => {
 
         {/* short intro */}
         <View className="mx-5 mt-8 flex-row gap-2.5">
-          <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
             <Foundation name="clipboard" size={16} color="black" />
-          </View>
+          </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             {t("user.profile.userProfile.shortIntro")}
           </Text>
@@ -526,9 +555,14 @@ const UserProfilePreview = () => {
 
         {/* Experience */}
         <View className="mx-5 mt-8 flex-row gap-2.5">
-          <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
             <Foundation name="clipboard" size={16} color="black" />
-          </View>
+          </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             {t("user.profile.userProfile.experience")}
           </Text>
@@ -550,14 +584,19 @@ const UserProfilePreview = () => {
         {/* Achievement */}
         <View className=" mx-5 mt-8">
           <View className="flex-row gap-2.5 items-center">
-            <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center ">
+            <DynamicBackground
+              className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+              pickerType={pickerType}
+              profileColor={profileColor}
+              gradientColors={gradientColors}
+            >
               <MaterialCommunityIcons
                 className="rotate-180"
                 name="medal-outline"
                 size={16}
                 color="black"
               />
-            </View>
+            </DynamicBackground>
             <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
               {t("user.profile.userProfile.achievement")}
             </Text>
@@ -594,9 +633,14 @@ const UserProfilePreview = () => {
 
         {/* Interests */}
         <View className="mx-5 mt-8 flex-row gap-2.5">
-          <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
             <Foundation name="clipboard" size={16} color="black" />
-          </View>
+          </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             {t("user.profile.userProfile.interests")}
           </Text>
@@ -639,9 +683,14 @@ const UserProfilePreview = () => {
 
         {/* Employee Info */}
         <View className="flex-row items-center gap-2.5 mt-8 mx-5">
-          <View className="h-8 w-8 bg-[#E5F4FD] rounded-full flex-row justify-center items-center">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
             <Ionicons name="person" size={16} color="black" />
-          </View>
+          </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             {t("user.profile.userProfile.employeeInfo")}
           </Text>
@@ -685,9 +734,14 @@ const UserProfilePreview = () => {
 
         {/* Contact Me On */}
         <View className="flex-row items-center gap-2.5 mt-6 mx-5">
-          <View className="h-8 w-8 bg-[#E5F4FD] rounded-full flex-row justify-center items-center">
+          <DynamicBackground
+            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            pickerType={pickerType}
+            profileColor={profileColor}
+            gradientColors={gradientColors}
+          >
             <Ionicons name="call-outline" size={16} color="black" />
-          </View>
+          </DynamicBackground>
           <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
             {t("user.profile.userProfile.contactMeOn")}
           </Text>
