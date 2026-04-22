@@ -33,6 +33,8 @@ import { toast } from "sonner-native";
 
 const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
 const ADDRESS_MAX_LENGTH = 200;
+const BUSINESS_NAME_ALLOWED_CHARS_REGEX = /[^\p{L}\s.'-]/gu;
+const BUSINESS_NAME_VALIDATION_REGEX = /^[\p{L}][\p{L}\s.'-]{0,48}[\p{L}]$/u;
 
 type LocationOption = {
   label: string;
@@ -55,6 +57,13 @@ const toOptionalNumber = (value: unknown) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
 };
+
+const sanitizeBusinessName = (value: string) =>
+  value
+    .normalize("NFKC")
+    .replace(BUSINESS_NAME_ALLOWED_CHARS_REGEX, "")
+    .replace(/\s{2,}/g, " ")
+    .trimStart();
 
 const BusinessSetup = () => {
   const router = useRouter();
@@ -365,8 +374,13 @@ const BusinessSetup = () => {
 
   const handleCreateBusiness = async () => {
     const phonePayload = getPhonePayload();
-    if (!businessName.trim()) {
+    const cleanedBusinessName = businessName.trim();
+    if (!cleanedBusinessName) {
       toast.error(t("user.setup.businessSetup.businessNameRequired"));
+      return;
+    }
+    if (!BUSINESS_NAME_VALIDATION_REGEX.test(cleanedBusinessName)) {
+      toast.error(t("user.setup.businessSetup.businessNameInvalid"));
       return;
     }
     if (!phonePayload.phoneNumber || !phonePayload.countryCode) {
@@ -392,7 +406,7 @@ const BusinessSetup = () => {
     const latitude = toOptionalNumber(selectedLocationOption?.latitude);
     const longitude = toOptionalNumber(selectedLocationOption?.longitude);
     const payload = {
-      name: businessName.trim(),
+      name: cleanedBusinessName,
       description: about.trim(),
       address: {
         address: resolvedAddress,
@@ -576,11 +590,13 @@ const BusinessSetup = () => {
             </Text>
 
             <TextInput
-              onChangeText={setBusinessName}
+              value={businessName}
+              onChangeText={(text) => setBusinessName(sanitizeBusinessName(text))}
               placeholder={t("user.setup.businessSetup.enterBusinessName")}
               className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
-              keyboardType="email-address"
-              autoCapitalize="none"
+              keyboardType="default"
+              autoCapitalize="words"
+              maxLength={50}
             />
           </View>
 

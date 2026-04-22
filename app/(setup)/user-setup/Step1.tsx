@@ -5,8 +5,8 @@ import DateOfBirthInput from "@/components/ui/inputs/DateOfBirthInput";
 import GenderSelection from "@/components/ui/inputs/GenderSelection";
 import { useProfileStore } from "@/stores/profileStore";
 import { GenderOption, SocialData } from "@/types";
-import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import * as Progress from "react-native-progress";
 import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
@@ -14,6 +14,8 @@ import { toast } from "sonner-native";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
+const NAME_ALLOWED_CHARS_REGEX = /[^\p{L}\s.'-]/gu;
+const NAME_VALIDATION_REGEX = /^[\p{L}][\p{L}\s.'-]{0,48}[\p{L}]$/u;
 
 type LocationOption = {
   label: string;
@@ -62,6 +64,13 @@ export default function Step1({
     telegram: "",
     instagram: "",
   });
+
+  const sanitizeName = (value: string) =>
+    value
+      .normalize("NFKC")
+      .replace(NAME_ALLOWED_CHARS_REGEX, "")
+      .replace(/\s{2,}/g, " ")
+      .trimStart();
 
   useEffect(() => {
     if (!locationSearch || locationSearch.trim().length < 3) {
@@ -163,8 +172,18 @@ export default function Step1({
 
   // Validation with i18n
   const validateStep1 = () => {
-    if (!fullName.trim()) {
+    const cleanedName = fullName.trim();
+
+    if (!cleanedName) {
       Alert.alert(translate("validation.validationError"), translate("validation.enterName"));
+      return false;
+    }
+
+    if (!NAME_VALIDATION_REGEX.test(cleanedName)) {
+      Alert.alert(
+        translate("validation.validationError"),
+        translate("validation.invalidName")
+      );
       return false;
     }
 
@@ -237,10 +256,6 @@ export default function Step1({
     }
   };
 
-
-
-
-
   return (
     <AnimatedView
       entering={FadeIn.duration(300)}
@@ -295,10 +310,11 @@ export default function Step1({
           <TextInput
             placeholder={translate("user.setup.enterYourName")}
             className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
-            keyboardType="email-address"
-            autoCapitalize="none"
+            keyboardType="default"
+            autoCapitalize="words"
             value={fullName}
-            onChangeText={setFullName}
+            onChangeText={(text) => setFullName(sanitizeName(text))}
+            maxLength={50}
           />
         </View>
 

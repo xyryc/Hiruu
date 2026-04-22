@@ -1121,6 +1121,7 @@
         "geoapifyKeyMissing": "Λείπει το Geoapify API key. Ορίστε το EXPO_PUBLIC_GEOAPIFY_API_KEY.",
         "failedToFetchLocationSuggestions": "Αποτυχία φόρτωσης προτάσεων τοποθεσίας.",
         "businessNameRequired": "Το όνομα επιχείρησης είναι υποχρεωτικό.",
+        "businessNameInvalid": "Παρακαλώ εισάγετε έγκυρο όνομα επιχείρησης (μόνο γράμματα, κενά, απόστροφος, τελεία, παύλα).",
         "pleaseEnterValidPhone": "Παρακαλώ εισάγετε έγκυρο αριθμό τηλεφώνου.",
         "emailRequired": "Το email είναι υποχρεωτικό.",
         "locationRequired": "Η τοποθεσία είναι υποχρεωτική.",
@@ -2201,6 +2202,7 @@
     "passwordTooShort": "Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες",
     "validationError": "Σφάλμα ÎµÏ€Î¹ÎºÏÏÏ‰ÏƒÎ·Ï‚",
     "enterName": "Παρακαλώ εισάγετε το όνομά σας",
+    "invalidName": "Παρακαλώ εισάγετε έγκυρο όνομα (μόνο γράμματα, κενά, απόστροφος, τελεία, παύλα)",
     "selectLocation": "Παρακαλώ επιλέξτε την τοποθεσία σας",
     "selectDateOfBirth": "Παρακαλώ επιλέξτε την ημερομηνία γέννησής σας",
     "selectGender": "Παρακαλώ επιλέξτε το φύλο σας"

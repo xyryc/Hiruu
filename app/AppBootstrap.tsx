@@ -71,6 +71,30 @@ const AppBootstrap = () => {
     return { chatRoomId, messageId };
   }, []);
 
+  const resolveFcmDisplayText = useCallback((remoteMessage: any) => {
+    const notificationTitle = String(remoteMessage?.notification?.title || "").trim();
+    const notificationBody = String(remoteMessage?.notification?.body || "").trim();
+    const dataTitle = String(
+      remoteMessage?.data?.title ||
+      remoteMessage?.data?.titleKey ||
+      ""
+    ).trim();
+    const dataBody = String(
+      remoteMessage?.data?.body ||
+      remoteMessage?.data?.message ||
+      remoteMessage?.data?.bodyKey ||
+      ""
+    ).trim();
+
+    const rawTitle = notificationTitle || dataTitle || "Notification";
+    const rawBody = notificationBody || dataBody || "You have a new message";
+
+    return {
+      title: translateApiMessage(rawTitle),
+      body: translateApiMessage(rawBody),
+    };
+  }, []);
+
   const navigateToChatRoom = useCallback((payload: { chatRoomId: string; messageId?: string }) => {
     if (!appIsReady || !user) {
       setPendingChatNavigation(payload);
@@ -153,10 +177,7 @@ const AppBootstrap = () => {
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
       console.log("FCM foreground =>", remoteMessage);
-      const rawTitle = remoteMessage.notification?.title || "Notification";
-      const rawBody = remoteMessage.notification?.body || "You have a new message";
-      const title = translateApiMessage(rawTitle);
-      const body = translateApiMessage(rawBody);
+      const { title, body } = resolveFcmDisplayText(remoteMessage);
 
       // Show a visible banner while app is foregrounded.
       await Notifications.scheduleNotificationAsync({
@@ -210,6 +231,7 @@ const AppBootstrap = () => {
     extractChatNotificationPayload,
     messaging,
     navigateToChatRoom,
+    resolveFcmDisplayText,
     user,
   ]);
 

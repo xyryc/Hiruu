@@ -33,6 +33,17 @@ const TERMINAL_CALL_STATUSES = new Set(["ended", "completed", "cancelled", "fail
 const ACTIVE_PARTICIPANT_STATUSES = new Set(["invited", "ringing", "joined"]);
 const TERMINAL_PARTICIPANT_STATUSES = new Set(["left", "declined", "missed"]);
 
+const isTerminalParticipantStatusError = (error: any) => {
+  const message = String(
+    error?.response?.data?.message || error?.message || ""
+  ).toLowerCase();
+
+  return (
+    message.includes("calls_you_cannot_update_status_after_leaving_or_declining_the_call") ||
+    message.includes("after leaving or declining the call")
+  );
+};
+
 export const useCallSession = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -607,9 +618,25 @@ export const useCallSession = () => {
     if (!callId || rejecting) return;
     try {
       setRejecting(true);
-      socketService.changeCallStatus(callId, "declined", "User declined");
-      await callService.updateCallStatus(callId, "declined");
+      let shouldUpdateStatus = true;
+      try {
+        const details = await callService.getCallById(callId);
+        const myStatus = getMyParticipantStatus(details);
+        shouldUpdateStatus = !TERMINAL_PARTICIPANT_STATUSES.has(myStatus);
+      } catch {
+        // If status check fails, still attempt status update once.
+      }
+
+      if (shouldUpdateStatus) {
+        await callService.updateCallStatus(callId, "declined");
+        socketService.changeCallStatus(callId, "declined", "User declined");
+      }
+
       leaveOnce({ skipStatusUpdate: true });
+    } catch (error: any) {
+      if (!isTerminalParticipantStatusError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to decline call");
+      }
     } finally {
       setRejecting(false);
       router.back();
