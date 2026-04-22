@@ -1,5 +1,4 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
 import { useAuthStore } from "@/stores/authStore";
@@ -9,8 +8,8 @@ import { MaterialCommunityIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { t } from "i18next";
 import { StatusBar } from "expo-status-bar";
+import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -226,13 +225,6 @@ export default function LeaderboardScreen() {
         onPressBack={() => router.back()}
         className="px-4 mt-2.5"
         title={t("user.profile.leaderboard.title")}
-        components={
-          <BusinessSelectionTrigger
-            displayContent={displayContent}
-            onPress={() => setShowModal(true)}
-            compact
-          />
-        }
       />
 
       <BusinessSelectionModal
