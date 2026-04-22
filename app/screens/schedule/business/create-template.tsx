@@ -326,9 +326,8 @@ const CreateTemplate = () => {
   const previewData = useMemo(
     () => ({
       templateName: templateName.trim() || t("user.jobs.schedule.templateNameFallback"),
-      shiftTimeRange: `${formatTime12(shiftStartTime)} - ${formatTime12(
-        shiftEndTime
-      )}`,
+      shiftStartTime: formatTime12(shiftStartTime),
+      shiftEndTime: formatTime12(shiftEndTime),
       breakTimeRange: hasBreak
         ? `${formatTime12(breakStartTime)} - ${formatTime12(breakEndTime)}`
         : t("user.jobs.schedule.noBreak"),

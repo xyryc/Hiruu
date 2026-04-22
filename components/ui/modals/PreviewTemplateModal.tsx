@@ -13,7 +13,8 @@ type PreviewRole = {
 
 type PreviewTemplateData = {
   templateName: string;
-  shiftTimeRange: string;
+  shiftStartTime: string;
+  shiftEndTime: string;
   breakTimeRange: string;
   totalStaff: number;
   roles: PreviewRole[];
@@ -91,10 +92,19 @@ const PreviewTemplateModal = ({
               <View>
                 <View className="flex-row justify-between items-center mt-3.5 ">
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    Time:
+                    Start Time:
                   </Text>
                   <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary ">
-                    {data?.shiftTimeRange || "--:-- - --:--"}
+                    {data?.shiftStartTime || "--:--"}
+                  </Text>
+                </View>
+
+                <View className="flex-row justify-between items-center mt-4 ">
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    End Time:
+                  </Text>
+                  <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary ">
+                    {data?.shiftEndTime || "--:--"}
                   </Text>
                 </View>
 
@@ -126,7 +136,7 @@ const PreviewTemplateModal = ({
                       data.roles.map((role, index) => (
                         <Text
                           key={`${role.roleName}-${index}`}
-                          className="h-8 font-proximanova-regular text-sm text-primary dark:text-dark-primary bg-[#f5f5f5] rounded-full px-2.5 py-1.5 "
+                          className="h-7 font-proximanova-regular text-sm text-primary dark:text-dark-primary bg-[#f5f5f5] rounded-full px-2.5 py-1.5 "
                         >
                           {role.count} {role.roleName}
                         </Text>
