@@ -1,9 +1,9 @@
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
-import DynamicBackground from "@/components/layout/DynamicBackground";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
@@ -18,7 +18,6 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   Alert,
@@ -28,7 +27,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 type PreviewParams = {
@@ -41,6 +41,7 @@ type PreviewParams = {
 const UserProfilePreview = () => {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets()
   const params = useLocalSearchParams<PreviewParams>();
   const getJobProfileByUserId = useJobStore((s) => s.getJobProfileByUserId);
   const [showText, setShowText] = useState(false);
@@ -157,7 +158,7 @@ const UserProfilePreview = () => {
   const profileColor = String(profileTheme?.solidColor || "#E5F4FD");
   const gradientColors: [string, string] =
     Array.isArray(profileTheme?.gradientColors) &&
-    profileTheme.gradientColors.length >= 2
+      profileTheme.gradientColors.length >= 2
       ? [
         String(profileTheme.gradientColors[0] || "#E5F4FD"),
         String(profileTheme.gradientColors[1] || "#FFFFFF"),
@@ -431,32 +432,34 @@ const UserProfilePreview = () => {
   return (
     <View className="bg-white pb-32 dark:bg-dark-background">
       <DynamicBackground
-        className="rounded-b-xl"
+        className="rounded-b-xl overflow-hidden"
+        style={{
+          paddingTop: insets.top,
+        }}
         pickerType={pickerType}
         profileColor={profileColor}
         gradientColors={gradientColors}
       >
-        <SafeAreaView>
-          <View className={`flex-row justify-between items-center mt-5 mx-5`}>
-            <TouchableOpacity onPress={handleBack}>
-              <Feather
-                className="p-2"
-                name="arrow-left"
-                size={24}
-                color="black"
-              />
-            </TouchableOpacity>
+        <View className={`flex-row justify-between items-center px-5 pt-2.5 pb-4`}>
+          <TouchableOpacity onPress={handleBack}>
+            <Feather
+              className="p-2"
+              name="arrow-left"
+              size={24}
+              color="black"
+            />
+          </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => handleShare()}>
-              <Ionicons
-                className="p-2"
-                name="share-outline"
-                size={24}
-                color="black"
-              />
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+          <TouchableOpacity onPress={() => handleShare()}>
+            <Ionicons
+              className="p-2"
+              name="share-outline"
+              size={24}
+              color="black"
+            />
+          </TouchableOpacity>
+        </View>
+
       </DynamicBackground>
 
       <ScrollView

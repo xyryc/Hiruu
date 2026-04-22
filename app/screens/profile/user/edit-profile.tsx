@@ -23,7 +23,6 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -33,6 +32,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -329,239 +329,239 @@ const Edit = () => {
 
         {!showInitialSkeleton ? (
           <>
-        <View className="mx-5">
-          <View className="flex-row justify-between items-center mb-2.5">
-            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              {t("user.profile.editUserProfile.yourNameplate")}
-            </Text>
+            <View className="mx-5">
+              <View className="flex-row justify-between items-center mb-2.5">
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.editUserProfile.yourNameplate")}
+                </Text>
 
-            <TouchableOpacity
-              onPress={() => router.push("/screens/profile/nameplate-options")}
-            >
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
-                {t("user.profile.edit")}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <TouchableOpacity
+                  onPress={() => router.push("/screens/profile/nameplate-options")}
+                >
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline">
+                    {t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-          {/* equipped nameplate */}
-          {equippedNameplate?.metadata ? (
-            <DynamicNameplateCard
-              metadata={equippedNameplate.metadata}
-              mode="redeem"
-              preview={{
-                avatarUrl: profileData?.avatar,
-                name: profileData?.name,
-                location: profileAddress,
-                rating: profileData?.rating ?? 0,
-                isVerified: Boolean(profileData?.isEmailVerified),
+              {/* equipped nameplate */}
+              {equippedNameplate?.metadata ? (
+                <DynamicNameplateCard
+                  metadata={equippedNameplate.metadata}
+                  mode="redeem"
+                  preview={{
+                    avatarUrl: profileData?.avatar,
+                    name: profileData?.name,
+                    location: profileAddress,
+                    rating: profileData?.rating ?? 0,
+                    isVerified: Boolean(profileData?.isEmailVerified),
+                  }}
+                />
+              ) : (
+                <BasicNameplateCard
+                  avatarUrl={profileData?.avatar}
+                  name={profileData?.name}
+                  location={profileAddress}
+                  rating={profileData?.rating ?? 0}
+                  isVerified={Boolean(profileData?.isEmailVerified)}
+                />
+              )}
+            </View>
+
+            {/* Badge item */}
+            <View className="mx-5 flex-row justify-between mt-8 items-center">
+              <View className="flex-row gap-2.5 items-center">
+                <DynamicBackground
+                  className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+                  pickerType={pickerType}
+                  profileColor={profileColor}
+                  gradientColors={gradientColors}
+                >
+                  <FontAwesome6 name="id-badge" size={14} color="black" />
+                </DynamicBackground>
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.userProfile.badge")}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsBadgeVisible(true)}>
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {t("user.profile.edit")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <BadgeCard
+              className="mx-5 mt-3.5"
+              badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
+            />
+
+            <EditBadgeModal
+              visible={isBadgeVisible}
+              onClose={() => setIsBadgeVisible(false)}
+            />
+
+            {/* short intro */}
+            <View>
+              <View className="flex-row justify-between items-center mx-5 mt-8 ">
+                <View className="flex-row gap-2.5">
+                  <DynamicBackground
+                    className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    pickerType={pickerType}
+                    profileColor={profileColor}
+                    gradientColors={gradientColors}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-document-check-outline"
+                      size={16}
+                      color="black"
+                    />
+                  </DynamicBackground>
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    {t("user.profile.userProfile.shortIntro")}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setIsEditingIntro((prev) => !prev)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {isEditingIntro ? t("user.profile.done") : t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View className="mx-5 mt-4">
+                {isEditingIntro ? (
+                  <TextInput
+                    value={shortIntro}
+                    onChangeText={setShortIntro}
+                    placeholder={t("user.setup.businessSetup.typeHere")}
+                    placeholderTextColor="#7A7A7A"
+                    className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
+                    multiline
+                    textAlignVertical="top"
+                  />
+                ) : (
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary border border-[#0000000D] rounded-xl p-3">
+                    {shortIntro || t("user.profile.editUserProfile.noBioYet")}
+                  </Text>
+                )}
+              </View>
+            </View>
+
+
+            {/* Experience */}
+            <View>
+              <View className="flex-row justify-between items-center mx-5 mt-8">
+                <View className="flex-row gap-2.5">
+                  <DynamicBackground
+                    className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    pickerType={pickerType}
+                    profileColor={profileColor}
+                    gradientColors={gradientColors}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-document-check-outline"
+                      size={16}
+                      color="black"
+                    />
+                  </DynamicBackground>
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    {t("user.profile.userProfile.experience")}
+                  </Text>
+                </View>
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {t("user.profile.edit")}
+                </Text>
+              </View>
+
+              <View className="mx-5 mt-4">
+                <MultiSelectCompanyDropdown
+                  selectedCompanies={selectedCompanies}
+                  workExperiences={workExperiences}
+                  onCompaniesChange={setSelectedCompanies}
+                  onWorkExperiencesChange={setWorkExperiences}
+                />
+              </View>
+            </View>
+
+            {/*  Interests */}
+            <View>
+              <View className="flex-row justify-between items-center mx-5 mt-8 ">
+                <View className="flex-row gap-2.5">
+                  <DynamicBackground
+                    className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    pickerType={pickerType}
+                    profileColor={profileColor}
+                    gradientColors={gradientColors}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-document-check-outline"
+                      size={16}
+                      color="black"
+                    />
+                  </DynamicBackground>
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    {t("user.profile.userProfile.interests")}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setVisible(true)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View className="mx-5 mt-4">
+                <InterestSelection
+                  selectedInterests={selectedInterests}
+                  onInterestsChange={setSelectedInterests}
+                  readonly
+                  showSelectedOnly
+                />
+              </View>
+            </View>
+
+            <InterestModal
+              visible={visible}
+              initialInterests={selectedInterests}
+              onClose={(next) => {
+                setSelectedInterests(next);
+                setVisible(false);
               }}
             />
-          ) : (
-            <BasicNameplateCard
-              avatarUrl={profileData?.avatar}
-              name={profileData?.name}
-              location={profileAddress}
-              rating={profileData?.rating ?? 0}
-              isVerified={Boolean(profileData?.isEmailVerified)}
-            />
-          )}
-        </View>
 
-        {/* Badge item */}
-        <View className="mx-5 flex-row justify-between mt-8 items-center">
-          <View className="flex-row gap-2.5 items-center">
-            <DynamicBackground
-              className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
-              pickerType={pickerType}
-              profileColor={profileColor}
-              gradientColors={gradientColors}
-            >
-              <FontAwesome6 name="id-badge" size={14} color="black" />
-            </DynamicBackground>
-            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              {t("user.profile.userProfile.badge")}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => setIsBadgeVisible(true)}>
-            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              {t("user.profile.edit")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <BadgeCard
-          className="mx-5 mt-3.5"
-          badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
-        />
-
-        <EditBadgeModal
-          visible={isBadgeVisible}
-          onClose={() => setIsBadgeVisible(false)}
-        />
-
-        {/* short intro */}
-        <View>
-          <View className="flex-row justify-between items-center mx-5 mt-8 ">
-            <View className="flex-row gap-2.5">
-              <DynamicBackground
-                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-                pickerType={pickerType}
-                profileColor={profileColor}
-                gradientColors={gradientColors}
-              >
-                <MaterialCommunityIcons
-                  name="file-document-check-outline"
-                  size={16}
-                  color="black"
-                />
-              </DynamicBackground>
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                {t("user.profile.userProfile.shortIntro")}
-              </Text>
+            {/* Contact Us On */}
+            <View className="flex-row justify-between items-center mx-5 mt-8 ">
+              <View className="flex-row gap-2.5">
+                <DynamicBackground
+                  className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                  pickerType={pickerType}
+                  profileColor={profileColor}
+                  gradientColors={gradientColors}
+                >
+                  <Ionicons name="call-outline" size={16} color="black" />
+                </DynamicBackground>
+                <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                  {t("user.profile.contactUsOn")}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {isEditingSocials ? t("user.profile.done") : t("user.profile.edit")}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => setIsEditingIntro((prev) => !prev)}>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                {isEditingIntro ? t("user.profile.done") : t("user.profile.edit")}
-              </Text>
-            </TouchableOpacity>
-          </View>
 
-          <View className="mx-5 mt-4">
-            {isEditingIntro ? (
-              <TextInput
-                value={shortIntro}
-                onChangeText={setShortIntro}
-                placeholder={t("user.setup.businessSetup.typeHere")}
-                placeholderTextColor="#7A7A7A"
-                className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
-                multiline
-                textAlignVertical="top"
-              />
-            ) : (
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary border border-[#0000000D] rounded-xl p-3">
-                {shortIntro || t("user.profile.editUserProfile.noBioYet")}
-              </Text>
-            )}
-          </View>
-        </View>
-
-
-        {/* Experience */}
-        <View>
-          <View className="flex-row justify-between items-center mx-5 mt-8">
-            <View className="flex-row gap-2.5">
-              <DynamicBackground
-                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-                pickerType={pickerType}
-                profileColor={profileColor}
-                gradientColors={gradientColors}
-              >
-                <MaterialCommunityIcons
-                  name="file-document-check-outline"
-                  size={16}
-                  color="black"
-                />
-              </DynamicBackground>
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                {t("user.profile.userProfile.experience")}
-              </Text>
-            </View>
-            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              {t("user.profile.edit")}
-            </Text>
-          </View>
-
-          <View className="mx-5 mt-4">
-            <MultiSelectCompanyDropdown
-              selectedCompanies={selectedCompanies}
-              workExperiences={workExperiences}
-              onCompaniesChange={setSelectedCompanies}
-              onWorkExperiencesChange={setWorkExperiences}
+            <ConnectSocials
+              className="mx-5 my-4"
+              value={socialLinks}
+              onChange={(next) => setSocialLinks((prev: any) => ({ ...prev, ...next }))}
+              canEdit={isEditingSocials}
             />
-          </View>
-        </View>
 
-        {/*  Interests */}
-        <View>
-          <View className="flex-row justify-between items-center mx-5 mt-8 ">
-            <View className="flex-row gap-2.5">
-              <DynamicBackground
-                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-                pickerType={pickerType}
-                profileColor={profileColor}
-                gradientColors={gradientColors}
-              >
-                <MaterialCommunityIcons
-                  name="file-document-check-outline"
-                  size={16}
-                  color="black"
-                />
-              </DynamicBackground>
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                {t("user.profile.userProfile.interests")}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => setVisible(true)}>
-              <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-                {t("user.profile.edit")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mx-5 mt-4">
-            <InterestSelection
-              selectedInterests={selectedInterests}
-              onInterestsChange={setSelectedInterests}
-              readonly
-              showSelectedOnly
+            <PrimaryButton
+              title={t("user.profile.editUserProfile.saveChanges")}
+              onPress={handleSaveProfile}
+              loading={isSaving}
+              className='mx-5 my-10'
             />
-          </View>
-        </View>
-
-        <InterestModal
-          visible={visible}
-          initialInterests={selectedInterests}
-          onClose={(next) => {
-            setSelectedInterests(next);
-            setVisible(false);
-          }}
-        />
-
-        {/* Contact Us On */}
-        <View className="flex-row justify-between items-center mx-5 mt-8 ">
-          <View className="flex-row gap-2.5">
-            <DynamicBackground
-              className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-              pickerType={pickerType}
-              profileColor={profileColor}
-              gradientColors={gradientColors}
-            >
-              <Ionicons name="call-outline" size={16} color="black" />
-            </DynamicBackground>
-            <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-              {t("user.profile.contactUsOn")}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => setIsEditingSocials((prev) => !prev)}>
-            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              {isEditingSocials ? t("user.profile.done") : t("user.profile.edit")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <ConnectSocials
-          className="mx-5 my-4"
-          value={socialLinks}
-          onChange={(next) => setSocialLinks((prev: any) => ({ ...prev, ...next }))}
-          canEdit={isEditingSocials}
-        />
-
-        <PrimaryButton
-          title={t("user.profile.editUserProfile.saveChanges")}
-          onPress={handleSaveProfile}
-          loading={isSaving}
-          className='mx-5 my-10'
-        />
           </>
         ) : null}
       </ScrollView>

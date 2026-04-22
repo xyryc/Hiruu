@@ -25,7 +25,6 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -36,6 +35,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -107,7 +107,7 @@ const Profile = () => {
         String(apiTheme.gradientColors[1] || "#fff"),
       ]
       : Array.isArray(user?.profileAppearance?.gradientColors) &&
-          user.profileAppearance.gradientColors.length >= 2
+        user.profileAppearance.gradientColors.length >= 2
         ? [
           String(user.profileAppearance.gradientColors[0] || "#E5F4FD"),
           String(user.profileAppearance.gradientColors[1] || "#fff"),
@@ -357,16 +357,16 @@ const Profile = () => {
         </View>
       </DynamicBackground>
 
-	      <ScrollView
-	        className="bg-white"
-	        showsVerticalScrollIndicator={false}
-	        contentContainerStyle={{
-	          paddingBottom: 80,
-	        }}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-          }
-	      >
+      <ScrollView
+        className="bg-white"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 80,
+        }}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
         {showInitialSkeleton ? (
           <AutoSkeletonView isLoading={true} defaultRadius={12}>
             <View className="mx-5 mt-3.5 h-28 rounded-2xl bg-[#E5E7EB]" />
@@ -393,367 +393,367 @@ const Profile = () => {
 
         {!showInitialSkeleton ? (
           <>
-        <TouchableOpacity
-          onPress={() => router.push("/screens/profile/rating")}
-          className="mx-5 mt-3.5"
-        >
-          {equippedNameplate?.metadata ? (
-            <DynamicNameplateCard
-              metadata={equippedNameplate.metadata}
-              mode="redeem"
-              preview={{
-                avatarUrl: profileData?.avatar,
-                name: profileData?.name,
-                location: profileAddress,
-                rating: profileData?.rating ?? 0,
-                isVerified: isFullyVerified,
-              }}
-            />
-          ) : (
-            <BasicNameplateCard
-              avatarUrl={profileData?.avatar}
-              name={profileData?.name}
-              location={profileAddress}
-              rating={profileData?.rating ?? 0}
-              isVerified={isFullyVerified}
-            />
-          )}
-        </TouchableOpacity>
-
-        {/* Badge item */}
-        <View className="mx-5 flex-row justify-between mt-5 items-center">
-          <View className="flex-row gap-2.5 items-center">
-            <DynamicBackground
-              className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-              pickerType={pickerType}
-              profileColor={profileColor}
-              gradientColors={gradientColors}
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/rating")}
+              className="mx-5 mt-3.5"
             >
-              <FontAwesome6 name="id-badge" size={14} color="black" />
-            </DynamicBackground>
-            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              {t("user.profile.userProfile.badge")}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => router.push("/screens/profile/badge")}
-          >
-            <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
-              {t("user.profile.userProfile.viewAllBadge")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <BadgeCard
-          className="mx-5 mt-3.5"
-          badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
-        />
-
-        {/* short intro */}
-        <View className="mx-5 mt-7 flex-row items-center gap-2.5 mb-4">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            {/* <Foundation name="clipboard" size={16} color="black" /> */}
-            <MaterialCommunityIcons
-              name="file-document-check-outline"
-              size={16}
-              color="black"
-            />
-          </DynamicBackground>
-
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.shortIntro")}
-          </Text>
-        </View>
-
-        {hasBio ? (
-          <View className="mx-5 rounded-xl">
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {showText ? bioText : shortBio}
-              {bioText.length > 140 && (
-                <Text
-                  onPress={() => setShowText(!showText)}
-                  className="font-proximanova-semibold text-sm text-[#11293A]"
-                >
-                  {showText
-                    ? t("user.profile.userProfile.seeLess")
-                    : t("user.profile.userProfile.readMore")}
-                </Text>
+              {equippedNameplate?.metadata ? (
+                <DynamicNameplateCard
+                  metadata={equippedNameplate.metadata}
+                  mode="redeem"
+                  preview={{
+                    avatarUrl: profileData?.avatar,
+                    name: profileData?.name,
+                    location: profileAddress,
+                    rating: profileData?.rating ?? 0,
+                    isVerified: isFullyVerified,
+                  }}
+                />
+              ) : (
+                <BasicNameplateCard
+                  avatarUrl={profileData?.avatar}
+                  name={profileData?.name}
+                  location={profileAddress}
+                  rating={profileData?.rating ?? 0}
+                  isVerified={isFullyVerified}
+                />
               )}
-            </Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            onPress={() => router.push("/screens/profile/user/edit-profile")}
-            className="mx-5 border border-[#0000000D] rounded-xl p-3"
-          >
-            <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
-              {t("user.profile.userProfile.addBio")}
-            </Text>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
 
-        {/* Experience */}
-        <View className="mx-5 mt-7 flex-row gap-2.5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <MaterialCommunityIcons
-              name="file-document-check-outline"
-              size={16}
-              color="black"
-            />
-          </DynamicBackground>
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.experience")}
-          </Text>
-        </View>
+            {/* Badge item */}
+            <View className="mx-5 flex-row justify-between mt-5 items-center">
+              <View className="flex-row gap-2.5 items-center">
+                <DynamicBackground
+                  className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                  pickerType={pickerType}
+                  profileColor={profileColor}
+                  gradientColors={gradientColors}
+                >
+                  <FontAwesome6 name="id-badge" size={14} color="black" />
+                </DynamicBackground>
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.userProfile.badge")}
+                </Text>
+              </View>
 
-        {experiences.map((experience: any, index: number) => (
-          <ExperienceCard
-            key={experience?.id || `${experience?.companyId}-${index}`}
-            isCurrent={Boolean(experience?.isCurrent)}
-            className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
-            companyName={experience?.company?.name}
-            position={experience?.position}
-            companyLogo={experience?.company?.logo}
-            isVerified={Boolean(experience?.company?.isVerified)}
-          />
-        )
-        )}
+              <TouchableOpacity
+                onPress={() => router.push("/screens/profile/badge")}
+              >
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                  {t("user.profile.userProfile.viewAllBadge")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <BadgeCard
+              className="mx-5 mt-3.5"
+              badges={Array.isArray(profileData?.appearance?.badges) ? profileData.appearance.badges : []}
+            />
 
-        {/* Achievement */}
-        <View className=" mx-5 mt-7">
-          <View className="flex-row gap-2.5 items-center">
-            <DynamicBackground
-              className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-              pickerType={pickerType}
-              profileColor={profileColor}
-              gradientColors={gradientColors}
-            >
-              <MaterialCommunityIcons
-                className="rotate-180"
-                name="medal-outline"
-                size={16}
-                color="black"
-              />
-            </DynamicBackground>
-            <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-              {t("user.profile.userProfile.achievement")}
-            </Text>
-          </View>
-          <View className="flex-row gap-3 mb-4 mt-4">
-            <StatCardPrimary
-              point={formatMetric(analyticsMetrics?.onTimeArrivalPercent)}
-              title={t("user.profile.userProfile.onTimeArrival")}
-              subtitle={t("user.profile.userProfile.thisMonth")}
-              background={require("@/assets/images/stats-bg.svg")}
-            />
-            <StatCardPrimary
-              point={formatMetric(analyticsMetrics?.taskCompletionPercent)}
-              title={t("user.profile.userProfile.taskCompletion")}
-              subtitle={t("user.profile.userProfile.completed")}
-              background={require("@/assets/images/stats-bg.svg")}
-            />
-          </View>
-          <View className="flex-row gap-3 mb-4">
-            <StatCardPrimary
-              point={formatMetric(analyticsMetrics?.positiveFeedbackPercent)}
-              title={t("user.profile.userProfile.positiveFeedback")}
-              subtitle={t("user.profile.userProfile.positive")}
-              background={require("@/assets/images/stats-bg.svg")}
-            />
-            <StatCardPrimary
-              point={formatMetric(analyticsMetrics?.growthScorePercent)}
-              title={t("user.profile.userProfile.growthScore")}
-              subtitle={t("user.profile.userProfile.growth")}
-              background={require("@/assets/images/stats-bg.svg")}
-            />
-          </View>
-        </View>
+            {/* short intro */}
+            <View className="mx-5 mt-7 flex-row items-center gap-2.5 mb-4">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                {/* <Foundation name="clipboard" size={16} color="black" /> */}
+                <MaterialCommunityIcons
+                  name="file-document-check-outline"
+                  size={16}
+                  color="black"
+                />
+              </DynamicBackground>
 
-        {/* Interests */}
-        <View className="mx-5 mt-2 flex-row gap-2.5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <MaterialCommunityIcons
-              name="file-document-check-outline"
-              size={16}
-              color="black"
-            />
-          </DynamicBackground>
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.interests")}
-          </Text>
-        </View>
-
-        <View className="mx-5 mt-5">
-          <InterestSelection
-            selectedInterests={interests}
-            onInterestsChange={() => { }}
-            readonly
-            showSelectedOnly
-          />
-        </View>
-
-        <View className="mx-5 mt-7 flex-row gap-2.5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <MaterialCommunityIcons
-              name="briefcase-outline"
-              size={16}
-              color="black"
-            />
-          </DynamicBackground>
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.jobProfile")}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          onPress={() => router.push("/screens/profile/user/job-profile")}
-          className="mx-5 mt-4 rounded-xl border border-[#0000000D] px-4 py-3"
-        >
-          <View className="flex-row items-start justify-between gap-4">
-            <View className="flex-1">
-              <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
-                {jobProfile?.headline?.trim() || t("user.profile.userProfile.setUpYourJobProfile")}
-              </Text>
-              <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {jobProfilePreview || t("user.profile.userProfile.jobProfileFallbackDescription")}
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.shortIntro")}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#7A7A7A" />
-          </View>
-        </TouchableOpacity>
 
-        {/* Contact Us On */}
-        <View className="flex-row items-center gap-2.5 mt-6 mx-5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <Ionicons name="call-outline" size={16} color="black" />
-          </DynamicBackground>
-
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.contactMeOn")}
-          </Text>
-        </View>
-
-        <ConnectSocials
-          className="mx-5 my-4"
-          value={socialLinks}
-          onChange={handleSocialLinksChange}
-          hideEmpty
-          canEdit={false}
-        />
-
-        {/* generate cv */}
-        <View className="mx-5 mt-6 flex-row justify-between items-center">
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.optionsForExport")}
-          </Text>
-
-          {/* <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" /> */}
-        </View>
-
-        <View className="mx-5 mt-4">
-          <Dropdown
-            placeholder={t("user.profile.userProfile.selectStyle")}
-            options={issues}
-            value={selectedIssue}
-            onSelect={setSelectedIssue}
-          />
-        </View>
-
-        <GradientButton
-          className="mx-5 mt-3"
-          title={
-            isGeneratingCv || isPollingCv
-              ? t("user.profile.userProfile.generatingCv")
-              : t("user.profile.userProfile.generateCvWithAi")
-          }
-          icon={
-            <Ionicons
-              name={isGeneratingCv || isPollingCv ? "time-outline" : "sparkles-outline"}
-              size={18}
-              color="#FFFFFF"
-            />
-          }
-          disabled={isGeneratingCv || isPollingCv}
-          onPress={handleGenerateCv}
-        />
-
-        {cvBuildStatus === "pending" && (
-          <View className="mx-5 mt-3">
-            <PrimaryButton
-              title={t("user.profile.userProfile.cancel")}
-              onPress={handleCancelCv}
-              showIcon={false}
-              className="bg-[#EF4444] py-3 px-4"
-            />
-          </View>
-        )}
-
-        {cvBuildStatus === "completed" && (cvResult?.pdf || cvResult?.image) && (
-          <View className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3">
-            <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary mb-2">
-              {t("user.profile.userProfile.generatedCv")}
-            </Text>
-
-            {cvResult?.pdf ? (
-              <View className="flex-row justify-between items-center py-2">
-                <TouchableOpacity onPress={() => handleOpenCvPreview("pdf", cvResult.pdf)}>
-                  <Text className="font-proximanova-medium text-[#4FB2F3] underline">
-                    {t("user.profile.userProfile.pdfCv")}
-                  </Text>
-                </TouchableOpacity>
-                <View className="w-28">
-                  <SmallButton
-                    title={t("user.profile.userProfile.download")}
-                    onPress={() => handleDownloadCv(cvResult.pdf)}
-                    className="rounded-xl py-3 px-4"
-                  />
-                </View>
+            {hasBio ? (
+              <View className="mx-5 rounded-xl">
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  {showText ? bioText : shortBio}
+                  {bioText.length > 140 && (
+                    <Text
+                      onPress={() => setShowText(!showText)}
+                      className="font-proximanova-semibold text-sm text-[#11293A]"
+                    >
+                      {showText
+                        ? t("user.profile.userProfile.seeLess")
+                        : t("user.profile.userProfile.readMore")}
+                    </Text>
+                  )}
+                </Text>
               </View>
-            ) : null}
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.push("/screens/profile/user/edit-profile")}
+                className="mx-5 border border-[#0000000D] rounded-xl p-3"
+              >
+                <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
+                  {t("user.profile.userProfile.addBio")}
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            {cvResult?.image ? (
-              <View className="flex-row justify-between items-center py-2">
-                <TouchableOpacity onPress={() => handleOpenCvPreview("image", cvResult.image)}>
-                  <Text className="font-proximanova-medium text-[#4FB2F3] underline">
-                    {t("user.profile.userProfile.imageCv")}
-                  </Text>
-                </TouchableOpacity>
-                <View className="w-28">
-                  <SmallButton
-                    title={t("user.profile.userProfile.download")}
-                    onPress={() => handleDownloadCv(cvResult.image)}
-                    className="rounded-xl py-3 px-4"
+            {/* Experience */}
+            <View className="mx-5 mt-7 flex-row gap-2.5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <MaterialCommunityIcons
+                  name="file-document-check-outline"
+                  size={16}
+                  color="black"
+                />
+              </DynamicBackground>
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.experience")}
+              </Text>
+            </View>
+
+            {experiences.map((experience: any, index: number) => (
+              <ExperienceCard
+                key={experience?.id || `${experience?.companyId}-${index}`}
+                isCurrent={Boolean(experience?.isCurrent)}
+                className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
+                companyName={experience?.company?.name}
+                position={experience?.position}
+                companyLogo={experience?.company?.logo}
+                isVerified={Boolean(experience?.company?.isVerified)}
+              />
+            )
+            )}
+
+            {/* Achievement */}
+            <View className=" mx-5 mt-7">
+              <View className="flex-row gap-2.5 items-center">
+                <DynamicBackground
+                  className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                  pickerType={pickerType}
+                  profileColor={profileColor}
+                  gradientColors={gradientColors}
+                >
+                  <MaterialCommunityIcons
+                    className="rotate-180"
+                    name="medal-outline"
+                    size={16}
+                    color="black"
                   />
-                </View>
+                </DynamicBackground>
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.userProfile.achievement")}
+                </Text>
               </View>
-            ) : null}
-          </View>
-        )}
+              <View className="flex-row gap-3 mb-4 mt-4">
+                <StatCardPrimary
+                  point={formatMetric(analyticsMetrics?.onTimeArrivalPercent)}
+                  title={t("user.profile.userProfile.onTimeArrival")}
+                  subtitle={t("user.profile.userProfile.thisMonth")}
+                  background={require("@/assets/images/stats-bg.svg")}
+                />
+                <StatCardPrimary
+                  point={formatMetric(analyticsMetrics?.taskCompletionPercent)}
+                  title={t("user.profile.userProfile.taskCompletion")}
+                  subtitle={t("user.profile.userProfile.completed")}
+                  background={require("@/assets/images/stats-bg.svg")}
+                />
+              </View>
+              <View className="flex-row gap-3 mb-4">
+                <StatCardPrimary
+                  point={formatMetric(analyticsMetrics?.positiveFeedbackPercent)}
+                  title={t("user.profile.userProfile.positiveFeedback")}
+                  subtitle={t("user.profile.userProfile.positive")}
+                  background={require("@/assets/images/stats-bg.svg")}
+                />
+                <StatCardPrimary
+                  point={formatMetric(analyticsMetrics?.growthScorePercent)}
+                  title={t("user.profile.userProfile.growthScore")}
+                  subtitle={t("user.profile.userProfile.growth")}
+                  background={require("@/assets/images/stats-bg.svg")}
+                />
+              </View>
+            </View>
+
+            {/* Interests */}
+            <View className="mx-5 mt-2 flex-row gap-2.5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <MaterialCommunityIcons
+                  name="file-document-check-outline"
+                  size={16}
+                  color="black"
+                />
+              </DynamicBackground>
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.interests")}
+              </Text>
+            </View>
+
+            <View className="mx-5 mt-5">
+              <InterestSelection
+                selectedInterests={interests}
+                onInterestsChange={() => { }}
+                readonly
+                showSelectedOnly
+              />
+            </View>
+
+            <View className="mx-5 mt-7 flex-row gap-2.5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <MaterialCommunityIcons
+                  name="briefcase-outline"
+                  size={16}
+                  color="black"
+                />
+              </DynamicBackground>
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.jobProfile")}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/user/job-profile")}
+              className="mx-5 mt-4 rounded-xl border border-[#0000000D] px-4 py-3"
+            >
+              <View className="flex-row items-start justify-between gap-4">
+                <View className="flex-1">
+                  <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
+                    {jobProfile?.headline?.trim() || t("user.profile.userProfile.setUpYourJobProfile")}
+                  </Text>
+                  <Text className="mt-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    {jobProfilePreview || t("user.profile.userProfile.jobProfileFallbackDescription")}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#7A7A7A" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Contact Us On */}
+            <View className="flex-row items-center gap-2.5 mt-6 mx-5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <Ionicons name="call-outline" size={16} color="black" />
+              </DynamicBackground>
+
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.contactMeOn")}
+              </Text>
+            </View>
+
+            <ConnectSocials
+              className="mx-5 my-4"
+              value={socialLinks}
+              onChange={handleSocialLinksChange}
+              hideEmpty
+              canEdit={false}
+            />
+
+            {/* generate cv */}
+            <View className="mx-5 mt-6 flex-row justify-between items-center">
+              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.optionsForExport")}
+              </Text>
+
+              {/* <ToggleButton isOn={isOn} setIsOn={setIsOn} title="Keep colors" /> */}
+            </View>
+
+            <View className="mx-5 mt-4">
+              <Dropdown
+                placeholder={t("user.profile.userProfile.selectStyle")}
+                options={issues}
+                value={selectedIssue}
+                onSelect={setSelectedIssue}
+              />
+            </View>
+
+            <GradientButton
+              className="mx-5 mt-3"
+              title={
+                isGeneratingCv || isPollingCv
+                  ? t("user.profile.userProfile.generatingCv")
+                  : t("user.profile.userProfile.generateCvWithAi")
+              }
+              icon={
+                <Ionicons
+                  name={isGeneratingCv || isPollingCv ? "time-outline" : "sparkles-outline"}
+                  size={18}
+                  color="#FFFFFF"
+                />
+              }
+              disabled={isGeneratingCv || isPollingCv}
+              onPress={handleGenerateCv}
+            />
+
+            {cvBuildStatus === "pending" && (
+              <View className="mx-5 mt-3">
+                <PrimaryButton
+                  title={t("user.profile.userProfile.cancel")}
+                  onPress={handleCancelCv}
+                  showIcon={false}
+                  className="bg-[#EF4444] py-3 px-4"
+                />
+              </View>
+            )}
+
+            {cvBuildStatus === "completed" && (cvResult?.pdf || cvResult?.image) && (
+              <View className="mx-5 mt-4 border border-[#0000000D] rounded-xl p-3">
+                <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary mb-2">
+                  {t("user.profile.userProfile.generatedCv")}
+                </Text>
+
+                {cvResult?.pdf ? (
+                  <View className="flex-row justify-between items-center py-2">
+                    <TouchableOpacity onPress={() => handleOpenCvPreview("pdf", cvResult.pdf)}>
+                      <Text className="font-proximanova-medium text-[#4FB2F3] underline">
+                        {t("user.profile.userProfile.pdfCv")}
+                      </Text>
+                    </TouchableOpacity>
+                    <View className="w-28">
+                      <SmallButton
+                        title={t("user.profile.userProfile.download")}
+                        onPress={() => handleDownloadCv(cvResult.pdf)}
+                        className="rounded-xl py-3 px-4"
+                      />
+                    </View>
+                  </View>
+                ) : null}
+
+                {cvResult?.image ? (
+                  <View className="flex-row justify-between items-center py-2">
+                    <TouchableOpacity onPress={() => handleOpenCvPreview("image", cvResult.image)}>
+                      <Text className="font-proximanova-medium text-[#4FB2F3] underline">
+                        {t("user.profile.userProfile.imageCv")}
+                      </Text>
+                    </TouchableOpacity>
+                    <View className="w-28">
+                      <SmallButton
+                        title={t("user.profile.userProfile.download")}
+                        onPress={() => handleDownloadCv(cvResult.image)}
+                        className="rounded-xl py-3 px-4"
+                      />
+                    </View>
+                  </View>
+                ) : null}
+              </View>
+            )}
           </>
         ) : null}
       </ScrollView>
