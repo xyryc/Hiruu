@@ -103,7 +103,7 @@ const Verify = () => {
     });
   }, [getVerificationType, requestVerifyAccount, source]);
 
-  const handleVerify = async (options?: { auto?: boolean }) => {
+  const handleVerify = useCallback(async (options?: { auto?: boolean }) => {
     if (!isOtpComplete) return;
 
     clearError();
@@ -146,7 +146,17 @@ const Verify = () => {
         autoVerifyInFlightRef.current = false;
       }
     }
-  };
+  }, [
+    clearError,
+    countryCode,
+    email,
+    isOtpComplete,
+    otp,
+    phoneNumber,
+    router,
+    source,
+    verifyAccount,
+  ]);
 
   useEffect(() => {
     if (!isOtpComplete) {
@@ -156,7 +166,7 @@ const Verify = () => {
 
     if (isLoading) return;
     handleVerify({ auto: true });
-  }, [isOtpComplete, isLoading, otp]);
+  }, [handleVerify, isLoading, isOtpComplete]);
 
   const handleResendOTP = async () => {
     try {

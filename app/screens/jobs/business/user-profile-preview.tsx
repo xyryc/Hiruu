@@ -92,7 +92,7 @@ const UserProfilePreview = () => {
     return () => {
       isMounted = false;
     };
-  }, [getJobProfileByUserId, userId]);
+  }, [getJobProfileByUserId, t, userId]);
 
   const handleBack = () => {
     if (router.canGoBack()) {

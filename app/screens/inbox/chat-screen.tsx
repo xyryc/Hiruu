@@ -93,7 +93,7 @@ const ChatScreen = () => {
     }
     setActualRoomId(roomId);
     setLoadingRoom(false);
-  }, [roomId, user?.id]);
+  }, [roomId, t, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -557,7 +557,7 @@ const ChatScreen = () => {
       const uniqueNew = pickedMedia.filter((item) => !existingUris.has(item.uri));
       return [...prev, ...uniqueNew];
     });
-  }, [sending]);
+  }, [sending, t]);
 
   const handleRemoveSelectedMedia = useCallback((uri: string) => {
     setSelectedMedia((prev) => prev.filter((item) => item.uri !== uri));
@@ -773,7 +773,7 @@ const ChatScreen = () => {
     } finally {
       setStarting(false);
     }
-  }, [actualRoomId, router, startingAudioCall, startingVideoCall, user?.id]);
+  }, [actualRoomId, router, startingAudioCall, startingVideoCall, t, user?.id]);
 
   const handleStartAudioCall = useCallback(() => {
     void handleStartCall("audio");
@@ -806,7 +806,7 @@ const ChatScreen = () => {
       pathname: "/screens/jobs/business/user-profile-preview",
       params: { userId: String(targetUserId) },
     });
-  }, [actualRoomId, roomDetails?.participants, router, user?.id]);
+  }, [actualRoomId, roomDetails?.participants, router, t, user?.id]);
 
   const handleToggleBlockUser = useCallback(async () => {
     if (!targetParticipantUserId) {

@@ -220,7 +220,7 @@ const EditTemplate = () => {
     }
 
     return null;
-  }, [shiftEndTime, shiftStartTime]);
+  }, [shiftEndTime, shiftStartTime, t]);
 
   const breakTimeValidationError = useMemo(() => {
     if (!hasBreak) return null;
@@ -242,7 +242,7 @@ const EditTemplate = () => {
     }
 
     return null;
-  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime]);
+  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime, t]);
 
   const selectedBusinessInfo = useMemo(
     () => (myBusinesses || []).find((business: any) => business?.id === selectedBusiness),
@@ -275,6 +275,7 @@ const EditTemplate = () => {
       shiftStartTime,
       templateName,
       hasBreak,
+      t,
     ]
   );
 

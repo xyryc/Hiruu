@@ -210,7 +210,7 @@ const Badge = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [t]);
 
   const uiTracks = useMemo(() => {
     return tracks.map((track) => {

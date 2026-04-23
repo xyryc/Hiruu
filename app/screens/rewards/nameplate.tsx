@@ -25,17 +25,6 @@ import { toast } from "sonner-native";
 const tabs = ["limited time", "featured", "all"] as const;
 type TabType = (typeof tabs)[number];
 
-const formatExpiryLabel = (expiresAt?: string | null) => {
-  if (!expiresAt) return "Owned";
-  const date = new Date(expiresAt);
-  if (Number.isNaN(date.getTime())) return "Owned";
-  return `Owned • Expires ${date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })}`;
-};
-
 const Nameplate = () => {
   const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);

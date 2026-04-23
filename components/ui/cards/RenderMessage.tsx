@@ -68,11 +68,6 @@ const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
     .filter((item) => item.previewType === "image")
     .map((item) => item.uri);
 
-  // Extract video URIs
-  const videoUris = media
-    .filter((item) => item.previewType === "video")
-    .map((item) => item.uri);
-
   const avatarSource = typeof msg.avatar === "string" ? { uri: msg.avatar } : msg.avatar;
 
   return (

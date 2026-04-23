@@ -289,7 +289,7 @@ const FindJobFilters = () => {
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [locationSearch, selectedLocationOption]);
+  }, [locationSearch, selectedLocationOption, t]);
 
   useEffect(() => {
     if (!selectedRoleToAdd?.id) return;

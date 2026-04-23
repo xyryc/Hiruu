@@ -77,7 +77,7 @@ const CvPreview = () => {
     return () => {
       isMounted = false;
     };
-  }, [previewType, previewUrl]);
+  }, [previewType, previewUrl, t]);
 
   const handleOpenExternal = async () => {
     if (!previewUrl) return;

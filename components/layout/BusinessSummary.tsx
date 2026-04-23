@@ -133,7 +133,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     return () => {
       mounted = false;
     };
-  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinesses]);
+  }, [canReadBusinessOverview, getBusinessOverview, selectedBusinesses, t]);
 
   // Get display content for header button
   const getDisplayContent = () => {
