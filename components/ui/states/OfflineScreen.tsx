@@ -1,7 +1,8 @@
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { SafeAreaView, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type OfflineScreenProps = {
   onReload: () => void;

@@ -1,7 +1,7 @@
 import { useFont } from "@shopify/react-native-skia";
-import { Bar, CartesianChart } from "victory-native";
 import React, { useMemo } from "react";
 import { Dimensions, ScrollView, Text, View } from "react-native";
+import { Bar, CartesianChart } from "victory-native";
 import type { TrackHoursTimeframe } from "../modals/TrackHoursFilter";
 
 const { width } = Dimensions.get("window");
@@ -33,29 +33,29 @@ const WorkHoursChart = ({
   const chartData = useMemo<WorkHourDatum[]>(() => {
     const source = hasPattern
       ? workPattern.map((item, index) => {
-          const dateValue = new Date(item.date);
-          const dayLabel = Number.isNaN(dateValue.getTime())
-            ? `D${index + 1}`
-            : dateValue.toLocaleDateString("en-US", { weekday: "short" });
-          const dateLabel = Number.isNaN(dateValue.getTime())
-            ? String(index + 1).padStart(2, "0")
-            : String(dateValue.getDate()).padStart(2, "0");
-          const hours = Number(item.workedHours || 0);
+        const dateValue = new Date(item.date);
+        const dayLabel = Number.isNaN(dateValue.getTime())
+          ? `D${index + 1}`
+          : dateValue.toLocaleDateString("en-US", { weekday: "short" });
+        const dateLabel = Number.isNaN(dateValue.getTime())
+          ? String(index + 1).padStart(2, "0")
+          : String(dateValue.getDate()).padStart(2, "0");
+        const hours = Number(item.workedHours || 0);
 
-          return {
-            label: `${dateLabel} ${dayLabel}`,
-            hours,
-          };
-        })
+        return {
+          label: `${dateLabel} ${dayLabel}`,
+          hours,
+        };
+      })
       : [
-          { label: "01 Mon", hours: 5 },
-          { label: "02 Tue", hours: 9 },
-          { label: "03 Wed", hours: 7 },
-          { label: "04 Thu", hours: 3 },
-          { label: "05 Fri", hours: 15 },
-          { label: "06 Sat", hours: 8 },
-          { label: "08 Mon", hours: 6 },
-        ];
+        { label: "01 Mon", hours: 5 },
+        { label: "02 Tue", hours: 9 },
+        { label: "03 Wed", hours: 7 },
+        { label: "04 Thu", hours: 3 },
+        { label: "05 Fri", hours: 15 },
+        { label: "06 Sat", hours: 8 },
+        { label: "08 Mon", hours: 6 },
+      ];
 
     return source.map((item, index) => ({
       x: index,
@@ -121,11 +121,10 @@ const WorkHoursChart = ({
           return (
             <Text
               key={index}
-              className={`text-sm font-proximanova-regular ${
-                isHighlighted
-                  ? "text-primary dark:text-dark-primary"
-                  : "text-secondary dark:text-dark-secondary"
-              }`}
+              className={`text-sm font-proximanova-regular ${isHighlighted
+                ? "text-primary dark:text-dark-primary"
+                : "text-secondary dark:text-dark-secondary"
+                }`}
             >
               {month.label}
             </Text>
@@ -157,7 +156,7 @@ const WorkHoursChart = ({
               formatXLabel: (value) => {
                 const ix = Math.round(Number(value));
                 const label = chartData[ix]?.label || "";
-                return label.replace(" ", "\n");
+                return label.replace(" ", " ");
               },
               formatYLabel: (value) => `${Math.max(0, Number(value) || 0)} Hr`,
             }}

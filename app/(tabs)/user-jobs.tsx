@@ -312,7 +312,7 @@ const UserJobs = () => {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  className="pl-5"
+                  className="ml-5"
                 >
                   {featuredSkeletonItems.map((item: any) => (
                     <JobCard

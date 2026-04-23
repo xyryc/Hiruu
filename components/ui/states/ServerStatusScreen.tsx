@@ -1,13 +1,9 @@
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
-import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type ServerStatusScreenProps = {
   message?: string;
@@ -15,6 +11,7 @@ type ServerStatusScreenProps = {
 };
 
 const ServerStatusScreen = ({ message, onReload }: ServerStatusScreenProps) => {
+  const { t } = useTranslation();
   const [isReloading, setIsReloading] = useState(false);
 
   const handleReload = async () => {
@@ -33,34 +30,25 @@ const ServerStatusScreen = ({ message, onReload }: ServerStatusScreenProps) => {
       <View className="flex-1 justify-center px-6">
         <StatusStateCard
           image={require("@/assets/images/errors/error.svg")}
-          title="Server Unavailable"
+          title={t("common.serverStatus.title")}
           text={
             message ||
-            "Our server is currently unavailable. Please try again shortly."
+            t("common.serverStatus.description")
           }
         />
 
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <PrimaryButton
+          className="mt-8 self-center"
+          title={
+            isReloading
+              ? t("common.serverStatus.reloading")
+              : t("common.serverStatus.reload")
+          }
           onPress={() => {
             void handleReload();
           }}
-          disabled={isReloading}
-          className="mt-8 self-center flex-row items-center overflow-hidden rounded-full bg-[#0D2B3F]"
-        >
-          <View className="px-8 py-3">
-            <Text className="font-proximanova-semibold text-sm text-white">
-              {isReloading ? "Reloading..." : "Reload"}
-            </Text>
-          </View>
-          <View className="m-1 h-9 w-9 items-center justify-center rounded-full bg-white">
-            {isReloading ? (
-              <ActivityIndicator size="small" color="#0D2B3F" />
-            ) : (
-              <Ionicons name="arrow-forward" size={18} color="#0D2B3F" />
-            )}
-          </View>
-        </TouchableOpacity>
+          loading={isReloading}
+        />
       </View>
     </SafeAreaView>
   );
