@@ -1,6 +1,7 @@
-import React from "react";
-import { Dimensions, Text, View } from "react-native";
-import { BarChart } from "react-native-gifted-charts";
+import { useFont } from "@shopify/react-native-skia";
+import { Bar, CartesianChart } from "victory-native";
+import React, { useMemo } from "react";
+import { Dimensions, ScrollView, Text, View } from "react-native";
 import type { TrackHoursTimeframe } from "../modals/TrackHoursFilter";
 
 const { width } = Dimensions.get("window");
@@ -16,100 +17,52 @@ type WorkHoursChartProps = {
   selectedTimeframe?: TrackHoursTimeframe;
 };
 
+type WorkHourDatum = {
+  x: number;
+  label: string;
+  hours: number;
+};
+
 const WorkHoursChart = ({
   workPattern = [],
   selectedTimeframe = "all_time",
 }: WorkHoursChartProps) => {
-  const fallbackBarData = [
-    {
-      value: 5,
-      label: "01\nMon",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "01",
-      day: "Mon",
-      hours: 5,
-    },
-    {
-      value: 9,
-      label: "02\nTue",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "02",
-      day: "Tue",
-      hours: 9,
-    },
-    {
-      value: 7,
-      label: "03\nWed",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "03",
-      day: "Wed",
-      hours: 7,
-    },
-    {
-      value: 3,
-      label: "04\nThu",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "04",
-      day: "Thu",
-      hours: 3,
-    },
-    {
-      value: 15,
-      label: "05\nFri",
-      frontColor: "#3B82F6",
-      gradientColor: "#60A5FA",
-      date: "05",
-      day: "Fri",
-      hours: 15,
-    },
-    {
-      value: 8,
-      label: "06\nSat",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "06",
-      day: "Sat",
-      hours: 8,
-    },
-    {
-      value: 6,
-      label: "08\nMon",
-      frontColor: "#93C5FD",
-      gradientColor: "#BFDBFE",
-      date: "08",
-      day: "Mon",
-      hours: 6,
-    },
-  ];
-
+  const axisFont = useFont(require("../../../assets/fonts/ProximaNova-Regular.ttf"), 11);
   const hasPattern = Array.isArray(workPattern) && workPattern.length > 0;
 
-  const barData = hasPattern
-    ? workPattern.map((item, index) => {
-      const dateValue = new Date(item.date);
-      const dayLabel = Number.isNaN(dateValue.getTime())
-        ? `D${index + 1}`
-        : dateValue.toLocaleDateString("en-US", { weekday: "short" });
-      const dateLabel = Number.isNaN(dateValue.getTime())
-        ? String(index + 1).padStart(2, "0")
-        : String(dateValue.getDate()).padStart(2, "0");
-      const hours = Number(item.workedHours || 0);
+  const chartData = useMemo<WorkHourDatum[]>(() => {
+    const source = hasPattern
+      ? workPattern.map((item, index) => {
+          const dateValue = new Date(item.date);
+          const dayLabel = Number.isNaN(dateValue.getTime())
+            ? `D${index + 1}`
+            : dateValue.toLocaleDateString("en-US", { weekday: "short" });
+          const dateLabel = Number.isNaN(dateValue.getTime())
+            ? String(index + 1).padStart(2, "0")
+            : String(dateValue.getDate()).padStart(2, "0");
+          const hours = Number(item.workedHours || 0);
 
-      return {
-        value: hours,
-        label: `${dateLabel}\n${dayLabel}`,
-        frontColor: "#93C5FD",
-        gradientColor: "#BFDBFE",
-        date: dateLabel,
-        day: dayLabel,
-        hours,
-      };
-    })
-    : fallbackBarData;
+          return {
+            label: `${dateLabel} ${dayLabel}`,
+            hours,
+          };
+        })
+      : [
+          { label: "01 Mon", hours: 5 },
+          { label: "02 Tue", hours: 9 },
+          { label: "03 Wed", hours: 7 },
+          { label: "04 Thu", hours: 3 },
+          { label: "05 Fri", hours: 15 },
+          { label: "06 Sat", hours: 8 },
+          { label: "08 Mon", hours: 6 },
+        ];
+
+    return source.map((item, index) => ({
+      x: index,
+      label: item.label,
+      hours: Number.isFinite(item.hours) ? item.hours : 0,
+    }));
+  }, [hasPattern, workPattern]);
 
   const now = new Date();
   const headerMonths = Array.from({ length: 6 }).map((_, index) => {
@@ -147,26 +100,19 @@ const WorkHoursChart = ({
     return new Set<string>();
   })();
 
-  const chartMax = Math.max(
-    6,
-    ...barData.map((item: any) =>
-      Number.isFinite(Number(item?.value)) ? Number(item.value) : 0
-    )
-  );
+  const chartMax = Math.max(18, ...chartData.map((item) => item.hours));
+  const yStep = Math.max(1, Math.ceil(chartMax / 4));
+  const yTickValues = [0, yStep, yStep * 2, yStep * 3, yStep * 4];
+  const yDomainMax = yTickValues[yTickValues.length - 1] ?? chartMax;
 
-  const renderTooltip = (item: any) => {
-    return (
-      <View className="bg-[#E5F4FD] py-1.5 px-3 rounded-full">
-        <Text className="text-xs font-proximanova-semibold text-primary dark:text-primary">
-          {item.hours} Hr Worked
-        </Text>
-      </View>
-    );
-  };
+  const chartVisibleWidth = width - 80;
+  const barSlotWidth = 52;
+  const chartWidth = Math.max(chartVisibleWidth, chartData.length * barSlotWidth + 40);
+
+  const xTickValues = chartData.map((item) => item.x);
 
   return (
     <View>
-      {/* Month Headers */}
       <View className="flex-row justify-between mb-6">
         {headerMonths.map((month, index) => {
           const monthKey = `${month.year}-${month.monthIndex}`;
@@ -175,10 +121,11 @@ const WorkHoursChart = ({
           return (
             <Text
               key={index}
-              className={`text-sm font-proximanova-regular ${isHighlighted
-                ? "text-primary dark:text-dark-primary"
-                : "text-secondary dark:text-dark-secondary"
-                }`}
+              className={`text-sm font-proximanova-regular ${
+                isHighlighted
+                  ? "text-primary dark:text-dark-primary"
+                  : "text-secondary dark:text-dark-secondary"
+              }`}
             >
               {month.label}
             </Text>
@@ -186,43 +133,47 @@ const WorkHoursChart = ({
         })}
       </View>
 
-      {/* Chart */}
-      <BarChart
-        data={barData}
-        width={width - 80}
-        height={200}
-        barWidth={30}
-        spacing={14}
-        barBorderRadius={16}
-        noOfSections={4}
-        yAxisThickness={0}
-        xAxisThickness={0}
-        yAxisTextStyle={{
-          color: "#7A7A7A",
-          fontSize: 12,
-          fontWeight: "400",
-        }}
-        yAxisLabelTexts={["0 Hr", "4 Hr", "8 Hr", "12 Hr", "18 Hr"]}
-        xAxisLabelTextStyle={{
-          color: "#7A7A7A",
-          fontSize: 12,
-          textAlign: "center",
-        }}
-        showGradient
-        gradientColor="#BFDBFE"
-        frontColor="#93C5FD"
-        isAnimated
-        animationDuration={800}
-        renderTooltip={renderTooltip}
-        initialSpacing={10}
-        endSpacing={10}
-        maxValue={chartMax}
-        stepValue={1}
-        hideRules={false}
-        showVerticalLines={false}
-        showYAxisIndices={false}
-        backgroundColor="transparent"
-      />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={{ width: chartWidth, height: 220 }}>
+          <CartesianChart
+            data={chartData}
+            xKey={"x"}
+            yKeys={["hours"]}
+            domain={{ y: [0, yDomainMax] }}
+            domainPadding={{ left: 22, right: 22, top: 8 }}
+            axisOptions={{
+              font: axisFont,
+              labelColor: "#7A7A7A",
+              lineWidth: { grid: { x: 0, y: 1 }, frame: 0 },
+              lineColor: { grid: { x: "transparent", y: "#D8EAF8" }, frame: "transparent" },
+              tickValues: {
+                x: xTickValues,
+                y: yTickValues,
+              },
+              tickCount: {
+                x: xTickValues.length,
+                y: yTickValues.length,
+              },
+              formatXLabel: (value) => {
+                const ix = Math.round(Number(value));
+                const label = chartData[ix]?.label || "";
+                return label.replace(" ", "\n");
+              },
+              formatYLabel: (value) => `${Math.max(0, Number(value) || 0)} Hr`,
+            }}
+          >
+            {({ points, chartBounds }) => (
+              <Bar
+                points={points.hours}
+                chartBounds={chartBounds}
+                color="#93C5FD"
+                barWidth={30}
+                roundedCorners={{ topLeft: 16, topRight: 16 }}
+              />
+            )}
+          </CartesianChart>
+        </View>
+      </ScrollView>
     </View>
   );
 };

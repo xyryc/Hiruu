@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import ShiftsLineChart from "../ui/cards/ShiftLineChart";
+import ShiftsLineChart from "../ui/cards/ShiftLineChartVictory";
 
 const GRAPH_OPTIONS = ["daily", "monthly", "yearly"] as const;
 type GraphType = (typeof GRAPH_OPTIONS)[number];
