@@ -101,7 +101,7 @@ const AttendanceSummary = ({ className }: { className: string }) => {
       <View className="relative mt-4 overflow-hidden">
         {/* background */}
         <Image
-          source={require("@/assets/images/AttendanceSummary.svg")}
+          source={require("@/assets/images/attendance-summary.svg")}
           style={{
             width: "100%",
             height: 141,

@@ -20,7 +20,7 @@ const Welcome = () => {
       <LinearGradient colors={["#BDE4F9", "#F7F7F7"]} locations={[0, 0.38]}>
         <View className="h-[60%]">
           <Image
-            source={require("@/assets/images/hero_image.svg")}
+            source={require("@/assets/images/hero-image.svg")}
             style={{
               width: "100%",
               height: "100%",

@@ -37,10 +37,10 @@ const achievementTypeByTab: Record<(typeof tabs)[number], AchievementType> = {
 const challengeIllustrations: Record<string, any> = {
   coins: require("@/assets/images/giftbox.svg"),
   shifts: require("@/assets/images/accept.svg"),
-  rating: require("@/assets/images/reted.svg"),
+  rating: require("@/assets/images/rated.svg"),
   referral: require("@/assets/images/refer-friend.svg"),
   attendance: require("@/assets/images/timer.svg"),
-  onboarding: require("@/assets/images/complate-profile.svg"),
+  onboarding: require("@/assets/images/complete-profile.svg"),
 };
 
 const getChallengeImage = (achievement: AchievementItem) => {
