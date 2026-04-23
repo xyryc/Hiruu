@@ -22,26 +22,26 @@ const EditBadgeModal = ({ visible, onClose }: any) => {
     switch (normalized) {
       case "silver":
         return {
-          img: require("@/assets/images/reward/black-bands.svg"),
+          img: require("@/assets/images/black-bands.svg"),
           bgColor: "#80808026",
           color: "#808080",
         };
       case "gold":
         return {
-          img: require("@/assets/images/reward/gold-bands.svg"),
+          img: require("@/assets/images/gold-bands.svg"),
           bgColor: "#F1C40026",
           color: "#F1C400",
         };
       case "diamond":
         return {
-          img: require("@/assets/images/reward/blue-bands.svg"),
+          img: require("@/assets/images/blue-bands.svg"),
           bgColor: "#4FB2F326",
           color: "#4FB2F3",
         };
       case "bronze":
       default:
         return {
-          img: require("@/assets/images/reward/red-bands.svg"),
+          img: require("@/assets/images/red-bands.svg"),
           bgColor: "#F3934F26",
           color: "#F3934F",
         };

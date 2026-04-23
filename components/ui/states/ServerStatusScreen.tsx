@@ -29,7 +29,7 @@ const ServerStatusScreen = ({ message, onReload }: ServerStatusScreenProps) => {
     <SafeAreaView className="flex-1 bg-[#F5F5F5]">
       <View className="flex-1 justify-center px-6">
         <StatusStateCard
-          image={require("@/assets/images/errors/error.svg")}
+          image={require("@/assets/images/error.svg")}
           title={t("common.serverStatus.title")}
           text={
             message ||

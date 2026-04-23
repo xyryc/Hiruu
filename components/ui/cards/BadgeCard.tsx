@@ -17,14 +17,14 @@ const getBadgeAsset = (tier?: string) => {
   const normalized = String(tier || "").toLowerCase();
   switch (normalized) {
     case "silver":
-      return require("@/assets/images/reward/black-bands.svg");
+      return require("@/assets/images/black-bands.svg");
     case "gold":
-      return require("@/assets/images/reward/gold-bands.svg");
+      return require("@/assets/images/gold-bands.svg");
     case "diamond":
-      return require("@/assets/images/reward/blue-bands.svg");
+      return require("@/assets/images/blue-bands.svg");
     case "bronze":
     default:
-      return require("@/assets/images/reward/red-bands.svg");
+      return require("@/assets/images/red-bands.svg");
   }
 };
 

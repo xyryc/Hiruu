@@ -11,7 +11,7 @@ type StatusStateCardProps = {
   textStyle?: StyleProp<TextStyle>;
 };
 
-const defaultOfflineImage = require("@/assets/images/errors/offline.svg");
+const defaultOfflineImage = require("@/assets/images/offline.svg");
 
 const StatusStateCard = ({
   style,

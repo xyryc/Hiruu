@@ -358,7 +358,7 @@ const AllJobs = () => {
             <View className="px-5 pb-5 items-center justify-center">
               <View className="w-full max-w-[320px] bg-white border border-[#EEEEEE] rounded-2xl px-5 py-6 items-center">
                 <Image
-                  source={require("@/assets/images/reward/finder.svg")}
+                  source={require("@/assets/images/finder.svg")}
                   style={{ width: 140, height: 140 }}
                   contentFit="contain"
                 />

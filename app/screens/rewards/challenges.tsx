@@ -35,19 +35,19 @@ const achievementTypeByTab: Record<(typeof tabs)[number], AchievementType> = {
 };
 
 const challengeIllustrations: Record<string, any> = {
-  coins: require("@/assets/images/reward/giftbox.svg"),
-  shifts: require("@/assets/images/reward/accept.svg"),
-  rating: require("@/assets/images/reward/reted.svg"),
-  referral: require("@/assets/images/reward/refer-friend.svg"),
-  attendance: require("@/assets/images/reward/timer.svg"),
-  onboarding: require("@/assets/images/reward/complate-profile.svg"),
+  coins: require("@/assets/images/giftbox.svg"),
+  shifts: require("@/assets/images/accept.svg"),
+  rating: require("@/assets/images/reted.svg"),
+  referral: require("@/assets/images/refer-friend.svg"),
+  attendance: require("@/assets/images/timer.svg"),
+  onboarding: require("@/assets/images/complate-profile.svg"),
 };
 
 const getChallengeImage = (achievement: AchievementItem) => {
   const conditionType = achievement?.conditions?.type || "";
   return (
     challengeIllustrations[conditionType] ||
-    require("@/assets/images/reward/giftbox.svg")
+    require("@/assets/images/giftbox.svg")
   );
 };
 
@@ -240,7 +240,7 @@ const Challenges = () => {
                 <View className={`flex-row gap-4 ${index === 0 ? "mt-4" : "mt-5"}`}>
                   <View>
                     <Image
-                      source={require("@/assets/images/reward/giftbox.svg")}
+                      source={require("@/assets/images/giftbox.svg")}
                       contentFit="contain"
                       style={{ height: 87, width: 63 }}
                     />

@@ -13,7 +13,7 @@ const OfflineScreen = ({ onReload }: OfflineScreenProps) => {
     <SafeAreaView className="flex-1 bg-[#F5F5F5]">
       <View className="flex-1 justify-center px-6">
         <StatusStateCard
-          image={require("@/assets/images/errors/offline.svg")}
+          image={require("@/assets/images/offline.svg")}
           title="You're Offline"
           text="Please check your internet connection and try again later"
         />

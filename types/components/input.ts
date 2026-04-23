@@ -17,9 +17,3 @@ export interface NamePlateCardProps {
   address?: string;
   profileImage?: any;
 }
-
-export interface LimitedNamePlateCardProps {
-  variant: string;
-  onPress?: (event: GestureResponderEvent) => void;
-  isSelected: boolean; // Add this
-}

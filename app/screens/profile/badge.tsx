@@ -66,22 +66,22 @@ type BadgeUiMeta = {
 
 const TIER_UI_MAP: Record<string, BadgeUiMeta> = {
   bronze: {
-    img: require("@/assets/images/reward/red-bands.svg"),
+    img: require("@/assets/images/red-bands.svg"),
     badgeBackground: "#FFF4ED",
     tagColor: "#F3934F",
   },
   silver: {
-    img: require("@/assets/images/reward/black-bands.svg"),
+    img: require("@/assets/images/black-bands.svg"),
     badgeBackground: "#80808008",
     tagColor: "#808080",
   },
   gold: {
-    img: require("@/assets/images/reward/gold-bands.svg"),
+    img: require("@/assets/images/gold-bands.svg"),
     badgeBackground: "#FFFBE8",
     tagColor: "#F1C400",
   },
   diamond: {
-    img: require("@/assets/images/reward/blue-bands.svg"),
+    img: require("@/assets/images/blue-bands.svg"),
     badgeBackground: "#EFF9FF",
     tagColor: "#4FB2F3",
   },

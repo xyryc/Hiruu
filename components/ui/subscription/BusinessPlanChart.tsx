@@ -1,7 +1,7 @@
-import FreeIcon from "@/assets/images/subscription/free.svg";
-import GrowthIcon from "@/assets/images/subscription/growth.svg";
-import ProIcon from "@/assets/images/subscription/pro.svg";
-import StarterIcon from "@/assets/images/subscription/starter.svg";
+import FreeIcon from "@/assets/images/free.svg";
+import GrowthIcon from "@/assets/images/growth.svg";
+import ProIcon from "@/assets/images/pro.svg";
+import StarterIcon from "@/assets/images/starter.svg";
 import { BusinessPlanItem } from "@/stores/subscriptionStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";

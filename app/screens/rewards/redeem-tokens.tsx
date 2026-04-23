@@ -39,7 +39,7 @@ type RedeemModalData = {
 };
 
 const premiumConfig = {
-  img: require("@/assets/images/reward/premium.svg"),
+  img: require("@/assets/images/premium.svg"),
   title: t("user.profile.redeemTokens.buyPremiumTitle"),
   subtitle: t("user.profile.redeemTokens.buyPremiumSubtitle"),
   coin: "200",
@@ -54,7 +54,7 @@ const premiumConfig = {
 };
 
 const giftConfig = {
-  img: require("@/assets/images/reward/giftbox.svg"),
+  img: require("@/assets/images/giftbox.svg"),
   title: t("user.profile.redeemTokens.giftPremiumTitle"),
   subtitle: t("user.profile.redeemTokens.giftPremiumSubtitle"),
   coin: "300",
@@ -69,7 +69,7 @@ const giftConfig = {
 };
 
 const featureMeConfig = {
-  img: require("@/assets/images/reward/finder.svg"),
+  img: require("@/assets/images/finder.svg"),
   title: t("user.profile.redeemTokens.featureMeTitle"),
   subtitle: t("user.profile.redeemTokens.featureMeSubtitle"),
   coin: "1000",
@@ -85,7 +85,7 @@ const featureMeConfig = {
 };
 
 const featureJobConfig = {
-  img: require("@/assets/images/reward/purple-toolbox.svg"),
+  img: require("@/assets/images/purple-toolbox.svg"),
   title: t("user.profile.redeemTokens.featureJobTitle"),
   subtitle: t("user.profile.redeemTokens.featureJobSubtitle"),
   coin: "200",
@@ -595,7 +595,7 @@ const RedeemTokens = () => {
             onPress={() => handleModal("premium")}
           >
             <Image
-              source={require("@/assets/images/reward/premium.svg")}
+              source={require("@/assets/images/premium.svg")}
               contentFit="contain"
               style={{ width: 60, height: 60 }}
             />
@@ -637,7 +637,7 @@ const RedeemTokens = () => {
             className="items-center bg-[#FEEFE5] -z-30 p-4 rounded-xl mx-auto w-[46%] border border-[#F68A2630]"
           >
             <Image
-              source={require("@/assets/images/reward/giftbox.svg")}
+              source={require("@/assets/images/giftbox.svg")}
               contentFit="contain"
               style={{ width: 60, height: 60 }}
             />
@@ -681,7 +681,7 @@ const RedeemTokens = () => {
             className="items-center bg-[#E3F6E7] -z-30 p-4 rounded-xl mx-auto w-[46%] border border-[#3EBF5A30]"
           >
             <Image
-              source={require("@/assets/images/reward/finder.svg")}
+              source={require("@/assets/images/finder.svg")}
               contentFit="contain"
               style={{ width: 60, height: 60 }}
             />
@@ -723,7 +723,7 @@ const RedeemTokens = () => {
             className="items-center bg-[#F7EEFF] mx-auto -z-30 p-4 rounded-xl w-[46%] border border-[#C583FF30]"
           >
             <Image
-              source={require("@/assets/images/reward/purple-toolbox.svg")}
+              source={require("@/assets/images/purple-toolbox.svg")}
               contentFit="contain"
               style={{ width: 60, height: 60 }}
             />
@@ -766,7 +766,7 @@ const RedeemTokens = () => {
           className="bg-[#FFFCEE] mx-5 items-center -z-30 mt-3 rounded-xl border border-[#EEDA8130] p-4"
         >
           <Image
-            source={require("@/assets/images/reward/designs.svg")}
+            source={require("@/assets/images/designs.svg")}
             contentFit="contain"
             style={{ width: 60, height: 60 }}
           />
