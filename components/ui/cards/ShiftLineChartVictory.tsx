@@ -101,6 +101,15 @@ const ShiftsLineChartVictory = ({
     };
   }, [chartData.length, focusKey, graphType, latestNonZeroIndex, perPointWidth, visibleChartWidth]);
 
+  useEffect(() => {
+    if (graphType === "daily") return;
+
+    const run = () => chartScrollRef.current?.scrollTo?.({ x: 0, animated: false });
+    requestAnimationFrame(run);
+    const t = setTimeout(run, 120);
+    return () => clearTimeout(t);
+  }, [focusKey, graphType]);
+
   return (
     <View className="bg-[#E5F4FD] p-4 rounded-2xl border border-[#4FB2F350] overflow-hidden">
       <ScrollView
@@ -111,6 +120,7 @@ const ShiftsLineChartVictory = ({
       >
         <View style={{ width: chartWidth, height: 220 }}>
           <CartesianChart
+            key={focusKey}
             data={chartData}
             xKey={"label"}
             yKeys={["completed", "missed"]}

@@ -3,6 +3,7 @@ import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -101,6 +102,7 @@ const PerformanceTrend = ({ className }: any) => {
   );
   const [graphType, setGraphType] = useState<GraphType>("daily");
   const [showGraphMenu, setShowGraphMenu] = useState(false);
+  const [isChartLoading, setIsChartLoading] = useState(false);
   const [chartData, setChartData] = useState<{
     completedShifts: { value: number; label?: string }[];
     missedShifts: { value: number; label?: string }[];
@@ -131,6 +133,7 @@ const PerformanceTrend = ({ className }: any) => {
             completedPercentage: 0,
             missedPercentage: 0,
           });
+          setIsChartLoading(false);
           return;
         }
 
@@ -228,8 +231,17 @@ const PerformanceTrend = ({ className }: any) => {
         }
         if (shouldSilenceTrendError(error)) return;
         toast.error(error?.message || t("common.failedToLoadPerformanceTrend"));
+      } finally {
+        if (!mounted) return;
+        setIsChartLoading(false);
       }
     };
+
+    if (selectedBusinessId) {
+      setIsChartLoading(true);
+    } else {
+      setIsChartLoading(false);
+    }
 
     if (graphType === "daily") {
       fetchTimer = setTimeout(() => {
@@ -273,13 +285,15 @@ const PerformanceTrend = ({ className }: any) => {
         </TouchableOpacity>
       </View>
 
-      <ShiftsLineChart
-        completedShifts={chartData.completedShifts}
-        missedShifts={chartData.missedShifts}
-        graphType={graphType}
-        completedPercentage={chartData.completedPercentage}
-        missedPercentage={chartData.missedPercentage}
-      />
+      <AutoSkeletonView isLoading={isChartLoading} defaultRadius={16}>
+        <ShiftsLineChart
+          completedShifts={chartData.completedShifts}
+          missedShifts={chartData.missedShifts}
+          graphType={graphType}
+          completedPercentage={chartData.completedPercentage}
+          missedPercentage={chartData.missedPercentage}
+        />
+      </AutoSkeletonView>
 
       <Modal
         visible={showGraphMenu}
