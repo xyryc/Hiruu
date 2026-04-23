@@ -20,6 +20,7 @@ import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   Text,
@@ -457,9 +458,7 @@ const PublicBusinessProfile = () => {
                 </Text>
               </View>
 
-              <TouchableOpacity
-                onPress={handleContactOwner}
-                disabled={isCreatingChat}
+              <View
                 className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
               >
                 <View className="flex-row items-center justify-between">
@@ -479,15 +478,23 @@ const PublicBusinessProfile = () => {
                     </Text>
                   </View>
 
-                  <View className="h-11 w-11 rounded-full bg-white items-center justify-center">
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={22}
-                      color="#4FB2F3"
-                    />
-                  </View>
+                  <TouchableOpacity
+                    onPress={handleContactOwner}
+                    disabled={isCreatingChat}
+                    className="h-11 w-11 rounded-full bg-white items-center justify-center"
+                  >
+                    {isCreatingChat ? (
+                      <ActivityIndicator size="small" color="#4FB2F3" />
+                    ) : (
+                      <Image
+                        source={require("@/assets/images/messages-fill.svg")}
+                        contentFit="contain"
+                        style={{ height: 22, width: 22 }}
+                      />
+                    )}
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
 
               <View className="flex-row justify-between items-center mx-5 mt-8">
                 <View className="flex-row gap-2.5">

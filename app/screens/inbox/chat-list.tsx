@@ -6,9 +6,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -23,34 +24,39 @@ const ChatList = () => {
     { key: "chat", label: t("common.chat.chatTab") },
   ];
   const [isActive, setIsActive] = useState("group");
+  const [searchQuery, setSearchQuery] = useState("");
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadRooms = async () => {
+  const loadRooms = useCallback(
+    async (isRefresh = false) => {
       try {
-        setLoading(true);
+        if (isRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
         const result = await chatService.getChatRooms();
         const data = result?.data || [];
-        if (isMounted) {
-          setRooms(Array.isArray(data) ? data : []);
-        }
+        setRooms(Array.isArray(data) ? data : []);
       } catch (error: any) {
         toast.error(error?.message || t("common.chat.failedToLoadChats"));
       } finally {
-        if (isMounted) {
+        if (isRefresh) {
+          setRefreshing(false);
+        } else {
           setLoading(false);
         }
       }
-    };
+    },
+    [t]
+  );
 
-    loadRooms();
-    return () => {
-      isMounted = false;
-    };
-  }, [t]);
+  useEffect(() => {
+    loadRooms().catch(() => undefined);
+  }, [loadRooms]);
 
   useEffect(() => {
     const unsubscribe = chatService.onRoomDeleted((deletedRoomId) => {
@@ -60,11 +66,54 @@ const ChatList = () => {
     return unsubscribe;
   }, []);
 
+  const getDirectUser = useCallback(
+    (room: any) => {
+      const currentUserId = user?.id;
+      const participant = room?.participants?.find(
+        (p: any) => p?.userId && p?.userId !== currentUserId
+      );
+      return participant?.user || room?.participants?.[0]?.user;
+    },
+    [user?.id]
+  );
+
   const filteredRooms = useMemo(() => {
-    return rooms.filter((room) =>
+    const tabFiltered = rooms.filter((room) =>
       isActive === "group" ? room.type !== "direct" : room.type === "direct"
     );
-  }, [rooms, isActive]);
+
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return tabFiltered;
+
+    return tabFiltered.filter((room) => {
+      const directUser = room.type === "direct" ? getDirectUser(room) : null;
+      const title =
+        room.type === "direct"
+          ? directUser?.name || t("common.chat.directChat")
+          : room.name || t("common.chat.groupChat");
+      const subtitle =
+        room.lastMessage?.content ||
+        room.lastMessage?.text ||
+        t("common.chat.noMessagesYet");
+
+      const searchableText = [
+        title,
+        subtitle,
+        room?.name,
+        directUser?.name,
+        directUser?.email,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+  }, [rooms, isActive, searchQuery, t, getDirectUser]);
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 7 }, (_, index) => ({ id: `chat-skeleton-${index}` })),
+    []
+  );
 
   const formatTime = (dateString?: string | null) => {
     if (!dateString) return "";
@@ -73,13 +122,9 @@ const ChatList = () => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const getDirectUser = (room: any) => {
-    const currentUserId = user?.id;
-    const participant = room?.participants?.find(
-      (p: any) => p?.userId && p?.userId !== currentUserId
-    );
-    return participant?.user || room?.participants?.[0]?.user;
-  };
+  const handleRefresh = useCallback(() => {
+    loadRooms(true).catch(() => undefined);
+  }, [loadRooms]);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
@@ -120,12 +165,29 @@ const ChatList = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         className="bg-white px-5"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
-        <SearchBar className="mt-5 mb-4" />
+        <SearchBar
+          className="mt-5 mb-4"
+          value={searchQuery}
+          onSearch={setSearchQuery}
+        />
 
         {loading ? (
-          <View className="py-6 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
+          <View className="pb-3">
+            {skeletonItems.map((item) => (
+              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={10}>
+                <ChatListItem
+                  onPress={() => undefined}
+                  title="Placeholder Name"
+                  subtitle="Loading recent message preview"
+                  time="00:00"
+                  unreadCount={2}
+                />
+              </AutoSkeletonView>
+            ))}
           </View>
         ) : filteredRooms.length === 0 ? (
           <Text className="text-center text-sm text-gray-500 py-6">
