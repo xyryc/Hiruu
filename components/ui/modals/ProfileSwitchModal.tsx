@@ -1,3 +1,4 @@
+import { ProfileSwitchModalProps } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
@@ -16,19 +17,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface ProfileSwitchModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSelectUserProfile: () => void;
-  onSelectBusinessProfile: (businessId: string) => void;
-}
-
-const ProfileSwitchModal: React.FC<ProfileSwitchModalProps> = ({
+const ProfileSwitchModal = ({
   visible,
   onClose,
   onSelectUserProfile,
   onSelectBusinessProfile,
-}) => {
+}: ProfileSwitchModalProps) => {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const [profile, setProfile] = useState<any>(user ?? null);

@@ -1,28 +1,15 @@
+import { AnimatedFabMenuItem, AnimatedFabMenuProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useRef, useState } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity } from "react-native";
 
-interface MenuItem {
-  id: string | number;
-  title: string;
-  icon: any;
-  onPress?: () => void;
-}
-
-interface AnimatedFABMenuProps {
-  menuItems: MenuItem[];
-  fabIcon?: any;
-  fabColor?: string;
-  menuItemColor?: string;
-}
-
-const AnimatedFABMenu: React.FC<AnimatedFABMenuProps> = ({
+const AnimatedFABMenu = ({
   menuItems,
   fabIcon = "add",
   fabColor = "#11293A",
   menuItemColor = "#11293A",
-}) => {
+}: AnimatedFabMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const rotateAnimation = useRef(new Animated.Value(0)).current;
@@ -47,7 +34,7 @@ const AnimatedFABMenu: React.FC<AnimatedFABMenuProps> = ({
     setIsOpen(!isOpen);
   };
 
-  const handleMenuItemPress = (item: MenuItem) => {
+  const handleMenuItemPress = (item: AnimatedFabMenuItem) => {
     toggleMenu();
     setTimeout(() => {
       if (item.onPress) {

@@ -1,23 +1,16 @@
+import { InterestsSelectionProps } from "@/types";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import InterestGrid from "./InterestGrid";
 
-interface InterestsSelectionProps {
-  selectedInterests: string[];
-  onInterestsChange: (interests: string[]) => void;
-  maxSelections?: number;
-  readonly?: boolean;
-  showSelectedOnly?: boolean;
-}
-
-const InterestsSelection: React.FC<InterestsSelectionProps> = ({
+const InterestsSelection = ({
   selectedInterests,
   onInterestsChange,
   maxSelections = 10,
   readonly = false,
   showSelectedOnly = false,
-}) => {
+}: InterestsSelectionProps) => {
   const { t } = useTranslation();
 
   const toggleInterest = (interestId: string) => {

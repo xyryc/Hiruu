@@ -1,3 +1,4 @@
+import { AssignRoleModalProps } from "@/types";
 import { Entypo, EvilIcons, Feather, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
@@ -16,7 +17,7 @@ import PrimaryButton from "../buttons/PrimaryButton";
 
 const SKELETON_ITEMS = Array.from({ length: 2 }, (_, index) => index);
 
-const AssignRoleModal: React.FC<any> = ({
+const AssignRoleModal = ({
   visible,
   onClose,
   assignRole,
@@ -26,7 +27,7 @@ const AssignRoleModal: React.FC<any> = ({
   onApply,
   applying = false,
   emptyStateText = "No roles found.",
-}) => {
+}: AssignRoleModalProps) => {
   return (
     <Modal
       visible={visible}
@@ -99,7 +100,7 @@ const AssignRoleModal: React.FC<any> = ({
                   </Text>
                 </View>
               ) : (
-                assignRole.map((role: any) => (
+                assignRole.map((role) => (
                   <TouchableOpacity
                     onPress={() => setSelectedAssignRole(role.id)}
                     key={role.id}

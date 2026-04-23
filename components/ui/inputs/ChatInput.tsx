@@ -4,6 +4,7 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { ChatInputProps } from "@/types";
 import { Image } from "expo-image";
 import { EmojiSheetModule } from "expo-native-sheet-emojis";
 import React from "react";
@@ -17,26 +18,7 @@ import {
   useColorScheme,
 } from "react-native";
 
-interface AttachmentPreview {
-  uri: string;
-  previewType: "image" | "video";
-  name: string;
-}
-
-interface ChatInputProps {
-  message: string;
-  setMessage: (text: string) => void;
-  onSend?: () => void;
-  attachments?: AttachmentPreview[];
-  onPickMedia?: () => void;
-  onRemoveMedia?: (uri: string) => void;
-  onTyping?: () => void;
-  onStopTyping?: () => void;
-  isSending?: boolean;
-  disabled?: boolean;
-}
-
-const ChatInput: React.FC<ChatInputProps> = ({
+const ChatInput = ({
   message,
   setMessage,
   onSend,
@@ -47,7 +29,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onStopTyping,
   isSending = false,
   disabled = false,
-}) => {
+}: ChatInputProps) => {
   const [typingTimeout, setTypingTimeout] = React.useState<NodeJS.Timeout | null>(null);
   const inputRef = React.useRef<TextInput | null>(null);
   const colorScheme = useColorScheme();

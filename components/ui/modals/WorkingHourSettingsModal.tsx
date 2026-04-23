@@ -1,3 +1,4 @@
+import { WorkingHourSettingsModalProps } from "@/types";
 import { Entypo, Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useState } from "react";
@@ -26,14 +27,14 @@ const hourLimitData = [
   },
 ];
 
-const WorkingHourSettingsModal: React.FC<any> = ({
+const WorkingHourSettingsModal = ({
   visible,
   onClose,
   initialPeriod,
   initialAmount,
   onApply,
   applying = false,
-}) => {
+}: WorkingHourSettingsModalProps) => {
   const [selectCheck, setSelectCheck] = useState("");
   const [workHourAmount, setWorkHourAmount] = useState("");
   const [keyboardOffset, setKeyboardOffset] = useState(0);

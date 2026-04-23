@@ -1,3 +1,4 @@
+import { RenderMessageProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useState } from "react";
@@ -22,34 +23,7 @@ const getStatusMeta = (status: string) => {
   }
 };
 
-interface MessageProps {
-  msg: {
-    id: string | number;
-    text: string;
-    time: string;
-    isSent: boolean;
-    status?: string;
-    avatar: any;
-    media?: {
-      id: string;
-      uri: string;
-      previewType: "image" | "video";
-      name?: string;
-      thumbnailUrl?: string;
-    }[];
-    call?: {
-      type: "audio" | "video";
-      status: string;
-      label: string;
-      subtitle?: string;
-      duration?: string;
-    } | null;
-    uploadState?: "uploading" | "failed";
-  };
-  onRetryMediaUpload?: (messageId: string | number) => void;
-}
-
-const RenderMessage: React.FC<MessageProps> = ({ msg, onRetryMediaUpload }) => {
+const RenderMessage = ({ msg, onRetryMediaUpload }: RenderMessageProps) => {
   const statusMeta = getStatusMeta(msg.status || "");
   const media = Array.isArray(msg.media) ? msg.media : [];
   const call = msg.call || null;

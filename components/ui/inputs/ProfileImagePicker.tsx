@@ -7,11 +7,11 @@ import React, { useState } from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
+const ProfileImagePicker = ({
   value,
   onImageChange,
   size = 120,
-}) => {
+}: ProfileImagePickerProps) => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 

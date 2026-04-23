@@ -1,3 +1,4 @@
+import { SelectDropdownOption, SelectDropdownProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useEffect, useState } from "react";
@@ -14,27 +15,7 @@ import {
   View,
 } from "react-native";
 
-interface Option {
-  label: string;
-  value: string;
-  avatar?: string;
-}
-
-interface SelectDropdownProps {
-  label?: string;
-  placeholder?: string;
-  options: Option[];
-  value?: string;
-  onSelect: (value: string) => void;
-  className?: string;
-  hideSelectedText?: boolean;
-  imageHeight?: number;
-  imageWidth?: number;
-  listMaxHeight?: number;
-  openTrigger?: number;
-}
-
-const SelectDropdown: React.FC<SelectDropdownProps> = ({
+const SelectDropdown = ({
   label,
   placeholder,
   options,
@@ -46,11 +27,11 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   imageWidth = 30,
   listMaxHeight,
   openTrigger = 0,
-}) => {
+}: SelectDropdownProps) => {
   const { height } = useWindowDimensions();
   const [isVisible, setIsVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
+  const [filteredOptions, setFilteredOptions] = useState<SelectDropdownOption[]>(options);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -86,7 +67,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     };
   }, []);
 
-  const handleSelect = (item: Option) => {
+  const handleSelect = (item: SelectDropdownOption) => {
     onSelect(item.value);
     setIsVisible(false);
     setSearchText("");

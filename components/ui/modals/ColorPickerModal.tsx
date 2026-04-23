@@ -1,3 +1,4 @@
+import { ColorPickerModalProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,17 +8,7 @@ import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import ColorPicker, { HueSlider, Panel1 } from "reanimated-color-picker";
 import PrimaryButton from "../buttons/PrimaryButton";
 
-interface ColorPickerModalProps {
-  pickerType: string;
-  setPickerType: React.Dispatch<React.SetStateAction<"solid" | "gradient">>;
-  visible: boolean;
-  onClose: () => void;
-  onSelectColor: (color: string | string[]) => void;
-  initialColor?: string;
-  initialGradientColors?: [string, string];
-}
-
-const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
+const ColorPickerModal = ({
   pickerType,
   setPickerType,
   visible,
@@ -25,7 +16,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
   onSelectColor,
   initialColor = "#6366F1",
   initialGradientColors = ["#6366F1", "#EC4899"],
-}) => {
+}: ColorPickerModalProps) => {
   const { t } = useTranslation();
   const [selectedColor, setSelectedColor] = useState(initialColor);
   const [gradientColors, setGradientColors] = useState([
