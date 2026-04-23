@@ -6,7 +6,7 @@ import * as Notifications from "expo-notifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Toaster } from "sonner-native";
-import AppBootstrap from "./AppBootstrap";
+import AppBootstrap from "./app-bootstrap";
 import "./global.css";
 
 Notifications.setNotificationHandler({
