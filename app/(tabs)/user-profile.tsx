@@ -7,7 +7,7 @@ import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
-import Dropdown from "@/components/ui/dropdown/Dropdown";
+import Dropdown from "@/components/ui/dropdown/DropDown";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import ProfileSwitchModal from "@/components/ui/modals/ProfileSwitchModal";

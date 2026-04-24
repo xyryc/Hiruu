@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import Dropdown from "@/components/ui/dropdown/Dropdown";
+import Dropdown from "@/components/ui/dropdown/DropDown";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { useLocalSearchParams, useRouter } from "expo-router";
