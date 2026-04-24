@@ -40,6 +40,9 @@ const JobRequest = () => {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const getMyApplications = useJobStore((s) => s.getMyApplications);
+  const respondToMyApplication = useJobStore(
+    (s) => s.respondToMyApplication
+  );
   const tabs = ["send request", "received"];
   const [isActive, setIsActive] = useState("send request");
   const [search, setSearch] = useState("");
@@ -48,6 +51,10 @@ const JobRequest = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [actionLoading, setActionLoading] = useState<{
+    id: string;
+    status: "approved" | "rejected";
+  } | null>(null);
   const limit = 10;
 
   const { markAsRead } = useUnreadApplications({
@@ -154,6 +161,41 @@ const JobRequest = () => {
     await loadApplications(page + 1, false);
   };
 
+  const handleReceivedAction = useCallback(
+    async (item: any, status: "approved" | "rejected") => {
+      const applicationId = item?.id;
+
+      if (!applicationId) {
+        toast.error("Application information is unavailable");
+        return;
+      }
+
+      try {
+        setActionLoading({ id: String(applicationId), status });
+        await respondToMyApplication(
+          String(applicationId),
+          status === "approved" ? "accept" : "reject"
+        );
+
+        setItems((prev) =>
+          prev.map((current) =>
+            current?.id === applicationId ? { ...current, status } : current
+          )
+        );
+        toast.success(
+          status === "approved"
+            ? "Invitation approved successfully"
+            : "Invitation rejected successfully"
+        );
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update invitation");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [respondToMyApplication]
+  );
+
   const toNullableNumber = (value: unknown) => {
     if (typeof value === "number" && Number.isFinite(value)) return value;
     if (typeof value === "string" && value.trim().length > 0) {
@@ -180,6 +222,7 @@ const JobRequest = () => {
       resolvedBusiness?.id || businessRoleBusiness?.id || business?.id || "";
 
     return {
+      applicationId: item?.id || null,
       id: recruitment?.id || item?.recruitmentId || item?.id,
       businessId: resolvedBusinessId,
       roleId: recruitment?.roleId || businessRole?.id || item?.roleId,
@@ -223,6 +266,10 @@ const JobRequest = () => {
             ? recruitment._count.recruitmentApplications
             : 0,
       },
+      userId: item?.userId || null,
+      invitedById: item?.invitedById || null,
+      applicationStatus: String(item?.status || "pending").toLowerCase(),
+      applicationSource: item?.source || "",
       invitationRoleName: recruitment?.role?.role?.name || roleName,
       invitationSalaryMin,
       invitationSalaryMax,
@@ -286,6 +333,21 @@ const JobRequest = () => {
                 className="bg-white border border-[#EEEEEE] mb-4"
                 status={isActive as "send request" | "received"}
                 job={mapToJobCard(item)}
+                onApprove={
+                  isActive === "received"
+                    ? () => handleReceivedAction(item, "approved")
+                    : undefined
+                }
+                onReject={
+                  isActive === "received"
+                    ? () => handleReceivedAction(item, "rejected")
+                    : undefined
+                }
+                actionLoading={
+                  actionLoading?.id === String(item?.id)
+                    ? actionLoading.status
+                    : null
+                }
               />
             </View>
           )}

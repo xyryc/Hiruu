@@ -359,7 +359,15 @@ export interface JobCardProps {
 export interface JobRequestCardProps {
   className?: string;
   status: "send request" | "received";
+  onApprove?: () => void;
+  onReject?: () => void;
+  actionLoading?: "approved" | "rejected" | null;
   job?: (JobCardProps["job"] & {
+    applicationId?: string | null;
+    userId?: string | null;
+    invitedById?: string | null;
+    applicationStatus?: "approved" | "rejected" | "pending" | string;
+    applicationSource?: "user_applied" | "business_invited" | string;
     invitationRoleName?: string | null;
     invitationSalaryMin?: number | null;
     invitationSalaryMax?: number | null;

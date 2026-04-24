@@ -9,12 +9,22 @@ import {
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { toast } from "sonner-native";
+import { chatService } from "@/services/chatService";
 import StatusBadge from "../badges/StatusBadge";
 
-const JobRequestCard = ({ className, status, job }: JobRequestCardProps) => {
+const JobRequestCard = ({
+  className,
+  status,
+  job,
+  onApprove,
+  onReject,
+  actionLoading = null,
+}: JobRequestCardProps) => {
   const router = useRouter();
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const isReceived = status === "received";
   const recruitmentBusiness = job?.recruitment?.business;
   const recruitmentRole = job?.recruitment?.role?.role;
@@ -92,6 +102,10 @@ const JobRequestCard = ({ className, status, job }: JobRequestCardProps) => {
     typeof job?.distanceKm === "number"
       ? `${Number(job.distanceKm.toFixed(job.distanceKm < 10 ? 1 : 0))}km away`
       : null;
+  const finalReceivedStatus =
+    job?.applicationStatus === "approved" || job?.applicationStatus === "rejected"
+      ? job.applicationStatus
+      : null;
   const handleOpenDetails = () => {
     const businessId =
       job?.businessId ||
@@ -109,6 +123,47 @@ const JobRequestCard = ({ className, status, job }: JobRequestCardProps) => {
     }
 
     router.push("/screens/jobs/user/profile");
+  };
+  const handleMessageClick = async () => {
+    if (isCreatingChat) return;
+
+    const participantId =
+      isReceived
+        ? job?.invitedById
+        : job?.userId;
+    const referenceRecruitmentId = job?.recruitment?.id || undefined;
+
+    if (!participantId) {
+      toast.error("Chat user is unavailable");
+      return;
+    }
+
+    try {
+      setIsCreatingChat(true);
+      const result = await chatService.createDirectChat(participantId, {
+        referenceRecruitmentId,
+        businessId:
+          job?.businessId ||
+          job?.business?.id ||
+          recruitmentBusiness?.id ||
+          businessRoleBusiness?.id ||
+          null,
+      });
+      const roomId = result?.data?.id;
+
+      if (!roomId) {
+        throw new Error("Chat room id is missing");
+      }
+
+      router.push({
+        pathname: "/screens/inbox/chat-screen",
+        params: { roomId },
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to start chat");
+    } finally {
+      setIsCreatingChat(false);
+    }
   };
 
   return (
@@ -317,20 +372,55 @@ const JobRequestCard = ({ className, status, job }: JobRequestCardProps) => {
 
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
+              onPress={handleMessageClick}
+              disabled={isCreatingChat}
               activeOpacity={0.8}
               className="items-center justify-center rounded-full bg-[#DFF1FF]"
               style={{ width: 40, height: 40 }}
             >
-              <Ionicons name="chatbubble-ellipses" size={24} color="#5BB7FF" />
+              <Ionicons
+                name="chatbubble-ellipses"
+                size={24}
+                color={isCreatingChat ? "#9CCBF3" : "#5BB7FF"}
+              />
             </TouchableOpacity>
+            {finalReceivedStatus ? (
+              <StatusBadge status={finalReceivedStatus} />
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={onReject}
+                  disabled={actionLoading !== null}
+                  activeOpacity={0.8}
+                >
+                  {actionLoading === "rejected" ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#FF5A58"
+                      style={{ width: 42 }}
+                    />
+                  ) : (
+                    <Entypo name="circle-with-cross" size={42} color="#FF5A58" />
+                  )}
+                </TouchableOpacity>
 
-            <TouchableOpacity activeOpacity={0.8}>
-              <Entypo name="circle-with-cross" size={42} color="#FF5A58" />
-            </TouchableOpacity>
-
-            <TouchableOpacity activeOpacity={0.8}>
-              <Ionicons name="checkmark-circle" size={42} color="#232A33" />
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={onApprove}
+                  disabled={actionLoading !== null}
+                  activeOpacity={0.8}
+                >
+                  {actionLoading === "approved" ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#232A33"
+                      style={{ width: 42 }}
+                    />
+                  ) : (
+                    <Ionicons name="checkmark-circle" size={42} color="#232A33" />
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       ) : (
