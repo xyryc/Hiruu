@@ -343,6 +343,8 @@ export interface JobCardProps {
       id: string;
       name: string;
       logo?: string;
+      rating?: number;
+      isVerified?: boolean;
       address?: {
         city?: string
       };
@@ -357,7 +359,60 @@ export interface JobCardProps {
 export interface JobRequestCardProps {
   className?: string;
   status: "send request" | "received";
-  job?: JobCardProps["job"];
+  job?: (JobCardProps["job"] & {
+    invitationRoleName?: string | null;
+    invitationSalaryMin?: number | null;
+    invitationSalaryMax?: number | null;
+    invitationSalaryType?: string | null;
+    recruitment?: {
+      id?: string | null;
+      business?: {
+        id?: string | null;
+        name?: string | null;
+        logo?: string | null;
+        rating?: number | null;
+        isVerified?: boolean | null;
+        address?:
+          | {
+              city?: string;
+              area?: string;
+              address?: string;
+              state?: string;
+            }
+          | string
+          | null;
+      } | null;
+      role?: {
+        role?: {
+          id?: string | null;
+          name?: string | null;
+        } | null;
+      } | null;
+    } | null;
+    businessRole?: {
+      id?: string | null;
+      business?: {
+        id?: string | null;
+        name?: string | null;
+        logo?: string | null;
+        rating?: number | null;
+        isVerified?: boolean | null;
+        address?:
+          | {
+              city?: string;
+              area?: string;
+              address?: string;
+              state?: string;
+            }
+          | string
+          | null;
+      } | null;
+      role?: {
+        id?: string | null;
+        name?: string | null;
+      } | null;
+    } | null;
+  });
 }
 
 export interface BusinessJobCardProps {

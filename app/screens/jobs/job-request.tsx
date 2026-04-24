@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import JobRequestCard from "@/components/ui/cards/JobRequestCard";
-import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -154,39 +154,68 @@ const JobRequest = () => {
     await loadApplications(page + 1, false);
   };
 
+  const toNullableNumber = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim().length > 0) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
   const mapToJobCard = (item: any) => {
     const recruitment = item?.recruitment || {};
     const business = recruitment?.business || {};
-    const roleName = recruitment?.role?.role?.name || "Role";
+    const businessRole = item?.businessRole || {};
+    const businessRoleBusiness = businessRole?.business || {};
+    const businessRoleRole = businessRole?.role || {};
+    const roleName =
+      recruitment?.role?.role?.name || businessRoleRole?.name || "Role";
+    const invitationSalaryMin =
+      toNullableNumber(item?.minSalary) ?? toNullableNumber(recruitment?.salaryMin);
+    const invitationSalaryMax =
+      toNullableNumber(item?.maxSalary) ?? toNullableNumber(recruitment?.salaryMax);
+    const resolvedBusiness = recruitment?.business || businessRoleBusiness || {};
+    const resolvedBusinessId =
+      resolvedBusiness?.id || businessRoleBusiness?.id || business?.id || "";
 
     return {
       id: recruitment?.id || item?.recruitmentId || item?.id,
-      businessId: business?.id,
-      roleId: recruitment?.roleId,
+      businessId: resolvedBusinessId,
+      roleId: recruitment?.roleId || businessRole?.id || item?.roleId,
       name: roleName,
       description: recruitment?.description,
       isFeatured: Boolean(recruitment?.isFeatured),
       isActive: recruitment?.isActive,
       shareCount:
         typeof recruitment?.shareCount === "number" ? recruitment.shareCount : 0,
-      salaryMin:
-        typeof recruitment?.salaryMin === "number" ? recruitment.salaryMin : 0,
-      salaryMax:
-        typeof recruitment?.salaryMax === "number" ? recruitment.salaryMax : 0,
+      salaryMin: toNullableNumber(recruitment?.salaryMin) ?? 0,
+      salaryMax: toNullableNumber(recruitment?.salaryMax) ?? 0,
       salaryType: recruitment?.salaryType || "monthly",
       distanceKm:
-        typeof recruitment?.distanceKm === "number" ? recruitment.distanceKm : undefined,
+        toNullableNumber(item?.distanceKm) ??
+        toNullableNumber(recruitment?.distanceKm) ??
+        undefined,
       shiftType: recruitment?.shiftType || "",
       jobType: recruitment?.jobType || "",
       business: {
-        id: business?.id || "",
-        name: business?.name || "-",
-        logo: business?.logo,
+        id: resolvedBusinessId,
+        name:
+          typeof resolvedBusiness?.name === "string" ? resolvedBusiness.name : "",
+        logo: resolvedBusiness?.logo,
+        rating:
+          typeof resolvedBusiness?.rating === "number"
+            ? resolvedBusiness.rating
+            : undefined,
+        isVerified:
+          typeof resolvedBusiness?.isVerified === "boolean"
+            ? resolvedBusiness.isVerified
+            : undefined,
         address:
-          business?.address?.address ||
-          business?.address?.city ||
-          business?.address?.area ||
-          "Unknown Location",
+          resolvedBusiness?.address?.address ||
+          resolvedBusiness?.address?.city ||
+          resolvedBusiness?.address?.area ||
+          undefined,
       },
       _count: {
         recruitmentApplications:
@@ -194,6 +223,12 @@ const JobRequest = () => {
             ? recruitment._count.recruitmentApplications
             : 0,
       },
+      invitationRoleName: recruitment?.role?.role?.name || roleName,
+      invitationSalaryMin,
+      invitationSalaryMax,
+      invitationSalaryType: recruitment?.salaryType || "monthly",
+      recruitment: item?.recruitment || null,
+      businessRole: item?.businessRole || null,
     };
   };
 
