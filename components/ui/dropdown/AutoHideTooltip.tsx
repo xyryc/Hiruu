@@ -1,17 +1,12 @@
+import { AutoHideTooltipProps } from "@/types";
 import React, { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
-interface AutoHideTooltipProps {
-  message: string;
-  duration?: number;
-  children: React.ReactNode;
-}
-
-const AutoHideTooltip: React.FC<AutoHideTooltipProps> = ({
+const AutoHideTooltip = ({
   message,
   duration = 3000,
   children,
-}) => {
+}: AutoHideTooltipProps) => {
   const [isVisible, setIsVisible] = React.useState(false);
 
   useEffect(() => {

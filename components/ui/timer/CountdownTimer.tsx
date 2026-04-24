@@ -3,11 +3,11 @@ import { Image } from "expo-image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({
+const CountdownTimer = ({
   className,
   targetTime,
   onComplete,
-}) => {
+}: CountdownTimerProps) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,

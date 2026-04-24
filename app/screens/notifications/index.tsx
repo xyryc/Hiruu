@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -286,6 +287,13 @@ const NotificationScreen = () => {
       };
     });
   }, [notifications]);
+  const skeletonRows = useMemo(
+    () =>
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `notification-skeleton-${index}`,
+      })),
+    []
+  );
 
   const onRefresh = useCallback(async () => {
     await loadNotifications(1, false);
@@ -462,8 +470,26 @@ const NotificationScreen = () => {
         }}
         ListEmptyComponent={
           notificationsLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="small" color="#4FB2F3" />
+            <View className="pt-2">
+              {skeletonRows.map((row) => (
+                <AutoSkeletonView key={row.id} isLoading={true} defaultRadius={10}>
+                  <View>
+                    <View className="w-full flex-row gap-3 px-6 py-4 bg-white">
+                      <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+
+                      <View className="flex-1">
+                        <View className="flex-row justify-between items-center">
+                          <View className="h-3.5 w-40 rounded-md bg-[#E5E7EB]" />
+                          <View className="h-3 w-14 rounded-md bg-[#E5E7EB]" />
+                        </View>
+                        <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-3" />
+                        <View className="h-3 w-4/5 rounded-md bg-[#E5E7EB] mt-2" />
+                      </View>
+                    </View>
+                    <View className="border-b border-[#eeeeee]" />
+                  </View>
+                </AutoSkeletonView>
+              ))}
             </View>
           ) : (
             <View className="py-10 items-center">

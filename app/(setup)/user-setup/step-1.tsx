@@ -168,7 +168,7 @@ export default function Step1({
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [locationSearch, selectedLocationOption]);
+  }, [locationSearch, selectedLocationOption, translate]);
 
   // Validation with i18n
   const validateStep1 = () => {

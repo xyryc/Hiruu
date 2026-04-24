@@ -80,7 +80,7 @@ const UserWorkInsights = ({ className, title }: WorkInsightsProps) => {
     return () => {
       mounted = false;
     };
-  }, [getWorkInsightsAnalytics, monthParam]);
+  }, [getWorkInsightsAnalytics, monthParam, t]);
 
   return (
     <View className={`${className} px-4`}>

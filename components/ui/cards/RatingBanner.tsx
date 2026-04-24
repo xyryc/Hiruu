@@ -29,7 +29,7 @@ const RatingBanner = ({ averageRating, totalRatings = 0, onPress }: RatingBanner
         className="flex-row justify-center items-center"
       >
         <Image
-          source={require("@/assets/images/profile/rating-leaves.svg")}
+          source={require("@/assets/images/rating-leaves.svg")}
           contentFit="contain"
           style={{ height: 84, width: 61, transform: [{ scaleX: -1 }] }}
         />
@@ -42,7 +42,7 @@ const RatingBanner = ({ averageRating, totalRatings = 0, onPress }: RatingBanner
           </Text>
         </View>
         <Image
-          source={require("@/assets/images/profile/rating-leaves.svg")}
+          source={require("@/assets/images/rating-leaves.svg")}
           contentFit="contain"
           style={{ height: 84, width: 61 }}
         />

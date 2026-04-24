@@ -35,7 +35,7 @@ const JoinColleague = ({ className }: JoinColleagueProps) => {
           <Text className="text-sm font-proximanova-semibold">Enter Code</Text>
 
           <Image
-            source={require("@/assets/images/codeLocked.svg")}
+            source={require("@/assets/images/code-locked.svg")}
             style={{
               width: 48,
               height: 48,

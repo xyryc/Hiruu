@@ -21,7 +21,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Settings = () => {
-  const logOutImg = require("@/assets/images/Logout.svg");
+  const logOutImg = require("@/assets/images/logout.svg");
   const [isModal, setIsModal] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const getProfile = useProfileStore((state) => state.getProfile);

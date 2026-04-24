@@ -81,7 +81,7 @@ const BusinessPlan = () => {
       try {
         await getBusinessPlans();
       } catch (error: any) {
-        toast.error(error?.message || t("user.profile.failedToLoadBusinessPlans"));
+        toast.error(error?.message || "Failed to load business plans");
       }
     };
 

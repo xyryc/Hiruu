@@ -1,15 +1,10 @@
+import { VideoPlayerModalProps } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
 
-interface VideoPlayerModalProps {
-  visible: boolean;
-  videoUri: string;
-  onClose: () => void;
-}
-
-const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ visible, videoUri, onClose }) => {
+const VideoPlayerModal = ({ visible, videoUri, onClose }: VideoPlayerModalProps) => {
   const player = useVideoPlayer(videoUri, (p) => {
     p.loop = true;
     p.play();

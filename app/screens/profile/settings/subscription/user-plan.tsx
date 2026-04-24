@@ -177,7 +177,7 @@ const UserPlan = () => {
     return () => {
       mounted = false;
     };
-  }, [getUserPlans, loadActiveSubscription]);
+  }, [getUserPlans, loadActiveSubscription, t]);
 
   useFocusEffect(
     useCallback(() => {

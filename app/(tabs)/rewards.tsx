@@ -181,7 +181,7 @@ const UserRewards = () => {
     timezone,
   ]);
 
-  const fallbackChallengeImage = require("@/assets/images/reward/giftbox.svg");
+  const fallbackChallengeImage = require("@/assets/images/giftbox.svg");
   const challengeCardStyleCycle = useMemo(
     () =>
       [
@@ -307,7 +307,7 @@ const UserRewards = () => {
                   <View className="flex-row gap-2 mt-3">
                     <View>
                       <Image
-                        source={require("@/assets/images/reward/reward-complete-spark.svg")}
+                        source={require("@/assets/images/reward-complete-spark.svg")}
                         contentFit="contain"
                         style={{ width: 44, height: 44 }}
                       />
@@ -359,7 +359,7 @@ const UserRewards = () => {
                 </Text>
 
                 <Image
-                  source={require("@/assets/images/reward/timer.svg")}
+                  source={require("@/assets/images/timer.svg")}
                   contentFit="contain"
                   style={{
                     height: 18,
@@ -504,7 +504,7 @@ const UserRewards = () => {
             <View className="relative mt-4">
               {/* background */}
               <Image
-                source={require("@/assets/images/reward/subtract.svg")}
+                source={require("@/assets/images/subtract.svg")}
                 style={{
                   width: screenWidth * 0.9,
                   height: 230,

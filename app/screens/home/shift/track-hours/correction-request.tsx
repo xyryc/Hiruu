@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import Dropdown from "@/components/ui/dropdown/DropDown";
+import Dropdown from "@/components/ui/dropdown/Dropdown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
 import TimePicker from "@/components/ui/inputs/TimePicker";
 import { useShiftStore } from "@/stores/shiftStore";
@@ -37,14 +37,17 @@ const CorrectionRequest = () => {
   const createShiftRequestLoading = useShiftStore(
     (s) => s.createShiftRequestLoading
   );
-  const issues = [
-    { label: "Missed Punch", value: "missed_punch" },
-    { label: "Late Arrival", value: "late_arrival" },
-    { label: "Early Departure", value: "early_departure" },
-    { label: "Forgot to Tap", value: "forgot_to_tap" },
-    { label: "Network Issues", value: "network_issues" },
-    { label: "Other", value: "other" },
-  ];
+  const issues = useMemo(
+    () => [
+      { label: "Missed Punch", value: "missed_punch" },
+      { label: "Late Arrival", value: "late_arrival" },
+      { label: "Early Departure", value: "early_departure" },
+      { label: "Forgot to Tap", value: "forgot_to_tap" },
+      { label: "Network Issues", value: "network_issues" },
+      { label: "Other", value: "other" },
+    ],
+    []
+  );
   const issueValues = useMemo(
     () => new Set(issues.map((item) => item.value)),
     [issues]
@@ -250,4 +253,3 @@ const CorrectionRequest = () => {
 };
 
 export default CorrectionRequest;
-

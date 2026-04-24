@@ -1,4 +1,5 @@
 import DynamicBackground from "@/components/layout/DynamicBackground";
+import ScreenHeader from "@/components/header/ScreenHeader";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
@@ -9,7 +10,6 @@ import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
 import {
-  Feather,
   Foundation,
   Ionicons,
   MaterialCommunityIcons,
@@ -29,7 +29,7 @@ import {
   View,
 } from "react-native";
 import { AutoSkeletonView } from "react-native-auto-skeleton";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const APP_LINK_BASE_URL =
@@ -45,7 +45,6 @@ type PreviewParams = {
 const UserProfilePreview = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets()
   const params = useLocalSearchParams<PreviewParams>();
   const getJobProfileByUserId = useJobStore((s) => s.getJobProfileByUserId);
   const [showText, setShowText] = useState(false);
@@ -92,7 +91,7 @@ const UserProfilePreview = () => {
     return () => {
       isMounted = false;
     };
-  }, [getJobProfileByUserId, userId]);
+  }, [getJobProfileByUserId, t, userId]);
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -223,13 +222,17 @@ const UserProfilePreview = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-white dark:bg-dark-background">
-        <SafeAreaView className="bg-[#E5F4FD] rounded-b-xl">
-          <View className="flex-row justify-between items-center mt-5 mx-5 mb-4">
-            <TouchableOpacity onPress={handleBack}>
-              <Feather className="p-2" name="arrow-left" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleShare()}>
+      <SafeAreaView
+        className="flex-1 bg-white dark:bg-dark-background"
+        edges={["left", "right", "top"]}
+      >
+        <ScreenHeader
+          className="mx-5 py-3.5"
+          onPressBack={handleBack}
+          title=""
+          buttonTitle=""
+          components={(
+            <TouchableOpacity onPress={handleShare}>
               <Ionicons
                 className="p-2"
                 name="share-outline"
@@ -237,8 +240,8 @@ const UserProfilePreview = () => {
                 color="black"
               />
             </TouchableOpacity>
-          </View>
-        </SafeAreaView>
+          )}
+        />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -443,32 +446,22 @@ const UserProfilePreview = () => {
             </View>
           </AutoSkeletonView>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View className="bg-white pb-32 dark:bg-dark-background">
-      <DynamicBackground
-        className="rounded-b-xl overflow-hidden"
-        style={{
-          paddingTop: insets.top,
-        }}
-        pickerType={pickerType}
-        profileColor={profileColor}
-        gradientColors={gradientColors}
-      >
-        <View className={`flex-row justify-between items-center px-5 pt-2.5 pb-4`}>
-          <TouchableOpacity onPress={handleBack}>
-            <Feather
-              className="p-2"
-              name="arrow-left"
-              size={24}
-              color="black"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => handleShare()}>
+    <SafeAreaView
+      className="flex-1 bg-white dark:bg-dark-background"
+      edges={["left", "right", "top"]}
+    >
+      <ScreenHeader
+        className="mx-5 py-3.5"
+        onPressBack={handleBack}
+        title=""
+        buttonTitle=""
+        components={(
+          <TouchableOpacity onPress={handleShare}>
             <Ionicons
               className="p-2"
               name="share-outline"
@@ -476,14 +469,13 @@ const UserProfilePreview = () => {
               color="black"
             />
           </TouchableOpacity>
-        </View>
-
-      </DynamicBackground>
+        )}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 40,
+          paddingBottom: 140,
         }}
       >
         <TouchableOpacity
@@ -775,7 +767,7 @@ const UserProfilePreview = () => {
           canEdit={false}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

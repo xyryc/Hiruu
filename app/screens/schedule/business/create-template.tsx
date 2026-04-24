@@ -211,7 +211,7 @@ const CreateTemplate = () => {
     }
 
     return null;
-  }, [shiftEndTime, shiftStartTime]);
+  }, [shiftEndTime, shiftStartTime, t]);
 
   const breakTimeValidationError = useMemo(() => {
     if (!hasBreak) return null;
@@ -233,7 +233,7 @@ const CreateTemplate = () => {
     }
 
     return null;
-  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime]);
+  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime, t]);
 
   const getValidatedPayload = () => {
     if (!selectedBusiness) {
@@ -350,6 +350,7 @@ const CreateTemplate = () => {
       shiftStartTime,
       templateName,
       hasBreak,
+      t,
     ]
   );
 

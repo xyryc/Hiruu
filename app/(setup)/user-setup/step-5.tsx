@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useRouter } from "expo-router";
 import { t } from "i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import PhoneInput, {
   getCountryByCca2,
@@ -98,7 +98,7 @@ export default function Step5({
     return () => clearInterval(timer);
   }, [otpSent, resendCountdown]);
 
-  const getPhonePayload = () => {
+  const getPhonePayload = useCallback(() => {
     const trimmed = phoneNumber.trim();
     const normalizedCountryCode = normalizeCountryCode(countryCode);
     if (!trimmed || !normalizedCountryCode) {
@@ -122,7 +122,7 @@ export default function Step5({
         : numberOnly;
 
     return { countryCode: normalizedCountryCode, phoneNumber: nationalNumber };
-  };
+  }, [countryCode, phoneNumber]);
 
   const handleSendOtp = async () => {
     const parsed = getPhonePayload();
@@ -145,7 +145,7 @@ export default function Step5({
     }
   };
 
-  const handleVerifyOtp = async (options?: { auto?: boolean }) => {
+  const handleVerifyOtp = useCallback(async (options?: { auto?: boolean }) => {
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       if (!options?.auto) {
@@ -194,7 +194,14 @@ export default function Step5({
       }
       setIsVerifyingOtp(false);
     }
-  };
+  }, [
+    getPhonePayload,
+    onComplete,
+    onboardingSent,
+    otp,
+    updateProfile,
+    verifyAccount,
+  ]);
 
   useEffect(() => {
     const otpCode = otp.join("");
@@ -204,7 +211,7 @@ export default function Step5({
     }
     if (!otpSent || isOtpVerified || isVerifyingOtp || isSendingOtp) return;
     handleVerifyOtp({ auto: true });
-  }, [otp, otpSent, isOtpVerified, isVerifyingOtp, isSendingOtp]);
+  }, [handleVerifyOtp, isOtpVerified, isSendingOtp, isVerifyingOtp, otp, otpSent]);
 
   return (
     <AnimatedView

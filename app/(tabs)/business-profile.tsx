@@ -19,7 +19,6 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -33,6 +32,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from 'sonner-native';
 
@@ -408,329 +408,329 @@ const BusinessProfile = () => {
         ) : null}
 
         {!showInitialSkeleton ? (
-        <>
-        {/* cover and profile */}
-        <View className="relative">
-          {/* cover photo */}
-          <Image
-            source={businessData?.coverPhoto || require("@/assets/images/placeholder.png")}
-            style={{ width: "100%", height: 137 }}
-            contentFit="cover"
-          />
-
-          {/* profile photo */}
-          {businessData?.logo ? (
-            <View className="absolute -bottom-11 left-6">
-              <View className="h-[90px] w-[90px] bg-white flex-row justify-center items-center rounded-full">
-                <Image
-                  source={businessData.logo || require("@/assets/images/placeholder.png")}
-                  contentFit="cover"
-                  style={{ height: 86, width: 86, borderRadius: 100 }}
-                />
-              </View>
-            </View>
-          ) : null}
-
-          {toggleIsOn && (
-            <View className="absolute -bottom-3 right-6">
-                <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
-                {t("user.profile.businessProfile.activelyRecruiting")}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* profile name and details */}
-        <View className="mx-6 mt-16">
-          <View className="flex-row items-center gap-1.5">
-            <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-              {businessData?.name || t("user.profile.businessProfile.business")}
-            </Text>
-
-            {businessData?.isVerified ? (
-              <MaterialCommunityIcons
-                name="check-decagram"
-                size={20}
-                color="#3EBF5A"
+          <>
+            {/* cover and profile */}
+            <View className="relative">
+              {/* cover photo */}
+              <Image
+                source={businessData?.coverPhoto || require("@/assets/images/placeholder.png")}
+                style={{ width: "100%", height: 137 }}
+                contentFit="cover"
               />
-            ) : null}
-            {businessData?.isPremium ? (
-              <View className="h-5 w-5 bg-[#4E57FF] flex-row justify-center items-center rounded-full">
-                <FontAwesome6 name="crown" size={8} color="white" />
-              </View>
-            ) : null}
-          </View>
 
-          <TouchableOpacity
-            onPress={handleOpenBusinessLocation}
-            className="flex-row items-center gap-1"
-            activeOpacity={0.7}
-          >
-            <EvilIcons name="location" size={18} color="black" />
-
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {businessData?.address?.address || t("user.profile.businessProfile.locationUnavailable")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tabs */}
-        <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
-          {["about", "job"].map((tab) => (
-            <TouchableOpacity
-              className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : "border-b-hairline"}`}
-              key={tab}
-              onPress={() => setSelectedTab(tab)}
-            >
-              <View className="flex-row justify-center gap-2">
-                <Text
-                  className={`text-center capitalize dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
-                >
-                  {tab === "about"
-                    ? t("user.profile.businessProfile.about")
-                    : t("user.profile.businessProfile.job")}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/*  About Tabs */}
-        {selectedTab === "about" && (
-          <View>
-            {/* rating summery */}
-            <View className="flex-row justify-between items-centers mx-5 mt-4">
-              <View className="flex-row items-centers gap-2.5">
-                <View className="bg-[#E5F4FD] h-7 w-7 rounded-full flex-row items-center justify-center">
-                  {/* <EvilIcons name="star" size={18} color="black" /> */}
-                  <SimpleLineIcons name="star" size={14} color="black" />
+              {/* profile photo */}
+              {businessData?.logo ? (
+                <View className="absolute -bottom-11 left-6">
+                  <View className="h-[90px] w-[90px] bg-white flex-row justify-center items-center rounded-full">
+                    <Image
+                      source={businessData.logo || require("@/assets/images/placeholder.png")}
+                      contentFit="cover"
+                      style={{ height: 86, width: 86, borderRadius: 100 }}
+                    />
+                  </View>
                 </View>
-                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                  {t("user.profile.businessProfile.ratingSummary")}
-                </Text>
-              </View>
-              {canReadRatings ? (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "/screens/profile/rating",
-                      params: { businessId },
-                    })
-                  }
-                  className="items-center"
-                >
-                  <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                    {t("user.profile.businessProfile.seeAllRatings")}
-                  </Text>
-                </TouchableOpacity>
               ) : null}
-            </View>
 
-            <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
-              <RatingBanner
-                averageRating={averageRating}
-                totalRatings={totalRatings}
-              />
-
-              <View className="flex-row justify-between mt-5">
-                <View>
-                  <RatingProgress rating={workEnvironmentRating} />
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    {t("user.profile.businessProfile.workEnvironment")}
-                  </Text>
-                </View>
-
-                <Image
-                  source={require("@/assets/images/vertical-line.svg")}
-                  contentFit="contain"
-                  style={{ height: 70, width: 0.5 }}
-                />
-
-                <View>
-                  <RatingProgress rating={payOnTimeRating} />
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    {t("user.profile.businessProfile.payOnTime")}
-                  </Text>
-                </View>
-
-                <Image
-                  source={require("@/assets/images/vertical-line.svg")}
-                  contentFit="contain"
-                  style={{ height: 70, width: 0.5 }}
-                />
-
-                <View>
-                  <RatingProgress rating={communicationRating} />
-                  <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                    {t("user.profile.businessProfile.communication")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* About Us */}
-            <View className="mx-5 mt-8 flex-row gap-2.5">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                {/* <Foundation name="clipboard" size={16} color="black" /> */}
-                <SimpleLineIcons name="notebook" size={14} color="black" />
-              </View>
-
-              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                {t("user.profile.businessProfile.aboutUs")}
-              </Text>
-            </View>
-
-            <View className="mx-5 mt-4">
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {businessData?.description || t("user.profile.businessProfile.noDescriptionAvailable")}
-              </Text>
-            </View>
-
-            {/* Team & Overview */}
-            <View className="mx-5 mt-8 flex-row gap-2.5 mb-4">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                <Ionicons name="person-outline" size={18} color="black" />
-              </View>
-
-              <View className='flex-1'>
-                <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  {t("user.profile.businessProfile.teamAndOverview")}
-                </Text>
-              </View>
-            </View>
-
-            <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
-              <View className="flex-row justify-between items-center p-2">
-                <View className="flex-row gap-2">
-                  <Feather name="users" size={16} color="black" />
-                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    {t("user.profile.businessProfile.totalEmployee")}
-                  </Text>
-                </View>
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {String(totalEmployeeCount).padStart(2, "0")}
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between items-center p-2">
-                <View className="flex-row gap-2">
-                  <MaterialCommunityIcons
-                    name="file-document-check-outline"
-                    size={18}
-                    color="black"
-                  />
-                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    {t("user.profile.businessProfile.activeJobPosting")}
-                  </Text>
-                </View>
-                <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  {String(activeJobPostingCount).padStart(2, "0")}
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between items-center p-2">
-                {/* recruiting badge */}
-                <View className="flex-row gap-2">
-                  <MaterialCommunityIcons
-                    name="account-search"
-                    size={18}
-                    color="#282930"
-                  />
-                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+              {toggleIsOn && (
+                <View className="absolute -bottom-3 right-6">
+                  <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
                     {t("user.profile.businessProfile.activelyRecruiting")}
                   </Text>
                 </View>
+              )}
+            </View>
 
-                <ToggleButton
-                  isOn={toggleIsOn}
-                  setIsOn={canEditProfile ? handleRecruitingToggle : () => undefined}
-                  title={
-                    recruitingUpdateLoading
-                      ? t("user.profile.businessProfile.saving")
-                      : `${toggleIsOn ? t("common.yes") : t("common.no")}`
-                  }
+            {/* profile name and details */}
+            <View className="mx-6 mt-16">
+              <View className="flex-row items-center gap-1.5">
+                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {businessData?.name || t("user.profile.businessProfile.business")}
+                </Text>
+
+                {businessData?.isVerified ? (
+                  <MaterialCommunityIcons
+                    name="check-decagram"
+                    size={20}
+                    color="#3EBF5A"
+                  />
+                ) : null}
+                {businessData?.isPremium ? (
+                  <View className="h-5 w-5 bg-[#4E57FF] flex-row justify-center items-center rounded-full">
+                    <FontAwesome6 name="crown" size={8} color="white" />
+                  </View>
+                ) : null}
+              </View>
+
+              <TouchableOpacity
+                onPress={handleOpenBusinessLocation}
+                className="flex-row items-center gap-1"
+                activeOpacity={0.7}
+              >
+                <EvilIcons name="location" size={18} color="black" />
+
+                <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                  {businessData?.address?.address || t("user.profile.businessProfile.locationUnavailable")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Tabs */}
+            <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
+              {["about", "job"].map((tab) => (
+                <TouchableOpacity
+                  className={`w-1/2 ${selectedTab === tab ? "border-b-2 border-[#11293A] pb-2" : "border-b-hairline"}`}
+                  key={tab}
+                  onPress={() => setSelectedTab(tab)}
+                >
+                  <View className="flex-row justify-center gap-2">
+                    <Text
+                      className={`text-center capitalize dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
+                    >
+                      {tab === "about"
+                        ? t("user.profile.businessProfile.about")
+                        : t("user.profile.businessProfile.job")}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/*  About Tabs */}
+            {selectedTab === "about" && (
+              <View>
+                {/* rating summery */}
+                <View className="flex-row justify-between items-centers mx-5 mt-4">
+                  <View className="flex-row items-centers gap-2.5">
+                    <View className="bg-[#E5F4FD] h-7 w-7 rounded-full flex-row items-center justify-center">
+                      {/* <EvilIcons name="star" size={18} color="black" /> */}
+                      <SimpleLineIcons name="star" size={14} color="black" />
+                    </View>
+                    <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                      {t("user.profile.businessProfile.ratingSummary")}
+                    </Text>
+                  </View>
+                  {canReadRatings ? (
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/screens/profile/rating",
+                          params: { businessId },
+                        })
+                      }
+                      className="items-center"
+                    >
+                      <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
+                        {t("user.profile.businessProfile.seeAllRatings")}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+
+                <View className="mx-5 pt-4 px-2.5 pb-3 border mt-4 border-[#EEEEEE] rounded-2xl">
+                  <RatingBanner
+                    averageRating={averageRating}
+                    totalRatings={totalRatings}
+                  />
+
+                  <View className="flex-row justify-between mt-5">
+                    <View>
+                      <RatingProgress rating={workEnvironmentRating} />
+                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                        {t("user.profile.businessProfile.workEnvironment")}
+                      </Text>
+                    </View>
+
+                    <Image
+                      source={require("@/assets/images/vertical-line.svg")}
+                      contentFit="contain"
+                      style={{ height: 70, width: 0.5 }}
+                    />
+
+                    <View>
+                      <RatingProgress rating={payOnTimeRating} />
+                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                        {t("user.profile.businessProfile.payOnTime")}
+                      </Text>
+                    </View>
+
+                    <Image
+                      source={require("@/assets/images/vertical-line.svg")}
+                      contentFit="contain"
+                      style={{ height: 70, width: 0.5 }}
+                    />
+
+                    <View>
+                      <RatingProgress rating={communicationRating} />
+                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                        {t("user.profile.businessProfile.communication")}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* About Us */}
+                <View className="mx-5 mt-8 flex-row gap-2.5">
+                  <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                    {/* <Foundation name="clipboard" size={16} color="black" /> */}
+                    <SimpleLineIcons name="notebook" size={14} color="black" />
+                  </View>
+
+                  <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                    {t("user.profile.businessProfile.aboutUs")}
+                  </Text>
+                </View>
+
+                <View className="mx-5 mt-4">
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    {businessData?.description || t("user.profile.businessProfile.noDescriptionAvailable")}
+                  </Text>
+                </View>
+
+                {/* Team & Overview */}
+                <View className="mx-5 mt-8 flex-row gap-2.5 mb-4">
+                  <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                    <Ionicons name="person-outline" size={18} color="black" />
+                  </View>
+
+                  <View className='flex-1'>
+                    <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                      {t("user.profile.businessProfile.teamAndOverview")}
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="mx-5 px-4 py-3 border border-[#eeeeee] rounded-xl">
+                  <View className="flex-row justify-between items-center p-2">
+                    <View className="flex-row gap-2">
+                      <Feather name="users" size={16} color="black" />
+                      <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                        {t("user.profile.businessProfile.totalEmployee")}
+                      </Text>
+                    </View>
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                      {String(totalEmployeeCount).padStart(2, "0")}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row justify-between items-center p-2">
+                    <View className="flex-row gap-2">
+                      <MaterialCommunityIcons
+                        name="file-document-check-outline"
+                        size={18}
+                        color="black"
+                      />
+                      <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                        {t("user.profile.businessProfile.activeJobPosting")}
+                      </Text>
+                    </View>
+                    <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                      {String(activeJobPostingCount).padStart(2, "0")}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row justify-between items-center p-2">
+                    {/* recruiting badge */}
+                    <View className="flex-row gap-2">
+                      <MaterialCommunityIcons
+                        name="account-search"
+                        size={18}
+                        color="#282930"
+                      />
+                      <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                        {t("user.profile.businessProfile.activelyRecruiting")}
+                      </Text>
+                    </View>
+
+                    <ToggleButton
+                      isOn={toggleIsOn}
+                      setIsOn={canEditProfile ? handleRecruitingToggle : () => undefined}
+                      title={
+                        recruitingUpdateLoading
+                          ? t("user.profile.businessProfile.saving")
+                          : `${toggleIsOn ? t("common.yes") : t("common.no")}`
+                      }
+                    />
+                  </View>
+
+                  <Text className="mt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary">
+                    <Text className="font-proximanova-semibold">{t("user.profile.businessProfile.note")}</Text>
+                    {` : ${t("user.profile.businessProfile.xMoreHireToActivate")}`}
+                  </Text>
+                </View>
+
+                {/* Contact Us On */}
+                <View className="flex-row items-center gap-2 mx-5 mt-8">
+                  <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                    <Ionicons name="call-outline" size={16} color="black" />
+                  </View>
+
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    {t("user.profile.contactUsOn")}
+                  </Text>
+                </View>
+
+                <ConnectSocials
+                  className="mx-5 my-4"
+                  value={socialLinks}
+                  onChange={canEditProfile ? handleSocialLinksChange : () => undefined}
+                  hideEmpty
+                  canEdit={false}
                 />
               </View>
+            )}
 
-              <Text className="mt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                <Text className="font-proximanova-semibold">{t("user.profile.businessProfile.note")}</Text>
-                {` : ${t("user.profile.businessProfile.xMoreHireToActivate")}`}
-              </Text>
-            </View>
+            {/* job tabs */}
+            {selectedTab === "job" && (
+              <View className="mx-5">
+                <Text className="my-4">{t("user.profile.businessProfile.openPositions")}</Text>
 
-            {/* Contact Us On */}
-            <View className="flex-row items-center gap-2 mx-5 mt-8">
-              <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                <Ionicons name="call-outline" size={16} color="black" />
+                {!canReadJobs ? (
+                  <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                    {t("user.profile.businessProfile.noAccessToJobData")}
+                  </Text>
+                ) : null}
+
+                {canReadJobs && businessJobs.length === 0 ? (
+                  <StatusStateCard
+                    style={styles.compactEmptyState}
+                    image={require("@/assets/images/toolbox.svg")}
+                    title={t("common.noJobsAvailable")}
+                    text={t("common.noJobsAvailableDescription")}
+                    titleStyle={styles.compactEmptyStateTitle}
+                    textStyle={styles.compactEmptyStateText}
+                  />
+                ) : null}
+
+                {canReadJobs && businessJobs.map((job) => (
+                  <JobCard
+                    key={job?.id}
+                    className="bg-white border border-[#EEEEEE] mb-4"
+                    hideApplyButton
+                    showOwnerMenu={canEditJobs || canDeleteJobs}
+                    onPressOwnerEdit={
+                      canEditJobs
+                        ? () =>
+                          router.push({
+                            pathname: "/screens/jobs/business/edit-job",
+                            params: { businessId, recruitmentId: job?.id },
+                          })
+                        : undefined
+                    }
+                    onPressOwnerDelete={async () => {
+                      if (!businessId || !job?.id || !canDeleteJobs) return;
+
+                      await deleteRecruitment(businessId, job.id);
+                      setBusinessJobs((prev) =>
+                        prev.filter((item) => item?.id !== job.id)
+                      );
+                      toast.success(t("user.profile.businessProfile.jobDeleted"));
+                    }}
+                    job={job}
+                  />
+                ))}
               </View>
-
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                {t("user.profile.contactUsOn")}
-              </Text>
-            </View>
-
-            <ConnectSocials
-              className="mx-5 my-4"
-              value={socialLinks}
-              onChange={canEditProfile ? handleSocialLinksChange : () => undefined}
-              hideEmpty
-              canEdit={false}
-            />
-          </View>
-        )}
-
-        {/* job tabs */}
-        {selectedTab === "job" && (
-          <View className="mx-5">
-            <Text className="my-4">{t("user.profile.businessProfile.openPositions")}</Text>
-
-            {!canReadJobs ? (
-              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {t("user.profile.businessProfile.noAccessToJobData")}
-              </Text>
-            ) : null}
-
-            {canReadJobs && businessJobs.length === 0 ? (
-              <StatusStateCard
-                style={styles.compactEmptyState}
-                image={require("@/assets/images/toolbox.svg")}
-                title={t("common.noJobsAvailable")}
-                text={t("common.noJobsAvailableDescription")}
-                titleStyle={styles.compactEmptyStateTitle}
-                textStyle={styles.compactEmptyStateText}
-              />
-            ) : null}
-
-            {canReadJobs && businessJobs.map((job) => (
-              <JobCard
-                key={job?.id}
-                className="bg-white border border-[#EEEEEE] mb-4"
-                hideApplyButton
-                showOwnerMenu={canEditJobs || canDeleteJobs}
-                onPressOwnerEdit={
-                  canEditJobs
-                    ? () =>
-                      router.push({
-                        pathname: "/screens/jobs/business/edit-job",
-                        params: { businessId, recruitmentId: job?.id },
-                      })
-                    : undefined
-                }
-                onPressOwnerDelete={async () => {
-                  if (!businessId || !job?.id || !canDeleteJobs) return;
-
-                  await deleteRecruitment(businessId, job.id);
-                  setBusinessJobs((prev) =>
-                    prev.filter((item) => item?.id !== job.id)
-                  );
-                  toast.success(t("user.profile.businessProfile.jobDeleted"));
-                }}
-                job={job}
-              />
-            ))}
-          </View>
-        )}
-        </>
+            )}
+          </>
         ) : null}
       </ScrollView>
 

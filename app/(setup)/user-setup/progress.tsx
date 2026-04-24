@@ -7,11 +7,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { SlideInRight } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Step1 from "./Step1";
-import Step2 from "./Step2";
-import Step3 from "./Step3";
-import Step4 from "./Step4";
-import Step5 from "./Step5";
+import Step1 from "./step-1";
+import Step2 from "./step-2";
+import Step3 from "./step-3";
+import Step4 from "./step-4";
+import Step5 from "./step-5";
 
 const ProgressFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);

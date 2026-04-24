@@ -3,8 +3,8 @@ import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import ShiftsLineChart from "../ui/cards/ShiftLineChartVictory";
@@ -261,6 +261,26 @@ const PerformanceTrend = ({ className }: any) => {
     () => graphType.charAt(0).toUpperCase() + graphType.slice(1),
     [graphType]
   );
+
+  // useEffect(() => {
+  //   if (!__DEV__) return;
+  //   try {
+  //     const payload = {
+  //       businessId: selectedBusinessId,
+  //       graphType,
+  //       chartData,
+  //     };
+  //     console.log(
+  //       `[PerformanceTrend -> ShiftsLineChart] chartDataFromApi ${JSON.stringify(payload, null, 2)}`
+  //     );
+  //   } catch {
+  //     console.log("[PerformanceTrend -> ShiftsLineChart] chartDataFromApi", {
+  //       businessId: selectedBusinessId,
+  //       graphType,
+  //       chartData,
+  //     });
+  //   }
+  // }, [chartData, graphType, selectedBusinessId]);
 
   return (
     <View className={`${className} px-5`}>

@@ -8,7 +8,8 @@ import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StatusBar, View } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
+import { RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -287,6 +288,10 @@ const ShiftSchedule = () => {
   };
 
   const displayContent = getDisplayContent();
+  const skeletonRows = useMemo(
+    () => Array.from({ length: 4 }, (_, index) => ({ id: `user-schedule-skeleton-${index}` })),
+    []
+  );
 
   return (
     <SafeAreaView
@@ -311,9 +316,23 @@ const ShiftSchedule = () => {
         }
       >
         {myShiftsLoading ? (
-          <View className="py-8 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
-          </View>
+          skeletonRows.map((item, index) => (
+            <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={12}>
+              <View className={`flex-row mb-4 overflow-hidden relative ${index === 0 ? "mt-2" : ""}`}>
+                <View className="mr-5">
+                  <Text className="font-proximanova-regular w-10 text-center uppercase">
+                    --:--
+                  </Text>
+                </View>
+
+                <View className="flex-1 rounded-2xl border border-[#EEEEEE] px-4 pb-4 pt-12">
+                  <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
+                  <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-3" />
+                  <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-6" />
+                </View>
+              </View>
+            </AutoSkeletonView>
+          ))
         ) : filteredShifts.length > 0 ? (
           filteredShifts.map((shift, index) => (
             <ShiftItem

@@ -12,8 +12,8 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -24,17 +24,6 @@ import { toast } from "sonner-native";
 
 const tabs = ["limited time", "featured", "all"] as const;
 type TabType = (typeof tabs)[number];
-
-const formatExpiryLabel = (expiresAt?: string | null) => {
-  if (!expiresAt) return "Owned";
-  const date = new Date(expiresAt);
-  if (Number.isNaN(date.getTime())) return "Owned";
-  return `Owned • Expires ${date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })}`;
-};
 
 const Nameplate = () => {
   const { t } = useTranslation();
@@ -224,6 +213,10 @@ const Nameplate = () => {
   }, [t, user]);
 
   const selectedItem = cosmeticsStoreItems[selectedNameplateIndex];
+  const skeletonRows = useMemo(
+    () => Array.from({ length: 5 }, (_, index) => ({ id: `nameplate-skeleton-${index}` })),
+    []
+  );
   const getTabLabel = (tab: TabType) => {
     if (tab === "limited time") return t("user.profile.nameplateStore.tabs.limitedTime");
     if (tab === "featured") return t("user.profile.nameplateStore.tabs.featured");
@@ -294,9 +287,30 @@ const Nameplate = () => {
         </Text>
 
         {cosmeticsStoreLoading ? (
-          <View className="py-10 items-center">
-            <ActivityIndicator size="small" color="#4FB2F3" />
-          </View>
+          skeletonRows.map((item, index) => (
+            <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={12}>
+              <View pointerEvents="none" className={index === 0 ? "mt-8" : "mt-5"}>
+                <View className="flex-row items-center justify-between mb-2.5">
+                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                    Loading
+                  </Text>
+
+                  <Text className="text-xs text-secondary dark:text-dark-secondary">
+                    Loading
+                  </Text>
+                </View>
+
+                <DynamicNameplateCard
+                  preview={{
+                    coins: 0,
+                    locked: true,
+                    isOwnedActive: false,
+                    isEquipped: false,
+                  }}
+                />
+              </View>
+            </AutoSkeletonView>
+          ))
         ) : cosmeticsStoreItems.length === 0 ? (
           <View className="py-10 items-center">
             <Text className="text-secondary dark:text-dark-secondary">

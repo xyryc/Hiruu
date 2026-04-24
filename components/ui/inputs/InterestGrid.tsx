@@ -1,7 +1,8 @@
+import { InterestGridProps } from "@/types";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { INTERESTS, Interest } from "@/constants/interests";
+import { INTERESTS } from "@/constants/interests";
 
 const INTEREST_BG_COLOR_MAP: Record<string, string> = {
   "bg-orange-100": "#FFEDD5",
@@ -29,21 +30,13 @@ const INTEREST_BG_COLOR_MAP: Record<string, string> = {
   "bg-pink-300": "#F9A8D4",
 };
 
-type InterestGridProps = {
-  selectedInterests: string[];
-  onToggle?: (interestId: string) => void;
-  readonly?: boolean;
-  showSelectedOnly?: boolean;
-  interests?: Interest[];
-};
-
-const InterestGrid: React.FC<InterestGridProps> = ({
+const InterestGrid = ({
   selectedInterests,
   onToggle,
   readonly = false,
   showSelectedOnly = false,
   interests = INTERESTS,
-}) => {
+}: InterestGridProps) => {
   const { t } = useTranslation();
 
   const visibleInterests =

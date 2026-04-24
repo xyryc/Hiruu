@@ -16,7 +16,9 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   ScrollView,
@@ -29,6 +31,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const PublicBusinessProfile = () => {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ businessId?: string }>();
   const businessId =
     typeof params.businessId === "string" ? params.businessId : "";
@@ -58,11 +61,11 @@ const PublicBusinessProfile = () => {
       const data = await getPublicBusinessProfile(businessId);
       setBusinessData(data);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load business");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToLoadBusiness"));
     } finally {
       setLoading(false);
     }
-  }, [businessId, getPublicBusinessProfile]);
+  }, [businessId, getPublicBusinessProfile, t]);
 
   const loadRatingSummary = useCallback(async () => {
     if (!businessId) return;
@@ -70,9 +73,9 @@ const PublicBusinessProfile = () => {
     try {
       await getBusinessRatingSummary(businessId);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to load rating summary");
+      toast.error(error?.message || t("user.profile.businessProfile.failedToLoadRatingSummary"));
     }
-  }, [businessId, getBusinessRatingSummary]);
+  }, [businessId, getBusinessRatingSummary, t]);
 
   useEffect(() => {
     loadBusiness();
@@ -111,7 +114,7 @@ const PublicBusinessProfile = () => {
           job?.name ||
           job?.role?.role?.name ||
           job?.role?.name ||
-          "Open Position",
+          t("user.profile.businessProfile.openPosition"),
         businessId: job?.businessId || businessData?.id,
         business: job?.business || {
           id: businessData?.id,
@@ -125,6 +128,7 @@ const PublicBusinessProfile = () => {
         },
       }))
     : [];
+  const showInitialSkeleton = loading && !businessData;
 
   const handleOpenRatings = useCallback(() => {
     router.push({
@@ -138,7 +142,7 @@ const PublicBusinessProfile = () => {
 
     if (!ownerId || !businessId || isCreatingChat) {
       if (!ownerId) {
-        toast.error("Owner information is unavailable");
+        toast.error(t("common.noContactInfo"));
       }
       return;
     }
@@ -151,7 +155,7 @@ const PublicBusinessProfile = () => {
       const roomId = result?.data?.id;
 
       if (!roomId) {
-        throw new Error("Chat room id is missing");
+        throw new Error(t("common.chat.chatRoomIdMissing"));
       }
 
       router.push({
@@ -159,11 +163,11 @@ const PublicBusinessProfile = () => {
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to start chat");
+      toast.error(error?.message || t("common.failedToStartChat"));
     } finally {
       setIsCreatingChat(false);
     }
-  }, [businessData?.owner?.id, businessId, isCreatingChat]);
+  }, [businessData?.owner?.id, businessId, isCreatingChat, t]);
 
   const socialLinks = businessData?.social || {};
   const hasSocialLinks = Object.values(socialLinks).some((value) => Boolean(value));
@@ -184,20 +188,48 @@ const PublicBusinessProfile = () => {
           }
           router.replace("/(tabs)/user-schedule");
         }}
-        title="Business Profile"
+        title={t("user.profile.businessProfile.businessProfileTitle")}
         buttonTitle=""
       />
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="small" color="#4FB2F3" />
-        </View>
-      ) : (
-        <ScrollView
-          className="bg-[#ffffff] dark:bg-dark-border rounded-b-2xl"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
+      <ScrollView
+        className="bg-[#ffffff] dark:bg-dark-border rounded-b-2xl"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {showInitialSkeleton ? (
+          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+            <View className="relative">
+              <View className="w-full h-[137px] bg-[#E5E7EB]" />
+              <View className="absolute -bottom-11 left-6 h-[90px] w-[90px] rounded-full bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-6 mt-16">
+              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-60 rounded-md bg-[#E5E7EB] mt-3" />
+            </View>
+
+            <View className="mx-5 mt-4 flex-row gap-4">
+              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
+              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-full rounded-md bg-[#E5E7EB] mt-4" />
+              <View className="h-4 w-[80%] rounded-md bg-[#E5E7EB] mt-2.5" />
+            </View>
+
+            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
+              <View className="h-5 w-48 rounded-md bg-[#E5E7EB]" />
+              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-4" />
+              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-3" />
+            </View>
+          </AutoSkeletonView>
+        ) : null}
+
+        {!showInitialSkeleton ? (
+          <>
           <View className="relative">
             <Image
               source={
@@ -223,7 +255,7 @@ const PublicBusinessProfile = () => {
             {businessData?.isRecruiting ? (
               <View className="absolute -bottom-3 right-6">
                 <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
-                  Actively Recruiting
+                  {t("user.profile.businessProfile.activelyRecruiting")}
                 </Text>
               </View>
             ) : null}
@@ -232,7 +264,7 @@ const PublicBusinessProfile = () => {
           <View className="mx-6 mt-16">
             <View className="flex-row items-center gap-1.5">
               <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                {businessData?.name || "Business"}
+                {businessData?.name || t("user.profile.businessProfile.business")}
               </Text>
 
               {businessData?.isVerified ? (
@@ -258,7 +290,7 @@ const PublicBusinessProfile = () => {
                   businessData?.address?.city ||
                   businessData?.address?.address ||
                   businessData?.address?.country ||
-                  "Location unavailable"}
+                  t("user.profile.businessProfile.locationUnavailable")}
               </Text>
             </View>
           </View>
@@ -274,7 +306,9 @@ const PublicBusinessProfile = () => {
                   <Text
                     className={`text-center capitalize dark:text-dark-primary ${selectedTab === tab ? "font-proximanova-semibold" : "font-proximanova-regular"}`}
                   >
-                    {tab}
+                    {tab === "about"
+                      ? t("user.profile.businessProfile.about")
+                      : t("user.profile.businessProfile.job")}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -289,12 +323,12 @@ const PublicBusinessProfile = () => {
                     <SimpleLineIcons name="star" size={14} color="black" />
                   </View>
                   <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                    Rating Summary
+                    {t("user.profile.businessProfile.ratingSummary")}
                   </Text>
                 </View>
                 <TouchableOpacity onPress={handleOpenRatings} className="items-center">
                   <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
-                    See All Ratings
+                    {t("user.profile.businessProfile.seeAllRatings")}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -309,7 +343,7 @@ const PublicBusinessProfile = () => {
                   <View>
                     <RatingProgress rating={workEnvironmentRating} />
                     <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                      Work Environment
+                      {t("user.profile.businessProfile.workEnvironment")}
                     </Text>
                   </View>
 
@@ -322,7 +356,7 @@ const PublicBusinessProfile = () => {
                   <View>
                     <RatingProgress rating={payOnTimeRating} />
                     <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                      pay on time
+                      {t("user.profile.businessProfile.payOnTime")}
                     </Text>
                   </View>
 
@@ -335,7 +369,7 @@ const PublicBusinessProfile = () => {
                   <View>
                     <RatingProgress rating={communicationRating} />
                     <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
-                      communication
+                      {t("user.profile.businessProfile.communication")}
                     </Text>
                   </View>
                 </View>
@@ -347,13 +381,13 @@ const PublicBusinessProfile = () => {
                 </View>
 
                 <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                  About Us
+                  {t("user.profile.businessProfile.aboutUs")}
                 </Text>
               </View>
 
               <View className="mx-5 mt-4">
                 <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  {businessData?.description || "No description available."}
+                  {businessData?.description || t("user.profile.businessProfile.noDescriptionAvailable")}
                 </Text>
               </View>
 
@@ -364,7 +398,7 @@ const PublicBusinessProfile = () => {
 
                 <View className="flex-1">
                   <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                    Team & Overview
+                    {t("user.profile.businessProfile.teamAndOverview")}
                   </Text>
                 </View>
               </View>
@@ -373,7 +407,7 @@ const PublicBusinessProfile = () => {
                 <View className="flex-row gap-2">
                   <Feather name="users" size={18} color="black" />
                   <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                    Total Employee
+                    {t("user.profile.businessProfile.totalEmployee")}
                   </Text>
                 </View>
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
@@ -390,11 +424,11 @@ const PublicBusinessProfile = () => {
                       color="black"
                     />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Verified Business
+                      {t("user.profile.businessProfile.verifiedBusiness")}
                     </Text>
                   </View>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    {businessData?.isVerified ? "Yes" : "No"}
+                    {businessData?.isVerified ? t("common.yes") : t("common.no")}
                   </Text>
                 </View>
 
@@ -406,11 +440,11 @@ const PublicBusinessProfile = () => {
                       color="#282930"
                     />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                      Actively Recruiting
+                      {t("user.profile.businessProfile.activelyRecruiting")}
                     </Text>
                   </View>
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                    {businessData?.isRecruiting ? "Yes" : "No"}
+                    {businessData?.isRecruiting ? t("common.yes") : t("common.no")}
                   </Text>
                 </View>
               </View>
@@ -420,13 +454,11 @@ const PublicBusinessProfile = () => {
                   <Ionicons name="person-outline" size={16} color="black" />
                 </View>
                 <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                  Contact Owner
+                  {t("user.profile.businessProfile.contactOwner")}
                 </Text>
               </View>
 
-              <TouchableOpacity
-                onPress={handleContactOwner}
-                disabled={isCreatingChat}
+              <View
                 className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
               >
                 <View className="flex-row items-center justify-between">
@@ -442,19 +474,27 @@ const PublicBusinessProfile = () => {
                     />
 
                     <Text className="font-proximanova-semibold text-base text-white">
-                      {businessData?.owner?.name || "Owner"}
+                      {businessData?.owner?.name || t("user.profile.businessProfile.owner")}
                     </Text>
                   </View>
 
-                  <View className="h-11 w-11 rounded-full bg-white items-center justify-center">
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={22}
-                      color="#4FB2F3"
-                    />
-                  </View>
+                  <TouchableOpacity
+                    onPress={handleContactOwner}
+                    disabled={isCreatingChat}
+                    className="h-11 w-11 rounded-full bg-white items-center justify-center"
+                  >
+                    {isCreatingChat ? (
+                      <ActivityIndicator size="small" color="#4FB2F3" />
+                    ) : (
+                      <Image
+                        source={require("@/assets/images/messages-fill.svg")}
+                        contentFit="contain"
+                        style={{ height: 22, width: 22 }}
+                      />
+                    )}
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
 
               <View className="flex-row justify-between items-center mx-5 mt-8">
                 <View className="flex-row gap-2.5">
@@ -462,7 +502,7 @@ const PublicBusinessProfile = () => {
                     <Ionicons name="call-outline" size={16} color="black" />
                   </View>
                   <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                    Contact Us On
+                    {t("user.profile.contactUsOn")}
                   </Text>
                 </View>
               </View>
@@ -480,7 +520,7 @@ const PublicBusinessProfile = () => {
             </View>
           ) : (
             <View className="mx-5">
-              <Text className="my-4">Open Positions</Text>
+              <Text className="my-4">{t("user.profile.businessProfile.openPositions")}</Text>
               {publicRecruitments.length > 0 ? (
                 publicRecruitments.map((job: any) => (
                   <JobCard
@@ -491,13 +531,14 @@ const PublicBusinessProfile = () => {
                 ))
               ) : (
                 <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                  No open positions available.
+                  {t("common.noJobsAvailable")}
                 </Text>
               )}
             </View>
           )}
-        </ScrollView>
-      )}
+          </>
+        ) : null}
+      </ScrollView>
     </SafeAreaView>
   );
 };

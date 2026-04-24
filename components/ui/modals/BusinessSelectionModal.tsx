@@ -15,14 +15,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const BusinessSelectionModal: React.FC<BusinessSelectionModalProps> = ({
+const BusinessSelectionModal = ({
   visible,
   onClose,
   businesses,
   disableStoreFallback = false,
   selectedBusinesses,
   onSelectionChange,
-}) => {
+}: BusinessSelectionModalProps) => {
   const {
     myEmployments,
     myEmploymentsLoading,

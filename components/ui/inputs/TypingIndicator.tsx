@@ -1,12 +1,8 @@
+import { TypingIndicatorProps } from "@/types";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
 
-interface TypingIndicatorProps {
-  isTyping?: boolean;
-  userName?: string;
-}
-
-const TypingIndicator: React.FC<TypingIndicatorProps> = ({ isTyping = false, userName }) => {
+const TypingIndicator = ({ isTyping = false, userName }: TypingIndicatorProps) => {
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
   const dot3 = useRef(new Animated.Value(0)).current;

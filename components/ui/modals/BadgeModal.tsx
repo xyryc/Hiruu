@@ -9,10 +9,10 @@ import CoinProgressSlider from "../inputs/CoinProgressSlider";
 
 const BadgeModal = ({ visible, onClose, data }: any) => {
   const { t } = useTranslation();
-  const img1 = require("@/assets/images/reward/red-bands.svg");
-  const img2 = require("@/assets/images/reward/black-bands.svg");
-  const img3 = require("@/assets/images/reward/gold-bands.svg");
-  const img4 = require("@/assets/images/reward/blue-bands.svg");
+  const img1 = require("@/assets/images/red-bands.svg");
+  const img2 = require("@/assets/images/black-bands.svg");
+  const img3 = require("@/assets/images/gold-bands.svg");
+  const img4 = require("@/assets/images/blue-bands.svg");
   const badchcard = [
     {
       img: img1,

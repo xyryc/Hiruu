@@ -296,7 +296,7 @@ const TokenActivity = () => {
                         <Image
                           source={
                             item?.user?.avatar ||
-                            require("@/assets/images/reward/profile.svg")
+                            require("@/assets/images/profile.svg")
                           }
                           contentFit="cover"
                           style={{ width: 40, height: 40, borderRadius: 20 }}

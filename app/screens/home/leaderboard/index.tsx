@@ -128,33 +128,6 @@ export default function LeaderboardScreen() {
     };
   }, [currentBusinessId]);
 
-  const displayContent = useMemo(() => {
-    if (selectedBusinesses.length === 0) {
-      return { type: "all" as const, content: "All" };
-    }
-
-    if (selectedBusinesses.length === 1) {
-      const selectedBusiness = (activeBusinesses || []).find(
-        (business: any) => business?.id === selectedBusinesses[0]
-      );
-      return {
-        type: "single" as const,
-        content: selectedBusiness
-          ? {
-            name: selectedBusiness.name,
-            logo: selectedBusiness.logo,
-            imageUrl: selectedBusiness.logo,
-          }
-          : undefined,
-      };
-    }
-
-    return {
-      type: "multi" as const,
-      content: `${selectedBusinesses.length} Selected`,
-    };
-  }, [activeBusinesses, selectedBusinesses]);
-
   const topPerformers = useMemo<Performer[]>(() => {
     return (leaderboardData?.top ?? []).map((item) => ({
       id: item.userId,

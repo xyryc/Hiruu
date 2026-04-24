@@ -557,6 +557,10 @@
         "noDescriptionAvailable": "No description available.",
         "teamAndOverview": "Team & Overview",
         "totalEmployee": "Total Employee",
+        "verifiedBusiness": "Verified Business",
+        "contactOwner": "Contact Owner",
+        "owner": "Owner",
+        "openPosition": "Open Position",
         "activeJobPosting": "Active job posting:",
         "saving": "Saving...",
         "note": "Note",
@@ -1211,6 +1215,12 @@
     "teamInsights": "Team Insights",
     "failedToLoadAttendanceSummary": "Failed to load attendance summary",
     "failedToLoadPerformanceTrend": "Failed to load performance trends",
+    "serverStatus": {
+      "title": "Server Unavailable",
+      "description": "Our server is currently unavailable. Please try again shortly.",
+      "reload": "Reload",
+      "reloading": "Reloading..."
+    },
     "noJobsAvailable": "No Jobs Available",
     "connectSocials": {
       "facebook": "Facebook",

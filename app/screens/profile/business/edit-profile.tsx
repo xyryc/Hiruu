@@ -13,7 +13,6 @@ import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -199,7 +198,7 @@ const EditBusinessProfile = () => {
       controller.abort();
       clearTimeout(timeoutId);
     };
-  }, [locationSearch, selectedLocationOption]);
+  }, [locationSearch, selectedLocationOption, t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -266,7 +265,7 @@ const EditBusinessProfile = () => {
     return () => {
       isMounted = false;
     };
-  }, [businessId, getBusinessProfile]);
+  }, [businessId, getBusinessProfile, t]);
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

@@ -201,7 +201,7 @@ const DynamicNameplateCard = ({
           <View className="px-4 pb-4 pt-11 flex-row items-center gap-2 rounded-2xl z-20">
             {/* Profile image */}
             <Image
-              source={require("@/assets/images/reward/user.svg")}
+              source={require("@/assets/images/user.svg")}
               style={{
                 width: 50,
                 height: 50,
@@ -272,7 +272,7 @@ const DynamicNameplateCard = ({
               source={
                 preview?.avatarUrl
                   ? { uri: preview.avatarUrl }
-                  : require("@/assets/images/reward/user.svg")
+                  : require("@/assets/images/user.svg")
               }
               style={{
                 width: 78,

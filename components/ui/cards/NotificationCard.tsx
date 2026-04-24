@@ -1,19 +1,6 @@
+import { NotificationCardProps } from "@/types";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-
-type NotificationCardProps = {
-  timeTitle?: string;
-  title: string;
-  time: string;
-  details: string;
-  buttonTitle?: string;
-  border?: boolean;
-  className?: string;
-  icon: React.ReactNode;
-  iconBackgroundColor: string;
-  onPress?: () => void;
-  isUnread?: boolean;
-};
 
 const NotificationCard = ({
   timeTitle,
