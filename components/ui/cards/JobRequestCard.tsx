@@ -112,7 +112,7 @@ const JobRequestCard = ({
       job?.business?.id ||
       recruitmentBusiness?.id ||
       businessRoleBusiness?.id;
-    const recruitmentId = job?.id || job?.recruitment?.id;
+    const recruitmentId = job?.recruitment?.id || null;
 
     if (businessId && recruitmentId) {
       router.push({

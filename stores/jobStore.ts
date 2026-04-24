@@ -63,7 +63,7 @@ type RecruitmentApplicationItem = {
 };
 
 type RecruitmentApplicationStatus = "approved" | "rejected" | "pending";
-type RecruitmentApplicationResponseAction = "accept" | "reject";
+type RecruitmentApplicationResponseAction = "approved" | "rejected";
 
 type RecruitmentApplicationListResponse = {
   data: RecruitmentApplicationItem[];

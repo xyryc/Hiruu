@@ -174,7 +174,7 @@ const JobRequest = () => {
         setActionLoading({ id: String(applicationId), status });
         await respondToMyApplication(
           String(applicationId),
-          status === "approved" ? "accept" : "reject"
+          status === "approved" ? "approved" : "rejected"
         );
 
         setItems((prev) =>
