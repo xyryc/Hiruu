@@ -43,6 +43,10 @@ const BusinessJobCard = ({
   const router = useRouter();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [pendingProfileNavigation, setPendingProfileNavigation] = useState<{
+    userId: string;
+    profileId?: string;
+  } | null>(null);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [isCreatingCall, setIsCreatingCall] = useState(false);
   const [offerSent, setOfferSent] = useState(Boolean(profile?.alreadyOffered));
@@ -147,8 +151,10 @@ const BusinessJobCard = ({
     }
   };
 
-  const handleViewProfile = () => {
-    const userId = profile?.userId || profile?.user?.id;
+  const handleViewProfile = (
+    override?: { userId?: string; profileId?: string }
+  ) => {
+    const userId = override?.userId || profile?.userId || profile?.user?.id;
 
     if (!userId) {
       toast.error(t("user.jobs.businessJobCard.userInfoUnavailable"));
@@ -159,10 +165,29 @@ const BusinessJobCard = ({
       pathname: "/screens/jobs/business/user-profile-preview",
       params: {
         userId,
-        profileId: profile?.id || "",
+        profileId: override?.profileId || profile?.id || "",
       },
     });
   };
+
+  const handleProfileRequestFromModal = (payload: {
+    userId: string;
+    profileId?: string;
+  }) => {
+    setPendingProfileNavigation(payload);
+    setShowModal(false);
+  };
+
+  useEffect(() => {
+    if (showModal || !pendingProfileNavigation) return;
+
+    const timer = setTimeout(() => {
+      handleViewProfile(pendingProfileNavigation);
+      setPendingProfileNavigation(null);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [handleViewProfile, pendingProfileNavigation, showModal]);
 
   const handleOpenOfferModal = () => {
     if (alreadyOffered) {
@@ -364,7 +389,7 @@ const BusinessJobCard = ({
               <View onStartShouldSetResponder={() => true}>
                 <SmallButton
                   title={t("common.viewProfile")}
-                  onPress={handleViewProfile}
+                  onPress={() => handleViewProfile()}
                 />
               </View>
             )}
@@ -378,7 +403,7 @@ const BusinessJobCard = ({
             <View onStartShouldSetResponder={() => true}>
               <SecondaryButton
                 title={t("common.viewDetails")}
-                onPress={handleViewProfile}
+                onPress={() => handleViewProfile()}
                 textClass="text-[#4FB2F3]"
                 iconBackground="bg-white"
                 iconColor="#4FB2F3"
@@ -444,6 +469,7 @@ const BusinessJobCard = ({
         userId={profile?.userId || profile?.user?.id || ""}
         alreadyOffered={alreadyOffered}
         onOfferSent={() => setOfferSent(true)}
+        onViewProfileRequest={handleProfileRequestFromModal}
       />
     </TouchableOpacity>
   );

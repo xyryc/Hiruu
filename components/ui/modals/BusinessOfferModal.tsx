@@ -4,7 +4,6 @@ import { useJobStore } from "@/stores/jobStore";
 import { Entypo, Fontisto, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import { router } from 'expo-router';
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -36,6 +35,7 @@ type BusinessOfferModalProps = {
   userId: string;
   alreadyOffered?: boolean;
   onOfferSent?: () => void;
+  onViewProfileRequest?: (payload: { userId: string; profileId?: string }) => void;
 };
 
 const normalizeRoleLabel = (item: any) =>
@@ -51,6 +51,7 @@ const BusinessOfferModal = ({
   userId,
   alreadyOffered = false,
   onOfferSent,
+  onViewProfileRequest,
 }: BusinessOfferModalProps) => {
   const { t } = useTranslation();
   const getJobProfileByUserId = useJobStore((state) => state.getJobProfileByUserId);
@@ -324,20 +325,17 @@ const BusinessOfferModal = ({
   const isModalLoading = isLoadingProfile || isLoadingBusinesses || isLoadingRoles;
 
 
-  const hensleNavigateProfile = () => {
-    const userId = profile?.userId || profile?.user?.id;
+  const handleProfilePress = () => {
+    const targetUserId = profile?.userId || profile?.user?.id;
 
-    if (!userId) {
+    if (!targetUserId) {
       toast.error(t("user.jobs.businessJobCard.userInfoUnavailable"));
       return;
     }
 
-    router.push({
-      pathname: "/screens/jobs/business/user-profile-preview",
-      params: {
-        userId,
-        profileId: profile?.id || "",
-      },
+    onViewProfileRequest?.({
+      userId: targetUserId,
+      profileId: profile?.id || "",
     });
   };
 
@@ -368,7 +366,7 @@ const BusinessOfferModal = ({
               >
                 <AutoSkeletonView isLoading={isModalLoading} defaultRadius={MODAL_SKELETON_RADIUS}>
                   {/* image */}
-                  <TouchableOpacity onPress={hensleNavigateProfile}>
+                  <TouchableOpacity onPress={handleProfilePress}>
                     <Image
                       source={profileAvatar}
                       style={{
