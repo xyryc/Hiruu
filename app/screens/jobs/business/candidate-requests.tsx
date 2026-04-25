@@ -303,6 +303,8 @@ const CandidateRequests = () => {
               >
                 <Text
                   className={`text-center ${isActive === tab ? "font-proximanova-semibold text-base text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   <Text className="capitalize">
                     {tab === "sent"

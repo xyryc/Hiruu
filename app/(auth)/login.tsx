@@ -97,14 +97,16 @@ const Login = () => {
     const timeZone = getCalendars()[0].timeZone || 'UTC';
 
     if (selectedTab === "Email") {
-      if (!email || !password) {
+      const normalizedEmail = email.trim();
+
+      if (!normalizedEmail || !password) {
         Alert.alert(t("common.error"), t("validation.fillAllFields"));
         return;
       }
 
       try {
         const result = await login({
-          email,
+          email: normalizedEmail,
           password,
           rememberMe,
           fcmToken,
@@ -112,15 +114,15 @@ const Login = () => {
         });
 
         if (result?.success) {
-          if (email) {
-            await AsyncStorage.setItem(lastEmailKey, email);
+          if (normalizedEmail) {
+            await AsyncStorage.setItem(lastEmailKey, normalizedEmail);
           }
           if (result?.data?.isEmailVerified === false) {
             toast.success(translateApiMessage(result?.message || "auth_login_success"));
             router.replace({
               pathname: "/(auth)/verify",
               params: {
-                email,
+                email: normalizedEmail,
                 source: "login",
               },
             });

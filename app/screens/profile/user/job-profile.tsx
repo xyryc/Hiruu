@@ -41,11 +41,37 @@ const formatSalaryValue = (
     ? `${value}`.trim() || fallback
     : fallback;
 
-const getJobType = (profile: JobProfileData | null, fallback = "") => {
+const getSalaryType = (profile: JobProfileData | null, fallback = "") => {
   const value = profile?.preferredSalaryType;
-  return typeof value === "string" && value.trim().length > 0
-    ? value.trim().charAt(0).toUpperCase() + value.trim().slice(1)
-    : fallback;
+  if (typeof value !== "string" || value.trim().length === 0) return fallback;
+
+  return value
+    .trim()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const getJobType = (profile: JobProfileData | null, fallback = "") => {
+  const metadata =
+    profile?.metadata && typeof profile.metadata === "object"
+      ? (profile.metadata as Record<string, unknown>)
+      : null;
+  const value =
+    (typeof metadata?.preferredJobType === "string" &&
+      metadata.preferredJobType.trim()) ||
+    (typeof metadata?.preferredShiftType === "string" &&
+      metadata.preferredShiftType.trim()) ||
+    (typeof metadata?.jobTypePreference === "string" &&
+      metadata.jobTypePreference.trim()) ||
+    (metadata?.remoteOnly ? "remote" : "");
+
+  if (!value) return fallback;
+
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 };
 
 const getOpenToWorkLabel = (
@@ -304,6 +330,14 @@ const JobProfile = () => {
             </Text>
           </View>
         </View>
+        <View className="mx-5 mt-4 rounded-xl border border-[#0000000D] p-4">
+          <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+            Salary Type
+          </Text>
+          <Text className="mt-2 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+            {getSalaryType(jobProfile, t("user.profile.jobProfileScreen.notAddedYet"))}
+          </Text>
+        </View>
 
         <SectionTitle
           title={t("user.profile.jobProfileScreen.weeklyAvailability")}
@@ -320,8 +354,8 @@ const JobProfile = () => {
               </Text>
               <Text
                 className={`font-proximanova-regular text-sm ${item.value === closedLabel
-                    ? "text-[#F34F4F]"
-                    : "text-secondary dark:text-dark-secondary"
+                  ? "text-[#F34F4F]"
+                  : "text-secondary dark:text-dark-secondary"
                   }`}
               >
                 {item.value}

@@ -29,9 +29,31 @@ const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
     return item.startTime < item.endTime;
   });
 
+const getMetadataString = (
+  metadata: JobProfileData["metadata"],
+  key: string
+) => {
+  if (!metadata || typeof metadata !== "object") return "";
+  const value = (metadata as Record<string, unknown>)[key];
+  return typeof value === "string" ? value.trim() : "";
+};
+
+const getMetadataBoolean = (
+  metadata: JobProfileData["metadata"],
+  key: string
+) => {
+  if (!metadata || typeof metadata !== "object") return false;
+  return Boolean((metadata as Record<string, unknown>)[key]);
+};
+
 const buildFormState = (profile: JobProfileData | null) => ({
   isOpenToWork: Boolean(profile?.isOpenToWork),
   jobType:
+    getMetadataString(profile?.metadata, "preferredJobType") ||
+    getMetadataString(profile?.metadata, "preferredShiftType") ||
+    getMetadataString(profile?.metadata, "jobTypePreference") ||
+    (getMetadataBoolean(profile?.metadata, "remoteOnly") ? "remote" : ""),
+  salaryType:
     typeof profile?.preferredSalaryType === "string"
       ? profile.preferredSalaryType.trim()
       : "",
@@ -91,11 +113,13 @@ const JobProfileEdit = () => {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const getMyJobProfile = useJobStore((state) => state.getMyJobProfile);
+  const jobProfile = useJobStore((state) => state.jobProfile);
   const updateMyJobProfile = useJobStore((state) => state.updateMyJobProfile);
   const isLoadingJobProfile = useJobStore((state) => state.isLoadingJobProfile);
   const getRoles = useBusinessStore((state) => state.getRoles);
 
   const [jobType, setJobType] = useState("");
+  const [salaryType, setSalaryType] = useState("");
   const [isOpenToWork, setIsOpenToWork] = useState(false);
   const [expectedSalaryMin, setExpectedSalaryMin] = useState("");
   const [expectedSalaryMax, setExpectedSalaryMax] = useState("");
@@ -108,6 +132,18 @@ const JobProfileEdit = () => {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jobTypeOptions = useMemo(
     () => [
+      { label: t("user.jobs.postJob.options.fullTime"), value: "full_time" },
+      { label: t("user.jobs.postJob.options.partTime"), value: "part_time" },
+      { label: t("user.jobs.postJob.options.hourly"), value: "hourly" },
+      { label: t("user.jobs.postJob.options.contract"), value: "contract" },
+      { label: t("user.jobs.postJob.options.internship"), value: "internship" },
+      { label: t("user.jobs.postJob.options.remote"), value: "remote" },
+      { label: t("user.jobs.postJob.options.hybrid"), value: "hybrid" },
+    ],
+    [t]
+  );
+  const salaryTypeOptions = useMemo(
+    () => [
       { label: t("user.profile.jobProfileEdit.hourly"), value: "hourly" },
       { label: t("user.profile.jobProfileEdit.monthly"), value: "monthly" },
     ],
@@ -118,6 +154,7 @@ const JobProfileEdit = () => {
     const nextState = buildFormState(profile);
     setIsOpenToWork(nextState.isOpenToWork);
     setJobType(nextState.jobType);
+    setSalaryType(nextState.salaryType);
     setExpectedSalaryMin(nextState.expectedSalaryMin);
     setExpectedSalaryMax(nextState.expectedSalaryMax);
     setPreferredRoleIds(nextState.preferredRoleIds);
@@ -208,9 +245,14 @@ const JobProfileEdit = () => {
     try {
       setIsSaving(true);
 
+      const currentMetadata =
+        jobProfile?.metadata && typeof jobProfile.metadata === "object"
+          ? jobProfile.metadata
+          : {};
+
       await updateMyJobProfile({
         isOpenToWork,
-        preferredSalaryType: jobType.trim() || null,
+        preferredSalaryType: salaryType.trim() || null,
         preferredRoleIds,
         expectedSalaryMin: expectedSalaryMin.trim()
           ? Number(expectedSalaryMin)
@@ -218,6 +260,12 @@ const JobProfileEdit = () => {
         expectedSalaryMax: expectedSalaryMax.trim()
           ? Number(expectedSalaryMax)
           : null,
+        metadata: {
+          ...currentMetadata,
+          preferredJobType: jobType.trim() || null,
+          preferredShiftType: null,
+          remoteOnly: jobType === "remote",
+        },
       });
 
       toast.success(t("user.profile.jobProfileEdit.jobProfileUpdated"));
@@ -277,7 +325,7 @@ const JobProfileEdit = () => {
             placeholder={t("user.profile.jobProfileEdit.selectJobType")}
             options={jobTypeOptions}
             value={jobType}
-            listMaxHeight={220}
+            listMaxHeight={320}
             onSelect={(value: string) => setJobType(value)}
           />
         </View>
@@ -328,6 +376,18 @@ const JobProfileEdit = () => {
               keyboardType="numeric"
             />
           </View>
+        </View>
+        <View className="mx-5 mt-4">
+          <Text className="mb-2 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+            Salary Type
+          </Text>
+          <SelectDropdown
+            placeholder="Select salary type"
+            options={salaryTypeOptions}
+            value={salaryType}
+            listMaxHeight={220}
+            onSelect={(value: string) => setSalaryType(value)}
+          />
         </View>
 
         <SectionHeader
