@@ -294,6 +294,14 @@ const FindJobFilters = () => {
     setIsLocationFocused(false);
   };
 
+  const handleClearLocation = () => {
+    setLocationSearch("");
+    setSelectedLocationOption(null);
+    setSelectedCoords(null);
+    setLocationOptions([]);
+    setIsLocationFocused(false);
+  };
+
   useEffect(() => {
     if (!locationSearch || locationSearch.trim().length < 3) {
       setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
@@ -431,6 +439,10 @@ const FindJobFilters = () => {
       search: nextSearch || undefined,
     };
 
+    console.log(
+      "[User Job Filters] payload to backend:\n" +
+      JSON.stringify(nextFilters, null, 2)
+    );
     setAllJobsFilters(nextFilters);
 
     if (params.from === "all-jobs") {
@@ -508,31 +520,48 @@ const FindJobFilters = () => {
             {t("user.jobs.filters.location")}
           </Text>
 
-          <TextInput
-            value={locationSearch}
-            onFocus={() => setIsLocationFocused(true)}
-            onBlur={() => {
-              setTimeout(() => setIsLocationFocused(false), 250);
-            }}
-            onChangeText={(text) => {
-              const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
-              setLocationSearch(nextText);
-              if (!nextText.trim()) {
-                setSelectedLocationOption(null);
-                setSelectedCoords(null);
-                setLocationOptions([]);
-                return;
-              }
-              if (selectedLocationOption && nextText !== selectedLocationOption.label) {
-                setSelectedLocationOption(null);
-                setSelectedCoords(null);
-              }
-            }}
-            placeholder={t("user.jobs.filters.searchLocation")}
-            className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
-            autoCapitalize="none"
-            maxLength={ADDRESS_MAX_LENGTH}
-          />
+          <View className="flex-row items-center bg-white border border-[#EEEEEE] rounded-[10px]">
+            <TextInput
+              value={locationSearch}
+              onFocus={() => {
+                if (!selectedLocationOption) {
+                  setIsLocationFocused(true);
+                }
+              }}
+              onBlur={() => {
+                setTimeout(() => setIsLocationFocused(false), 250);
+              }}
+              onChangeText={(text) => {
+                if (selectedLocationOption) {
+                  return;
+                }
+
+                const nextText = text.slice(0, ADDRESS_MAX_LENGTH);
+                setLocationSearch(nextText);
+                if (!nextText.trim()) {
+                  setSelectedLocationOption(null);
+                  setSelectedCoords(null);
+                  setLocationOptions([]);
+                }
+              }}
+              placeholder={t("user.jobs.filters.searchLocation")}
+              className="flex-1 px-4 py-3 text-placeholder text-sm"
+              autoCapitalize="none"
+              maxLength={ADDRESS_MAX_LENGTH}
+              editable={!selectedLocationOption}
+            />
+
+            {selectedLocationOption ? (
+              <TouchableOpacity
+                onPress={handleClearLocation}
+                className="px-4 py-3"
+                accessibilityRole="button"
+                accessibilityLabel={t("common.clear")}
+              >
+                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           {isLocationFocused &&
             locationSearch.trim().length >= 3 &&

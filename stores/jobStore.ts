@@ -471,6 +471,10 @@ export const useJobStore = create<JobState>((set) => ({
   getPublicRecruitments: async (query = {}) => {
     try {
       const params = buildRecruitmentQuery(query);
+      console.log(
+        "[Public Recruitments] request params:\n" +
+        JSON.stringify(params, null, 2)
+      );
 
       const response = await axiosInstance.get("/recruitment/public", {
         params,

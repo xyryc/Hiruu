@@ -2,6 +2,12 @@ import type { RecruitmentFilterQuery } from "@/types";
 
 type QueryValue = string | number | boolean;
 
+type ParsedExperienceRequirement = {
+  roleId?: string;
+  role?: string;
+  minYears?: number;
+};
+
 const toCsv = (value?: string[] | string): string | undefined => {
   if (typeof value === "string") {
     const trimmed = value.trim();
@@ -50,6 +56,35 @@ const setIfDefined = (
   }
 };
 
+const extractRoleIdsFromExperienceRequirements = (
+  value?: RecruitmentFilterQuery["experienceRequirements"]
+): string[] => {
+  const normalizeArray = (items: ParsedExperienceRequirement[]) =>
+    items
+      .map((item) => (typeof item?.roleId === "string" ? item.roleId.trim() : ""))
+      .filter((item) => item.length > 0);
+
+  if (Array.isArray(value)) {
+    return normalizeArray(value);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("[")) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    return Array.isArray(parsed) ? normalizeArray(parsed) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const buildRecruitmentQuery = (
   params: RecruitmentFilterQuery = {}
 ): Record<string, QueryValue> => {
@@ -71,7 +106,9 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "gender", toTrimmed(params.gender));
   setIfDefined(query, "experience", toTrimmed(params.experience));
   setIfDefined(query, "experienceLevels", toCsv(params.experienceLevels));
-  setIfDefined(query, "experienceRequirements", toCsv(params.experienceRequirements));
+  const derivedRoleIds = extractRoleIdsFromExperienceRequirements(
+    params.experienceRequirements
+  );
   setIfDefined(query, "ageMin", toNumber(params.ageMin));
   setIfDefined(query, "ageMax", toNumber(params.ageMax));
   setIfDefined(query, "shiftStartTime", toTrimmed(params.shiftStartTime));
@@ -85,7 +122,11 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "postedById", toTrimmed(params.postedById));
   setIfDefined(query, "isClosed", toBoolean(params.isClosed));
   setIfDefined(query, "isFeatured", toBoolean(params.isFeatured));
-  setIfDefined(query, "roleIds", toCsv(params.roleIds));
+  setIfDefined(
+    query,
+    "roleIds",
+    derivedRoleIds.length > 0 ? toCsv(derivedRoleIds) : toCsv(params.roleIds)
+  );
   setIfDefined(query, "location", toTrimmed(params.location));
   setIfDefined(query, "latitude", toNumber(params.latitude));
   setIfDefined(query, "longitude", toNumber(params.longitude));
