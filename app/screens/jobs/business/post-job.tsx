@@ -2,12 +2,10 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import SelectDropdown from "@/components/ui/dropdown/SelectDropdown";
-import TimePicker from "@/components/ui/inputs/TimePicker";
 import RoleSelector from "@/components/ui/modals/RoleSelector";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import type { RecruitmentShiftType } from "@/types";
-import { localDateToUTCTime } from "@/utils/timezone";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useState } from "react";
@@ -50,8 +48,6 @@ const PostJob = () => {
   const [experience, setExperience] = useState("");
   const [ageMin, setAgeMin] = useState("");
   const [ageMax, setAgeMax] = useState("");
-  const [shiftStartTime, setShiftStartTime] = useState<Date>(new Date());
-  const [shiftEndTime, setShiftEndTime] = useState<Date>(new Date());
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
   const [openings, setOpenings] = useState("");
@@ -152,11 +148,6 @@ const PostJob = () => {
     [t]
   );
 
-  const formatTime24 = (date: Date) => {
-    // Convert local time to UTC before sending to backend
-    return localDateToUTCTime(date);
-  };
-
   const handlePostJob = async () => {
     const businessId = selectedBusinesses[0];
     if (!businessId) {
@@ -221,8 +212,6 @@ const PostJob = () => {
       jobType,
       ageMin: parsedAgeMin,
       ageMax: parsedAgeMax,
-      shiftStartTime: formatTime24(shiftStartTime),
-      shiftEndTime: formatTime24(shiftEndTime),
       salaryMin: parsedSalaryMin,
       salaryMax: parsedSalaryMax,
       requiredSkills: [],
@@ -364,24 +353,6 @@ const PostJob = () => {
               placeholder={t("user.jobs.postJob.max")}
               placeholderTextColor="#7D7D7D"
             />
-          </View>
-
-          <View className="mt-8">
-            <View className="flex-row gap-4 items-center">
-              <TimePicker
-                title={t("user.jobs.postJob.shiftStartTime")}
-                value={shiftStartTime}
-                onChangeTime={setShiftStartTime}
-              />
-              <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {t("user.profile.weeklySchedule.to")}
-              </Text>
-              <TimePicker
-                title={t("user.jobs.postJob.shiftEndTime")}
-                value={shiftEndTime}
-                onChangeTime={setShiftEndTime}
-              />
-            </View>
           </View>
 
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">

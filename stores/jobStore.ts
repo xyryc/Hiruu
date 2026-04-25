@@ -15,8 +15,6 @@ type CreateRecruitmentPayload = {
   jobType: string;
   ageMin: number;
   ageMax: number;
-  shiftStartTime: string;
-  shiftEndTime: string;
   salaryMin: number;
   salaryMax: number;
   requiredSkills: string[];
