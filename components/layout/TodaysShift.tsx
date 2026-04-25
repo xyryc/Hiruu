@@ -54,7 +54,7 @@ const TodaysShiftCardSkeleton = () => {
 };
 
 const TodaysShift = ({ className }: TodaysShiftProps) => {
-  const shiftLogoutImg = require("@/assets/images/Logout.svg");
+  const shiftLogoutImg = require("@/assets/images/logout.svg");
   const [showModal, setShowModal] = useState(false);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
   const [pendingLogoutShiftId, setPendingLogoutShiftId] = useState<string | null>(
