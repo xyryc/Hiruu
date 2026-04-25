@@ -50,8 +50,10 @@ const buildFormState = (profile: JobProfileData | null) => ({
   isOpenToWork: Boolean(profile?.isOpenToWork),
   jobType:
     getMetadataString(profile?.metadata, "preferredJobType") ||
-    getMetadataString(profile?.metadata, "preferredShiftType") ||
     getMetadataString(profile?.metadata, "jobTypePreference") ||
+    "",
+  shiftType:
+    getMetadataString(profile?.metadata, "preferredShiftType") ||
     (getMetadataBoolean(profile?.metadata, "remoteOnly") ? "remote" : ""),
   salaryType:
     typeof profile?.preferredSalaryType === "string"
@@ -119,6 +121,7 @@ const JobProfileEdit = () => {
   const getRoles = useBusinessStore((state) => state.getRoles);
 
   const [jobType, setJobType] = useState("");
+  const [shiftType, setShiftType] = useState("");
   const [salaryType, setSalaryType] = useState("");
   const [isOpenToWork, setIsOpenToWork] = useState(false);
   const [expectedSalaryMin, setExpectedSalaryMin] = useState("");
@@ -137,6 +140,13 @@ const JobProfileEdit = () => {
       { label: t("user.jobs.postJob.options.hourly"), value: "hourly" },
       { label: t("user.jobs.postJob.options.contract"), value: "contract" },
       { label: t("user.jobs.postJob.options.internship"), value: "internship" },
+      { label: t("user.jobs.postJob.options.freelance"), value: "freelance" },
+    ],
+    [t]
+  );
+  const shiftTypeOptions = useMemo(
+    () => [
+      { label: t("user.jobs.postJob.options.onsite"), value: "onsite" },
       { label: t("user.jobs.postJob.options.remote"), value: "remote" },
       { label: t("user.jobs.postJob.options.hybrid"), value: "hybrid" },
     ],
@@ -154,6 +164,7 @@ const JobProfileEdit = () => {
     const nextState = buildFormState(profile);
     setIsOpenToWork(nextState.isOpenToWork);
     setJobType(nextState.jobType);
+    setShiftType(nextState.shiftType);
     setSalaryType(nextState.salaryType);
     setExpectedSalaryMin(nextState.expectedSalaryMin);
     setExpectedSalaryMax(nextState.expectedSalaryMax);
@@ -263,8 +274,8 @@ const JobProfileEdit = () => {
         metadata: {
           ...currentMetadata,
           preferredJobType: jobType.trim() || null,
-          preferredShiftType: null,
-          remoteOnly: jobType === "remote",
+          preferredShiftType: shiftType.trim() || null,
+          remoteOnly: shiftType === "remote",
         },
       });
 
@@ -327,6 +338,20 @@ const JobProfileEdit = () => {
             value={jobType}
             listMaxHeight={320}
             onSelect={(value: string) => setJobType(value)}
+          />
+        </View>
+
+        <SectionHeader
+          icon={<MaterialCommunityIcons name="map-marker-path" size={16} color="black" />}
+          title={t("user.jobs.postJob.shiftType")}
+        />
+        <View className="mx-5 mt-4">
+          <SelectDropdown
+            placeholder={t("user.jobs.postJob.selectShiftType")}
+            options={shiftTypeOptions}
+            value={shiftType}
+            listMaxHeight={280}
+            onSelect={(value: string) => setShiftType(value)}
           />
         </View>
 

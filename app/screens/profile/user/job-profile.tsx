@@ -60,10 +60,25 @@ const getJobType = (profile: JobProfileData | null, fallback = "") => {
   const value =
     (typeof metadata?.preferredJobType === "string" &&
       metadata.preferredJobType.trim()) ||
+    (typeof metadata?.jobTypePreference === "string" &&
+      metadata.jobTypePreference.trim());
+
+  if (!value) return fallback;
+
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const getShiftType = (profile: JobProfileData | null, fallback = "") => {
+  const metadata =
+    profile?.metadata && typeof profile.metadata === "object"
+      ? (profile.metadata as Record<string, unknown>)
+      : null;
+  const value =
     (typeof metadata?.preferredShiftType === "string" &&
       metadata.preferredShiftType.trim()) ||
-    (typeof metadata?.jobTypePreference === "string" &&
-      metadata.jobTypePreference.trim()) ||
     (metadata?.remoteOnly ? "remote" : "");
 
   if (!value) return fallback;
@@ -275,6 +290,14 @@ const JobProfile = () => {
         />
         <ValueCard
           value={getJobType(jobProfile, t("user.profile.jobProfileScreen.notAddedYet"))}
+        />
+
+        <SectionTitle
+          title={t("user.jobs.postJob.shiftType")}
+          icon={<MaterialCommunityIcons name="map-marker-path" size={16} color="black" />}
+        />
+        <ValueCard
+          value={getShiftType(jobProfile, t("user.profile.jobProfileScreen.notAddedYet"))}
         />
 
         <SectionTitle
