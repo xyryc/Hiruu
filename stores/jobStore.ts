@@ -544,6 +544,11 @@ export const useJobStore = create<JobState>((set) => ({
       const response = await axiosInstance.get(`/recruitment/${businessId}/${id}`);
       const result = response.data;
 
+      console.log(
+        "[JobStore] getRecruitmentById response:",
+        JSON.stringify(result, null, 2)
+      );
+
       const hasError =
         result?.success === false ||
         (typeof result?.statusCode === "number" && result.statusCode >= 400);

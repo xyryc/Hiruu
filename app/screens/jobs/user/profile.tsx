@@ -98,9 +98,10 @@ const JobProfile = () => {
 
 
   const roleName = job?.role?.role?.name || "Bartender";
+  const jobDescription =
+    typeof job?.description === "string" ? job.description.trim() : "";
   const aboutRole =
-    job?.description ||
-    "Join the core team at Space Hotel, a unique dining experience known for its space-themed interiors and premium service.....Read More";
+    typeof job?.role?.description === "string" ? job.role.description.trim() : "";
   const genderLabel = job?.gender || "Male";
   const experienceLabel = job?.experience ? `${job.experience} Year` : "1 Year";
   const ageLabel =
@@ -275,28 +276,36 @@ const JobProfile = () => {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-            Job Description
-          </Text>
-
-          {/* about the role */}
-          <View className="mt-7">
-            <View className="flex-row items-center gap-2">
-              <MaterialCommunityIcons
-                className="p-2 bg-[#E5F4FD] rounded-full"
-                name="file-document-check-outline"
-                size={18}
-                color="black"
-              />
+          {jobDescription ? (
+            <View>
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                About the Role
+                Job Description
+              </Text>
+              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2.5">
+                {jobDescription}
               </Text>
             </View>
+          ) : null}
 
-            <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2.5">
-              {aboutRole}
-            </Text>
-          </View>
+          {aboutRole ? (
+            <View className={jobDescription ? "mt-7" : ""}>
+              <View className="flex-row items-center gap-2">
+                <MaterialCommunityIcons
+                  className="p-2 bg-[#E5F4FD] rounded-full"
+                  name="file-document-check-outline"
+                  size={18}
+                  color="black"
+                />
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  About the Role
+                </Text>
+              </View>
+
+              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary mt-2.5">
+                {aboutRole}
+              </Text>
+            </View>
+          ) : null}
 
           {/* key info */}
           <View className="mt-7">
