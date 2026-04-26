@@ -177,33 +177,50 @@ const JobCard = ({
 
             router.push("/screens/jobs/user/profile");
           }}
-          className="flex-1 flex-row gap-2.5"
+          className="flex-1 relative"
         >
-          <Image
-            source={
-              job?.business?.logo ||
-              require("@/assets/images/placeholder.png")
-            }
-            style={{ width: 40, height: 40, borderRadius: 999 }}
-            contentFit="cover"
-          />
+          {isFeatured ? (
+            <Image
+              source={require("@/assets/images/featured.png")}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: 47,
+                borderRadius: 10,
+              }}
+              contentFit="cover"
+            />
+          ) : null}
 
-          <View className="flex-1">
-            <Text
-              numberOfLines={1}
-              className="font-proximanova-semibold text-primary dark:text-dark-primary mb-1"
-            >
-              {roleName}{" "}
-              {isFeatured ? (
-                <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-              ) : null}
-            </Text>
-            <Text
-              numberOfLines={1}
-              className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary"
-            >
-              {job?.business?.name || t("common.na")}
-            </Text>
+          <View className={`flex-row gap-2.5 ${isFeatured ? "p-1" : ""}`}>
+            <Image
+              source={
+                job?.business?.logo ||
+                require("@/assets/images/placeholder.png")
+              }
+              style={{ width: 40, height: 40, borderRadius: 999 }}
+              contentFit="cover"
+            />
+
+            <View className="flex-1">
+              <Text
+                numberOfLines={1}
+                className="font-proximanova-semibold text-primary dark:text-dark-primary mb-1"
+              >
+                {roleName}{" "}
+                {isFeatured ? (
+                  <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+                ) : null}
+              </Text>
+              <Text
+                numberOfLines={1}
+                className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary"
+              >
+                {job?.business?.name || t("common.na")}
+              </Text>
+            </View>
           </View>
         </TouchableOpacity>
 
