@@ -25,13 +25,15 @@ const ScreenHeader = ({
     >
       {/* left */}
       <View className="flex-row items-center gap-2.5">
-        <TouchableOpacity onPress={onPressBack} className="p-1">
-          <Feather
-            name="arrow-left"
-            size={24}
-            color={iconColor || (isDark ? "#FFFFFF" : "#000000")}
-          />
-        </TouchableOpacity>
+        {onPressBack ? (
+          <TouchableOpacity onPress={onPressBack} className="p-1">
+            <Feather
+              name="arrow-left"
+              size={24}
+              color={iconColor || (isDark ? "#FFFFFF" : "#000000")}
+            />
+          </TouchableOpacity>
+        ) : null}
 
         <Text
           className={`${titleClass} font-proximanova-bold text-2xl text-primary dark:text-dark-primary`}

@@ -262,7 +262,6 @@ const AllJobs = () => {
     >
       <ScreenHeader
         className="px-5 pt-2.5"
-        onPressBack={() => router.back()}
         title={screenTitle}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
