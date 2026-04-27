@@ -49,6 +49,13 @@ const AssignRoleModal = ({
     };
   }, []);
 
+  const handleCreateRolePress = () => {
+    onClose();
+    requestAnimationFrame(() => {
+      router.push("/screens/schedule/business/create-role");
+    });
+  };
+
   return (
     <Modal
       visible={visible}
@@ -83,7 +90,7 @@ const AssignRoleModal = ({
 
               {/* create role button */}
               <TouchableOpacity
-                onPress={() => router.push("/screens/schedule/business/create-role")}
+                onPress={handleCreateRolePress}
                 className="h-10 w-10 bg-[#eeeeee] rounded-full flex-row items-center justify-center">
                 <Feather name="edit" size={16} color="black" />
               </TouchableOpacity>
