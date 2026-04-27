@@ -113,6 +113,23 @@ const ShiftDetails = () => {
   const assignedByName = details?.assignedBy?.name || "-";
   const assignedByAvatar = details?.assignedBy?.avatar;
   const assignedById = details?.assignedBy?.id;
+  const assignedBusinessId = details?.business?.id;
+
+  const handleOpenAssignedByProfile = () => {
+    if (!assignedById) {
+      toast.error("Assigned user profile is unavailable");
+      return;
+    }
+
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId: assignedById,
+        ...(assignedBusinessId ? { businessId: assignedBusinessId } : {}),
+        canRate: assignedBusinessId ? "true" : "false",
+      },
+    });
+  };
 
   const handleOpenAssignedByChat = async () => {
     if (!assignedById) {
@@ -339,7 +356,11 @@ const ShiftDetails = () => {
           </Text>
 
           <View className="flex-row justify-between bg-[#4FB2F3] p-2.5 rounded-[10px]">
-            <View className="flex-row items-center gap-2.5">
+            <TouchableOpacity
+              className="flex-row items-center gap-2.5"
+              onPress={handleOpenAssignedByProfile}
+              activeOpacity={0.8}
+            >
               <Image
                 source={assignedByAvatar || require("@/assets/images/placeholder.png")}
                 style={{
@@ -352,7 +373,7 @@ const ShiftDetails = () => {
               <Text className="font-proximanova-bold text-white dark:text-dark-secondary">
                 {assignedByName}
               </Text>
-            </View>
+            </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleOpenAssignedByChat}

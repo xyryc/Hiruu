@@ -592,7 +592,20 @@
         "lateArrivals": "Late arrivals",
         "currentlyWorking": "Currently working",
         "viewShiftReport": "View Shift Report",
-        "failedToLoad": "Failed to load today's shifts summary"
+        "failedToLoad": "Failed to load today's shifts summary",
+        "shiftReports": {
+          "title": "Shift Reports",
+          "emptyTitle": "No Shift Reports",
+          "emptyText": "There are no shift reports to show right now.",
+          "failedToLoad": "Failed to load shift reports",
+          "reportedBy": "Reported by",
+          "shiftTime": "Shift time",
+          "submittedAt": "Submitted at",
+          "notes": "Notes",
+          "noNotes": "No notes provided.",
+          "unknownEmployee": "Unknown employee",
+          "untitledIssue": "General report"
+        }
       },
       "trackHours": {
         "monthOverviewTitle": "This Month’s Overview",

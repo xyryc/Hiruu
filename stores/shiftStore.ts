@@ -283,6 +283,45 @@ type ShiftStoreState = {
     notes: string;
     attachment?: string | null;
   }) => Promise<any>;
+  getBusinessShiftReports: (
+    businessId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+    }
+  ) => Promise<{
+    data: Array<{
+      id: string;
+      type?: string;
+      issueType?: string;
+      notes?: string | null;
+      attachment?: string | null;
+      createdAt?: string;
+      shiftAssignment?: {
+        id?: string;
+        date?: string;
+        startsAt?: string;
+        endsAt?: string;
+        status?: string;
+      } | null;
+      employee?: {
+        id?: string;
+        user?: {
+          id?: string;
+          name?: string;
+          avatar?: string | null;
+        } | null;
+      } | null;
+    }>;
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>;
   clearMyShiftsError: () => void;
   clearHomeShiftsError: () => void;
   clearBusinessAssignmentsError: () => void;
@@ -968,6 +1007,46 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         createShiftReportLoading: false,
         createShiftReportError: message,
       });
+      throw new Error(message);
+    }
+  },
+
+  getBusinessShiftReports: async (businessId, params) => {
+    try {
+      if (!businessId) {
+        throw new Error("Business id is required");
+      }
+
+      const page = Number(params?.page ?? 1);
+      const limit = Number(params?.limit ?? 10);
+      const response = await axiosInstance.get(
+        `/shift-reports/business/${businessId}`,
+        {
+          params: { page, limit },
+        }
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load shift reports");
+      }
+
+      return {
+        data: Array.isArray(result?.data) ? result.data : [],
+        pagination: {
+          total: Number(result?.pagination?.total || 0),
+          page: Number(result?.pagination?.page || page),
+          limit: Number(result?.pagination?.limit || limit),
+          totalPages: Number(result?.pagination?.totalPages || 1),
+          hasNext: Boolean(result?.pagination?.hasNext),
+          hasPrev: Boolean(result?.pagination?.hasPrev),
+        },
+      };
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load shift reports";
       throw new Error(message);
     }
   },

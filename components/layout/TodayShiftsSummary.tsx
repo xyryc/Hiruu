@@ -7,6 +7,7 @@ import {
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
@@ -90,8 +91,8 @@ const TodayShiftsSummary = ({ className }: any) => {
               : 0,
           avatars: Array.isArray(currentlyWorking?.avatars)
             ? currentlyWorking.avatars.filter(
-                (item: unknown) => typeof item === "string"
-              )
+              (item: unknown) => typeof item === "string"
+            )
             : [],
         });
       } catch (error: any) {
@@ -126,7 +127,7 @@ const TodayShiftsSummary = ({ className }: any) => {
           {t("user.profile.todayShiftsSummary.title")}
         </Text>
         <ShiftsSummaryCard
-          icon={<Ionicons name="calendar" size={20} color="#4FB2F3" />}
+          icon={<Ionicons name="calendar" size={18} color="#4FB2F3" />}
           title={t("user.profile.todayShiftsSummary.totalScheduledShifts")}
           endItem={summary.totalScheduled}
           className="mt-2.5"
@@ -136,7 +137,7 @@ const TodayShiftsSummary = ({ className }: any) => {
           icon={
             <MaterialCommunityIcons
               name="clock-alert"
-              size={20}
+              size={18}
               color="#4FB2F3"
             />
           }
@@ -145,7 +146,7 @@ const TodayShiftsSummary = ({ className }: any) => {
         />
         <ShiftsSummaryCard
           className="mt-2.5"
-          icon={<FontAwesome6 name="user-group" size={17} color="#4FB2F3" />}
+          icon={<FontAwesome6 name="user-group" size={14} color="#4FB2F3" />}
           title={t("user.profile.todayShiftsSummary.currentlyWorking")}
           endItem={
             <View className="flex-row items-center">
@@ -164,9 +165,8 @@ const TodayShiftsSummary = ({ className }: any) => {
                         avatar
                           ? avatar.startsWith("http")
                             ? { uri: avatar }
-                            : `${process.env.EXPO_PUBLIC_API_URL}${
-                                avatar.startsWith("/") ? avatar : `/${avatar}`
-                              }`
+                            : `${process.env.EXPO_PUBLIC_API_URL}${avatar.startsWith("/") ? avatar : `/${avatar}`
+                            }`
                           : require("@/assets/images/placeholder.png")
                       }
                       style={{
@@ -180,17 +180,17 @@ const TodayShiftsSummary = ({ className }: any) => {
 
                 {(summary.currentlyWorkingCount === 0 ||
                   summary.currentlyWorkingCount > 3) && (
-                  <View
-                    className="w-8 h-8 rounded-full border-2 border-white bg-blue-500 justify-center items-center"
-                    style={{ marginLeft: -8, zIndex: 7 }}
-                  >
-                    <Text className="text-xs font-proximanova-bold text-white">
-                      {summary.currentlyWorkingCount === 0
-                        ? "+0"
-                        : `+${summary.currentlyWorkingCount - 3}`}
-                    </Text>
-                  </View>
-                )}
+                    <View
+                      className="w-8 h-8 rounded-full border-2 border-white bg-blue-500 justify-center items-center"
+                      style={{ marginLeft: -8, zIndex: 7 }}
+                    >
+                      <Text className="text-xs font-proximanova-bold text-white">
+                        {summary.currentlyWorkingCount === 0
+                          ? "+0"
+                          : `+${summary.currentlyWorkingCount - 3}`}
+                      </Text>
+                    </View>
+                  )}
               </View>
             </View>
           }
@@ -204,6 +204,7 @@ const TodayShiftsSummary = ({ className }: any) => {
 
         <PrimaryButton
           title={t("user.profile.todayShiftsSummary.viewShiftReport")}
+          onPress={() => router.push("/screens/home/shift/reports")}
         />
       </View>
     </LinearGradient>
