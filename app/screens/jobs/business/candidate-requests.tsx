@@ -51,6 +51,8 @@ const CandidateRequests = () => {
 
   const currentBusinessId = selectedBusinesses?.[0] || null;
 
+  console.log("[CandidateRequests] currentBusinessId", currentBusinessId);
+
   const { markAsRead } = useUnreadApplications({
     autoRefresh: false,
     scope: "business",
@@ -209,6 +211,8 @@ const CandidateRequests = () => {
     const user = item?.user || {};
     const jobProfile = user?.jobProfile || {};
     const recruitment = item?.recruitment || {};
+
+    console.log("[CandidateRequests] rating debug", JSON.stringify(item, null, 2));
 
     // Handle address - prefer from user object in the application response
     const userAddress = user?.address;
