@@ -142,26 +142,11 @@ const UserProfilePreview = () => {
       .filter(Boolean);
   }, [profile]);
 
-  const openDaysCount = useMemo(() => {
-    const weeklyAvailability = Array.isArray(profile?.weeklyAvailability)
-      ? profile.weeklyAvailability
-      : [];
-
-    return weeklyAvailability.filter((item: any) => item?.isOpen).length;
-  }, [profile]);
-
-  const salaryRangeLabel = useMemo(() => {
-    const min = profile?.expectedSalaryMin;
-    const max = profile?.expectedSalaryMax;
-    const type = profile?.preferredSalaryType;
-
-    if (min == null && max == null) return t("common.notSet");
-    if (min != null && max != null) {
-      return `${min}-${max}${type ? ` /${type}` : ""}`;
-    }
-
-    return `${min ?? max}${type ? ` /${type}` : ""}`;
-  }, [profile, t]);
+  const formatMetric = (value?: number) => {
+    if (typeof value !== "number" || Number.isNaN(value)) return "0%";
+    return `${Math.round(value)}%`;
+  };
+  const analyticsMetrics = profile?.user?.analytics?.metrics;
 
   const isOwnProfile = useMemo(() => {
     const previewUserId = profile?.userId || profile?.user?.id;
@@ -629,29 +614,29 @@ const UserProfilePreview = () => {
           </View>
           <View className="flex-row gap-3 mb-4 mt-4">
             <StatCardPrimary
-              point={`${openDaysCount}`}
-              title={t("user.profile.userProfile.openDays")}
-              subtitle={t("user.profile.userProfile.weekly")}
+              point={formatMetric(analyticsMetrics?.onTimeArrivalPercent)}
+              title={t("user.profile.userProfile.onTimeArrival")}
+              subtitle={t("user.profile.userProfile.thisMonth")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={`${(profile?.skills || []).length}`}
-              title={t("user.profile.userProfile.skills")}
-              subtitle={t("user.profile.userProfile.listed")}
+              point={formatMetric(analyticsMetrics?.taskCompletionPercent)}
+              title={t("user.profile.userProfile.taskCompletion")}
+              subtitle={t("user.profile.userProfile.completed")}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>
           <View className="flex-row gap-3 mb-4">
             <StatCardPrimary
-              point={`${profile?.preferredRoleIds?.length || 0}`}
-              title={t("user.profile.userProfile.preferredRoles")}
-              subtitle={t("user.profile.userProfile.selected")}
+              point={formatMetric(analyticsMetrics?.positiveFeedbackPercent)}
+              title={t("user.profile.userProfile.positiveFeedback")}
+              subtitle={t("user.profile.userProfile.positive")}
               background={require("@/assets/images/stats-bg.svg")}
             />
             <StatCardPrimary
-              point={profile?.isOpenToWork ? t("common.open") : t("common.closed")}
-              title={t("user.profile.userProfile.workStatus")}
-              subtitle={salaryRangeLabel}
+              point={formatMetric(analyticsMetrics?.growthScorePercent)}
+              title={t("user.profile.userProfile.growthScore")}
+              subtitle={t("user.profile.userProfile.growth")}
               background={require("@/assets/images/stats-bg.svg")}
             />
           </View>

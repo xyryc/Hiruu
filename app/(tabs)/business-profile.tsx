@@ -1,4 +1,3 @@
-import { ToggleButton } from "@/components/ui/buttons/ToggleButton";
 import JobCard from "@/components/ui/cards/JobCard";
 import RatingBanner from '@/components/ui/cards/RatingBanner';
 import RatingProgress from "@/components/ui/cards/RatingProgress";
@@ -53,12 +52,10 @@ const styles = StyleSheet.create({
 const BusinessProfile = () => {
   const { t } = useTranslation();
   const [selectedTab, setSelectedTab] = useState("about");
-  const [toggleIsOn, setToggleIsOn] = useState(false);
   const [businessData, setBusinessData] = useState<any>(null);
   const [socialLinks, setSocialLinks] = useState<any>({});
   const [isLoadingBusiness, setIsLoadingBusiness] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [recruitingUpdateLoading, setRecruitingUpdateLoading] = useState(false);
   const [socialUpdateLoading, setSocialUpdateLoading] = useState(false);
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const [businessJobs, setBusinessJobs] = useState<any[]>([]);
@@ -194,12 +191,6 @@ const BusinessProfile = () => {
     }, [loadBusiness, loadBusinessJobs, loadRatingSummary])
   );
 
-  useEffect(() => {
-    if (typeof businessData?.isRecruiting === "boolean") {
-      setToggleIsOn(businessData.isRecruiting);
-    }
-  }, [businessData?.isRecruiting]);
-
   const workEnvironmentRating = Number(
     businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
   );
@@ -227,24 +218,6 @@ const BusinessProfile = () => {
       });
     } catch {
       Alert.alert(t("common.error"), t("user.profile.businessProfile.couldNotShareProfile"));
-    }
-  };
-
-  const handleRecruitingToggle = async (nextValue: boolean) => {
-    if (!businessId || recruitingUpdateLoading) return;
-
-    const previousValue = toggleIsOn;
-    setToggleIsOn(nextValue);
-    setRecruitingUpdateLoading(true);
-
-    try {
-      await updateMyBusinessProfile(businessId, { isRecruiting: nextValue });
-      await loadBusiness();
-    } catch (error: any) {
-      setToggleIsOn(previousValue);
-      toast.error(error?.message || t("user.profile.businessProfile.failedToUpdateRecruitingStatus"));
-    } finally {
-      setRecruitingUpdateLoading(false);
     }
   };
 
@@ -431,7 +404,7 @@ const BusinessProfile = () => {
                 </View>
               ) : null}
 
-              {toggleIsOn && (
+              {Boolean(businessData?.isRecruiting) && (
                 <View className="absolute -bottom-3 right-6">
                   <Text className="bg-[#11293A] py-1 px-4 rounded-full border font-proximanova-semibold text-sm p-1 text-[#FFFFFF] capitalize">
                     {t("user.profile.businessProfile.activelyRecruiting")}
@@ -627,35 +600,6 @@ const BusinessProfile = () => {
                       {String(activeJobPostingCount).padStart(2, "0")}
                     </Text>
                   </View>
-
-                  <View className="flex-row justify-between items-center p-2">
-                    {/* recruiting badge */}
-                    <View className="flex-row gap-2">
-                      <MaterialCommunityIcons
-                        name="account-search"
-                        size={18}
-                        color="#282930"
-                      />
-                      <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                        {t("user.profile.businessProfile.activelyRecruiting")}
-                      </Text>
-                    </View>
-
-                    <ToggleButton
-                      isOn={toggleIsOn}
-                      setIsOn={canEditProfile ? handleRecruitingToggle : () => undefined}
-                      title={
-                        recruitingUpdateLoading
-                          ? t("user.profile.businessProfile.saving")
-                          : `${toggleIsOn ? t("common.yes") : t("common.no")}`
-                      }
-                    />
-                  </View>
-
-                  <Text className="mt-2.5 font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-                    <Text className="font-proximanova-semibold">{t("user.profile.businessProfile.note")}</Text>
-                    {` : ${t("user.profile.businessProfile.xMoreHireToActivate")}`}
-                  </Text>
                 </View>
 
                 {/* Contact Us On */}

@@ -1,11 +1,10 @@
-import { useBusinessStore } from "@/stores/businessStore";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
-import { useTranslation } from "react-i18next";
+import { useBusinessStore } from "@/stores/businessStore";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import { toast } from "sonner-native";
 import StatCardPrimary from "../ui/cards/StatCardPrimary";
-import BusinessSelectionTrigger from "../ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 
 type BusinessSummaryProps = {
@@ -164,11 +163,11 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
           </Text>
         </View>
 
-        <BusinessSelectionTrigger
+        {/* <BusinessSelectionTrigger
           displayContent={displayContent as any}
           onPress={() => setShowModal(true)}
           compact
-        />
+        /> */}
       </View>
 
       {/* modal */}
