@@ -4,7 +4,9 @@ import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import React from "react";
 import {
+  Keyboard,
   Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -28,14 +30,41 @@ const AssignRoleModal = ({
   applying = false,
   emptyStateText = "No roles found.",
 }: AssignRoleModalProps) => {
+  const [keyboardInset, setKeyboardInset] = React.useState(0);
+
+  React.useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardInset(event.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardInset(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   return (
     <Modal
       visible={visible}
       transparent={true}
       onRequestClose={onClose}
+      statusBarTranslucent
     >
       <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
-        <View className="bg-white rounded-t-3xl max-h-[60%]">
+        <View
+          style={{ justifyContent: "flex-end", paddingBottom: keyboardInset }}
+          className="flex-1"
+        >
+          <View
+            className="bg-white rounded-t-3xl"
+            style={{ maxHeight: keyboardInset > 0 ? "82%" : "60%" }}
+          >
           {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
             <TouchableOpacity onPress={onClose}>
@@ -67,11 +96,15 @@ const AssignRoleModal = ({
                 placeholder="Search here..."
                 className="flex-1 ml-2 py-1.5 text-primary dark:text-dark-primary"
                 placeholderTextColor="#999"
+                returnKeyType="search"
               />
             </View>
 
             {/* Business List */}
-            <ScrollView className="px-4"
+            <ScrollView
+              className="px-4"
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
               contentContainerStyle={{
                 paddingTop: 20,
                 paddingBottom: 20
@@ -137,6 +170,7 @@ const AssignRoleModal = ({
               disabled={loading || applying || assignRole.length === 0}
             />
           </SafeAreaView>
+        </View>
         </View>
       </BlurView>
     </Modal>

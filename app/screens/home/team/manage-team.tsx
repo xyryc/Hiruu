@@ -18,6 +18,8 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -586,103 +588,114 @@ const ManageTeamPanel = () => {
       className="flex-1 bg-white"
       edges={["left", "right", "bottom"]}
     >
-      <StatusBar
-        style={isDark ? "light" : "dark"}
-        backgroundColor="#E5F4FD"
-        translucent={false}
-      />
-
-      <View
-        className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
-        style={{ paddingTop: insets.top }}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={insets.top + 20}
+        enabled
       >
-        <ScreenHeader
-          className="px-5 pt-2.5 pb-4"
-          onPressBack={() => router.back()}
-          title={t("user.profile.manageTeam.titleWithCount", {
-            count: teamMembers.length,
-          })}
-          titleClass="text-primary dark:text-dark-primary"
-          iconColor={isDark ? "#fff" : "#111111"}
+        <StatusBar
+          style={isDark ? "light" : "dark"}
+          backgroundColor="#E5F4FD"
+          translucent={false}
         />
-      </View>
 
-      <View>
-        <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 my-5">
-          <EvilIcons name="search" size={24} color="#666" />
-          <TextInput
-            placeholder={t("common.searchHere")}
-            className="ml-2 py-1.5 text-gray-700 dark:text-dark-primary"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#999"
+        <View
+          className="bg-[#E5F4FD] rounded-b-2xl overflow-hidden"
+          style={{ paddingTop: insets.top }}
+        >
+          <ScreenHeader
+            className="px-5 pt-2.5 pb-4"
+            onPressBack={() => router.back()}
+            title={t("user.profile.manageTeam.titleWithCount", {
+              count: teamMembers.length,
+            })}
+            titleClass="text-primary dark:text-dark-primary"
+            iconColor={isDark ? "#fff" : "#111111"}
           />
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            alignItems: "center",
-          }}
-        >
-          {filterOptions.map((option) => (
-            <TouchableOpacity
-              key={option.value}
-              onPress={() => setFilter(option.value)}
-              className={`px-4 py-1 rounded-full mb-4 mr-2 border ${filter === option.value
-                ? "bg-[#11293A] border-[#11293A]"
-                : "bg-white dark:bg-dark-background border-[#EEEEEE]"
-                }`}
-              style={{
-                flexShrink: 0,
-                maxWidth: 180,
-                minHeight: 30,
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                className={`font-proximanova-regular text-sm ${filter === option.value
-                  ? "text-white font-proximanova-semibold"
-                  : "text-primary dark:text-dark-primary"
-                  }`}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {option.label} ({option.count})
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {loading ? (
-          <View pointerEvents="none" className="pb-10">
-            {skeletonTeamMembers.map((item) => (
-              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
-                <TeamMemberCardSkeleton />
-              </AutoSkeletonView>
-            ))}
+        <View className="flex-1">
+          <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 my-5">
+            <EvilIcons name="search" size={24} color="#666" />
+            <TextInput
+              placeholder={t("common.searchHere")}
+              className="ml-2 py-1.5 text-gray-700 dark:text-dark-primary"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#999"
+              returnKeyType="search"
+            />
           </View>
-        ) : (
-	          <FlatList
-	            data={filteredTeamMembers}
-            renderItem={renderTeamMember}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View className="px-5 pt-10">
-                <StatusStateCard
-                  image={require("@/assets/images/male.svg")}
-                  title={t("user.profile.manageTeam.emptyTitle")}
-                  text={t("user.profile.manageTeam.emptyText")}
-                />
-              </View>
-            }
-          />
-        )}
-      </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              alignItems: "center",
+            }}
+          >
+            {filterOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                onPress={() => setFilter(option.value)}
+                className={`px-4 py-1 rounded-full mb-4 mr-2 border ${filter === option.value
+                  ? "bg-[#11293A] border-[#11293A]"
+                  : "bg-white dark:bg-dark-background border-[#EEEEEE]"
+                  }`}
+                style={{
+                  flexShrink: 0,
+                  maxWidth: 180,
+                  minHeight: 30,
+                  justifyContent: "center",
+                }}
+              >
+                <Text
+                  className={`font-proximanova-regular text-sm ${filter === option.value
+                    ? "text-white font-proximanova-semibold"
+                    : "text-primary dark:text-dark-primary"
+                    }`}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {option.label} ({option.count})
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {loading ? (
+            <View pointerEvents="none" className="pb-10">
+              {skeletonTeamMembers.map((item) => (
+                <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
+                  <TeamMemberCardSkeleton />
+                </AutoSkeletonView>
+              ))}
+            </View>
+          ) : (
+            <FlatList
+              data={filteredTeamMembers}
+              renderItem={renderTeamMember}
+              keyExtractor={(item) => item.id}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerStyle={{ paddingBottom: 100 }}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View className="px-5 pt-10">
+                  <StatusStateCard
+                    image={require("@/assets/images/male.svg")}
+                    title={t("user.profile.manageTeam.emptyTitle")}
+                    text={t("user.profile.manageTeam.emptyText")}
+                  />
+                </View>
+              }
+            />
+          )}
+        </View>
+      </KeyboardAvoidingView>
 
       <WorkingHourSettingsModal
         visible={showWorkingHourSettingsModal}
