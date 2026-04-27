@@ -335,7 +335,7 @@ const CandidateRequests = () => {
             <BusinessJobCard
               candidate={isActive === "sent"}
               received={isActive === "received"}
-              disableModalOpen={isActive === "received"}
+              disableModalOpen={isActive === "received" || isActive === 'sent'}
               className="mt-4"
               profile={mapToProfile(item)}
               onAccept={
