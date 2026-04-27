@@ -23,7 +23,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Hiruu to access your camera to scan QR codes.",
         "NSMicrophoneUsageDescription": "Allow Hiruu to access your microphone for audio calls."
-      }
+      },
+      "appleTeamId": "3KZ7XWRYB7"
     },
     "android": {
       "adaptiveIcon": {
@@ -40,7 +41,12 @@
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "intentFilters": [
         {

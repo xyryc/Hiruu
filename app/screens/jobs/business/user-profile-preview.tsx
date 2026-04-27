@@ -6,6 +6,7 @@ import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ExperienceCard from "@/components/ui/cards/ExperienceCard";
 import StatCardPrimary from "@/components/ui/cards/StatCardPrimary";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
+import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import { chatService } from "@/services/chatService";
 import { useAuthStore } from "@/stores/authStore";
 import { useJobStore } from "@/stores/jobStore";
@@ -128,6 +129,18 @@ const UserProfilePreview = () => {
       t("user.profile.userProfile.noProfileSummary")
     );
   }, [profile, t]);
+  const interests = useMemo(() => {
+    const source = Array.isArray(profile?.user?.interest)
+      ? profile.user.interest
+      : Array.isArray(profile?.interest)
+        ? profile.interest
+        : [];
+
+    return source
+      .filter((item: unknown) => typeof item === "string")
+      .map((item: string) => item.trim().toLowerCase())
+      .filter(Boolean);
+  }, [profile]);
 
   const openDaysCount = useMemo(() => {
     const weeklyAvailability = Array.isArray(profile?.weeklyAvailability)
@@ -659,39 +672,13 @@ const UserProfilePreview = () => {
           </Text>
         </View>
 
-        <View className="flex-row justify-between mx-5 mt-4">
-          <View>
-            <View className="w-16 h-16 rounded-full items-center justify-center bg-gray-200 p-2.5">
-              <Text className="text-2xl">⚽</Text>
-            </View>
-            <Text className="text-center text-xs  mt-2 font-proximanova-medium">
-              Sports
-            </Text>
-          </View>
-          <View>
-            <View className="w-16 h-16 rounded-full items-center justify-center bg-green-100 p-2.5">
-              <Text className="text-2xl">🎵</Text>
-            </View>
-            <Text className="text-center text-xs  mt-2 font-proximanova-medium">
-              Music
-            </Text>
-          </View>
-          <View>
-            <View className="w-16 h-16 rounded-full items-center justify-center bg-yellow-100 p-2.5">
-              <Text className="text-2xl">📷</Text>
-            </View>
-            <Text className="text-center text-xs  mt-2 font-proximanova-medium">
-              Photography
-            </Text>
-          </View>
-          <View>
-            <View className="w-16 h-16 rounded-full items-center justify-center bg-orange-100 p-2.5">
-              <Text className="text-2xl">🎨</Text>
-            </View>
-            <Text className="text-center text-xs  mt-2 font-proximanova-medium">
-              Art
-            </Text>
-          </View>
+        <View className="mx-5 mt-4">
+          <InterestSelection
+            selectedInterests={interests}
+            onInterestsChange={() => {}}
+            readonly
+            showSelectedOnly
+          />
         </View>
 
         {/* Employee Info */}
