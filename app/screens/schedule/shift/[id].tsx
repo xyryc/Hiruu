@@ -116,6 +116,9 @@ const ShiftDetails = () => {
   const assignedByAvatar = details?.assignedBy?.avatar;
   const assignedById = details?.assignedBy?.id;
   const assignedBusinessId = details?.business?.id;
+  const employeeDescription = String(
+    details?.assignedEmployee?.description || ""
+  ).trim();
 
   const handleOpenAssignedByProfile = () => {
     if (!assignedById) {
@@ -385,35 +388,9 @@ const ShiftDetails = () => {
             {t("common.description", { defaultValue: "Description" })}
           </Text>
 
-          <View>
-            <View className="flex-row mb-4">
-              <Entypo
-                name="dot-single"
-                size={18}
-                color={isDark ? "#FFFFFF" : "#7A7A7A"}
-              />
-              <Text className="text-sm text-secondary dark:text-white">
-                {t("user.jobs.schedule.shiftDescriptionLine1", {
-                  defaultValue:
-                    "A Kitchen Helper / Dishwasher plays a vital role in the smooth operation of a kitchen by ensuring that cleanliness, hygiene, and basic support tasks are handled efficiently.",
-                })}
-              </Text>
-            </View>
-
-            <View className="flex-row">
-              <Entypo
-                name="dot-single"
-                size={18}
-                color={isDark ? "#FFFFFF" : "#7A7A7A"}
-              />
-              <Text className="text-sm text-secondary dark:text-white">
-                {t("user.jobs.schedule.shiftDescriptionLine2", {
-                  defaultValue:
-                    "This position supports chefs and kitchen staff by maintaining a clean work environment, preparing ingredients, and washing dishes, tools, and equipment.",
-                })}
-              </Text>
-            </View>
-          </View>
+          <Text className="text-sm text-secondary dark:text-white">
+            {employeeDescription || t("common.notAvailable", { defaultValue: "Not available" })}
+          </Text>
         </View>
 
         {/* important note */}
