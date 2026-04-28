@@ -10,10 +10,9 @@ import { useProfileStore } from "@/stores/profileStore";
 import {
   EvilIcons,
   Feather,
-  FontAwesome6,
   Ionicons,
-  MaterialIcons,
   MaterialCommunityIcons,
+  MaterialIcons,
   SimpleLineIcons
 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -439,7 +438,7 @@ const BusinessProfile = () => {
                 ) : null}
                 {businessData?.isPremium ? (
                   <View className="h-5 w-5 bg-[#4E57FF] flex-row justify-center items-center rounded-full">
-                    <FontAwesome6 name="crown" size={8} color="white" />
+                    <MaterialCommunityIcons name="crown" size={10} color="white" />
                   </View>
                 ) : null}
               </View>
