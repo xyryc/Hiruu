@@ -73,6 +73,18 @@ const BusinessJobCard = ({
     applicationStatus === "approved" || applicationStatus === "rejected"
       ? applicationStatus
       : null;
+  const isVerified = Boolean(
+    profile?.user?.isEmailVerified || profile?.user?.isNumberVerified
+  );
+  const rawRating =
+    profile?.rating ??
+    profile?.user?.rating ??
+    profile?.averageRating ??
+    0;
+  const numericRating = Number(rawRating);
+  const displayRating = Number.isFinite(numericRating)
+    ? Number(numericRating.toFixed(1))
+    : 0;
 
   // Handle address - check for user.address.address structure
   let address = t("common.addressUnavailable");
@@ -94,6 +106,15 @@ const BusinessJobCard = ({
         ? t("user.jobs.businessJobCard.salaryType.hourly")
         : rawSalaryType;
   const distanceKm = profile?.distanceKm;
+  const preferenceJobTypeRaw =
+    profile?.preferenceJobType ?? profile?.user?.jobProfile?.preferenceJobType;
+  const preferenceJobType =
+    typeof preferenceJobTypeRaw === "string" && preferenceJobTypeRaw.trim()
+      ? preferenceJobTypeRaw
+          .trim()
+          .replace(/[_-]+/g, " ")
+          .replace(/\b\w/g, (char) => char.toUpperCase())
+      : null;
   const dialPhoneNumber =
     (typeof profile?.user?.dialPhoneNumber === "string" && profile.user.dialPhoneNumber.trim())
       ? profile.user.dialPhoneNumber.trim()
@@ -102,10 +123,7 @@ const BusinessJobCard = ({
 
   // Check if user is open to work from jobProfile
   const isOpenToWork = profile?.isOpenToWork ?? profile?.user?.jobProfile?.isOpenToWork ?? false;
-  const isOnline = profile?.user?.isOnline || false;
-
-  // Determine availability status: open to work takes priority over online status
-  const availabilityStatus: "available" | "unavailable" = isOpenToWork ? "available" : (isOnline ? "available" : "unavailable");
+  const shouldShowAvailableBadge = isOpenToWork === true;
 
   const handleMessageClick = async () => {
     const participantId = profile?.userId || profile?.user?.id;
@@ -280,16 +298,16 @@ const BusinessJobCard = ({
 
         {/* badges */}
         <View className="flex-row gap-1.5 mt-2.5">
-          {status === "featured" || candidate ? (
+          {isVerified ? (
             <View className="flex-row gap-1.5 items-center px-2.5 py-1 bg-[#3F98FF4D] rounded-full">
               <MaterialIcons name="verified" size={16} color="#3090FF" />
               <Text className="text-xs font-proximanova-regular text-primary">
                 {t("common.verified")}
               </Text>
             </View>
-          ) : (
-            <StatusBadge status={availabilityStatus} size="small" />
-          )}
+          ) : !candidate && status !== "featured" && shouldShowAvailableBadge ? (
+            <StatusBadge status="available" size="small" />
+          ) : null}
 
           <View
             className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
@@ -297,18 +315,20 @@ const BusinessJobCard = ({
           `}
           >
             <FontAwesome name="star" size={16} color="#F1C400" />
-            <Text className="text-xs font-proximanova-regular">4</Text>
+            <Text className="text-xs font-proximanova-regular">{displayRating}</Text>
           </View>
 
-          <View
-            className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
-                ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
-          `}
-          >
-            <Text className="text-xs font-proximanova-regular">
-              {t("user.jobs.postJob.options.fullTime")}
-            </Text>
-          </View>
+          {preferenceJobType && (
+            <View
+              className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
+                  ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
+            `}
+            >
+              <Text className="text-xs font-proximanova-regular">
+                {preferenceJobType}
+              </Text>
+            </View>
+          )}
 
           {distanceKm !== null && distanceKm !== undefined && (
             <View

@@ -51,6 +51,8 @@ const CandidateRequests = () => {
 
   const currentBusinessId = selectedBusinesses?.[0] || null;
 
+  console.log("[CandidateRequests] currentBusinessId", currentBusinessId);
+
   const { markAsRead } = useUnreadApplications({
     autoRefresh: false,
     scope: "business",
@@ -210,6 +212,8 @@ const CandidateRequests = () => {
     const jobProfile = user?.jobProfile || {};
     const recruitment = item?.recruitment || {};
 
+    console.log("[CandidateRequests] rating debug", JSON.stringify(item, null, 2));
+
     // Handle address - prefer from user object in the application response
     const userAddress = user?.address;
 
@@ -335,7 +339,7 @@ const CandidateRequests = () => {
             <BusinessJobCard
               candidate={isActive === "sent"}
               received={isActive === "received"}
-              disableModalOpen={isActive === "received"}
+              disableModalOpen={isActive === "received" || isActive === 'sent'}
               className="mt-4"
               profile={mapToProfile(item)}
               onAccept={
