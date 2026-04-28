@@ -39,7 +39,7 @@ const SignUp = () => {
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
   const router = useRouter();
 
-  const { register, isLoading, clearError } = useAuthStore();
+  const { register, isLoading, clearError, setFcmToken } = useAuthStore();
 
   const fallbackCountry = useMemo(() => getCountryByCca2("US"), []);
 
@@ -79,6 +79,9 @@ const SignUp = () => {
   const handleSignup = async () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
+    if (fcmToken) {
+      setFcmToken(fcmToken);
+    }
     const timeZone = getCalendars()[0]?.timeZone || "UTC";
 
     if (selectedTab === "email") {

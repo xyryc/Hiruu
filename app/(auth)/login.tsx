@@ -40,7 +40,7 @@ const Login = () => {
   const [isValidPhone, setIsValidPhone] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null);
   const router = useRouter();
-  const { login, isLoading, clearError } = useAuthStore();
+  const { login, isLoading, clearError, setFcmToken } = useAuthStore();
   const fallbackCountry = useMemo(() => getCountryByCca2("US"), []);
 
   useEffect(() => {
@@ -94,6 +94,9 @@ const Login = () => {
   const handleLogin = async () => {
     clearError();
     const fcmToken = await registerForFcmToken().catch(() => undefined);
+    if (fcmToken) {
+      setFcmToken(fcmToken);
+    }
     const timeZone = getCalendars()[0].timeZone || 'UTC';
 
     if (selectedTab === "Email") {

@@ -470,8 +470,8 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         return () => {
             isMounted.current = false;
 
-            // Leave chat room only if we joined
-            if (hasJoinedRoom) {
+            if (roomId) {
+                socketService.stopTyping(roomId);
                 socketService.leaveChat(roomId);
             }
 
