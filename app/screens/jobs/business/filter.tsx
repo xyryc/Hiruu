@@ -134,14 +134,7 @@ const FindJobFilters = () => {
         startTime: slot.startTime,
         endTime: slot.endTime,
       }))
-      : Array.isArray(businessCandidateFilters.availableDays)
-        ? businessCandidateFilters.availableDays.map((day) => ({
-          day: String(day),
-          isOpen: true,
-          startTime: "09:00",
-          endTime: "17:00",
-        }))
-        : []
+      : []
   );
   const router = useRouter();
   const handleSelectLocation = (item: LocationOption) => {
@@ -415,10 +408,6 @@ const FindJobFilters = () => {
       typeof selectedCoords?.longitude === "number";
     const normalizedRole = experienceSlots[0]?.roleName?.trim() || undefined;
 
-    const availableDays = weeklyAvailability
-      .filter((item) => item.isOpen)
-      .map((item) => item.day.toLowerCase());
-
     const workingDaySlots = weeklyAvailability
       .filter((item) => item.isOpen && item.startTime && item.endTime)
       .map((item) => ({
@@ -444,7 +433,7 @@ const FindJobFilters = () => {
       sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
       availabilityTypes: availabilityTypes.length > 0 ? availabilityTypes : undefined,
       shiftTypes: selectedShiftTypes.length > 0 ? selectedShiftTypes : undefined,
-      availableDays: availableDays.length > 0 ? availableDays : undefined,
+      availableDays: undefined,
       workingDaySlots: workingDaySlots.length > 0 ? workingDaySlots : undefined,
       experienceRequirements:
         experienceSlots.length > 0

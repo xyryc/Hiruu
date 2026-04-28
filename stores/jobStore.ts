@@ -158,11 +158,6 @@ const buildJobProfilesParams = (query: any) => {
       ? query.shiftTypes.join(",")
       : query.shiftTypes;
   }
-  if (query.availableDays) {
-    params.availableDays = Array.isArray(query.availableDays)
-      ? query.availableDays.join(",")
-      : query.availableDays;
-  }
   if (query.experienceRequirements && query.experienceRequirements.length > 0) {
     params.experienceRequirements = JSON.stringify(query.experienceRequirements);
   }
