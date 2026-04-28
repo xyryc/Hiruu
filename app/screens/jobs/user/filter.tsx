@@ -439,10 +439,6 @@ const FindJobFilters = () => {
       search: nextSearch || undefined,
     };
 
-    console.log(
-      "[User Job Filters] payload to backend:\n" +
-      JSON.stringify(nextFilters, null, 2)
-    );
     setAllJobsFilters(nextFilters);
 
     if (params.from === "all-jobs") {

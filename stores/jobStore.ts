@@ -469,10 +469,6 @@ export const useJobStore = create<JobState>((set) => ({
   getPublicRecruitments: async (query = {}) => {
     try {
       const params = buildRecruitmentQuery(query);
-      console.log(
-        "[Public Recruitments] request params:\n" +
-        JSON.stringify(params, null, 2)
-      );
 
       const response = await axiosInstance.get("/recruitment/public", {
         params,
@@ -544,10 +540,7 @@ export const useJobStore = create<JobState>((set) => ({
       const response = await axiosInstance.get(`/recruitment/${businessId}/${id}`);
       const result = response.data;
 
-      console.log(
-        "[JobStore] getRecruitmentById response:",
-        JSON.stringify(result, null, 2)
-      );
+
 
       const hasError =
         result?.success === false ||
@@ -1080,34 +1073,34 @@ export const useJobStore = create<JobState>((set) => ({
         axiosError.message ||
         "Failed to update application status";
       throw new Error(message);
+    }
+  },
+
+  respondToMyApplication: async (id, action) => {
+    try {
+      const response = await axiosInstance.patch(
+        `/recruitment-application/${id}/respond`,
+        { action }
+      );
+      const result = response.data;
+
+      const hasError =
+        result?.success === false ||
+        (typeof result?.statusCode === "number" && result.statusCode >= 400);
+      if (hasError) {
+        throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
       }
-    },
 
-    respondToMyApplication: async (id, action) => {
-      try {
-        const response = await axiosInstance.patch(
-          `/recruitment-application/${id}/respond`,
-          { action }
-        );
-        const result = response.data;
-
-        const hasError =
-          result?.success === false ||
-          (typeof result?.statusCode === "number" && result.statusCode >= 400);
-        if (hasError) {
-          throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
-        }
-
-        return result?.data || result;
-      } catch (error) {
-        const axiosError = error as AxiosError<any>;
-        const message =
-          translateApiMessage(axiosError.response?.data?.message) ||
-          axiosError.message ||
-          "Failed to respond to application";
-        throw new Error(message);
-      }
-    },
+      return result?.data || result;
+    } catch (error) {
+      const axiosError = error as AxiosError<any>;
+      const message =
+        translateApiMessage(axiosError.response?.data?.message) ||
+        axiosError.message ||
+        "Failed to respond to application";
+      throw new Error(message);
+    }
+  },
 
   getMyEmployments: async () => {
     try {

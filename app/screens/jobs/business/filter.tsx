@@ -456,10 +456,6 @@ const FindJobFilters = () => {
           : undefined,
     };
 
-    console.log(
-      "[Business Candidate Filters] payload to backend:\n" +
-      JSON.stringify(nextFilters, null, 2)
-    );
     setBusinessCandidateFilters(nextFilters);
 
     router.back();

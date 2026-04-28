@@ -125,19 +125,19 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         );
       }
 
-      const nextPageItems = Array.isArray(result?.data)
-        ? (result.data as AchievementItem[]).map((item) => ({
-          ...item,
-          rewardCoins:
-            typeof item?.rewardCoins === "number"
-              ? item.rewardCoins
+        const nextPageItems: AchievementItem[] = Array.isArray(result?.data)
+          ? (result.data as AchievementItem[]).map((item) => ({
+              ...item,
+              rewardCoins:
+                typeof item?.rewardCoins === "number"
+                  ? item.rewardCoins
               : typeof item?.rewards?.[0]?.coins === "number"
                 ? item.rewards[0].coins
                 : 0,
         }))
         : [];
       const pagination = result?.pagination || null;
-      let mergedItems = nextPageItems;
+        let mergedItems: AchievementItem[] = nextPageItems;
 
       set((state) => {
         mergedItems = append
@@ -210,10 +210,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
     try {
       const response = await axiosInstance.post(`/achievements/${id}/claim`);
       const result = response.data;
-      console.log(
-        "[AchievementStore] claimAchievement response:",
-        JSON.stringify(result, null, 2)
-      );
+
 
       if (result?.success === false) {
         throw new Error(
