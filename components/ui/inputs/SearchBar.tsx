@@ -2,7 +2,7 @@ import { SearchBarProps } from "@/types/components/input";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TextInput, TouchableOpacity, View } from "react-native";
+import { Platform, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SearchBar({ className, onSearch, value }: SearchBarProps) {
   const { t } = useTranslation();
@@ -26,14 +26,17 @@ export default function SearchBar({ className, onSearch, value }: SearchBarProps
 
   return (
     <View
-      className={`flex-row items-center rounded-[10px] px-4 ${className} border ${isFocused ? "border-[#00000027]" : "border-[#EEEEEE]"
+      className={`flex-row items-center rounded-[10px] px-4 min-h-11 ${className} border ${isFocused ? "border-[#00000027]" : "border-[#EEEEEE]"
         }`}
     >
       <Feather name="search" size={18} color="#6B7280" className="mr-2" />
 
       <TextInput
-        style={{ fontFamily: "ProximaNova-Regular" }}
-        className="flex-1 py-3"
+        style={{
+          fontFamily: "ProximaNova-Regular",
+          paddingVertical: Platform.OS === "ios" ? 11 : 10,
+        }}
+        className="flex-1"
         placeholder={t("common.searchHere")}
         placeholderTextColor="#7A7A7A"
         value={inputValue}
