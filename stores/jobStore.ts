@@ -141,7 +141,7 @@ const buildJobProfilesParams = (query: any) => {
   if (query.isPremium !== undefined && typeof params.isFeatured === "undefined") {
     params.isFeatured = query.isPremium;
   }
-  if (query.location) params.location = query.location;
+  // if (query.location) params.location = query.location;
   if (query.latitude !== undefined) params.latitude = query.latitude;
   if (query.longitude !== undefined) params.longitude = query.longitude;
   if (query.postcode) params.postcode = query.postcode;

@@ -132,8 +132,8 @@ interface ProfileState {
     averageRating: number;
     totalRatings: number;
     ratingBreakdown: {
-      onTime?: { average: number; count: number };
-      trustWorthy?: { average: number; count: number };
+      payOnTime?: { average: number; count: number };
+      workEnvironment?: { average: number; count: number };
       communication?: { average: number; count: number };
     };
   } | null;
@@ -155,8 +155,8 @@ interface ProfileState {
   createUserBusinessRating: (payload: {
     businessId: string;
     ratings: {
-      onTime: number;
-      trustWorthy: number;
+      payOnTime: number;
+      workEnvironment: number;
       communication: number;
     };
   }) => Promise<any>;
@@ -680,7 +680,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoadingRatingSummary: true, error: null });
+    set({ isLoadingRatingSummary: true, error: null, businessRatingSummary: null });
 
     try {
       const response = await axiosInstance.get(
