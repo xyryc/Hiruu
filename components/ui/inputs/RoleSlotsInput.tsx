@@ -132,12 +132,6 @@ const RoleSlotsInput = ({
     setRoleSlots((prev) => prev.filter((slot) => slot.id !== slotId));
   };
 
-  const updateRoleName = (slotId: number, roleName: string) => {
-    setRoleSlots((prev) =>
-      prev.map((slot) => (slot.id === slotId ? { ...slot, roleName } : slot))
-    );
-  };
-
   return (
     <View className="py-5">
       {titleHeight || (
@@ -160,9 +154,10 @@ const RoleSlotsInput = ({
               <TextInput
                 placeholder="Role name"
                 value={slot.roleName}
-                onChangeText={(text) => updateRoleName(slot.id, text)}
                 className="border border-[#EEEEEE] px-2.5 py-2.5 rounded-lg font-proximanova-regular text-sm"
                 autoCapitalize="words"
+                editable={false}
+                selectTextOnFocus={false}
               />
             </View>
 

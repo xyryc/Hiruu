@@ -23,13 +23,14 @@ import {
   onNotificationOpenedApp,
 } from "@react-native-firebase/messaging";
 import { Platform } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SplashScreen from "./splash";
 
 
 const AppBootstrap = () => {
   const messaging = getMessaging(getApp());
   const router = useRouter();
+  const fcmSetupDoneForUserRef = useRef<string | null>(null);
 
   const [fontsLoaded] = useFonts({
     "ProximaNova-Thin": require("../assets/fonts/ProximaNova-Thin.ttf"),
@@ -43,6 +44,7 @@ const AppBootstrap = () => {
 
   const [appIsReady, setAppIsReady] = useState(false);
   const { initializeAuth, user } = useAuthStore();
+  const setFcmToken = useAuthStore((state) => state.setFcmToken);
   const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
   const netInfo = useNetInfo();
   const { isServerDown, message, checkHealthNow } = useServerStatusStore();
@@ -56,6 +58,7 @@ const AppBootstrap = () => {
   }, []);
 
   const extractChatNotificationPayload = useCallback((rawData: any) => {
+    // console.log("[NotifDebug] extractChatNotificationPayload:input", rawData);
     if (!rawData || typeof rawData !== "object") return null;
 
     const type = typeof rawData.type === "string" ? rawData.type : "";
@@ -65,9 +68,17 @@ const AppBootstrap = () => {
       typeof rawData.messageId === "string" ? rawData.messageId : undefined;
 
     if (type !== "chat_message" || !chatRoomId) {
+      // console.log("[NotifDebug] extractChatNotificationPayload:ignored", {
+      //   type,
+      //   chatRoomId,
+      // });
       return null;
     }
 
+    // console.log("[NotifDebug] extractChatNotificationPayload:resolved", {
+    //   chatRoomId,
+    //   hasMessageId: Boolean(messageId),
+    // });
     return { chatRoomId, messageId };
   }, []);
 
@@ -96,8 +107,14 @@ const AppBootstrap = () => {
   }, []);
 
   const navigateToChatRoom = useCallback((payload: { chatRoomId: string; messageId?: string }) => {
+    // console.log("[NotifDebug] navigateToChatRoom:attempt", {
+    //   payload,
+    //   appIsReady,
+    //   hasUser: Boolean(user),
+    // });
     if (!appIsReady || !user) {
       setPendingChatNavigation(payload);
+      // console.log("[NotifDebug] navigateToChatRoom:deferred");
       return;
     }
 
@@ -108,6 +125,9 @@ const AppBootstrap = () => {
         ...(payload.messageId ? { messageId: payload.messageId } : {}),
       },
     });
+    // console.log("[NotifDebug] navigateToChatRoom:pushed", {
+    //   roomId: payload.chatRoomId,
+    // });
   }, [appIsReady, router, user]);
 
   useEffect(() => {
@@ -153,21 +173,38 @@ const AppBootstrap = () => {
       importance: Notifications.AndroidImportance.MAX,
       sound: "default",
       vibrationPattern: [0, 250, 250, 250],
-    }).catch(() => undefined);
+    })
+      .then(() => {
+        // console.log("[NotifDebug] android-notification-channel:created");
+      })
+      .catch((error) => {
+        // console.log("[NotifDebug] android-notification-channel:error", {
+        //   message: error?.message,
+        // });
+      });
   }, []);
 
   useEffect(() => {
     const setupFcm = async () => {
-      if (!user) return;
+      if (!user?.id) return;
+      if (fcmSetupDoneForUserRef.current === user.id) return;
+      fcmSetupDoneForUserRef.current = user.id;
+      // console.log("[NotifDebug] setupFcm:start", { userId: user?.id });
       try {
-        await registerForFcmToken();
+        const token = await registerForFcmToken();
+        if (token) {
+          setFcmToken(token);
+        }
+        // console.log("[NotifDebug] setupFcm:token-ready", {
+        //   hasToken: Boolean(token),
+        // });
       } catch (e) {
         console.error("FCM setup error:", e);
       }
     };
 
     setupFcm();
-  }, [user]);
+  }, [setFcmToken, user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -176,7 +213,11 @@ const AppBootstrap = () => {
 
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
-      console.log("FCM foreground =>", remoteMessage);
+      // console.log("[NotifDebug] onMessage:foreground", {
+      //   messageId: remoteMessage?.messageId,
+      //   data: remoteMessage?.data,
+      //   title: remoteMessage?.notification?.title,
+      // });
       const { title, body } = resolveFcmDisplayText(remoteMessage);
 
       // Show a visible banner while app is foregrounded.
@@ -189,10 +230,16 @@ const AppBootstrap = () => {
         },
         trigger: null,
       });
+      // console.log("[NotifDebug] onMessage:local-notification-scheduled", {
+      //   title,
+      // });
     });
 
     const unsubscribeOnOpen = onNotificationOpenedApp(messaging, (remoteMessage) => {
-      console.log("FCM opened from background =>", remoteMessage);
+      // console.log("[NotifDebug] onNotificationOpenedApp", {
+      //   messageId: remoteMessage?.messageId,
+      //   data: remoteMessage?.data,
+      // });
       const payload = extractChatNotificationPayload(remoteMessage?.data);
       if (payload) {
         navigateToChatRoom(payload);
@@ -202,17 +249,30 @@ const AppBootstrap = () => {
     getInitialNotification(messaging)
       .then((remoteMessage) => {
         if (remoteMessage) {
-          console.log("FCM opened from quit =>", remoteMessage);
+          // console.log("[NotifDebug] getInitialNotification:hit", {
+          //   messageId: remoteMessage?.messageId,
+          //   data: remoteMessage?.data,
+          // });
           const payload = extractChatNotificationPayload(remoteMessage?.data);
           if (payload) {
             navigateToChatRoom(payload);
           }
+        } else {
+          // console.log("[NotifDebug] getInitialNotification:empty");
         }
       })
-      .catch(() => undefined);
+      .catch((error) => {
+        // console.log("[NotifDebug] getInitialNotification:error", {
+        //   message: error?.message,
+        // });
+      });
 
     const notificationResponseSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
+        // console.log("[NotifDebug] addNotificationResponseReceivedListener", {
+        //   identifier: response?.notification?.request?.identifier,
+        //   data: response?.notification?.request?.content?.data,
+        // });
         const payload = extractChatNotificationPayload(
           response.notification.request.content.data
         );

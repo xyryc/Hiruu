@@ -1,5 +1,4 @@
 import { StatusBadgeProps, UserScheduleUiShift } from "@/types";
-import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -94,12 +93,12 @@ const RegularShiftCard = ({ shift }: RegularShiftCardProps) => {
 
         <View className="flex-row gap-1.5 items-center">
           <StatusBadge status={badgeStatus} />
-          <TouchableOpacity
+          {/* <TouchableOpacity
             className={`p-2 rounded-full
               ${shift.status === "ongoing" || shift.status === "upcoming" ? "bg-[#4FB2F3]" : "bg-[#4fb1f365]"}`}
           >
             <Feather name="repeat" size={14} color="#fff" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

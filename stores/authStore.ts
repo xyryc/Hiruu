@@ -55,6 +55,7 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  fcmToken: string | null;
   sessionExpired: boolean;
   isLoading: boolean;
   error: Error | null;
@@ -76,6 +77,7 @@ interface AuthState {
   clearError: () => void;
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string | null, refreshToken: string | null) => void;
+  setFcmToken: (fcmToken: string | null) => void;
   setSessionExpired: (expired: boolean) => void;
 }
 
@@ -83,6 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
+  fcmToken: null,
   sessionExpired: false,
   isLoading: false,
   error: null,
@@ -100,6 +103,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: authData.user,
           accessToken: authData.accessToken,
           refreshToken: authData.refreshToken,
+          fcmToken: authData.user?.fcmToken || null,
           sessionExpired: false,
           isInitialized: true,
         });
@@ -144,6 +148,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.data));
         set({
           user: response.data,
+          fcmToken: response.data?.fcmToken || data?.fcmToken || get().fcmToken,
           isLoading: false,
         });
       } else {
@@ -155,6 +160,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          fcmToken: response.data?.fcmToken || data?.fcmToken || get().fcmToken,
         });
       }
 
@@ -179,6 +185,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          fcmToken: response.data?.fcmToken || data?.fcmToken || get().fcmToken,
           sessionExpired: false,
           isLoading: false,
         });
@@ -207,6 +214,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          fcmToken: response.data?.fcmToken || data?.fcmToken || get().fcmToken,
           sessionExpired: false,
           isLoading: false,
         });
@@ -235,6 +243,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: response.data,
           accessToken: response.tokens.access.token,
           refreshToken: response.tokens.refresh.token,
+          fcmToken: response.data?.fcmToken || get().fcmToken,
           sessionExpired: false,
           isLoading: false,
         });
@@ -345,9 +354,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     try {
       const { refreshToken } = get();
+      const fcmToken = get().fcmToken || get().user?.fcmToken || null;
 
       if (refreshToken) {
-        await authService.logout(refreshToken);
+        await authService.logout(refreshToken, fcmToken || undefined);
       }
 
       await authService.clearAuthData();
@@ -356,6 +366,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         accessToken: null,
         refreshToken: null,
+        fcmToken: null,
         sessionExpired: false,
       });
     } catch (error) {
@@ -366,6 +377,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         accessToken: null,
         refreshToken: null,
+        fcmToken: null,
         sessionExpired: false,
       });
     }
@@ -374,5 +386,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearError: () => set({ error: null }),
   setUser: (user) => set({ user, sessionExpired: user ? false : get().sessionExpired }),
   setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+  setFcmToken: (fcmToken) =>
+    set((state) => ({
+      fcmToken,
+      user: state.user ? { ...state.user, fcmToken: fcmToken || undefined } : state.user,
+    })),
   setSessionExpired: (expired) => set({ sessionExpired: expired }),
 }));

@@ -8,8 +8,8 @@ import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -167,7 +167,7 @@ const ShiftSchedule = () => {
           ? breakDuration
             .map((item) => `${to12Hour(item?.startTime)} - ${to12Hour(item?.endTime)}`)
             .join(", ")
-          : undefined;
+          : "No break";
 
       return {
         id: shift.id || `${business?.id || "unknown"}-${shift?.date || Date.now()}`,
@@ -243,10 +243,19 @@ const ShiftSchedule = () => {
   );
 
   const filteredShifts = useMemo(() => {
-    if (selectedEmploymentBusinessIds.length === 0) return uiShifts;
-    return uiShifts.filter((shift) =>
+    const shifts =
+      selectedEmploymentBusinessIds.length === 0
+        ? uiShifts
+        : uiShifts.filter((shift) =>
       selectedEmploymentBusinessIds.includes(shift.businessId)
     );
+
+    // Keep active/assigned shifts first and move day-off cards to the end.
+    return [...shifts].sort((a, b) => {
+      const aDayOff = a.status === "no_shift" ? 1 : 0;
+      const bDayOff = b.status === "no_shift" ? 1 : 0;
+      return aDayOff - bDayOff;
+    });
   }, [selectedEmploymentBusinessIds, uiShifts]);
 
   const modalBusinesses = useMemo(() => {

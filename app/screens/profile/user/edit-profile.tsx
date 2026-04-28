@@ -7,6 +7,7 @@ import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
+import ProfileImagePicker from "@/components/ui/inputs/ProfileImagePicker";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import EditBadgeModal from "@/components/ui/modals/EditBadgeModal";
 import InterestModal from "@/components/ui/modals/InterestModal";
@@ -41,6 +42,18 @@ import { toast } from "sonner-native";
 
 const DEFAULT_PROFILE_COLOR = "#E5F4FD";
 const DEFAULT_GRADIENT_COLORS: [string, string] = ["#E5F4FD", "#FFFFFF"];
+const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
+
+type LocationOption = {
+  label: string;
+  value: string;
+  latitude: number;
+  longitude: number;
+  placeId?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+};
 
 const Edit = () => {
   const { t } = useTranslation();
@@ -55,7 +68,11 @@ const Edit = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [shortIntro, setShortIntro] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [isEditingIdentity, setIsEditingIdentity] = useState(false);
   const [isEditingIntro, setIsEditingIntro] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [isEditingSocials, setIsEditingSocials] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
@@ -67,7 +84,18 @@ const Edit = () => {
   const [gradientColors, setGradientColors] =
     useState<[string, string]>(DEFAULT_GRADIENT_COLORS);
   const [isAppearanceDirty, setIsAppearanceDirty] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
+  const [selectedLocationOption, setSelectedLocationOption] =
+    useState<LocationOption | null>(null);
+  const [selectedCoords, setSelectedCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [isLocationFocused, setIsLocationFocused] = useState(false);
   const profileRequestIdRef = useRef(0);
+  const hasShownGeoapifyMissingKey = useRef(false);
   const user = useAuthStore((state) => state.user);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const getProfile = useProfileStore((state) => state.getProfile);
@@ -93,6 +121,36 @@ const Edit = () => {
       const result = await getProfile();
       if (requestId !== profileRequestIdRef.current) return;
       setProfileData(result.data);
+      setDisplayName(result.data?.name || "");
+      setAvatarUri(result.data?.avatar || null);
+      const address = result.data?.address;
+      if (address?.address) {
+        const initialOption: LocationOption = {
+          label: address.address,
+          value: address.address,
+          latitude: Number(address.latitude || 0),
+          longitude: Number(address.longitude || 0),
+          placeId: address.placeId,
+          city: address.city,
+          state: address.state,
+          country: address.country,
+        };
+        setLocationSearch(address.address);
+        setSelectedLocationOption(initialOption);
+        if (
+          typeof address.latitude === "number" &&
+          typeof address.longitude === "number"
+        ) {
+          setSelectedCoords({
+            latitude: address.latitude,
+            longitude: address.longitude,
+          });
+        }
+      } else {
+        setLocationSearch("");
+        setSelectedLocationOption(null);
+        setSelectedCoords(null);
+      }
       setShortIntro(result.data?.bio || "");
       if (Array.isArray(result.data?.interest)) {
         setSelectedInterests(result.data.interest);
@@ -146,6 +204,105 @@ const Edit = () => {
       return () => { };
     }, [loadProfile])
   );
+
+  useEffect(() => {
+    if (!locationSearch || locationSearch.trim().length < 3) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      return;
+    }
+
+    if (!GEOAPIFY_API_KEY) {
+      setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+      setIsSearchingLocation(false);
+      if (!hasShownGeoapifyMissingKey.current) {
+        hasShownGeoapifyMissingKey.current = true;
+        toast.error(t("user.setup.businessSetup.geoapifyKeyMissing"));
+      }
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      try {
+        setIsSearchingLocation(true);
+        const query = encodeURIComponent(locationSearch.trim());
+        const response = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&limit=8&apiKey=${GEOAPIFY_API_KEY}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Geoapify request failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const features = Array.isArray(result?.features) ? result.features : [];
+        const nextOptions: LocationOption[] = features
+          .map((item: any) => {
+            const props = item?.properties || {};
+            const coordinates = Array.isArray(item?.geometry?.coordinates)
+              ? item.geometry.coordinates
+              : [];
+            const longitude = Number(coordinates[0]);
+            const latitude = Number(coordinates[1]);
+            const label =
+              props.formatted ||
+              [props.address_line1, props.address_line2].filter(Boolean).join(", ");
+
+            if (!label || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+              return null;
+            }
+
+            return {
+              label,
+              value: label,
+              latitude,
+              longitude,
+              placeId:
+                props.place_id ||
+                props.datasource?.raw?.place_id ||
+                props.datasource?.raw?.osm_id?.toString?.(),
+              city: props.city || props.county || props.suburb,
+              state: props.state || props.state_code,
+              country: props.country,
+            };
+          })
+          .filter(Boolean) as LocationOption[];
+
+        const uniqueByLabel = Array.from(
+          new Map(nextOptions.map((item) => [item.label, item])).values()
+        );
+
+        if (selectedLocationOption) {
+          setLocationOptions(
+            Array.from(
+              new Map(
+                [selectedLocationOption, ...uniqueByLabel].map((item) => [
+                  item.label,
+                  item,
+                ])
+              ).values()
+            )
+          );
+        } else {
+          setLocationOptions(uniqueByLabel);
+        }
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          setLocationOptions(selectedLocationOption ? [selectedLocationOption] : []);
+          toast.error(t("user.setup.businessSetup.failedToFetchLocationSuggestions"));
+        }
+      } finally {
+        setIsSearchingLocation(false);
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
+  }, [locationSearch, selectedLocationOption, t]);
 
   useEffect(() => {
     if (isAppearanceDirty || isSaving) return;
@@ -212,13 +369,73 @@ const Edit = () => {
         }
       });
 
-      const payload = {
+      const payload: any = {
         bio: shortIntro,
         interest: selectedInterests,
         social: socialLinks,
       };
 
+      const normalizedName = displayName.trim();
+      const fallbackName = String(profileData?.name || "").trim();
+      const nextName = normalizedName || fallbackName;
+      if (nextName) {
+        payload.name = nextName;
+      }
+
+      const selectedAddress = selectedLocationOption;
+      if (selectedAddress) {
+        payload.address = {
+          address: selectedAddress.label,
+          latitude: selectedCoords?.latitude ?? selectedAddress.latitude,
+          longitude: selectedCoords?.longitude ?? selectedAddress.longitude,
+          placeId: selectedAddress.placeId,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          country: selectedAddress.country,
+        };
+      }
+
+      const trimmedAvatarUri = String(avatarUri || "").trim();
+      const originalAvatarUri = String(profileData?.avatar || "").trim();
+      const avatarChanged = Boolean(trimmedAvatarUri) && trimmedAvatarUri !== originalAvatarUri;
+      if (avatarChanged && !/^https?:\/\//i.test(trimmedAvatarUri)) {
+        const filename = trimmedAvatarUri.split("/").pop() || "avatar.jpg";
+        const extensionMatch = /\.(\w+)$/.exec(filename);
+        const extension = extensionMatch?.[1]?.toLowerCase();
+        const mimeType =
+          extension === "png"
+            ? "image/png"
+            : extension === "webp"
+              ? "image/webp"
+              : "image/jpeg";
+
+        payload.avatar = {
+          uri: trimmedAvatarUri,
+          type: mimeType,
+          name: filename,
+        };
+      }
+
+      console.log(
+        "[EditProfile] updateProfile payload",
+        JSON.stringify(
+          {
+            ...payload,
+            avatar: payload.avatar
+              ? {
+                name: payload.avatar.name,
+                type: payload.avatar.type,
+                uri: payload.avatar.uri,
+              }
+              : undefined,
+          },
+          null,
+          2
+        )
+      );
+
       const result = await updateProfile(payload);
+      console.log("[EditProfile] updateProfile response", JSON.stringify(result, null, 2));
       const profileThemePayload =
         pickerType === "gradient"
           ? {
@@ -295,7 +512,11 @@ const Edit = () => {
         />
       </DynamicBackground>
 
-      <ScrollView contentContainerClassName='mt-6'>
+      <ScrollView
+        contentContainerClassName='mt-6'
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {showInitialSkeleton ? (
           <AutoSkeletonView isLoading={true} defaultRadius={12}>
             <View className="mx-5">
@@ -366,6 +587,103 @@ const Edit = () => {
                   isVerified={Boolean(profileData?.isEmailVerified)}
                 />
               )}
+            </View>
+
+            {/* Name + Avatar */}
+            <View className="mx-5 mt-8">
+              <View className="flex-row justify-between items-center mb-2.5">
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.editUserProfile.yourName", { defaultValue: "Your Name" })}
+                </Text>
+                <TouchableOpacity onPress={() => setIsEditingIdentity((prev) => !prev)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {isEditingIdentity ? t("user.profile.done") : t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                value={displayName}
+                onChangeText={setDisplayName}
+                placeholder={t("user.profile.editUserProfile.enterYourName", { defaultValue: "Enter your name" })}
+                placeholderTextColor="#7A7A7A"
+                className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
+                editable={isEditingIdentity}
+              />
+
+              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-6 mb-3">
+                {t("user.profile.editUserProfile.yourAvatar", { defaultValue: "Your Avatar" })}
+              </Text>
+              <ProfileImagePicker
+                value={avatarUri}
+                onImageChange={setAvatarUri}
+                size={96}
+              />
+            </View>
+
+            {/* Badge item */}
+            {/* Location */}
+            <View className="mx-5 mt-8">
+              <View className="flex-row justify-between items-center mb-2.5">
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.setup.location", { defaultValue: "Location" })}
+                </Text>
+                <TouchableOpacity onPress={() => setIsEditingLocation((prev) => !prev)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {isEditingLocation ? t("user.profile.done") : t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <TextInput
+                value={locationSearch}
+                onFocus={() => setIsLocationFocused(true)}
+                onBlur={() => {
+                  setTimeout(() => setIsLocationFocused(false), 250);
+                }}
+                onChangeText={(text) => {
+                  setLocationSearch(text);
+                  if (selectedLocationOption && text !== selectedLocationOption.label) {
+                    setSelectedLocationOption(null);
+                    setSelectedCoords(null);
+                  }
+                }}
+                placeholder={t("user.setup.selectLocation", { defaultValue: "Select location" })}
+                className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
+                autoCapitalize="none"
+                editable={isEditingLocation}
+              />
+
+              {isSearchingLocation && isEditingLocation ? (
+                <Text className="text-xs text-secondary mt-2">
+                  {t("common.loading", { defaultValue: "Loading..." })}
+                </Text>
+              ) : null}
+
+              {isEditingLocation &&
+              isLocationFocused &&
+              locationSearch.trim().length >= 3 &&
+              locationOptions.length > 0 ? (
+                <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
+                  {locationOptions.map((item, index) => (
+                    <TouchableOpacity
+                      key={`${item.value}-${index}`}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setLocationSearch(item.label);
+                        setSelectedLocationOption(item);
+                        setSelectedCoords({
+                          latitude: item.latitude,
+                          longitude: item.longitude,
+                        });
+                        setIsLocationFocused(false);
+                      }}
+                      className="px-4 py-3 border-b border-[#F3F4F6]"
+                    >
+                      <Text className="text-sm text-primary">{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
             </View>
 
             {/* Badge item */}

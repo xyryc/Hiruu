@@ -205,10 +205,11 @@ class AuthService {
     }
 
     // Logout user
-    async logout(refreshToken: string): Promise<SimpleResponse> {
+    async logout(refreshToken: string, fcmToken?: string): Promise<SimpleResponse> {
         try {
             const response = await axiosInstance.post('/auth/logout', {
                 refreshToken,
+                ...(fcmToken ? { fcmToken } : {}),
             });
             const result = response.data;
 

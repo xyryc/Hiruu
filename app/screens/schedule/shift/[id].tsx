@@ -18,11 +18,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const ShiftDetails = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const shiftId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -43,7 +45,7 @@ const ShiftDetails = () => {
 
   const badge = useMemo(() => {
     const raw = String(details?.status || "").toLowerCase();
-    const label = raw ? raw.replace(/_/g, " ") : "Unknown";
+    const label = raw ? raw.replace(/_/g, " ") : t("common.unknown", { defaultValue: "Unknown" });
     const known = new Set([
       "upcoming",
       "completed",
@@ -67,31 +69,38 @@ const ShiftDetails = () => {
       return { status: "pending" as const, label };
     }
     return { status: "upcoming" as const, label };
-  }, [details?.status]);
+  }, [details?.status, t]);
 
-  const shiftTitle = details?.shiftTemplate?.name || "Shift";
+  const shiftTitle = details?.shiftTemplate?.name || t("common.shift", { defaultValue: "Shift" });
   const isCompletedShift = String(details?.status || "").toLowerCase() === "completed";
   const shiftStartIso = details?.startsAt;
   const shiftEndIso = details?.endsAt;
   const showCountdown = Boolean(
     shiftStartIso && new Date(shiftStartIso).getTime() > Date.now()
   );
+  const isShiftFinished = useMemo(() => {
+    if (isCompletedShift) return true;
+    if (!shiftEndIso) return false;
+    const endMs = new Date(shiftEndIso).getTime();
+    if (Number.isNaN(endMs)) return false;
+    return Date.now() >= endMs;
+  }, [isCompletedShift, shiftEndIso]);
 
   const timeRange = useMemo(() => {
-    if (!shiftStartIso || !shiftEndIso) return "-";
+    if (!shiftStartIso || !shiftEndIso) return t("common.notAvailableShort", { defaultValue: "-" });
     const start = new Date(shiftStartIso);
     const end = new Date(shiftEndIso);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "-";
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return t("common.notAvailableShort", { defaultValue: "-" });
     const format = (value: Date) =>
       value.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
     return `${format(start)} - ${format(end)}`;
-  }, [shiftEndIso, shiftStartIso]);
+  }, [shiftEndIso, shiftStartIso, t]);
 
   const breakTime = useMemo(() => {
     const breaks = Array.isArray(details?.shiftTemplate?.breakDuration)
       ? details.shiftTemplate.breakDuration
       : [];
-    if (!breaks.length) return "-";
+    if (!breaks.length) return t("user.jobs.schedule.noBreak", { defaultValue: "No break" });
 
     const to12Hour = (value?: string) => {
       if (!value) return "--:--";
@@ -107,17 +116,20 @@ const ShiftDetails = () => {
     return breaks
       .map((item: any) => `${to12Hour(item?.startTime)} - ${to12Hour(item?.endTime)}`)
       .join(", ");
-  }, [details?.shiftTemplate?.breakDuration]);
+  }, [details?.shiftTemplate?.breakDuration, t]);
 
-  const locationText = details?.business?.address?.address || "-";
-  const assignedByName = details?.assignedBy?.name || "-";
+  const locationText = details?.business?.address?.address || t("common.notAvailableShort", { defaultValue: "-" });
+  const assignedByName = details?.assignedBy?.name || t("common.notAvailableShort", { defaultValue: "-" });
   const assignedByAvatar = details?.assignedBy?.avatar;
   const assignedById = details?.assignedBy?.id;
   const assignedBusinessId = details?.business?.id;
+  const employeeDescription = String(
+    details?.assignedEmployee?.description || ""
+  ).trim();
 
   const handleOpenAssignedByProfile = () => {
     if (!assignedById) {
-      toast.error("Assigned user profile is unavailable");
+      toast.error(t("user.jobs.schedule.assignedUserProfileUnavailable", { defaultValue: "Assigned user profile is unavailable" }));
       return;
     }
 
@@ -133,7 +145,7 @@ const ShiftDetails = () => {
 
   const handleOpenAssignedByChat = async () => {
     if (!assignedById) {
-      toast.error("Assigned user is unavailable for chat");
+      toast.error(t("common.chat.userInfoUnavailable", { defaultValue: "Assigned user is unavailable for chat" }));
       return;
     }
 
@@ -142,7 +154,7 @@ const ShiftDetails = () => {
       const roomId = result?.data?.id;
 
       if (!roomId) {
-        throw new Error("Chat room id is missing");
+        throw new Error(t("common.chat.missingRoomId", { defaultValue: "Chat room id is missing" }));
       }
 
       router.push({
@@ -150,7 +162,7 @@ const ShiftDetails = () => {
         params: { roomId },
       });
     } catch (error: any) {
-      toast.error(error?.message || "Failed to start chat");
+      toast.error(error?.message || t("common.failedToStartChat", { defaultValue: "Failed to start chat" }));
     }
   };
 
@@ -165,17 +177,10 @@ const ShiftDetails = () => {
       <ScreenHeader
         onPressBack={() => router.back()}
         className="px-4 pt-4"
-        title="Detail"
+        title={t("common.details", { defaultValue: "Detail" })}
         components={
           <View className="flex-row items-center gap-2.5">
             <StatusBadge status={badge.status} label={badge.label} />
-
-            <TouchableOpacity
-              onPress={() => router.push("/screens/home/qr/scan")}
-              className="bg-[#f5f5f5] border-[0.5px] border-[#FFFFFF00] w-10 h-10 justify-center items-center rounded-full"
-            >
-              <Ionicons name="qr-code-outline" size={16} color="black" />
-            </TouchableOpacity>
           </View>
         }
       />
@@ -197,7 +202,7 @@ const ShiftDetails = () => {
         {showCountdown && shiftStartIso && (
           <>
             <Text className="text-center text-secondary dark:text-dark-secondary font-proximanova-regular mb-2.5">
-              Shift starts in
+              {t("user.jobs.schedule.shiftStartsIn", { defaultValue: "Shift starts in" })}
             </Text>
             <CountdownTimer targetTime={shiftStartIso} className="mb-8" />
           </>
@@ -209,7 +214,7 @@ const ShiftDetails = () => {
             {shiftTitle}
           </Text>
 
-          <View className="flex-row items-center gap-2.5">
+          <View className="flex-row gap-2.5">
             {/* left */}
             <View>
               {/* time */}
@@ -220,7 +225,7 @@ const ShiftDetails = () => {
 
                 <View>
                   <Text className="text-secondary dark:text-dark-secondary text-sm pb-3">
-                    Time:
+                    {t("common.time", { defaultValue: "Time" })}:
                   </Text>
                   <Text className="text-primary dark:text-dark-primary text-sm">
                     {timeRange}
@@ -243,7 +248,7 @@ const ShiftDetails = () => {
 
                 <View>
                   <Text className="text-secondary dark:text-dark-secondary text-sm pb-3">
-                    Break:
+                    {t("common.break", { defaultValue: "Break" })}:
                   </Text>
                   <Text className="text-primary dark:text-dark-primary text-sm">
                     {breakTime}
@@ -267,7 +272,7 @@ const ShiftDetails = () => {
 
               <View className="w-2/3">
                 <Text className="text-secondary dark:text-dark-secondary text-sm pb-3">
-                  Location:
+                  {t("common.location", { defaultValue: "Location" })}:
                 </Text>
                 <Text className="text-primary dark:text-dark-primary text-sm">
                   {locationText}
@@ -280,7 +285,7 @@ const ShiftDetails = () => {
         {/* quick actions */}
         <View className="mt-6">
           <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
-            Quick Actions
+            {t("common.quickActions", { defaultValue: "Quick Actions" })}
           </Text>
 
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
@@ -288,37 +293,41 @@ const ShiftDetails = () => {
               icon={
                 <FontAwesome6 name="calendar-times" size={24} color="#4FB2F3" />
               }
-              title="Sick Leave"
+              title={t("user.jobs.schedule.sickLeave", { defaultValue: "Sick Leave" })}
               onPress={() =>
                 // router.push("/(user)/schedule/shift/request-leave")
                 router.push("/screens/schedule/shift/request-leave")
               }
             />
 
-            <ActionIconCard
-              icon={
-                <MaterialCommunityIcons
-                  name="clock-plus"
-                  size={24}
-                  color="#4FB2F3"
-                />
-              }
-              title="Overwork"
-              onPress={() =>
-                router.push({
-                  pathname: "/screens/schedule/shift/request-overtime",
-                  params: {
-                    shiftAssignmentId: shiftId || details?.id,
-                    employmentId: details?.employmentId,
-                  },
-                })
-              }
-            />
+            <View style={{ opacity: isShiftFinished ? 1 : 0.5 }}>
+              <ActionIconCard
+                icon={
+                  <MaterialCommunityIcons
+                    name="clock-plus"
+                    size={24}
+                    color={isShiftFinished ? "#4FB2F3" : "#9CA3AF"}
+                  />
+                }
+                title={t("user.jobs.schedule.overwork", { defaultValue: "Overwork" })}
+                onPress={() => {
+                  if (!isShiftFinished) return;
+                  router.push({
+                    pathname: "/screens/schedule/shift/request-overtime",
+                    params: {
+                      shiftAssignmentId: shiftId || details?.id,
+                      employmentId: details?.employmentId,
+                      shiftEndAt: shiftEndIso,
+                    },
+                  });
+                }}
+              />
+            </View>
 
             {!isCompletedShift ? (
               <ActionIconCard
                 icon={<Feather name="repeat" size={24} color="#4FB2F3" />}
-                title="Swap Shift"
+                title={t("user.jobs.schedule.swapShift", { defaultValue: "Swap Shift" })}
                 onPress={() =>
                   router.push({
                     pathname: "/screens/schedule/shift/swap",
@@ -335,7 +344,7 @@ const ShiftDetails = () => {
 
             <ActionIconCard
               icon={<Ionicons name="document-text" size={24} color="#4FB2F3" />}
-              title="Report Issue"
+              title={t("user.jobs.schedule.reportIssue", { defaultValue: "Report Issue" })}
               onPress={() =>
                 router.push({
                   pathname: "/screens/schedule/shift/report",
@@ -352,7 +361,7 @@ const ShiftDetails = () => {
         {/* assigned by */}
         <View className="mt-6">
           <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
-            Assigned by
+            {t("user.jobs.schedule.assignedBy", { defaultValue: "Assigned by" })}
           </Text>
 
           <View className="flex-row justify-between bg-[#4FB2F3] p-2.5 rounded-[10px]">
@@ -385,62 +394,40 @@ const ShiftDetails = () => {
         </View>
 
         {/* description */}
-        <View className="mt-6">
-          <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
-            Description
-          </Text>
+        {employeeDescription ? (
+          <View className="mt-6">
+            <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
+              {t("common.description", { defaultValue: "Description" })}
+            </Text>
 
-          <View>
-            <View className="flex-row mb-4">
-              <Entypo
-                name="dot-single"
-                size={18}
-                color={isDark ? "#FFFFFF" : "#7A7A7A"}
-              />
-              <Text className="text-sm text-secondary dark:text-white">
-                A Kitchen Helper / Dishwasher plays a vital role in the smooth
-                operation of a kitchen by ensuring that cleanliness, hygiene,
-                and basic support tasks are handled efficiently.
-              </Text>
-            </View>
-
-            <View className="flex-row">
-              <Entypo
-                name="dot-single"
-                size={18}
-                color={isDark ? "#FFFFFF" : "#7A7A7A"}
-              />
-              <Text className="text-sm text-secondary dark:text-white">
-                This position supports chefs and kitchen staff by maintaining a
-                clean work environment, preparing ingredients, and washing
-                dishes, tools, and equipment.
-              </Text>
-            </View>
+            <Text className="text-sm text-secondary dark:text-white">
+              {employeeDescription}
+            </Text>
           </View>
-        </View>
+        ) : null}
 
         {/* important note */}
         <View className="p-4 rounded-[14px] bg-[#E5F4FD] mt-6">
           <Text className="text-primary text-lg font-proximanova-semibold">
-            Important Notes
+            {t("common.importantNotes", { defaultValue: "Important Notes" })}
           </Text>
 
           <View className="mt-4">
             <Text className="text-secondary text-sm font-proximanova-regular">
-              1. Physical stamina is required.
+              {t("user.jobs.schedule.importantNote1", { defaultValue: "1. Physical stamina is required." })}
             </Text>
             <Text className="text-secondary text-sm font-proximanova-regular">
-              2. Cleanliness and hygiene are non-negotiable.
+              {t("user.jobs.schedule.importantNote2", { defaultValue: "2. Cleanliness and hygiene are non-negotiable." })}
             </Text>
             <Text className="text-secondary text-sm font-proximanova-regular">
-              3. Willingness to assist in multiple tasks.
+              {t("user.jobs.schedule.importantNote3", { defaultValue: "3. Willingness to assist in multiple tasks." })}
             </Text>
           </View>
         </View>
 
         <PrimaryButton
           className='my-10'
-          title="Submit Shift Summary"
+          title={t("user.jobs.schedule.submitShiftSummary", { defaultValue: "Submit Shift Summary" })}
           onPress={() => router.push("./summary")}
         />
       </ScrollView>

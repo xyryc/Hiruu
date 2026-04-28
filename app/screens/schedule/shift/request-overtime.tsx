@@ -19,6 +19,7 @@ const OvertimeRequest = () => {
   const params = useLocalSearchParams<{
     shiftAssignmentId?: string | string[];
     employmentId?: string | string[];
+    shiftEndAt?: string | string[];
   }>();
   const shiftAssignmentId = Array.isArray(params.shiftAssignmentId)
     ? params.shiftAssignmentId[0]
@@ -26,6 +27,9 @@ const OvertimeRequest = () => {
   const employmentIdFromParams = Array.isArray(params.employmentId)
     ? params.employmentId[0]
     : params.employmentId;
+  const shiftEndAtParam = Array.isArray(params.shiftEndAt)
+    ? params.shiftEndAt[0]
+    : params.shiftEndAt;
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
@@ -36,12 +40,21 @@ const OvertimeRequest = () => {
   const createShiftRequestLoading = useShiftStore(
     (state) => state.createShiftRequestLoading
   );
-  const [requestedDate, setRequestedDate] = useState<Date>(new Date());
-  const [overtimeStart, setOvertimeStart] = useState<Date>(new Date());
+  const parsedShiftEndAt = useMemo(() => {
+    if (!shiftEndAtParam) return null;
+    const date = new Date(shiftEndAtParam);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }, [shiftEndAtParam]);
+  const [requestedDate, setRequestedDate] = useState<Date>(
+    () => parsedShiftEndAt || new Date()
+  );
+  const [overtimeStart, setOvertimeStart] = useState<Date>(
+    () => parsedShiftEndAt || new Date()
+  );
   const [overtimeEnd, setOvertimeEnd] = useState<Date>(() => {
-    const dt = new Date();
-    dt.setHours(dt.getHours() + 1, 0, 0, 0);
-    return dt;
+    const base = parsedShiftEndAt ? new Date(parsedShiftEndAt) : new Date();
+    base.setHours(base.getHours() + 1);
+    return base;
   });
   const [reason, setReason] = useState("");
 
@@ -54,6 +67,19 @@ const OvertimeRequest = () => {
   }, [getMyEmployments]);
 
   const selectedBusinessId = selectedBusinesses?.[0] || "";
+  useEffect(() => {
+    if (!parsedShiftEndAt) return;
+    setRequestedDate(new Date(parsedShiftEndAt));
+    setOvertimeStart(new Date(parsedShiftEndAt));
+    setOvertimeEnd((prev) => {
+      const next = new Date(parsedShiftEndAt);
+      if (prev <= next) {
+        next.setHours(next.getHours() + 1);
+        return next;
+      }
+      return prev;
+    });
+  }, [parsedShiftEndAt]);
   const selectedEmployment = useMemo<MyEmploymentItem | null>(() => {
     const list = Array.isArray(myEmployments) ? myEmployments : [];
     if (employmentIdFromParams) {

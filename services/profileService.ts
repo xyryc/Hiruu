@@ -10,6 +10,51 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const ACCESS_TOKEN_STORAGE_KEY = 'auth_access_token';
 
 class ProfileService {
+    private isFileLike(value: any): value is { uri: string; type: string; name: string } {
+        return Boolean(
+            value &&
+            typeof value === "object" &&
+            typeof value.uri === "string" &&
+            typeof value.type === "string" &&
+            typeof value.name === "string"
+        );
+    }
+
+    private appendFormValue(formData: FormData, key: string, value: any) {
+        if (value === null || value === undefined) return;
+
+        if (this.isFileLike(value)) {
+            formData.append(key, value as any);
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            value.forEach((item) => {
+                if (item === null || item === undefined) return;
+                if (typeof item === "object" && !this.isFileLike(item)) {
+                    this.appendFormValue(formData, `${key}[]`, item);
+                } else {
+                    formData.append(key, String(item));
+                }
+            });
+            return;
+        }
+
+        if (value instanceof Date) {
+            formData.append(key, value.toISOString());
+            return;
+        }
+
+        if (typeof value === "object") {
+            Object.entries(value).forEach(([childKey, childValue]) => {
+                this.appendFormValue(formData, `${key}[${childKey}]`, childValue);
+            });
+            return;
+        }
+
+        formData.append(key, String(value));
+    }
+
     private toIsoString(value: any): string | undefined {
         if (!value) return undefined;
         if (value instanceof Date) {
@@ -95,31 +140,12 @@ class ProfileService {
             const formData = new FormData();
             let hasFile = false;
 
-            // Add all profile data fields
             Object.keys(data).forEach((key) => {
                 const value = data[key as keyof UpdateProfileData];
-
-                if (value === null || value === undefined) {
-                    return; // Skip null/undefined
-                }
-
-                // Handle file objects (images)
-                if (typeof value === 'object' && 'uri' in value && 'type' in value && 'name' in value) {
+                if (this.isFileLike(value)) {
                     hasFile = true;
-                    formData.append(key, value as any);
                 }
-                // Handle objects
-                else if (typeof value === 'object' && !(value instanceof Date)) {
-                    formData.append(key, JSON.stringify(value));
-                }
-                // Handle dates
-                else if (value instanceof Date) {
-                    formData.append(key, value.toISOString());
-                }
-                // Handle primitives
-                else {
-                    formData.append(key, value.toString());
-                }
+                this.appendFormValue(formData, key, value);
             });
 
             if (hasFile) {
@@ -129,6 +155,7 @@ class ProfileService {
                 }
 
                 const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+                console.log("[ProfileService] PATCH /users/profile multipart form-data");
                 const response = await fetch(`${baseUrl}/users/profile`, {
                     method: 'PATCH',
                     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
@@ -136,6 +163,7 @@ class ProfileService {
                 });
 
                 const result = await response.json();
+                console.log("[ProfileService] multipart response", JSON.stringify(result, null, 2));
 
                 if (!response.ok || !result?.success) {
                     throw new Error(result?.message || 'Profile update failed');
@@ -144,8 +172,10 @@ class ProfileService {
                 return result;
             }
 
+            console.log("[ProfileService] PATCH /users/profile json payload", JSON.stringify(data, null, 2));
             const response = await axiosInstance.patch('/users/profile', data);
             const result = response.data;
+            console.log("[ProfileService] json response", JSON.stringify(result, null, 2));
 
             // Check if update was successful
             if (!result.success) {
