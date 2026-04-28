@@ -339,10 +339,14 @@ const PublicBusinessProfile = () => {
                     totalRatings={totalRatings}
                   />
 
-                  <View className="flex-row justify-between mt-5">
-                    <View>
+                  <View className="flex-row items-start justify-between mt-5">
+                    <View className="flex-1 items-center px-1">
                       <RatingProgress rating={workEnvironmentRating} />
-                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      <Text
+                        className="font-proximanova-semibold text-xs text-primary dark:text-dark-primary text-center mt-1.5"
+                        style={{ maxWidth: 110 }}
+                        numberOfLines={1}
+                      >
                         {t("user.profile.businessProfile.workEnvironment")}
                       </Text>
                     </View>
@@ -353,9 +357,13 @@ const PublicBusinessProfile = () => {
                       style={{ height: 70, width: 0.5 }}
                     />
 
-                    <View>
+                    <View className="flex-1 items-center px-1">
                       <RatingProgress rating={payOnTimeRating} />
-                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      <Text
+                        className="font-proximanova-semibold text-xs text-primary dark:text-dark-primary text-center mt-1.5"
+                        style={{ maxWidth: 110 }}
+                        numberOfLines={1}
+                      >
                         {t("user.profile.businessProfile.payOnTime")}
                       </Text>
                     </View>
@@ -366,9 +374,13 @@ const PublicBusinessProfile = () => {
                       style={{ height: 70, width: 0.5 }}
                     />
 
-                    <View>
+                    <View className="flex-1 items-center px-1">
                       <RatingProgress rating={communicationRating} />
-                      <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary text-center mt-1.5 capitalize">
+                      <Text
+                        className="font-proximanova-semibold text-xs text-primary dark:text-dark-primary text-center mt-1.5"
+                        style={{ maxWidth: 110 }}
+                        numberOfLines={1}
+                      >
                         {t("user.profile.businessProfile.communication")}
                       </Text>
                     </View>
