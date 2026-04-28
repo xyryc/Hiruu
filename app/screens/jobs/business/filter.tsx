@@ -459,7 +459,7 @@ const FindJobFilters = () => {
 
       {/* Header */}
       <ScreenHeader
-        title={t("user.jobs.filters.title")}
+        title={t("user.jobs.filters.hiringFilter")}
         className="mx-5"
         onPressBack={() => router.back()}
       />
