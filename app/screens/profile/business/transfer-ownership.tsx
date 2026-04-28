@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
 import { Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -62,6 +63,7 @@ const TransferOwnership = () => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [colleagues, setColleagues] = useState<ColleagueItem[]>([]);
   const [selectedColleague, setSelectedColleague] = useState<ColleagueItem | null>(null);
 
@@ -110,6 +112,49 @@ const TransferOwnership = () => {
   const selectedName =
     selectedColleague?.user?.name ||
     t("user.profile.transferOwnership.selectColleague");
+
+  const handleTransferOwnership = useCallback(async () => {
+    if (!businessId || !selectedColleague?.userId) {
+      toast.error(
+        t("user.profile.transferOwnership.selectColleague")
+      );
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await axiosInstance.patch(
+        `/business/${businessId}/transfer-ownership`,
+        {
+          newOwnerUserId: selectedColleague.userId,
+        }
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(
+          result?.message || t("user.profile.transferOwnership.failed")
+        );
+      }
+
+      toast.success(
+        translateApiMessage(
+          result?.message || t("user.profile.transferOwnership.success")
+        )
+      );
+      router.back();
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+            error?.message ||
+            t("user.profile.transferOwnership.failed")
+        )
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [businessId, selectedColleague?.userId, t]);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["top", "left", "right", "bottom"]}>
@@ -166,11 +211,13 @@ const TransferOwnership = () => {
 
         <PrimaryButton
           className="mt-6"
-          title={t("user.profile.transferOwnership.proceed")}
-          disabled={!selectedColleague}
-          onPress={() =>
-            toast.message(t("user.profile.transferOwnership.apiPending"))
+          title={
+            submitting
+              ? t("user.profile.transferOwnership.transferring")
+              : t("user.profile.transferOwnership.proceed")
           }
+          disabled={!selectedColleague || submitting}
+          onPress={handleTransferOwnership}
         />
       </View>
 
