@@ -202,11 +202,21 @@ const CreateTemplate = () => {
 
   const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
 
+  const getShiftTimeline = useCallback(() => {
+    const start = toMinutes(shiftStartTime);
+    const endRaw = toMinutes(shiftEndTime);
+    const isOvernight = endRaw < start;
+    const end = isOvernight ? endRaw + 24 * 60 : endRaw;
+
+    return { start, end, isOvernight };
+  }, [shiftEndTime, shiftStartTime]);
+
   const shiftTimeValidationError = useMemo(() => {
     const shiftStartMinutes = toMinutes(shiftStartTime);
     const shiftEndMinutes = toMinutes(shiftEndTime);
 
-    if (shiftEndMinutes <= shiftStartMinutes) {
+    // Same start/end means zero-length shift.
+    if (shiftEndMinutes === shiftStartMinutes) {
       return t("user.jobs.schedule.shiftEndTimeMustBeAfterStartTime");
     }
 
@@ -216,10 +226,18 @@ const CreateTemplate = () => {
   const breakTimeValidationError = useMemo(() => {
     if (!hasBreak) return null;
 
-    const shiftStartMinutes = toMinutes(shiftStartTime);
-    const shiftEndMinutes = toMinutes(shiftEndTime);
-    const breakStartMinutes = toMinutes(breakStartTime);
-    const breakEndMinutes = toMinutes(breakEndTime);
+    const { start: shiftStartMinutes, end: shiftEndMinutes, isOvernight } =
+      getShiftTimeline();
+    const breakStartRaw = toMinutes(breakStartTime);
+    const breakEndRaw = toMinutes(breakEndTime);
+    const breakStartMinutes =
+      isOvernight && breakStartRaw < shiftStartMinutes
+        ? breakStartRaw + 24 * 60
+        : breakStartRaw;
+    const breakEndMinutes =
+      isOvernight && breakEndRaw < shiftStartMinutes
+        ? breakEndRaw + 24 * 60
+        : breakEndRaw;
 
     if (breakEndMinutes <= breakStartMinutes) {
       return t("user.jobs.schedule.breakEndTimeMustBeAfterStartTime");
@@ -233,7 +251,7 @@ const CreateTemplate = () => {
     }
 
     return null;
-  }, [breakEndTime, breakStartTime, hasBreak, shiftEndTime, shiftStartTime, t]);
+  }, [breakEndTime, breakStartTime, getShiftTimeline, hasBreak, t]);
 
   const getValidatedPayload = () => {
     if (!selectedBusiness) {
