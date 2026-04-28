@@ -564,7 +564,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   getMyRatings: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get("/ratings/users/me");
@@ -593,7 +593,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get(`/ratings/users/${userId}`);
@@ -622,7 +622,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get(`/ratings/businesses/${businessId}`);

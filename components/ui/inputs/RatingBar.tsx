@@ -11,7 +11,9 @@ type TRatingBar = {
 };
 
 export default function RatingBar({ label, value, max }: TRatingBar) {
-  const percentage = (value / max) * 100;
+  const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(value, max)) : 0;
+  const percentage = (safeValue / max) * 100;
+  const displayValue = Number(safeValue.toFixed(1));
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: withSpring(`${percentage}%`, {
@@ -26,12 +28,12 @@ export default function RatingBar({ label, value, max }: TRatingBar) {
         <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
           {label}
         </Text>
-        <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-          {Math.round(value)}/{max}
+        <Text className="font-proximanova-bold text-[15px] text-primary dark:text-dark-primary">
+          {displayValue}/{max}
         </Text>
       </View>
 
-      <View className="w-full bg-white rounded-full h-3 mt-2 overflow-hidden">
+      <View className="mt-3 h-3.5 w-full overflow-hidden rounded-full bg-[#F7FBFF]">
         <Animated.View
           style={animatedStyle}
           className="bg-[#4FB2F3] h-full rounded-full"

@@ -40,6 +40,11 @@ const Rating = () => {
   );
   const targetUserId = typeof params.userId === "string" ? params.userId : "";
   const businessId = typeof params.businessId === "string" ? params.businessId : "";
+  const requestKey = businessId
+    ? `business:${businessId}:${targetUserId || "none"}`
+    : targetUserId
+      ? `user:${targetUserId}`
+      : "me";
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isBusinessRatingView = Boolean(businessId) && !targetUserId;
   const isOwnBusinessRatingView =
@@ -48,8 +53,10 @@ const Rating = () => {
     selectedBusinesses[0] === businessId;
   const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
   const shouldOpenAddRating = params.openAddRating === "true";
+  const [resolvedRequestKey, setResolvedRequestKey] = useState("");
 
   const loadRatings = useCallback(async () => {
+    setResolvedRequestKey("");
     try {
       if (isBusinessRatingView) {
         await getRatingsByBusinessId(businessId);
@@ -64,6 +71,8 @@ const Rating = () => {
       await getMyRatings();
     } catch (error: any) {
       console.error("user rating screen api error:", error?.message || error);
+    } finally {
+      setResolvedRequestKey(requestKey);
     }
   }, [
     businessId,
@@ -71,8 +80,13 @@ const Rating = () => {
     getMyRatings,
     getRatingsByUserId,
     isBusinessRatingView,
+    requestKey,
     targetUserId,
   ]);
+
+  useEffect(() => {
+    setResolvedRequestKey("");
+  }, [requestKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,17 +97,33 @@ const Rating = () => {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const canUseRatingsResponse = resolvedRequestKey === requestKey;
   const ratingItems = useMemo(
-    () => (Array.isArray(ratingsResponse?.data) ? ratingsResponse.data : []),
-    [ratingsResponse?.data]
+    () =>
+      canUseRatingsResponse && Array.isArray(ratingsResponse?.data)
+        ? ratingsResponse.data
+        : [],
+    [canUseRatingsResponse, ratingsResponse?.data]
   );
 
   const summaryBars = useMemo(() => {
+    const labels = isBusinessRatingView
+      ? {
+        onTime: t("user.profile.businessProfile.payOnTime"),
+        trustWorthy: t("user.profile.businessProfile.workEnvironment"),
+        communication: t("user.profile.businessProfile.communication"),
+      }
+      : {
+        onTime: t("user.profile.rating.payOnTime"),
+        trustWorthy: t("user.profile.rating.workEnvironment"),
+        communication: t("user.profile.rating.communication"),
+      };
+
     if (!ratingItems.length) {
       return [
-        { label: t("user.profile.businessProfile.payOnTime"), value: 0, max: 5 },
-        { label: t("user.profile.rating.trustWorthy"), value: 0, max: 5 },
-        { label: t("user.profile.businessProfile.communication"), value: 0, max: 5 },
+        { label: labels.onTime, value: 0, max: 5 },
+        { label: labels.trustWorthy, value: 0, max: 5 },
+        { label: labels.communication, value: 0, max: 5 },
       ];
     }
 
@@ -108,11 +138,11 @@ const Rating = () => {
     );
 
     return [
-      { label: t("user.profile.businessProfile.payOnTime"), value: totals.onTime / total, max: 5 },
-      { label: t("user.profile.rating.trustWorthy"), value: totals.trustWorthy / total, max: 5 },
-      { label: t("user.profile.businessProfile.communication"), value: totals.communication / total, max: 5 },
+      { label: labels.onTime, value: totals.onTime / total, max: 5 },
+      { label: labels.trustWorthy, value: totals.trustWorthy / total, max: 5 },
+      { label: labels.communication, value: totals.communication / total, max: 5 },
     ];
-  }, [ratingItems, t]);
+  }, [isBusinessRatingView, ratingItems, t]);
 
   const averageRating = useMemo(() => {
     if (!ratingItems.length) return 0;
@@ -124,12 +154,13 @@ const Rating = () => {
   }, [ratingItems]);
 
   const totalRatings = useMemo(() => {
+    if (!canUseRatingsResponse) return 0;
     const paginationTotal = Number(ratingsResponse?.pagination?.total);
     if (Number.isFinite(paginationTotal) && paginationTotal >= 0) {
       return paginationTotal;
     }
     return ratingItems.length;
-  }, [ratingItems.length, ratingsResponse?.pagination?.total]);
+  }, [canUseRatingsResponse, ratingItems.length, ratingsResponse?.pagination?.total]);
 
 
 
@@ -239,8 +270,8 @@ const Rating = () => {
 
 
         {/* Ratings and star */}
-        <View className=" mx-5 bg-[#E5F4FD] mt-8 rounded-2xl p-5 shadow-lg">
-          {summaryBars.map((rating, index) => (
+          <View className="mx-5 mt-8 rounded-[28px] bg-[#DCECF9] px-6 py-7">
+            {summaryBars.map((rating, index) => (
             <RatingBar
               key={index}
               label={rating.label}
