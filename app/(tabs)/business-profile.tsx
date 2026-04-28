@@ -12,6 +12,7 @@ import {
   Feather,
   FontAwesome6,
   Ionicons,
+  MaterialIcons,
   MaterialCommunityIcons,
   SimpleLineIcons
 } from "@expo/vector-icons";
@@ -329,6 +330,15 @@ const BusinessProfile = () => {
           >
             <EvilIcons name="share-apple" size={24} color="black" />
           </TouchableOpacity>
+
+          {isOwner ? (
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/business/transfer-ownership")}
+              className="h-10 w-10 bg-[#EEEEEE] rounded-full items-center justify-center"
+            >
+              <MaterialIcons name="admin-panel-settings" size={18} color="black" />
+            </TouchableOpacity>
+          ) : null}
 
           <TouchableOpacity
             onPress={() => router.push("/screens/profile/settings/settings")}

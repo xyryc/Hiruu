@@ -692,6 +692,18 @@
         "emptyText": "There are no team members to show right now.",
         "noRolesFound": "No roles found on this business."
       },
+      "transferOwnership": {
+        "title": "Transfer Ownership",
+        "description": "Select a colleague to transfer this business ownership to.",
+        "warningTitle": "Warning",
+        "warningDescription": "Ownership transfer is sensitive and may be irreversible. Make sure you select the correct colleague before continuing.",
+        "selectColleague": "Select a colleague",
+        "proceed": "Proceed",
+        "apiPending": "Transfer API will be connected next.",
+        "modalTitle": "Choose Colleague",
+        "emptyTitle": "No Colleagues Found",
+        "emptyText": "No colleagues are available for transfer right now."
+      },
       "tokenActivity": {
         "title": "Token Activity",
         "tabs": {
