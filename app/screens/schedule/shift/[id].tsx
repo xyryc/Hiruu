@@ -383,15 +383,17 @@ const ShiftDetails = () => {
         </View>
 
         {/* description */}
-        <View className="mt-6">
-          <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
-            {t("common.description", { defaultValue: "Description" })}
-          </Text>
+        {employeeDescription ? (
+          <View className="mt-6">
+            <Text className="text-lg font-proximanova-semibold mb-4 text-primary dark:text-dark-primary">
+              {t("common.description", { defaultValue: "Description" })}
+            </Text>
 
-          <Text className="text-sm text-secondary dark:text-white">
-            {employeeDescription || t("common.notAvailable", { defaultValue: "Not available" })}
-          </Text>
-        </View>
+            <Text className="text-sm text-secondary dark:text-white">
+              {employeeDescription}
+            </Text>
+          </View>
+        ) : null}
 
         {/* important note */}
         <View className="p-4 rounded-[14px] bg-[#E5F4FD] mt-6">
