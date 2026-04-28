@@ -130,8 +130,8 @@ const Rating = () => {
         communication: t("user.profile.businessProfile.communication"),
       }
       : {
-        onTime: t("user.profile.rating.payOnTime"),
-        trustWorthy: t("user.profile.rating.workEnvironment"),
+        onTime: t("user.profile.rating.onTime"),
+        trustWorthy: t("user.profile.rating.trustWorthy"),
         communication: t("user.profile.rating.communication"),
       };
 
