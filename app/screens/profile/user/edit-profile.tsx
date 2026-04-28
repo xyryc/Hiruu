@@ -7,6 +7,7 @@ import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
+import ProfileImagePicker from "@/components/ui/inputs/ProfileImagePicker";
 import ColorPickerModal from "@/components/ui/modals/ColorPickerModal";
 import EditBadgeModal from "@/components/ui/modals/EditBadgeModal";
 import InterestModal from "@/components/ui/modals/InterestModal";
@@ -55,6 +56,9 @@ const Edit = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [shortIntro, setShortIntro] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [isEditingIdentity, setIsEditingIdentity] = useState(false);
   const [isEditingIntro, setIsEditingIntro] = useState(false);
   const [isEditingSocials, setIsEditingSocials] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -93,6 +97,8 @@ const Edit = () => {
       const result = await getProfile();
       if (requestId !== profileRequestIdRef.current) return;
       setProfileData(result.data);
+      setDisplayName(result.data?.name || "");
+      setAvatarUri(result.data?.avatar || null);
       setShortIntro(result.data?.bio || "");
       if (Array.isArray(result.data?.interest)) {
         setSelectedInterests(result.data.interest);
@@ -212,13 +218,60 @@ const Edit = () => {
         }
       });
 
-      const payload = {
+      const payload: any = {
         bio: shortIntro,
         interest: selectedInterests,
         social: socialLinks,
       };
 
+      const normalizedName = displayName.trim();
+      const fallbackName = String(profileData?.name || "").trim();
+      const nextName = normalizedName || fallbackName;
+      if (nextName) {
+        payload.name = nextName;
+      }
+
+      const trimmedAvatarUri = String(avatarUri || "").trim();
+      const originalAvatarUri = String(profileData?.avatar || "").trim();
+      const avatarChanged = Boolean(trimmedAvatarUri) && trimmedAvatarUri !== originalAvatarUri;
+      if (avatarChanged && !/^https?:\/\//i.test(trimmedAvatarUri)) {
+        const filename = trimmedAvatarUri.split("/").pop() || "avatar.jpg";
+        const extensionMatch = /\.(\w+)$/.exec(filename);
+        const extension = extensionMatch?.[1]?.toLowerCase();
+        const mimeType =
+          extension === "png"
+            ? "image/png"
+            : extension === "webp"
+              ? "image/webp"
+              : "image/jpeg";
+
+        payload.avatar = {
+          uri: trimmedAvatarUri,
+          type: mimeType,
+          name: filename,
+        };
+      }
+
+      console.log(
+        "[EditProfile] updateProfile payload",
+        JSON.stringify(
+          {
+            ...payload,
+            avatar: payload.avatar
+              ? {
+                name: payload.avatar.name,
+                type: payload.avatar.type,
+                uri: payload.avatar.uri,
+              }
+              : undefined,
+          },
+          null,
+          2
+        )
+      );
+
       const result = await updateProfile(payload);
+      console.log("[EditProfile] updateProfile response", JSON.stringify(result, null, 2));
       const profileThemePayload =
         pickerType === "gradient"
           ? {
@@ -366,6 +419,37 @@ const Edit = () => {
                   isVerified={Boolean(profileData?.isEmailVerified)}
                 />
               )}
+            </View>
+
+            {/* Name + Avatar */}
+            <View className="mx-5 mt-8">
+              <View className="flex-row justify-between items-center mb-2.5">
+                <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
+                  {t("user.profile.editUserProfile.yourName", { defaultValue: "Your Name" })}
+                </Text>
+                <TouchableOpacity onPress={() => setIsEditingIdentity((prev) => !prev)}>
+                  <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
+                    {isEditingIdentity ? t("user.profile.done") : t("user.profile.edit")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                value={displayName}
+                onChangeText={setDisplayName}
+                placeholder={t("user.profile.editUserProfile.enterYourName", { defaultValue: "Enter your name" })}
+                placeholderTextColor="#7A7A7A"
+                className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"
+                editable={isEditingIdentity}
+              />
+
+              <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-6 mb-3">
+                {t("user.profile.editUserProfile.yourAvatar", { defaultValue: "Your Avatar" })}
+              </Text>
+              <ProfileImagePicker
+                value={avatarUri}
+                onImageChange={setAvatarUri}
+                size={96}
+              />
             </View>
 
             {/* Badge item */}
