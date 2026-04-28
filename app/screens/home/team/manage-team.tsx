@@ -1,5 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
+import DatePicker from "@/components/ui/inputs/DatePicker";
+import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { chatService } from "@/services/chatService";
@@ -7,6 +9,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,7 +21,9 @@ import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   Text,
@@ -83,6 +88,15 @@ const ManageTeamPanel = () => {
   const [creatingChatForUserId, setCreatingChatForUserId] = useState<string | null>(
     null
   );
+  const [showFireModal, setShowFireModal] = useState(false);
+  const [selectedFireEmploymentId, setSelectedFireEmploymentId] = useState<string | null>(
+    null
+  );
+  const [fireReason, setFireReason] = useState("");
+  const [fireNotes, setFireNotes] = useState("");
+  const [fireEffectiveDate, setFireEffectiveDate] = useState<Date>(new Date());
+  const [fireModalKeyboardInset, setFireModalKeyboardInset] = useState(0);
+  const [firingEmployee, setFiringEmployee] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -94,6 +108,23 @@ const ManageTeamPanel = () => {
   } = useBusinessStore();
   const params = useLocalSearchParams<{ businessId?: string }>();
   const resolvedBusinessId = params.businessId || selectedBusinesses[0];
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setFireModalKeyboardInset(event.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setFireModalKeyboardInset(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!resolvedBusinessId) {
@@ -350,6 +381,70 @@ const ManageTeamPanel = () => {
     setShowWorkingHourSettingsModal(true);
   };
 
+  const openFireModal = (item: TeamMember) => {
+    setSelectedFireEmploymentId(item.id);
+    setFireReason("");
+    setFireNotes("");
+    setFireEffectiveDate(new Date());
+    setShowFireModal(true);
+  };
+
+  const handleFireEmployee = async () => {
+    if (!selectedFireEmploymentId) {
+      toast.error(translateApiMessage(t("user.profile.manageTeam.employeeInfoUnavailable")));
+      return;
+    }
+
+    if (!fireReason.trim()) {
+      toast.error("Please provide a reason.");
+      return;
+    }
+
+    try {
+      setFiringEmployee(true);
+      const response = await axiosInstance.patch(
+        `/employment/employees/${selectedFireEmploymentId}/terminate`,
+        {
+          reason: fireReason.trim(),
+          notes: fireNotes.trim(),
+          effectiveDate: fireEffectiveDate.toISOString(),
+        }
+      );
+      const result = response?.data;
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to terminate employee");
+      }
+
+      setTeamMembers((prev) =>
+        prev.filter((member) => member.id !== selectedFireEmploymentId)
+      );
+      toast.success(
+        translateApiMessage(result?.message || "employment_updated_successfully")
+      );
+      setShowFireModal(false);
+    } catch (error: any) {
+      toast.error(
+        translateApiMessage(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to terminate employee"
+        )
+      );
+    } finally {
+      setFiringEmployee(false);
+    }
+  };
+
+  const handleEffectiveDateChange = (selectedDate: Date) => {
+    const merged = new Date(fireEffectiveDate);
+    merged.setFullYear(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
+    setFireEffectiveDate(merged);
+  };
+
   const handleApplyWorkingHours = async (payload: {
     workHourPeriod: string | null;
     workHourAmount: number | null;
@@ -505,7 +600,10 @@ const ManageTeamPanel = () => {
                 )}
               </TouchableOpacity>
             ) : null}
-            <TouchableOpacity onPress={() => openWorkingHourModal(item)}>
+            <TouchableOpacity
+              onPress={() => openFireModal(item)}
+              disabled={isOwnerRole}
+            >
               <Entypo name="dots-three-vertical" size={18} color="#666" />
             </TouchableOpacity>
           </View>
@@ -717,6 +815,109 @@ const ManageTeamPanel = () => {
         selectedAssignRole={selectedAssignRole}
         setSelectedAssignRole={setSelectedAssignRole}
       />
+
+      <Modal
+        visible={showFireModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowFireModal(false);
+        }}
+      >
+        <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {
+              setShowFireModal(false);
+            }}
+            className="absolute inset-0"
+          />
+
+          <View
+            style={{ flex: 1, justifyContent: "flex-end", paddingBottom: fireModalKeyboardInset }}
+          >
+            <View
+              className="bg-white rounded-t-3xl"
+              style={{ maxHeight: fireModalKeyboardInset > 0 ? "82%" : "85%" }}
+            >
+              <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowFireModal(false);
+                  }}
+                >
+                  <View className="bg-[#000] rounded-full p-2.5">
+                    <Entypo name="cross" size={30} color="white" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <View className="px-6 pt-8 pb-3">
+                <Text className="font-proximanova-bold text-xl text-center text-primary">
+                  Fire Employee
+                </Text>
+                <Text className="font-proximanova-regular text-sm text-center text-secondary mt-2">
+                  This will terminate the selected employee.
+                </Text>
+              </View>
+
+              <ScrollView
+                className="px-6"
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                contentContainerStyle={{ paddingBottom: 8 }}
+              >
+                <Text className="font-proximanova-regular text-sm text-secondary mb-2">Reason</Text>
+                <TextInput
+                  value={fireReason}
+                  onChangeText={setFireReason}
+                  placeholder="Performance issues"
+                  placeholderTextColor="#999"
+                  className="font-proximanova-regular border border-[#EEEEEE] rounded-xl px-3 py-2 text-primary mb-3"
+                />
+
+                <Text className="font-proximanova-regular text-sm text-secondary mb-2">Notes</Text>
+                <TextInput
+                  value={fireNotes}
+                  onChangeText={setFireNotes}
+                  placeholder="Employee was given multiple warnings..."
+                  placeholderTextColor="#999"
+                  multiline
+                  textAlignVertical="top"
+                  className="font-proximanova-regular border border-[#EEEEEE] rounded-xl px-3 py-2 text-primary min-h-[92px] mb-3"
+                />
+
+                <Text className="font-proximanova-regular text-sm text-secondary mb-2">Effective Date</Text>
+                <DatePicker
+                  className="mb-3"
+                  value={fireEffectiveDate}
+                  onChange={handleEffectiveDateChange}
+                />
+              </ScrollView>
+
+              <View className="px-6 pb-7 flex-row gap-3">
+                <PrimaryButton
+                  title="Cancel"
+                  onPress={() => {
+                    setShowFireModal(false);
+                  }}
+                  disabled={firingEmployee}
+                  showIcon={false}
+                  className="flex-1 bg-[#11293A] rounded-xl py-3 px-4"
+                />
+                <PrimaryButton
+                  title={firingEmployee ? "Firing..." : "Fire"}
+                  onPress={handleFireEmployee}
+                  disabled={firingEmployee}
+                  showIcon={false}
+                  className="flex-1 bg-[#EF4444] rounded-xl py-3 px-4"
+                />
+              </View>
+            </View>
+          </View>
+        </BlurView>
+      </Modal>
     </SafeAreaView>
   );
 };

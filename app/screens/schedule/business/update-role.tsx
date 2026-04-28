@@ -270,7 +270,7 @@ const UpdateRole = () => {
         {} as Record<string, boolean>
       )
     );
-    Keyboard.dismiss();
+    Keyboard?.dismiss?.();
   };
 
   const handleUpdateRole = async () => {

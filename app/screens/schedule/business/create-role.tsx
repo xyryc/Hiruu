@@ -198,7 +198,7 @@ const CreateRole = () => {
         {} as Record<string, boolean>
       )
     );
-    Keyboard.dismiss();
+    Keyboard?.dismiss?.();
   };
 
   const handleSaveRole = async () => {
