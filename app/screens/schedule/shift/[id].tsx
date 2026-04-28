@@ -78,6 +78,13 @@ const ShiftDetails = () => {
   const showCountdown = Boolean(
     shiftStartIso && new Date(shiftStartIso).getTime() > Date.now()
   );
+  const isShiftFinished = useMemo(() => {
+    if (isCompletedShift) return true;
+    if (!shiftEndIso) return false;
+    const endMs = new Date(shiftEndIso).getTime();
+    if (Number.isNaN(endMs)) return false;
+    return Date.now() >= endMs;
+  }, [isCompletedShift, shiftEndIso]);
 
   const timeRange = useMemo(() => {
     if (!shiftStartIso || !shiftEndIso) return t("common.notAvailableShort", { defaultValue: "-" });
@@ -293,25 +300,29 @@ const ShiftDetails = () => {
               }
             />
 
-            <ActionIconCard
-              icon={
-                <MaterialCommunityIcons
-                  name="clock-plus"
-                  size={24}
-                  color="#4FB2F3"
-                />
-              }
-              title={t("user.jobs.schedule.overwork", { defaultValue: "Overwork" })}
-              onPress={() =>
-                router.push({
-                  pathname: "/screens/schedule/shift/request-overtime",
-                  params: {
-                    shiftAssignmentId: shiftId || details?.id,
-                    employmentId: details?.employmentId,
-                  },
-                })
-              }
-            />
+            <View style={{ opacity: isShiftFinished ? 1 : 0.5 }}>
+              <ActionIconCard
+                icon={
+                  <MaterialCommunityIcons
+                    name="clock-plus"
+                    size={24}
+                    color={isShiftFinished ? "#4FB2F3" : "#9CA3AF"}
+                  />
+                }
+                title={t("user.jobs.schedule.overwork", { defaultValue: "Overwork" })}
+                onPress={() => {
+                  if (!isShiftFinished) return;
+                  router.push({
+                    pathname: "/screens/schedule/shift/request-overtime",
+                    params: {
+                      shiftAssignmentId: shiftId || details?.id,
+                      employmentId: details?.employmentId,
+                      shiftEndAt: shiftEndIso,
+                    },
+                  });
+                }}
+              />
+            </View>
 
             {!isCompletedShift ? (
               <ActionIconCard
