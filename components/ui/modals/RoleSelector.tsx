@@ -22,6 +22,7 @@ type RoleSelectorProps = {
   placeholder?: string;
   onSelectRole?: (role: RoleItem | null) => void;
   selectedRole?: RoleItem | null;
+  showSaveBadge?: boolean;
 };
 
 const RoleSelector = ({
@@ -31,6 +32,7 @@ const RoleSelector = ({
   placeholder,
   onSelectRole,
   selectedRole,
+  showSaveBadge = true,
 }: RoleSelectorProps) => {
   const { t } = useTranslation();
   const [localSelectedRole, setLocalSelectedRole] = useState<RoleItem | null>(
@@ -77,11 +79,13 @@ const RoleSelector = ({
           {localSelectedRole ? localSelectedRole.name : resolvedPlaceholder}
         </Text>
         <View className="flex-row items-center gap-1.5">
-          <View className="py-1 px-5 bg-[#11293A] rounded-full">
-            <Text className="font-proximanova-semibold text-sm text-[#FFFFFF]">
-              {t("user.jobs.schedule.save")}
-            </Text>
-          </View>
+          {showSaveBadge ? (
+            <View className="py-1 px-5 bg-[#11293A] rounded-full">
+              <Text className="font-proximanova-semibold text-sm text-[#FFFFFF]">
+                {t("user.jobs.schedule.save")}
+              </Text>
+            </View>
+          ) : null}
           <Ionicons
             name={isDropdownOpen ? "chevron-up" : "chevron-down"}
             size={20}

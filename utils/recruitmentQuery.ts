@@ -2,11 +2,9 @@ import type { RecruitmentFilterQuery } from "@/types";
 
 type QueryValue = string | number | boolean;
 
-type ParsedExperienceRequirement = {
-  roleId?: string;
-  role?: string;
-  minYears?: number;
-};
+type ExperienceParam =
+  | RecruitmentFilterQuery["experienceLevels"]
+  | RecruitmentFilterQuery["experienceRequirements"];
 
 const toCsv = (value?: string[] | string): string | undefined => {
   if (typeof value === "string") {
@@ -56,33 +54,18 @@ const setIfDefined = (
   }
 };
 
-const extractRoleIdsFromExperienceRequirements = (
-  value?: RecruitmentFilterQuery["experienceRequirements"]
-): string[] => {
-  const normalizeArray = (items: ParsedExperienceRequirement[]) =>
-    items
-      .map((item) => (typeof item?.roleId === "string" ? item.roleId.trim() : ""))
-      .filter((item) => item.length > 0);
-
-  if (Array.isArray(value)) {
-    return normalizeArray(value);
+const serializeExperienceParam = (
+  value?: ExperienceParam
+): string | undefined => {
+  if (typeof value === "string") {
+    return toTrimmed(value);
   }
 
-  if (typeof value !== "string") {
-    return [];
+  if (!Array.isArray(value) || value.length === 0) {
+    return undefined;
   }
 
-  const trimmed = value.trim();
-  if (!trimmed.startsWith("[")) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    return Array.isArray(parsed) ? normalizeArray(parsed) : [];
-  } catch {
-    return [];
-  }
+  return JSON.stringify(value);
 };
 
 export const buildRecruitmentQuery = (
@@ -105,9 +88,15 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "skills", toCsv(params.skills));
   setIfDefined(query, "gender", toTrimmed(params.gender));
   setIfDefined(query, "experience", toTrimmed(params.experience));
-  setIfDefined(query, "experienceLevels", toCsv(params.experienceLevels));
-  const derivedRoleIds = extractRoleIdsFromExperienceRequirements(
-    params.experienceRequirements
+  setIfDefined(
+    query,
+    "experienceLevels",
+    serializeExperienceParam(params.experienceLevels)
+  );
+  setIfDefined(
+    query,
+    "experienceRequirements",
+    serializeExperienceParam(params.experienceRequirements)
   );
   setIfDefined(query, "ageMin", toNumber(params.ageMin));
   setIfDefined(query, "ageMax", toNumber(params.ageMax));
@@ -122,16 +111,41 @@ export const buildRecruitmentQuery = (
   setIfDefined(query, "postedById", toTrimmed(params.postedById));
   setIfDefined(query, "isClosed", toBoolean(params.isClosed));
   setIfDefined(query, "isFeatured", toBoolean(params.isFeatured));
-  setIfDefined(
-    query,
-    "roleIds",
-    derivedRoleIds.length > 0 ? toCsv(derivedRoleIds) : toCsv(params.roleIds)
-  );
-  setIfDefined(query, "location", toTrimmed(params.location));
   setIfDefined(query, "latitude", toNumber(params.latitude));
   setIfDefined(query, "longitude", toNumber(params.longitude));
   setIfDefined(query, "maxDistanceKm", toNumber(params.maxDistanceKm));
   setIfDefined(query, "verifiedOnly", toBoolean(params.verifiedOnly));
+  setIfDefined(query, "sortBy", toTrimmed(params.sortBy));
+
+  return query;
+};
+
+export const buildPublicRecruitmentQuery = (
+  params: RecruitmentFilterQuery = {}
+): Record<string, QueryValue> => {
+  const query: Record<string, QueryValue> = {
+    page: toNumber(params.page) ?? 1,
+    limit: toNumber(params.limit) ?? 10,
+  };
+
+  setIfDefined(query, "search", toTrimmed(params.search));
+  setIfDefined(query, "businessId", toTrimmed(params.businessId));
+  setIfDefined(query, "isFeatured", toBoolean(params.isFeatured));
+  setIfDefined(query, "verifiedOnly", toBoolean(params.verifiedOnly));
+  setIfDefined(query, "jobTypes", toCsv(params.jobTypes));
+  setIfDefined(query, "shiftTypes", toCsv(params.shiftTypes));
+  setIfDefined(query, "minSalary", toNumber(params.minSalary));
+  setIfDefined(query, "maxSalary", toNumber(params.maxSalary));
+  setIfDefined(query, "ageMin", toNumber(params.ageMin));
+  setIfDefined(query, "ageMax", toNumber(params.ageMax));
+  setIfDefined(query, "latitude", toNumber(params.latitude));
+  setIfDefined(query, "longitude", toNumber(params.longitude));
+  setIfDefined(query, "maxDistanceKm", toNumber(params.maxDistanceKm));
+  setIfDefined(
+    query,
+    "experienceRequirements",
+    serializeExperienceParam(params.experienceRequirements)
+  );
   setIfDefined(query, "sortBy", toTrimmed(params.sortBy));
 
   return query;

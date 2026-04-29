@@ -11,12 +11,12 @@ import { Feather } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import { t } from "i18next";
 
 type RedeemModalData = {
   img: any;
@@ -449,7 +449,6 @@ const RedeemTokens = () => {
 
     try {
       const result = await redeemCoreItem(selectedRedeemKey, payload);
-      console.log("[RedeemTokens] redeemCoreItem response:", result);
       toast.success(
         translateApiMessage(result?.message || "Redeemed successfully")
       );
@@ -457,7 +456,6 @@ const RedeemTokens = () => {
       await fetchCoreRedeemItems();
       await loadWallet();
     } catch (error: any) {
-      console.log("[RedeemTokens] redeemCoreItem error:", error);
       toast.error(
         translateApiMessage(error?.message || "Failed to redeem item")
       );

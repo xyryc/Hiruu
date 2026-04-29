@@ -1,5 +1,5 @@
-import DynamicBackground from "@/components/layout/DynamicBackground";
 import ScreenHeader from "@/components/header/ScreenHeader";
+import DynamicBackground from "@/components/layout/DynamicBackground";
 import BadgeCard from "@/components/ui/cards/BadgeCard";
 import BasicNameplateCard from "@/components/ui/cards/BasicNameplateCard";
 import DynamicNameplateCard from "@/components/ui/cards/DynamicNameplateCard";
@@ -71,7 +71,6 @@ const UserProfilePreview = () => {
       try {
         setIsLoading(true);
         const result = await getJobProfileByUserId(userId);
-        console.log("[UserProfilePreview] =========== api response:", JSON.stringify(result, null, 2));
         if (isMounted) {
           setProfile(result);
         }
@@ -660,7 +659,7 @@ const UserProfilePreview = () => {
         <View className="mx-5 mt-4">
           <InterestSelection
             selectedInterests={interests}
-            onInterestsChange={() => {}}
+            onInterestsChange={() => { }}
             readonly
             showSelectedOnly
           />

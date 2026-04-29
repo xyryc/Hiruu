@@ -23,11 +23,11 @@ const resolveProfileAppearance = (profileData: any, currentUser: any) => {
       profileTheme?.type === "gradient" ? "gradient" : "solid";
     const gradient =
       Array.isArray(profileTheme?.gradientColors) &&
-      profileTheme.gradientColors.length >= 2
+        profileTheme.gradientColors.length >= 2
         ? [
-            String(profileTheme.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
-            String(profileTheme.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
-          ]
+          String(profileTheme.gradientColors[0] || DEFAULT_GRADIENT_COLORS[0]),
+          String(profileTheme.gradientColors[1] || DEFAULT_GRADIENT_COLORS[1]),
+        ]
         : DEFAULT_GRADIENT_COLORS;
 
     return {
@@ -132,8 +132,8 @@ interface ProfileState {
     averageRating: number;
     totalRatings: number;
     ratingBreakdown: {
-      onTime?: { average: number; count: number };
-      trustWorthy?: { average: number; count: number };
+      payOnTime?: { average: number; count: number };
+      workEnvironment?: { average: number; count: number };
       communication?: { average: number; count: number };
     };
   } | null;
@@ -155,8 +155,8 @@ interface ProfileState {
   createUserBusinessRating: (payload: {
     businessId: string;
     ratings: {
-      onTime: number;
-      trustWorthy: number;
+      payOnTime: number;
+      workEnvironment: number;
       communication: number;
     };
   }) => Promise<any>;
@@ -259,18 +259,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     try {
       const accessToken = useAuthStore.getState().accessToken;
-      console.log("[ProfileStore] deleteMe request", {
-        url: "/auth/delete-me",
-        hasAccessToken: Boolean(accessToken),
-        passwordLength: password?.length ?? 0,
-      });
 
       const response = await axiosInstance.delete("/auth/delete-me", {
         data: { password },
         headers: accessToken
           ? {
-              Authorization: `Bearer ${accessToken}`,
-            }
+            Authorization: `Bearer ${accessToken}`,
+          }
           : undefined,
       });
       const result = response?.data;
@@ -279,22 +274,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         throw new Error(result?.message || "auth_invalid_credentials");
       }
 
-      console.log("[ProfileStore] deleteMe success", {
-        statusCode: result?.statusCode,
-        message: result?.message,
-      });
+
       set({ isLoading: false });
       return result;
     } catch (error: any) {
       const status = error?.response?.status;
       const apiMessage = error?.response?.data?.message;
 
-      console.log("[ProfileStore] deleteMe error", {
-        status,
-        apiMessage,
-        url: error?.config?.url,
-        method: error?.config?.method,
-      });
+
 
       const messageKey =
         status === 401 || apiMessage === "unauthorized"
@@ -577,7 +564,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   getMyRatings: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get("/ratings/users/me");
@@ -606,7 +593,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get(`/ratings/users/${userId}`);
@@ -635,7 +622,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, ratingsResponse: null });
 
     try {
       const response = await axiosInstance.get(`/ratings/businesses/${businessId}`);
@@ -693,7 +680,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       throw finalError;
     }
 
-    set({ isLoadingRatingSummary: true, error: null });
+    set({ isLoadingRatingSummary: true, error: null, businessRatingSummary: null });
 
     try {
       const response = await axiosInstance.get(

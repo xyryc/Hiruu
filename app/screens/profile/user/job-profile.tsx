@@ -216,10 +216,7 @@ const JobProfile = () => {
       const loadProfile = async () => {
         try {
           const data = await getMyJobProfile();
-          console.log(
-            "[JobProfile] profile response:",
-            JSON.stringify(data, null, 2)
-          );
+
         } catch (error: any) {
           toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadJobProfile"));
         }

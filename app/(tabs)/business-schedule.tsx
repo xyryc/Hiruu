@@ -302,6 +302,7 @@ const BusinessScheduleScreen = () => {
         return {
           id: item?.id,
           userId: item?.employment?.userId || item?.employment?.user?.id || "",
+          businessId: item?.business?.id || selectedBusinesses?.[0] || "",
           name: displayName,
           roleId: item?.employment?.roleId || "",
           role: roleName,

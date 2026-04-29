@@ -18,8 +18,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ICountry } from "react-native-international-phone-number";
 import { DateData, Calendar as RNCalendar } from "react-native-calendars";
+import { ICountry } from "react-native-international-phone-number";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -151,21 +151,6 @@ const Calendar = () => {
     });
   }, [holidays, currentMonth, currentYear]);
 
-  console.log(
-    "[BusinessHolidayCalendar] visibleHolidays:",
-    JSON.stringify(
-      {
-        currentYear,
-        currentMonth,
-        totalHolidays: holidays.length,
-        visibleCount: visibleHolidays.length,
-        visibleIds: visibleHolidays.map((item) => item.id),
-        visibleTypes: visibleHolidays.map((item) => item.type),
-      },
-      null,
-      2
-    )
-  );
 
   const markedDates = Array.from(holidayDaySet).reduce<Record<string, any>>(
     (acc, day) => {

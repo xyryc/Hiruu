@@ -192,10 +192,10 @@ const BusinessProfile = () => {
   );
 
   const workEnvironmentRating = Number(
-    businessRatingSummary?.ratingBreakdown?.trustWorthy?.average ?? 0
+    businessRatingSummary?.ratingBreakdown?.workEnvironment?.average ?? 0
   );
   const payOnTimeRating = Number(
-    businessRatingSummary?.ratingBreakdown?.onTime?.average ?? 0
+    businessRatingSummary?.ratingBreakdown?.payOnTime?.average ?? 0
   );
   const communicationRating = Number(
     businessRatingSummary?.ratingBreakdown?.communication?.average ?? 0

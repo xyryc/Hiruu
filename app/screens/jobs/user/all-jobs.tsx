@@ -59,14 +59,19 @@ const AllJobs = () => {
   const params = useLocalSearchParams<{
     reset?: string;
     type?: string;
+    businessId?: string;
     search?: string;
     page?: string;
     limit?: string;
     shiftTypes?: string;
     experienceRequirements?: string;
     jobTypes?: string;
+    minSalary?: string;
     maxSalary?: string;
+    verifiedOnly?: string;
     location?: string;
+    ageMin?: string;
+    ageMax?: string;
     latitude?: string;
     longitude?: string;
     maxDistanceKm?: string;
@@ -100,12 +105,17 @@ const AllJobs = () => {
             : jobsType === "suggested"
               ? false
               : undefined,
+        businessId: undefined,
         search: undefined,
         shiftTypes: undefined,
         experienceRequirements: undefined,
         jobTypes: undefined,
+        minSalary: undefined,
         maxSalary: undefined,
+        verifiedOnly: undefined,
         location: undefined,
+        ageMin: undefined,
+        ageMax: undefined,
         latitude: undefined,
         longitude: undefined,
         maxDistanceKm: undefined,
@@ -115,11 +125,19 @@ const AllJobs = () => {
     }
 
     const routeFilters: Partial<RecruitmentFilterQuery> = {
+      businessId: parseStringParam(params.businessId),
       shiftTypes: parseStringParam(params.shiftTypes),
       experienceRequirements: parseStringParam(params.experienceRequirements),
       jobTypes: parseStringParam(params.jobTypes),
+      minSalary: parseNumberParam(params.minSalary),
       maxSalary: parseNumberParam(params.maxSalary),
+      verifiedOnly:
+        parseStringParam(params.verifiedOnly) === "true"
+          ? true
+          : undefined,
       location: parseStringParam(params.location),
+      ageMin: parseNumberParam(params.ageMin),
+      ageMax: parseNumberParam(params.ageMax),
       latitude: parseNumberParam(params.latitude),
       longitude: parseNumberParam(params.longitude),
       maxDistanceKm: parseNumberParam(params.maxDistanceKm),
@@ -143,11 +161,16 @@ const AllJobs = () => {
       setAllJobsFilters(routeFilters);
     }
   }, [
+    params.businessId,
     params.shiftTypes,
     params.experienceRequirements,
     params.jobTypes,
+    params.minSalary,
     params.maxSalary,
+    params.verifiedOnly,
     params.location,
+    params.ageMin,
+    params.ageMax,
     params.latitude,
     params.longitude,
     params.maxDistanceKm,
@@ -162,11 +185,16 @@ const AllJobs = () => {
 
   const normalizedFilters = useMemo<RecruitmentFilterQuery>(() => {
     return {
+      businessId: allJobsFilters.businessId,
       shiftTypes: allJobsFilters.shiftTypes,
       experienceRequirements: allJobsFilters.experienceRequirements,
       jobTypes: allJobsFilters.jobTypes,
+      minSalary: allJobsFilters.minSalary,
       maxSalary: allJobsFilters.maxSalary,
+      verifiedOnly: allJobsFilters.verifiedOnly,
       location: allJobsFilters.location,
+      ageMin: allJobsFilters.ageMin,
+      ageMax: allJobsFilters.ageMax,
       latitude: allJobsFilters.latitude,
       longitude: allJobsFilters.longitude,
       maxDistanceKm: allJobsFilters.maxDistanceKm,
@@ -174,11 +202,16 @@ const AllJobs = () => {
       isFeatured: allJobsFilters.isFeatured,
     };
   }, [
+    allJobsFilters.businessId,
     allJobsFilters.shiftTypes,
     allJobsFilters.experienceRequirements,
     allJobsFilters.jobTypes,
+    allJobsFilters.minSalary,
     allJobsFilters.maxSalary,
+    allJobsFilters.verifiedOnly,
     allJobsFilters.location,
+    allJobsFilters.ageMin,
+    allJobsFilters.ageMax,
     allJobsFilters.latitude,
     allJobsFilters.longitude,
     allJobsFilters.maxDistanceKm,
@@ -285,13 +318,18 @@ const AllJobs = () => {
                 from: "all-jobs",
                 page: String(page),
                 limit: String(limit),
+                businessId: String(normalizedFilters.businessId ?? ""),
                 shiftTypes: String(normalizedFilters.shiftTypes ?? ""),
                 experienceRequirements: String(
                   normalizedFilters.experienceRequirements ?? ""
                 ),
                 jobTypes: String(normalizedFilters.jobTypes ?? ""),
+                minSalary: String(normalizedFilters.minSalary ?? ""),
                 maxSalary: String(normalizedFilters.maxSalary ?? ""),
+                verifiedOnly: String(normalizedFilters.verifiedOnly ?? ""),
                 location: String(normalizedFilters.location ?? ""),
+                ageMin: String(normalizedFilters.ageMin ?? ""),
+                ageMax: String(normalizedFilters.ageMax ?? ""),
                 latitude: String(normalizedFilters.latitude ?? ""),
                 longitude: String(normalizedFilters.longitude ?? ""),
                 maxDistanceKm: String(normalizedFilters.maxDistanceKm ?? ""),

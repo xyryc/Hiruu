@@ -27,10 +27,14 @@ const Rating = () => {
   const isLoading = useProfileStore((state) => state.isLoading);
   const isSubmittingRating = useProfileStore((state) => state.isSubmittingRating);
   const ratingsResponse = useProfileStore((state) => state.ratingsResponse);
+  const businessRatingSummary = useProfileStore((state) => state.businessRatingSummary);
   const getMyRatings = useProfileStore((state) => state.getMyRatings);
   const getRatingsByUserId = useProfileStore((state) => state.getRatingsByUserId);
   const getRatingsByBusinessId = useProfileStore(
     (state) => state.getRatingsByBusinessId
+  );
+  const getBusinessRatingSummary = useProfileStore(
+    (state) => state.getBusinessRatingSummary
   );
   const createUserBusinessRating = useProfileStore(
     (state) => state.createUserBusinessRating
@@ -40,6 +44,11 @@ const Rating = () => {
   );
   const targetUserId = typeof params.userId === "string" ? params.userId : "";
   const businessId = typeof params.businessId === "string" ? params.businessId : "";
+  const requestKey = businessId
+    ? `business:${businessId}:${targetUserId || "none"}`
+    : targetUserId
+      ? `user:${targetUserId}`
+      : "me";
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isBusinessRatingView = Boolean(businessId) && !targetUserId;
   const isOwnBusinessRatingView =
@@ -48,11 +57,18 @@ const Rating = () => {
     selectedBusinesses[0] === businessId;
   const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
   const shouldOpenAddRating = params.openAddRating === "true";
+  const [resolvedRequestKey, setResolvedRequestKey] = useState("");
+  const [resolvedSummaryKey, setResolvedSummaryKey] = useState("");
 
   const loadRatings = useCallback(async () => {
+    setResolvedRequestKey("");
+    setResolvedSummaryKey("");
     try {
       if (isBusinessRatingView) {
-        await getRatingsByBusinessId(businessId);
+        await Promise.all([
+          getRatingsByBusinessId(businessId),
+          getBusinessRatingSummary(businessId),
+        ]);
         return;
       }
 
@@ -64,15 +80,27 @@ const Rating = () => {
       await getMyRatings();
     } catch (error: any) {
       console.error("user rating screen api error:", error?.message || error);
+    } finally {
+      setResolvedRequestKey(requestKey);
+      if (isBusinessRatingView) {
+        setResolvedSummaryKey(requestKey);
+      }
     }
   }, [
     businessId,
+    getBusinessRatingSummary,
     getRatingsByBusinessId,
     getMyRatings,
     getRatingsByUserId,
     isBusinessRatingView,
+    requestKey,
     targetUserId,
   ]);
+
+  useEffect(() => {
+    setResolvedRequestKey("");
+    setResolvedSummaryKey("");
+  }, [requestKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,17 +111,56 @@ const Rating = () => {
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const canUseRatingsResponse = resolvedRequestKey === requestKey;
+  const canUseBusinessSummary =
+    isBusinessRatingView && resolvedSummaryKey === requestKey;
   const ratingItems = useMemo(
-    () => (Array.isArray(ratingsResponse?.data) ? ratingsResponse.data : []),
-    [ratingsResponse?.data]
+    () =>
+      canUseRatingsResponse && Array.isArray(ratingsResponse?.data)
+        ? ratingsResponse.data
+        : [],
+    [canUseRatingsResponse, ratingsResponse?.data]
   );
 
   const summaryBars = useMemo(() => {
+    const labels = isBusinessRatingView
+      ? {
+        onTime: t("user.profile.businessProfile.payOnTime"),
+        trustWorthy: t("user.profile.businessProfile.workEnvironment"),
+        communication: t("user.profile.businessProfile.communication"),
+      }
+      : {
+        onTime: t("user.profile.rating.onTime"),
+        trustWorthy: t("user.profile.rating.trustWorthy"),
+        communication: t("user.profile.rating.communication"),
+      };
+
+    if (isBusinessRatingView) {
+      const breakdown = businessRatingSummary?.ratingBreakdown;
+      return [
+        {
+          label: labels.onTime,
+          value: Number(breakdown?.payOnTime?.average ?? 0),
+          max: 5,
+        },
+        {
+          label: labels.trustWorthy,
+          value: Number(breakdown?.workEnvironment?.average ?? 0),
+          max: 5,
+        },
+        {
+          label: labels.communication,
+          value: Number(breakdown?.communication?.average ?? 0),
+          max: 5,
+        },
+      ];
+    }
+
     if (!ratingItems.length) {
       return [
-        { label: t("user.profile.businessProfile.payOnTime"), value: 0, max: 5 },
-        { label: t("user.profile.rating.trustWorthy"), value: 0, max: 5 },
-        { label: t("user.profile.businessProfile.communication"), value: 0, max: 5 },
+        { label: labels.onTime, value: 0, max: 5 },
+        { label: labels.trustWorthy, value: 0, max: 5 },
+        { label: labels.communication, value: 0, max: 5 },
       ];
     }
 
@@ -108,28 +175,46 @@ const Rating = () => {
     );
 
     return [
-      { label: t("user.profile.businessProfile.payOnTime"), value: totals.onTime / total, max: 5 },
-      { label: t("user.profile.rating.trustWorthy"), value: totals.trustWorthy / total, max: 5 },
-      { label: t("user.profile.businessProfile.communication"), value: totals.communication / total, max: 5 },
+      { label: labels.onTime, value: totals.onTime / total, max: 5 },
+      { label: labels.trustWorthy, value: totals.trustWorthy / total, max: 5 },
+      { label: labels.communication, value: totals.communication / total, max: 5 },
     ];
-  }, [ratingItems, t]);
+  }, [businessRatingSummary?.ratingBreakdown, isBusinessRatingView, ratingItems, t]);
 
   const averageRating = useMemo(() => {
+    if (isBusinessRatingView) {
+      return canUseBusinessSummary
+        ? Number(businessRatingSummary?.averageRating ?? 0)
+        : 0;
+    }
     if (!ratingItems.length) return 0;
     const total = ratingItems.reduce(
       (sum: number, item: any) => sum + Number(item?.overallRating ?? item?.rating ?? 0),
       0
     );
     return Number((total / ratingItems.length).toFixed(1));
-  }, [ratingItems]);
+  }, [businessRatingSummary?.averageRating, canUseBusinessSummary, isBusinessRatingView, ratingItems]);
 
   const totalRatings = useMemo(() => {
+    if (isBusinessRatingView) {
+      return canUseBusinessSummary
+        ? Number(businessRatingSummary?.totalRatings ?? 0)
+        : 0;
+    }
+    if (!canUseRatingsResponse) return 0;
     const paginationTotal = Number(ratingsResponse?.pagination?.total);
     if (Number.isFinite(paginationTotal) && paginationTotal >= 0) {
       return paginationTotal;
     }
     return ratingItems.length;
-  }, [ratingItems.length, ratingsResponse?.pagination?.total]);
+  }, [
+    businessRatingSummary?.totalRatings,
+    canUseBusinessSummary,
+    canUseRatingsResponse,
+    isBusinessRatingView,
+    ratingItems.length,
+    ratingsResponse?.pagination?.total,
+  ]);
 
 
 
@@ -184,14 +269,18 @@ const Rating = () => {
         }
       }
 
-      try {
-        if (isBusinessRatingView) {
-          await createUserBusinessRating({
-            businessId,
-            ratings: payload.ratings,
-          });
-        } else {
-          await createBusinessEmployeeRating({
+        try {
+          if (isBusinessRatingView) {
+            await createUserBusinessRating({
+              businessId,
+              ratings: {
+                payOnTime: payload.ratings.onTime,
+                workEnvironment: payload.ratings.trustWorthy,
+                communication: payload.ratings.communication,
+              },
+            });
+          } else {
+            await createBusinessEmployeeRating({
             businessId,
             userId: targetUserId,
             ratings: payload.ratings,
@@ -239,7 +328,7 @@ const Rating = () => {
 
 
         {/* Ratings and star */}
-        <View className=" mx-5 bg-[#E5F4FD] mt-8 rounded-2xl p-5 shadow-lg">
+        <View className="mx-5 mt-8 rounded-[28px] bg-[#DCECF9] px-6 py-7">
           {summaryBars.map((rating, index) => (
             <RatingBar
               key={index}

@@ -1,5 +1,6 @@
 import { FontAwesome6, SimpleLineIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -7,10 +8,25 @@ import StatusBadge from "../badges/StatusBadge";
 
 const ShiftCard = ({ shift, onMessagePress }: any) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const avatarSource =
     typeof shift?.avatar === "string" && shift.avatar.trim().length > 0
       ? { uri: shift.avatar }
       : require("@/assets/images/placeholder.png");
+  const canOpenUserProfile = Boolean(shift?.userId);
+
+  const handleOpenUserProfile = () => {
+    if (!canOpenUserProfile) return;
+    router.push({
+      pathname: "/screens/jobs/business/user-profile-preview",
+      params: {
+        userId: String(shift.userId),
+        ...(shift?.businessId
+          ? { businessId: String(shift.businessId), canRate: "true" }
+          : {}),
+      },
+    });
+  };
 
   return (
     <View
@@ -20,7 +36,11 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
       {/* 1st row */}
       <View className="flex-row justify-between items-start">
         {/* profile pic, name */}
-        <View className="flex-row gap-2.5">
+        <TouchableOpacity
+          onPress={handleOpenUserProfile}
+          disabled={!canOpenUserProfile}
+          className="flex-row gap-2.5 flex-1"
+        >
           <Image
             className="mr-2.5"
             source={avatarSource}
@@ -36,7 +56,7 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
               {shift.role}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* icons */}
         <View className="flex-row items-center gap-1.5">
