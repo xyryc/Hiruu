@@ -146,6 +146,11 @@ const UserProfilePreview = () => {
     return `${Math.round(value)}%`;
   };
   const analyticsMetrics = profile?.user?.analytics?.metrics;
+  const roundedRating = useMemo(() => {
+    const value = Number(profile?.user?.rating ?? 0);
+    if (!Number.isFinite(value)) return 0;
+    return Math.round(value * 10) / 10;
+  }, [profile?.user?.rating]);
 
   const isOwnProfile = useMemo(() => {
     const previewUserId = profile?.userId || profile?.user?.id;
@@ -496,7 +501,7 @@ const UserProfilePreview = () => {
                 avatarUrl: profile?.user?.avatar || null,
                 name: profile?.user?.name || t("common.user"),
                 location: profileAddress,
-                rating: profile?.user?.rating ?? 0,
+                rating: roundedRating,
                 isVerified: true,
               }}
             />
@@ -505,7 +510,7 @@ const UserProfilePreview = () => {
               avatarUrl={profile?.user?.avatar || null}
               name={profile?.user?.name || t("common.user")}
               location={profileAddress}
-              rating={profile?.user?.rating ?? 0}
+              rating={roundedRating}
               isVerified
             />
           )}
