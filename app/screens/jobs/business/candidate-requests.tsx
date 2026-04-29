@@ -3,6 +3,7 @@ import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
+import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -48,14 +49,22 @@ const CandidateRequests = () => {
     status: "approved" | "rejected";
   } | null>(null);
   const limit = 10;
+  const [isUnreadForbidden, setIsUnreadForbidden] = useState(false);
 
   const currentBusinessId = selectedBusinesses?.[0] || null;
+  const { canRead: canReadJoinRequests } = useBusinessPermission("people.join_requests", {
+    businessId: currentBusinessId || undefined,
+  });
 
   const { markAsRead } = useUnreadApplications({
     autoRefresh: false,
     scope: "business",
     businessId: currentBusinessId || undefined,
   });
+
+  React.useEffect(() => {
+    setIsUnreadForbidden(false);
+  }, [currentBusinessId]);
 
   const loadApplications = useCallback(
     async (targetPage = 1, append = false) => {
@@ -99,7 +108,7 @@ const CandidateRequests = () => {
   );
 
   const loadUnreadCounts = useCallback(async () => {
-    if (!currentBusinessId) return;
+    if (!currentBusinessId || !canReadJoinRequests || isUnreadForbidden) return;
 
     try {
       const result = await getUnreadCount({
@@ -108,12 +117,16 @@ const CandidateRequests = () => {
       });
       setUnreadSent(result.business_invited ?? 0);
       setUnreadReceived(result.user_applied ?? 0);
-    } catch (err) {
+    } catch (err: any) {
+      const message = String(err?.message || "").toLowerCase();
+      if (message.includes("forbidden")) {
+        setIsUnreadForbidden(true);
+      }
       console.error("[CandidateRequests] Failed to fetch unread counts:", err);
       setUnreadSent(0);
       setUnreadReceived(0);
     }
-  }, [getUnreadCount, currentBusinessId]);
+  }, [getUnreadCount, currentBusinessId, canReadJoinRequests, isUnreadForbidden]);
 
   useFocusEffect(
     useCallback(() => {
@@ -121,14 +134,25 @@ const CandidateRequests = () => {
         return;
       }
 
+      if (!canReadJoinRequests) {
+        setUnreadSent(0);
+        setUnreadReceived(0);
+      }
+
       loadApplications(1, false);
       loadUnreadCounts();
 
       // Mark all as read when business opens this screen
-      markAsRead().catch((err) => {
-        console.error("[CandidateRequests] Failed to mark as read:", err);
-      });
-    }, [loadApplications, loadUnreadCounts, markAsRead, currentBusinessId])
+      if (canReadJoinRequests && !isUnreadForbidden) {
+        markAsRead().catch((err: any) => {
+          const message = String(err?.message || "").toLowerCase();
+          if (message.includes("forbidden")) {
+            setIsUnreadForbidden(true);
+          }
+          console.error("[CandidateRequests] Failed to mark as read:", err);
+        });
+      }
+    }, [loadApplications, loadUnreadCounts, markAsRead, currentBusinessId, canReadJoinRequests, isUnreadForbidden])
   );
 
   const sourceFiltered = useMemo(() => {

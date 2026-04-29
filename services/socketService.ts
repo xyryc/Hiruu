@@ -14,6 +14,14 @@ class SocketService {
             return this.socket;
         }
 
+        // Reuse existing socket instance instead of creating duplicates.
+        if (this.socket) {
+            if (!this.socket.active) {
+                this.socket.connect();
+            }
+            return this.socket;
+        }
+
         // Prevent concurrent connection attempts
         if (this.isConnecting) {
             // Wait for existing connection attempt
@@ -97,6 +105,14 @@ class SocketService {
 
     async connectCalls(): Promise<Socket | null> {
         if (this.callsSocket?.connected) {
+            return this.callsSocket;
+        }
+
+        // Reuse existing calls socket instance instead of creating duplicates.
+        if (this.callsSocket) {
+            if (!this.callsSocket.active) {
+                this.callsSocket.connect();
+            }
             return this.callsSocket;
         }
 
