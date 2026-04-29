@@ -39,6 +39,16 @@ type LocationOption = {
   country?: string;
 };
 
+const CLOSED_WEEKLY_AVAILABILITY: WeeklyAvailabilityItem[] = [
+  { day: "monday", isOpen: false },
+  { day: "tuesday", isOpen: false },
+  { day: "wednesday", isOpen: false },
+  { day: "thursday", isOpen: false },
+  { day: "friday", isOpen: false },
+  { day: "saturday", isOpen: false },
+  { day: "sunday", isOpen: false },
+];
+
 const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
 const ADDRESS_MAX_LENGTH = 200;
 
@@ -98,14 +108,20 @@ const FindJobFilters = () => {
   const [isDistanceTouched, setIsDistanceTouched] = useState(
     Number.isFinite(Number(businessCandidateFilters.maxDistanceKm))
   );
-  const [salaryRange, setSalaryRange] = useState(
+  const [salaryMinRange, setSalaryMinRange] = useState(
+    Number.isFinite(Number(businessCandidateFilters.salaryMin))
+      ? Number(businessCandidateFilters.salaryMin)
+      : 0
+  );
+  const [salaryMaxRange, setSalaryMaxRange] = useState(
     Number.isFinite(Number(businessCandidateFilters.salaryMax))
       ? Number(businessCandidateFilters.salaryMax)
-      : 5000
+      : 100
   );
   const [isSalaryRangeTouched, setIsSalaryRangeTouched] = useState(
+    Number.isFinite(Number(businessCandidateFilters.salaryMin)) ||
     Number.isFinite(Number(businessCandidateFilters.salaryMax)) &&
-    Number(businessCandidateFilters.salaryMax) !== 5000
+    Number(businessCandidateFilters.salaryMax) !== 100
   );
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
@@ -134,7 +150,7 @@ const FindJobFilters = () => {
         startTime: slot.startTime,
         endTime: slot.endTime,
       }))
-      : []
+      : CLOSED_WEEKLY_AVAILABILITY
   );
   const router = useRouter();
   const handleSelectLocation = (item: LocationOption) => {
@@ -424,11 +440,15 @@ const FindJobFilters = () => {
       location: normalizedLocation,
       latitude: hasSelectedCoords ? selectedCoords.latitude : undefined,
       longitude: hasSelectedCoords ? selectedCoords.longitude : undefined,
+      salaryMin:
+        isSalaryRangeTouched && Math.round(salaryMinRange) > 0
+          ? Math.round(salaryMinRange)
+          : undefined,
       salaryMax:
         isSalaryRangeTouched &&
-          Math.round(salaryRange) > 0 &&
-          Math.round(salaryRange) !== 5000
-          ? Math.round(salaryRange)
+          Math.round(salaryMaxRange) > 0 &&
+          Math.round(salaryMaxRange) !== 100
+          ? Math.round(salaryMaxRange)
           : undefined,
       sortBy: selectedOption ? sortLabelToValue[selectedOption] : undefined,
       availabilityTypes: availabilityTypes.length > 0 ? availabilityTypes : undefined,
@@ -468,6 +488,7 @@ const FindJobFilters = () => {
         className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="always"
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Verified Candidates Only */}
         <View className="mt-7 flex-row justify-between items-center py-5 border border-[#EEEEEE] p-4 rounded-xl">
@@ -675,14 +696,34 @@ const FindJobFilters = () => {
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             {t("user.jobs.filters.salaryRange")}
           </Text>
+          <Text className="text-xs font-proximanova-regular text-gray-500 mb-2">
+            Min: ${salaryMinRange.toFixed(0)}
+          </Text>
           <Slider
-            value={salaryRange}
+            value={salaryMinRange}
             onValueChange={(value) => {
-              setSalaryRange(value);
+              const nextValue = Math.min(value, salaryMaxRange);
+              setSalaryMinRange(nextValue);
               setIsSalaryRangeTouched(true);
             }}
             minimumValue={0}
-            maximumValue={10000}
+            maximumValue={100}
+            minimumTrackTintColor="#4FB2F3"
+            maximumTrackTintColor="#E5E5E5"
+            thumbTintColor="#EEEEEE"
+          />
+          <Text className="text-xs font-proximanova-regular text-gray-500 mt-4 mb-2">
+            Max: ${salaryMaxRange.toFixed(0)}
+          </Text>
+          <Slider
+            value={salaryMaxRange}
+            onValueChange={(value) => {
+              const nextValue = Math.max(value, salaryMinRange);
+              setSalaryMaxRange(nextValue);
+              setIsSalaryRangeTouched(true);
+            }}
+            minimumValue={0}
+            maximumValue={100}
             minimumTrackTintColor="#4FB2F3"
             maximumTrackTintColor="#E5E5E5"
             thumbTintColor="#EEEEEE"
@@ -692,10 +733,10 @@ const FindJobFilters = () => {
               $0
             </Text>
             <Text className="text-xs font-proximanova-regular text-gray-500">
-              ${salaryRange.toFixed(0)}
+              ${salaryMinRange.toFixed(0)} - ${salaryMaxRange.toFixed(0)}
             </Text>
             <Text className="text-xs font-proximanova-regular text-gray-500">
-              $10000
+              $100
             </Text>
           </View>
         </View>
@@ -705,13 +746,13 @@ const FindJobFilters = () => {
           <Text className="text-base font-proximanova-semibold text-primary mb-3">
             {t("user.jobs.filters.experienceLevel")}
           </Text>
-          <Text className="text-sm font-proximanova-regular text-secondary mb-2">
+          {/* <Text className="text-sm font-proximanova-regular text-secondary mb-2">
             {t("user.jobs.filters.selectRoleFirst")}
-          </Text>
-          <View className="border border-[#EEEEEE] rounded-xl px-3 pt-1 pb-3 bg-white">
-            <Text className="mt-3 text-sm font-proximanova-semibold text-primary">
+          </Text> */}
+          <View className="bg-white">
+            {/* <Text className="text-sm font-proximanova-semibold text-primary">
               {t("user.jobs.filters.selectRole")}
-            </Text>
+            </Text> */}
             <RoleSelector
               className="mt-1"
               roles={roleOptions}
@@ -719,6 +760,7 @@ const FindJobFilters = () => {
               selectedRole={selectedRoleToAdd}
               placeholder={t("user.jobs.postJob.selectRole")}
               onSelectRole={(role) => setSelectedRoleToAdd(role)}
+              showSaveBadge={false}
             />
             {selectedRoleToAdd?.name ? (
               <Text className="text-xs font-proximanova-regular text-[#4FB2F3] mt-1">
