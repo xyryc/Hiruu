@@ -1,7 +1,10 @@
 import type { MyEmploymentItem, RecruitmentFilterQuery, RecruitmentShiftType } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
-import { buildRecruitmentQuery } from "@/utils/recruitmentQuery";
+import {
+  buildPublicRecruitmentQuery,
+  buildRecruitmentQuery,
+} from "@/utils/recruitmentQuery";
 import { AxiosError } from "axios";
 import { create } from "zustand";
 import { useAuthStore } from "./authStore";
@@ -84,9 +87,14 @@ type BusinessInvitePayload = {
 
 type AllJobsFilters = Pick<
   RecruitmentFilterQuery,
+  | "businessId"
   | "shiftTypes"
   | "jobTypes"
+  | "minSalary"
   | "maxSalary"
+  | "ageMin"
+  | "ageMax"
+  | "verifiedOnly"
   | "experienceRequirements"
   | "location"
   | "latitude"
@@ -461,12 +469,12 @@ export const useJobStore = create<JobState>((set) => ({
     }
   },
 
-  getPublicRecruitments: async (query = {}) => {
-    try {
-      const params = buildRecruitmentQuery(query);
+    getPublicRecruitments: async (query = {}) => {
+      try {
+        const params = buildPublicRecruitmentQuery(query);
 
-      const response = await axiosInstance.get("/recruitment/public", {
-        params,
+        const response = await axiosInstance.get("/recruitment/public", {
+          params,
       });
       const result = response.data;
 
