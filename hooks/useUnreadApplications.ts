@@ -1,4 +1,3 @@
-import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useCallback, useEffect, useState } from "react";
 
@@ -23,19 +22,19 @@ export const useUnreadApplications = ({
     const getUnreadCount = useJobStore((s) => s.getUnreadCount);
     const markApplicationsAsRead = useJobStore((s) => s.markApplicationsAsRead);
 
-    // Auto-detect scope based on business profile
-    const selectedBusinesses = useBusinessStore((s) => s.selectedBusinesses);
-    const isBusinessMode = selectedBusinesses.length > 0;
-    const autoBusinessId = selectedBusinesses[0]; // It's already an ID string
-
-    // Use provided scope or auto-detect
-    const effectiveScope = scope ?? (isBusinessMode ? "business" : "user");
-    const effectiveBusinessId = businessId ?? (isBusinessMode ? autoBusinessId : undefined);
+    // Keep default scope stable as user unless explicitly set by caller.
+    const effectiveScope = scope ?? "user";
+    const effectiveBusinessId = businessId;
 
     // Only use type if explicitly provided - don't auto-detect
     const effectiveType = type;
 
     const fetchUnreadCount = useCallback(async () => {
+        if (effectiveScope === "business" && !effectiveBusinessId) {
+            setUnreadCount(0);
+            return;
+        }
+
         try {
             setIsLoading(true);
             setError(null);
