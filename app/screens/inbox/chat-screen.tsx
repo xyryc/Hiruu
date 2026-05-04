@@ -67,8 +67,7 @@ const ChatScreen = () => {
   const [confirmAction, setConfirmAction] = useState<"toggle-block" | "delete" | null>(null);
   const messagesListRef = useRef<FlatList<any> | null>(null);
   const previousMessageCountRef = useRef(0);
-  const didInitialScrollRef = useRef(false);
-  const initialAutoScrollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const didInitialPositionRef = useRef(false);
   const { user } = useAuthStore();
   const router = useRouter();
   const params = useLocalSearchParams<{ roomId?: string; userId?: string }>();
@@ -476,6 +475,18 @@ const ChatScreen = () => {
       duration: formattedDuration,
     };
   }, [t]);
+
+  const messageSkeletonRows = useMemo(
+    () => [
+      { id: "msg-skeleton-1", align: "left", width: "72%", showAvatar: true },
+      { id: "msg-skeleton-2", align: "right", width: "58%", showAvatar: true },
+      { id: "msg-skeleton-3", align: "left", width: "64%", showAvatar: true },
+      { id: "msg-skeleton-4", align: "right", width: "78%", showAvatar: true },
+      { id: "msg-skeleton-5", align: "left", width: "52%", showAvatar: true },
+      { id: "msg-skeleton-6", align: "right", width: "60%", showAvatar: true },
+    ],
+    []
+  );
 
   const mappedMessages = useMemo(() => {
     const currentUserId = user?.id;
@@ -911,16 +922,17 @@ const ChatScreen = () => {
   useEffect(() => {
     if (!mappedMessages.length) {
       previousMessageCountRef.current = 0;
-      didInitialScrollRef.current = false;
-      if (initialAutoScrollTimerRef.current) {
-        clearInterval(initialAutoScrollTimerRef.current);
-        initialAutoScrollTimerRef.current = null;
-      }
+      didInitialPositionRef.current = false;
       return;
     }
 
+    if (!didInitialPositionRef.current) {
+      scrollToBottom(false);
+      didInitialPositionRef.current = true;
+    }
+
     const hasNewMessage = mappedMessages.length > previousMessageCountRef.current;
-    if (hasNewMessage) {
+    if (hasNewMessage && previousMessageCountRef.current > 0) {
       scrollToBottom(previousMessageCountRef.current > 0);
     }
 
@@ -928,41 +940,8 @@ const ChatScreen = () => {
   }, [mappedMessages.length, scrollToBottom]);
 
   useEffect(() => {
-    if (loading || !mappedMessages.length || didInitialScrollRef.current) return;
-
-    let attempts = 0;
-    if (initialAutoScrollTimerRef.current) {
-      clearInterval(initialAutoScrollTimerRef.current);
-      initialAutoScrollTimerRef.current = null;
-    }
-
-    initialAutoScrollTimerRef.current = setInterval(() => {
-      scrollToBottom(false);
-      attempts += 1;
-      if (attempts >= 12) {
-        if (initialAutoScrollTimerRef.current) {
-          clearInterval(initialAutoScrollTimerRef.current);
-          initialAutoScrollTimerRef.current = null;
-        }
-        didInitialScrollRef.current = true;
-      }
-    }, 120);
-
-    return () => {
-      if (initialAutoScrollTimerRef.current) {
-        clearInterval(initialAutoScrollTimerRef.current);
-        initialAutoScrollTimerRef.current = null;
-      }
-    };
-  }, [actualRoomId, loading, mappedMessages.length, scrollToBottom]);
-
-  useEffect(() => {
-    didInitialScrollRef.current = false;
+    didInitialPositionRef.current = false;
     previousMessageCountRef.current = 0;
-    if (initialAutoScrollTimerRef.current) {
-      clearInterval(initialAutoScrollTimerRef.current);
-      initialAutoScrollTimerRef.current = null;
-    }
   }, [actualRoomId]);
 
   useEffect(() => {
@@ -1057,17 +1036,14 @@ const ChatScreen = () => {
             style={{ flex: 1 }}
             data={mappedMessages}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingBottom: 12,
+              flexGrow: 1,
+              justifyContent: "flex-end",
+            }}
             showsVerticalScrollIndicator={false}
             inverted={false}
-            onContentSizeChange={() => {
-              if (!mappedMessages.length || didInitialScrollRef.current) return;
-              scrollToBottom(false);
-            }}
-            onLayout={() => {
-              if (!mappedMessages.length || didInitialScrollRef.current) return;
-              scrollToBottom(false);
-            }}
             renderItem={({ item: msg }) => (
               <>
                 {msg.showDateSeparator ? (
@@ -1087,8 +1063,31 @@ const ChatScreen = () => {
             )}
             ListEmptyComponent={
               loading ? (
-                <View className="py-6 items-center">
-                  <Text className="text-sm text-secondary">{t("common.chat.loadingMessages")}</Text>
+                <View className="flex-1 justify-end py-4">
+                  {messageSkeletonRows.map((row) => (
+                    <View
+                      key={row.id}
+                      className={`mb-3 ${row.align === "right" ? "items-end" : "items-start"}`}
+                    >
+                      <View
+                        className={`w-full flex-row items-end ${row.align === "right" ? "justify-end" : "justify-start"}`}
+                      >
+                        {row.align === "left" && row.showAvatar ? (
+                          <View className="h-10 w-10 rounded-full bg-[#D1DEE9] mr-2 mb-1" />
+                        ) : null}
+                        <View
+                          className="rounded-2xl bg-[#E1EAF2] px-4 py-3"
+                          style={{ width: row.width as any }}
+                        >
+                          <View className="h-3.5 w-[85%] rounded-full bg-[#D1DEE9]" />
+                          <View className="mt-2 h-3.5 w-[55%] rounded-full bg-[#D1DEE9]" />
+                        </View>
+                        {row.align === "right" && row.showAvatar ? (
+                          <View className="h-10 w-10 rounded-full bg-[#D1DEE9] ml-2 mb-1" />
+                        ) : null}
+                      </View>
+                    </View>
+                  ))}
                 </View>
               ) : (
                 <NoMessages />

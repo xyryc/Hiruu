@@ -9,7 +9,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -178,15 +177,24 @@ const ChatList = () => {
         {loading ? (
           <View className="pb-3">
             {skeletonItems.map((item) => (
-              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={10}>
-                <ChatListItem
-                  onPress={() => undefined}
-                  title="Placeholder Name"
-                  subtitle="Loading recent message preview"
-                  time="00:00"
-                  unreadCount={2}
-                />
-              </AutoSkeletonView>
+              <View key={item.id} className="flex-row items-center gap-2.5 py-4 border-b border-[#EEEEEE]">
+                <View className="h-[50px] w-[50px] rounded-full bg-[#E8EEF3]" />
+
+                <View className="flex-1">
+                  <View className="flex-row justify-between items-center">
+                    <View className="h-5 w-32 rounded-full bg-[#E8EEF3]" />
+                    <View className="h-4 w-12 rounded-full bg-[#E8EEF3]" />
+                  </View>
+
+                  <View className="mt-2 flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-2">
+                      <View className="h-3.5 w-3.5 rounded-full bg-[#E8EEF3]" />
+                      <View className="h-4 w-44 rounded-full bg-[#E8EEF3]" />
+                    </View>
+                    <View className="h-6 w-6 rounded-full bg-[#D5E9F7]" />
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
         ) : filteredRooms.length === 0 ? (
