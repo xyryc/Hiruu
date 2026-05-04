@@ -62,6 +62,7 @@ const ChatScreen = () => {
   const [chatAvatar, setChatAvatar] = useState<string | null>(null);
   const [chatIsOnline, setChatIsOnline] = useState<boolean | undefined>(undefined);
   const [roomDetails, setRoomDetails] = useState<any>(null);
+  const [isHeaderLoading, setIsHeaderLoading] = useState(false);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
   const [isDeletingConversation, setIsDeletingConversation] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"toggle-block" | "delete" | null>(null);
@@ -100,6 +101,7 @@ const ChatScreen = () => {
     const loadRoom = async () => {
       if (!actualRoomId || !user?.id) return;
       try {
+        if (isMounted) setIsHeaderLoading(true);
         const result = await chatService.getChatRoom(actualRoomId);
         const room = result?.data;
 
@@ -137,6 +139,8 @@ const ChatScreen = () => {
           setChatIsOnline(undefined);
           setRoomDetails(null);
         }
+      } finally {
+        if (isMounted) setIsHeaderLoading(false);
       }
     };
 
@@ -986,6 +990,7 @@ const ChatScreen = () => {
         <View className="bg-[#E5F4FD80] flex-1">
           {/* Header */}
           <ChatScreenHeader
+            loading={isHeaderLoading}
             title={chatTitle}
             avatar={chatAvatar}
             isOnline={chatIsOnline}
