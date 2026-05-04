@@ -74,27 +74,49 @@ const WorkHoursChart = ({
 
   const headerMonths = useMemo(() => {
     const now = new Date();
-    if (selectedTimeframe === "all_time") return [];
+    if (selectedTimeframe === "all_time") {
+      const monthMap = new Map<string, { key: string; label: string }>();
+      workPattern.forEach((item) => {
+        const parsed = new Date(item?.date || "");
+        if (Number.isNaN(parsed.getTime())) return;
+        const key = `${parsed.getFullYear()}-${parsed.getMonth()}`;
+        if (monthMap.has(key)) return;
+        const monthName = parsed.toLocaleDateString("en-US", { month: "long" });
+        const shortYear = String(parsed.getFullYear()).slice(-2);
+        monthMap.set(key, {
+          key,
+          label: `${monthName}, ${shortYear}`,
+        });
+      });
+      return Array.from(monthMap.values());
+    }
 
     if (selectedTimeframe === "this_week" || selectedTimeframe === "this_month") {
-      return [now.toLocaleDateString("en-US", { month: "long" })];
+      return [{
+        key: `${now.getFullYear()}-${now.getMonth()}`,
+        label: now.toLocaleDateString("en-US", { month: "long" }),
+      }];
     }
 
     if (selectedTimeframe === "last_six_month") {
       return Array.from({ length: 6 }).map((_, index) => {
         const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
-        return date.toLocaleDateString("en-US", { month: "long" });
+        return {
+          key: `${date.getFullYear()}-${date.getMonth()}`,
+          label: date.toLocaleDateString("en-US", { month: "long" }),
+        };
       });
     }
 
     if (selectedTimeframe === "this_year") {
-      return Array.from({ length: 12 }).map((_, index) =>
-        new Date(now.getFullYear(), index, 1).toLocaleDateString("en-US", { month: "long" })
-      );
+      return Array.from({ length: 12 }).map((_, index) => ({
+        key: `${now.getFullYear()}-${index}`,
+        label: new Date(now.getFullYear(), index, 1).toLocaleDateString("en-US", { month: "long" }),
+      }));
     }
 
     return [];
-  }, [selectedTimeframe]);
+  }, [selectedTimeframe, workPattern]);
 
   const chartMax = Math.max(18, ...chartData.map((item) => item.hours));
   const yStep = Math.max(1, Math.ceil(chartMax / 4));
@@ -123,29 +145,10 @@ const WorkHoursChart = ({
     return ranges;
   }, [chartData]);
 
-  const headerMonthKeyByLabel = useMemo(() => {
-    const now = new Date();
-    if (selectedTimeframe === "all_time") return new Map<string, string>();
-    if (selectedTimeframe === "this_week" || selectedTimeframe === "this_month") {
-      return new Map([[headerMonths[0], `${now.getFullYear()}-${now.getMonth()}`]]);
-    }
-    if (selectedTimeframe === "last_six_month") {
-      const map = new Map<string, string>();
-      headerMonths.forEach((label, index) => {
-        const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
-        map.set(label, `${date.getFullYear()}-${date.getMonth()}`);
-      });
-      return map;
-    }
-    if (selectedTimeframe === "this_year") {
-      const map = new Map<string, string>();
-      headerMonths.forEach((label, index) => {
-        map.set(label, `${now.getFullYear()}-${index}`);
-      });
-      return map;
-    }
-    return new Map<string, string>();
-  }, [headerMonths, selectedTimeframe]);
+  const headerMonthKeyByLabel = useMemo(
+    () => new Map(headerMonths.map((item) => [item.label, item.key])),
+    [headerMonths]
+  );
 
   const handleChartScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const xOffset = Math.max(0, event.nativeEvent.contentOffset.x || 0);
@@ -175,19 +178,26 @@ const WorkHoursChart = ({
   return (
     <View>
       {headerMonths.length > 0 && (
-        <View className="flex-row justify-between mb-6">
-          {headerMonths.map((month, index) => (
-            <Text
-              key={`${month}-${index}`}
-              className={`text-sm ${activeMonthKeys.has(headerMonthKeyByLabel.get(month) || "")
-                ? "font-proximanova-semibold text-primary dark:text-dark-primary"
-                : "font-proximanova-regular text-secondary dark:text-dark-secondary"
-                }`}
-            >
-              {month}
-            </Text>
-          ))}
-        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 16 }}
+          className="mb-6"
+        >
+          <View className="flex-row items-center">
+            {headerMonths.map((month, index) => (
+              <Text
+                key={`${month.key}-${index}`}
+                className={`text-sm mr-5 ${activeMonthKeys.has(headerMonthKeyByLabel.get(month.label) || "")
+                  ? "font-proximanova-semibold text-primary dark:text-dark-primary"
+                  : "font-proximanova-regular text-secondary dark:text-dark-secondary"
+                  }`}
+              >
+                {month.label}
+              </Text>
+            ))}
+          </View>
+        </ScrollView>
       )}
 
       <View style={{ flexDirection: "row" }}>
