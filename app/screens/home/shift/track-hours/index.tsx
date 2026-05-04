@@ -241,7 +241,7 @@ const TrackHours = () => {
     overHours: 0,
   });
   const [workPattern, setWorkPattern] = useState<
-    { date: string; workedHours: number; completedShifts: number }[]
+    { date: string; day?: string; workedHours: number; completedShifts: number }[]
   >([]);
   const [missingLogItems, setMissingLogItems] = useState<IncompleteAttendanceItem[]>([]);
   const [missingLogsLoading, setMissingLogsLoading] = useState(false);
@@ -275,6 +275,7 @@ const TrackHours = () => {
           Array.isArray(analytics?.workPattern)
             ? analytics.workPattern.map((item: any) => ({
               date: String(item?.date || ""),
+              day: typeof item?.day === "string" ? item.day : undefined,
               workedHours:
                 typeof item?.workedHours === "number" ? item.workedHours : 0,
               completedShifts:
@@ -586,7 +587,10 @@ const TrackHours = () => {
               {t("user.profile.trackHours.workPatternTitle")}
             </Text>
 
-            <WorkHoursChart workPattern={workPattern} />
+            <WorkHoursChart
+              workPattern={workPattern}
+              selectedTimeframe={selectedTimeframe}
+            />
           </View>
 
           {/* token */}

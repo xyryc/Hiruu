@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import PrimaryButton from "../buttons/PrimaryButton";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -20,22 +21,26 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <View className="flex-1 items-center justify-center px-5 bg-white">
-          <MaterialIcons name="error-outline" size={64} color="#FF6B6B" />
-          <Text className="text-xl font-proximanova-bold text-primary mt-4 text-center">
-            Oops! Something went wrong
-          </Text>
-          <Text className="text-sm font-proximanova-regular text-secondary mt-2 text-center">
-            We&apos;re sorry for the inconvenience
-          </Text>
-          <TouchableOpacity
-            onPress={() => this.setState({ hasError: false, error: null })}
-            className="bg-primary px-6 py-3 rounded-lg mt-6"
-          >
-            <Text className="text-white font-proximanova-semibold">
-              Try Again
+        <View className="flex-1 justify-center bg-[#F7FBFF] px-5 dark:bg-dark-background">
+          <View className="rounded-3xl border border-[#4FB2F350] bg-white p-6 dark:border-[#4FB2F340] dark:bg-dark-secondary">
+            <View className="mx-auto h-16 w-16 items-center justify-center rounded-full bg-[#FFE9E9]">
+              <MaterialIcons name="error-outline" size={34} color="#E5484D" />
+            </View>
+
+            <Text className="mt-4 text-center text-xl font-proximanova-bold text-primary dark:text-dark-primary">
+              Oops! Something went wrong
             </Text>
-          </TouchableOpacity>
+            <Text className="mt-2 text-center text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
+              We&apos;re sorry for the inconvenience. Please try again.
+            </Text>
+
+            <PrimaryButton
+              className="mt-6 h-12"
+              title="Try Again"
+              showIcon={false}
+              onPress={() => this.setState({ hasError: false, error: null })}
+            />
+          </View>
         </View>
       );
     }
