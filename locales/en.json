@@ -1322,6 +1322,7 @@
       "actionUnblock": "Unblock",
       "actionBlock": "Block",
       "noMessagesYet": "No messages yet.",
+      "typing": "Typing...",
       "callIncoming": "Incoming",
       "callOutgoing": "Outgoing",
       "videoCall": "video call",
