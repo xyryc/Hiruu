@@ -269,18 +269,18 @@ const Rating = () => {
         }
       }
 
-        try {
-          if (isBusinessRatingView) {
-            await createUserBusinessRating({
-              businessId,
-              ratings: {
-                payOnTime: payload.ratings.onTime,
-                workEnvironment: payload.ratings.trustWorthy,
-                communication: payload.ratings.communication,
-              },
-            });
-          } else {
-            await createBusinessEmployeeRating({
+      try {
+        if (isBusinessRatingView) {
+          await createUserBusinessRating({
+            businessId,
+            ratings: {
+              payOnTime: payload.ratings.onTime,
+              workEnvironment: payload.ratings.trustWorthy,
+              communication: payload.ratings.communication,
+            },
+          });
+        } else {
+          await createBusinessEmployeeRating({
             businessId,
             userId: targetUserId,
             ratings: payload.ratings,

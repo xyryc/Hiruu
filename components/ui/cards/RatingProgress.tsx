@@ -4,8 +4,13 @@ import { StyleSheet, Text, View } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 const RatingProgress = ({ rating }: { rating: number }) => {
-  const ratings = rating * 20;
+  const safeRating = Number(rating);
+  const ratings = Number.isFinite(safeRating) ? safeRating * 20 : 0;
   const progress = 0;
+  const ratingLabel =
+    Number.isFinite(safeRating) && safeRating > 0
+      ? `${safeRating.toFixed(1)}/5`
+      : "N/A";
 
   // Color mapping based on progress
   const getTintColor = (fill: number) => {
@@ -31,7 +36,7 @@ const RatingProgress = ({ rating }: { rating: number }) => {
       {() => (
         <View className="absolute inset-0 items-center justify-center">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-            {Math.round(rating)}/5
+            {ratingLabel}
           </Text>
 
           <AntDesign name="star" size={20} color="#F1C400" />

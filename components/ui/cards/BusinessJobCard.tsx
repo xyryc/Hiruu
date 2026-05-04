@@ -82,9 +82,10 @@ const BusinessJobCard = ({
     profile?.averageRating ??
     0;
   const numericRating = Number(rawRating);
-  const displayRating = Number.isFinite(numericRating)
-    ? Number(numericRating.toFixed(1))
-    : 0;
+  const displayRating =
+    Number.isFinite(numericRating) && numericRating > 0
+      ? `${numericRating.toFixed(1)}/5`
+      : "N/A";
 
   // Handle address - check for user.address.address structure
   let address = t("common.addressUnavailable");

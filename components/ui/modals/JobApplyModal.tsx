@@ -63,6 +63,11 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
   const locationLabel = job?.business?.address?.address || "Unknown Location";
   const companyLogo =
     resolveMediaUrl(job?.business?.logo) || require("@/assets/images/placeholder.png");
+  const companyRatingValue = Number(job?.business?.rating ?? 0);
+  const companyRatingLabel =
+    Number.isFinite(companyRatingValue) && companyRatingValue > 0
+      ? `${companyRatingValue.toFixed(1)}/5`
+      : "N/A";
   const hasSalary =
     typeof job?.salaryMin === "number" && typeof job?.salaryMax === "number";
   const salarySuffix = job?.salaryType === "monthly" ? "/mo" : "/hr";
@@ -216,7 +221,7 @@ const JobApplyModal = ({ visible, onClose, job }: JobApplyModalProps) => {
                 </View>
 
                 <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                  4.8/5 <Fontisto name="star" size={14} color="#F1C400" />
+                  {companyRatingLabel} <Fontisto name="star" size={14} color="#F1C400" />
                 </Text>
               </View>
 

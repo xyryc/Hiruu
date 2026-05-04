@@ -18,6 +18,7 @@ const BasicNameplateCard = ({
   rating,
   isVerified = true,
 }: BasicNameplateCardProps) => {
+  const validRating = Number(rating);
   return (
     <View
       className="min-h-[120px] rounded-xl px-4 flex-row items-center"
@@ -76,7 +77,11 @@ const BasicNameplateCard = ({
         <View className="flex-row gap-1 px-2 py-1 bg-white rounded-md">
           <Octicons name="star-fill" size={12} color="#F1C400" />
           <Text className="font-proximanova-semibold text-xs text-primary">
-            {rating ?? "0.0"}/5
+            {
+              Number.isFinite(validRating) && validRating > 0
+                ? `${validRating.toFixed(1)}/5`
+                : "N/A"
+            }
           </Text>
         </View>
       </View>
