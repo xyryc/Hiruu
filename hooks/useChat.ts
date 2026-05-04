@@ -488,6 +488,9 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                         // If peer's message arrives while room is open, mark it read immediately.
                         if (!isMine && normalizedMessage?.id) {
                             void chatService.markAsRead(String(normalizedMessage.id)).catch(() => undefined);
+                            if (socketService.isConnected()) {
+                                socketService.markAsRead(roomId, String(normalizedMessage.id));
+                            }
                         }
                     }
                 };
