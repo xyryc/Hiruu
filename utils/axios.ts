@@ -96,6 +96,25 @@ axiosInstance.interceptors.request.use(
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
+let lastServerUnavailableLogAt = 0;
+
+const isServerUnavailableError = (error: AxiosError) => {
+  const status = error.response?.status;
+  const data: any = error.response?.data;
+  const message = String(error.message || '').toLowerCase();
+  const isCloudflareOriginError =
+    Boolean(data?.cloudflare_error) &&
+    String(data?.error_category || '').toLowerCase() === 'origin';
+
+  return (
+    isCloudflareOriginError ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    message.includes('network error') ||
+    message.includes('websocket error')
+  );
+};
 
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
@@ -213,14 +232,24 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    const isServerUnavailable = isServerUnavailableError(error);
+
     // Log errors in development
     if (process.env.NODE_ENV === 'development' && !shouldSkipErrorLog) {
-      console.error('API Error:', {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      if (isServerUnavailable) {
+        const now = Date.now();
+        if (now - lastServerUnavailableLogAt > 60000) {
+          lastServerUnavailableLogAt = now;
+          console.warn('API unavailable: server is down or unreachable. Backing off requests.');
+        }
+      } else {
+        console.error('API Error:', {
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+      }
     }
 
     const statusCode = error.response?.status;
@@ -235,6 +264,11 @@ axiosInstance.interceptors.response.use(
       const isHealthy = await runHealthCheckOnce();
       if (isHealthy) {
         return Promise.reject(error);
+      }
+
+      (error as any).isServerUnavailable = true;
+      if (!(error as any).message || isServerUnavailable) {
+        (error as any).message = 'SERVER_UNAVAILABLE';
       }
 
       useServerStatusStore.getState().setServerDown(

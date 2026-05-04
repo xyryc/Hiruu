@@ -51,6 +51,8 @@ const AppBootstrap = () => {
   const isExpectedAuthBootstrapError = useCallback((error: any) => {
     const message = String(error?.message || "").toLowerCase();
     return (
+      error?.isServerUnavailable ||
+      message.includes("server_unavailable") ||
       message.includes("token_revoked_or_not_found") ||
       message.includes("no refresh token available") ||
       message.includes("unauthorized")

@@ -224,6 +224,11 @@ class ProfileService {
     private handleError(error: any): Error {
         if (error.response?.data) {
             const errorData = error.response.data;
+            if (errorData?.cloudflare_error || [502, 503, 504].includes(error.response?.status)) {
+                const serverError = new Error('SERVER_UNAVAILABLE');
+                (serverError as any).isServerUnavailable = true;
+                return serverError;
+            }
             if (Array.isArray(errorData.data) && errorData.data.length > 0) {
                 const firstValidationError = errorData.data[0];
                 if (typeof firstValidationError === "string") {
@@ -231,6 +236,11 @@ class ProfileService {
                 }
             }
             return new Error(errorData.message || 'An error occurred');
+        }
+        if (error?.isServerUnavailable || String(error?.message || '').includes('SERVER_UNAVAILABLE')) {
+            const serverError = new Error('SERVER_UNAVAILABLE');
+            (serverError as any).isServerUnavailable = true;
+            return serverError;
         }
         return new Error(error.message || 'Network error occurred');
     }

@@ -594,6 +594,7 @@ const TrackHours = () => {
             <ActionCard
               title={t("user.profile.trackHours.earnedTokensThisWeekTitle")}
               buttonTitle={t("common.view")}
+              onPress={() => router.push("/screens/rewards/challenges")}
               rightImage={require("@/assets/images/engagement.svg")}
               imageClass="right-4.5 -bottom-5"
               imageWidth={131}

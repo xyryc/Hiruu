@@ -7,6 +7,15 @@ class SocketService {
     private token: string | null = null;
     private isConnecting: boolean = false;
     private isCallsConnecting: boolean = false;
+    private isServerUnavailableError(error: any): boolean {
+        const message = String(error?.message || '').toLowerCase();
+        return (
+            message.includes('websocket error') ||
+            message.includes('xhr poll error') ||
+            message.includes('network error') ||
+            message.includes('failed')
+        );
+    }
 
     async connect(): Promise<Socket | null> {
         // Return existing connection
@@ -57,11 +66,13 @@ class SocketService {
             });
 
             this.socket.on('connect_error', (error) => {
-                console.error('Socket connection error:', {
-                    message: error?.message,
-                    description: (error as any)?.description,
-                    context: (error as any)?.context,
-                });
+                if (this.isServerUnavailableError(error)) {
+                    console.warn('Chat socket unavailable: server is offline or unreachable.');
+                } else {
+                    console.error('Socket connection error:', {
+                        message: error?.message,
+                    });
+                }
                 this.isConnecting = false;
             });
 
@@ -148,11 +159,13 @@ class SocketService {
             });
 
             this.callsSocket.on('connect_error', (error) => {
-                console.error('Calls socket connection error:', {
-                    message: error?.message,
-                    description: (error as any)?.description,
-                    context: (error as any)?.context,
-                });
+                if (this.isServerUnavailableError(error)) {
+                    console.warn('Calls socket unavailable: server is offline or unreachable.');
+                } else {
+                    console.error('Calls socket connection error:', {
+                        message: error?.message,
+                    });
+                }
                 this.isCallsConnecting = false;
             });
 
