@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Dimensions, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { Dimensions, NativeSyntheticEvent, ScrollView, Text, View, NativeScrollEvent } from "react-native";
 import type { TrackHoursTimeframe } from "../modals/TrackHoursFilter";
 
 const { width } = Dimensions.get("window");
@@ -20,6 +20,7 @@ type WorkHourDatum = {
   x: number;
   label: string;
   hours: number;
+  monthKey: string;
 };
 
 const WorkHoursChart = ({
@@ -60,6 +61,11 @@ const WorkHoursChart = ({
       ];
 
     return source.map((item, index) => ({
+      monthKey: (() => {
+        const parsed = new Date(workPattern[index]?.date || "");
+        if (Number.isNaN(parsed.getTime())) return "";
+        return `${parsed.getFullYear()}-${parsed.getMonth()}`;
+      })(),
       x: index,
       label: item.label,
       hours: Number.isFinite(item.hours) ? item.hours : 0,
@@ -101,6 +107,68 @@ const WorkHoursChart = ({
   const chartHeight = 220;
   const chartInnerHeight = chartHeight - 16;
   const yAxisWidth = 44;
+  const [activeMonthKeys, setActiveMonthKeys] = useState<Set<string>>(new Set());
+
+  const monthRanges = useMemo(() => {
+    const ranges: { key: string; start: number; end: number }[] = [];
+    chartData.forEach((item, index) => {
+      if (!item.monthKey) return;
+      const last = ranges[ranges.length - 1];
+      if (!last || last.key !== item.monthKey) {
+        ranges.push({ key: item.monthKey, start: index, end: index });
+      } else {
+        last.end = index;
+      }
+    });
+    return ranges;
+  }, [chartData]);
+
+  const headerMonthKeyByLabel = useMemo(() => {
+    const now = new Date();
+    if (selectedTimeframe === "all_time") return new Map<string, string>();
+    if (selectedTimeframe === "this_week" || selectedTimeframe === "this_month") {
+      return new Map([[headerMonths[0], `${now.getFullYear()}-${now.getMonth()}`]]);
+    }
+    if (selectedTimeframe === "last_six_month") {
+      const map = new Map<string, string>();
+      headerMonths.forEach((label, index) => {
+        const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+        map.set(label, `${date.getFullYear()}-${date.getMonth()}`);
+      });
+      return map;
+    }
+    if (selectedTimeframe === "this_year") {
+      const map = new Map<string, string>();
+      headerMonths.forEach((label, index) => {
+        map.set(label, `${now.getFullYear()}-${index}`);
+      });
+      return map;
+    }
+    return new Map<string, string>();
+  }, [headerMonths, selectedTimeframe]);
+
+  const handleChartScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const xOffset = Math.max(0, event.nativeEvent.contentOffset.x || 0);
+    const firstVisibleIndex = Math.floor(xOffset / barSlotWidth);
+    const lastVisibleIndex = Math.floor((xOffset + chartVisibleWidth - 1) / barSlotWidth);
+
+    const visibleKeys = new Set<string>();
+    monthRanges.forEach((range) => {
+      const intersects = range.end >= firstVisibleIndex && range.start <= lastVisibleIndex;
+      if (intersects) visibleKeys.add(range.key);
+    });
+    setActiveMonthKeys(visibleKeys);
+  };
+
+  useEffect(() => {
+    const initiallyVisibleLastIndex = Math.floor((chartVisibleWidth - 1) / barSlotWidth);
+    const initialKeys = new Set<string>();
+    monthRanges.forEach((range) => {
+      const intersects = range.end >= 0 && range.start <= initiallyVisibleLastIndex;
+      if (intersects) initialKeys.add(range.key);
+    });
+    setActiveMonthKeys(initialKeys);
+  }, [barSlotWidth, chartVisibleWidth, monthRanges]);
 
   const yGridLabels = [...yTickValues].reverse();
 
@@ -111,7 +179,10 @@ const WorkHoursChart = ({
           {headerMonths.map((month, index) => (
             <Text
               key={`${month}-${index}`}
-              className="text-sm font-proximanova-regular text-primary dark:text-dark-primary"
+              className={`text-sm ${activeMonthKeys.has(headerMonthKeyByLabel.get(month) || "")
+                ? "font-proximanova-semibold text-primary dark:text-dark-primary"
+                : "font-proximanova-regular text-secondary dark:text-dark-secondary"
+                }`}
             >
               {month}
             </Text>
@@ -119,20 +190,25 @@ const WorkHoursChart = ({
         </View>
       )}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ width: chartWidth + yAxisWidth }}>
-          <View style={{ height: chartHeight, flexDirection: "row" }}>
-            <View style={{ width: yAxisWidth, justifyContent: "space-between", paddingTop: 8, paddingBottom: 8 }}>
-              {yGridLabels.map((tick, index) => (
-                <Text
-                  key={`y-tick-${index}-${tick}`}
-                  className="text-[10px] font-proximanova-regular text-secondary dark:text-dark-secondary"
-                >
-                  {`${Math.max(0, Number(tick) || 0)} Hr`}
-                </Text>
-              ))}
-            </View>
+      <View style={{ flexDirection: "row" }}>
+        <View style={{ width: yAxisWidth, height: chartHeight, justifyContent: "space-between", paddingTop: 8, paddingBottom: 8 }}>
+          {yGridLabels.map((tick, index) => (
+            <Text
+              key={`y-tick-${index}-${tick}`}
+              className="text-[10px] font-proximanova-regular text-secondary dark:text-dark-secondary"
+            >
+              {`${Math.max(0, Number(tick) || 0)} Hr`}
+            </Text>
+          ))}
+        </View>
 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleChartScroll}
+          scrollEventThrottle={16}
+        >
+          <View style={{ width: chartWidth }}>
             <View style={{ width: chartWidth, height: chartHeight, paddingTop: 8, paddingBottom: 8 }}>
               <View style={{ position: "absolute", left: 0, right: 0, top: 8, bottom: 8, justifyContent: "space-between" }}>
                 {yGridLabels.map((_, idx) => (
@@ -165,11 +241,8 @@ const WorkHoursChart = ({
                 })}
               </View>
             </View>
-          </View>
 
-          <View style={{ flexDirection: "row", marginTop: 8 }}>
-            <View style={{ width: yAxisWidth }} />
-            <View style={{ width: chartWidth, flexDirection: "row" }}>
+            <View style={{ flexDirection: "row", marginTop: 8 }}>
               {chartData.map((item) => (
                 <View
                   key={`x-label-${item.x}-${item.label}`}
@@ -182,8 +255,8 @@ const WorkHoursChart = ({
               ))}
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 };
