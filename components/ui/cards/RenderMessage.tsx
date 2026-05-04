@@ -8,7 +8,10 @@ import VideoPlayerModal from "../modals/VideoPlayerModal";
 
 const getStatusMeta = (status: string) => {
   switch ((status || "").toLowerCase()) {
+    case "sending":
+      return { name: "time-outline" as const, color: "#6B7280" };
     case "read":
+    case "seen":
       return { name: "checkmark-done" as const, color: "#4FB2F3" };
     case "delivered":
       return { name: "checkmark-done" as const, color: "#111827" };

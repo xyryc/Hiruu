@@ -69,6 +69,7 @@ const ChatScreen = () => {
   const messagesListRef = useRef<FlatList<any> | null>(null);
   const previousMessageCountRef = useRef(0);
   const didInitialPositionRef = useRef(false);
+  const shouldPinToBottomRef = useRef(true);
   const { user } = useAuthStore();
   const router = useRouter();
   const params = useLocalSearchParams<{ roomId?: string; userId?: string }>();
@@ -930,14 +931,13 @@ const ChatScreen = () => {
       return;
     }
 
-    if (!didInitialPositionRef.current) {
-      scrollToBottom(false);
-      didInitialPositionRef.current = true;
-    }
-
     const hasNewMessage = mappedMessages.length > previousMessageCountRef.current;
-    if (hasNewMessage && previousMessageCountRef.current > 0) {
-      scrollToBottom(previousMessageCountRef.current > 0);
+    if (
+      didInitialPositionRef.current &&
+      hasNewMessage &&
+      previousMessageCountRef.current > 0
+    ) {
+      scrollToBottom(true);
     }
 
     previousMessageCountRef.current = mappedMessages.length;
@@ -946,7 +946,19 @@ const ChatScreen = () => {
   useEffect(() => {
     didInitialPositionRef.current = false;
     previousMessageCountRef.current = 0;
+    shouldPinToBottomRef.current = true;
   }, [actualRoomId]);
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => {
+        shouldPinToBottomRef.current = false;
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    shouldPinToBottomRef.current = true;
+    return undefined;
+  }, [loading]);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -1044,11 +1056,31 @@ const ChatScreen = () => {
             contentContainerStyle={{
               paddingHorizontal: 16,
               paddingBottom: 12,
-              flexGrow: 1,
-              justifyContent: "flex-end",
+              ...(loading && mappedMessages.length === 0
+                ? { flexGrow: 1, justifyContent: "flex-end" as const }
+                : null),
             }}
             showsVerticalScrollIndicator={false}
             inverted={false}
+            onContentSizeChange={() => {
+              if (!mappedMessages.length) return;
+
+              if (shouldPinToBottomRef.current) {
+                scrollToBottom(false);
+                didInitialPositionRef.current = true;
+                return;
+              }
+
+              if (!didInitialPositionRef.current) {
+                scrollToBottom(false);
+                didInitialPositionRef.current = true;
+              }
+            }}
+            onLayout={() => {
+              if (!mappedMessages.length || didInitialPositionRef.current) return;
+              scrollToBottom(false);
+              didInitialPositionRef.current = true;
+            }}
             renderItem={({ item: msg }) => (
               <>
                 {msg.showDateSeparator ? (

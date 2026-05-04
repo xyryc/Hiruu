@@ -216,6 +216,11 @@ class SocketService {
         this.socket.emit('typing_stop', { chatRoomId });
     }
 
+    markAsRead(chatRoomId: string, messageId?: string) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('mark_as_read', { chatRoomId, messageId });
+    }
+
     onNewMessage(callback: (data: any) => void) {
         this.socket?.on('new_message', callback);
     }
@@ -224,12 +229,20 @@ class SocketService {
         this.socket?.on('user_typing', callback);
     }
 
+    onMessageRead(callback: (data: any) => void) {
+        this.socket?.on('message_read', callback);
+    }
+
     offNewMessage(callback?: (data: any) => void) {
         this.socket?.off('new_message', callback);
     }
 
     offUserTyping(callback?: (data: any) => void) {
         this.socket?.off('user_typing', callback);
+    }
+
+    offMessageRead(callback?: (data: any) => void) {
+        this.socket?.off('message_read', callback);
     }
 
     getCallsSocket(): Socket | null {
