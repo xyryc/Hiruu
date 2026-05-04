@@ -19,9 +19,9 @@ import {
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -240,6 +240,7 @@ const TrackHours = () => {
     completedShifts: 0,
     overHours: 0,
   });
+  const [trackStatus, setTrackStatus] = useState<string>("on_track");
   const [workPattern, setWorkPattern] = useState<
     { date: string; day?: string; workedHours: number; completedShifts: number }[]
   >([]);
@@ -270,6 +271,7 @@ const TrackHours = () => {
               ? analytics.summary.overHours
               : 0,
         });
+        setTrackStatus(String(analytics?.status || "on_track"));
 
         setWorkPattern(
           Array.isArray(analytics?.workPattern)
@@ -369,6 +371,24 @@ const TrackHours = () => {
     [shiftLogWorkingEnd, shiftLogWorkingStart, t]
   );
 
+  const trackStatusBadge = useMemo(() => {
+    const normalized = String(trackStatus || "").toLowerCase();
+    if (normalized === "on_track") {
+      return { status: "accepted" as const, label: "On Track" };
+    }
+    if (normalized === "below_target") {
+      return { status: "upcoming" as const, label: "Below Target" };
+    }
+    if (normalized === "over_target") {
+      return { status: "completed" as const, label: "Over Target" };
+    }
+
+    return {
+      status: "pending" as const,
+      label: normalized.replace(/_/g, " ") || "Unknown",
+    };
+  }, [trackStatus]);
+
   return (
     <SafeAreaView
       className="flex-1 bg-[#FFFFFF] dark:bg-dark-background"
@@ -455,12 +475,14 @@ const TrackHours = () => {
             </View>
 
             {/* bottom */}
-            <View className="flex-row gap-2 items-center mx-4 my-6">
+            <View className="flex-row gap-2 items-center m-4">
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                 {t("user.profile.trackHours.statusLabel")}
               </Text>
-              <StatusBadge status="accepted" label={t("user.profile.trackHours.onTrackLabel")} />
-              <StatusBadge status="upcoming" label={t("user.profile.trackHours.belowTargetLabel")} />
+              <StatusBadge
+                status={trackStatusBadge.status}
+                label={trackStatusBadge.label}
+              />
             </View>
           </View>
         </View>
