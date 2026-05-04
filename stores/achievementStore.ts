@@ -94,7 +94,7 @@ interface AchievementState {
     append?: boolean
   ) => Promise<AchievementItem[]>;
   getBoard: () => Promise<AchievementBoardData | null>;
-  claimAchievement: (id: string) => Promise<any>;
+  claimAchievement: (id: string, instanceKey?: string) => Promise<any>;
   clearError: () => void;
 }
 
@@ -230,7 +230,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
     }
   },
 
-  claimAchievement: async (id) => {
+  claimAchievement: async (id, instanceKey) => {
     set({ claimingAchievementId: id, error: null });
 
     try {
@@ -244,7 +244,48 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         );
       }
 
-      set({ claimingAchievementId: null });
+      const claimedAt =
+        typeof result?.data?.claimedAt === "string"
+          ? result.data.claimedAt
+          : new Date().toISOString();
+
+      set((state) => {
+        let hasUpdatedClaimable = false;
+        const achievements = state.achievements.map((achievement) => {
+          const matchesInstance =
+            typeof instanceKey === "string" &&
+            instanceKey.length > 0 &&
+            achievement.instanceKey === instanceKey;
+          const matchesIdFallback =
+            !instanceKey &&
+            achievement.id === id &&
+            achievement.userProgress?.canClaim === true &&
+            !hasUpdatedClaimable;
+
+          if (!matchesInstance && !matchesIdFallback) {
+            return achievement;
+          }
+
+          hasUpdatedClaimable = true;
+          return {
+            ...achievement,
+            userProgress: {
+              ...achievement.userProgress,
+              isClaimed: true,
+              canClaim: false,
+              claimedAt,
+            },
+          };
+        });
+
+        return {
+          achievements,
+          claimableCount: hasUpdatedClaimable
+            ? Math.max(0, state.claimableCount - 1)
+            : state.claimableCount,
+          claimingAchievementId: null,
+        };
+      });
       return result;
     } catch (error) {
       const axiosError = error as AxiosError<any>;

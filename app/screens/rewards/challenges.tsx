@@ -133,19 +133,20 @@ const Challenges = () => {
       if (!achievement?.id || !achievement?.userProgress?.canClaim) return;
 
       try {
-        const result = await claimAchievement(achievement.id);
+        const result = await claimAchievement(
+          achievement.id,
+          achievement.instanceKey
+        );
         toast.success(
           translateApiMessage(result?.message) || t("user.profile.challenges.claimedSuccessfully")
         );
-        setPage(1);
-        await getAchievements(currentType, 1, limit, false);
       } catch (error: any) {
         toast.error(
           translateApiMessage(error?.message) || t("user.profile.challenges.failedToClaimAchievement")
         );
       }
     },
-    [claimAchievement, currentType, getAchievements, t]
+    [claimAchievement, t]
   );
 
   const handleLoadMore = useCallback(async () => {
