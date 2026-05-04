@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Dimensions, NativeSyntheticEvent, ScrollView, Text, View, NativeScrollEvent } from "react-native";
+import { Dimensions, NativeSyntheticEvent, ScrollView, Text, View, NativeScrollEvent, TouchableOpacity } from "react-native";
 import type { TrackHoursTimeframe } from "../modals/TrackHoursFilter";
 
 const { width } = Dimensions.get("window");
@@ -129,7 +129,10 @@ const WorkHoursChart = ({
   const chartHeight = 220;
   const chartInnerHeight = chartHeight - 16;
   const yAxisWidth = 44;
+  const tooltipWidth = 112;
+  const tooltipHeight = 30;
   const [activeMonthKeys, setActiveMonthKeys] = useState<Set<string>>(new Set());
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
 
   const monthRanges = useMemo(() => {
     const ranges: { key: string; start: number; end: number }[] = [];
@@ -226,6 +229,59 @@ const WorkHoursChart = ({
                 ))}
               </View>
 
+              {selectedBarIndex !== null && chartData[selectedBarIndex] && (() => {
+                const selected = chartData[selectedBarIndex];
+                const ratio = yDomainMax > 0 ? selected.hours / yDomainMax : 0;
+                const computedHeight = Math.max(0, ratio * (chartInnerHeight - 8));
+                const barHeight = selected.hours > 0 ? Math.max(4, computedHeight) : 1;
+                const centerX = selected.x * barSlotWidth + barSlotWidth / 2;
+                const left = Math.max(0, Math.min(chartWidth - tooltipWidth, centerX - tooltipWidth / 2));
+                const top = Math.max(0, chartInnerHeight - barHeight - tooltipHeight - 12);
+                const pointerLeft = Math.max(10, Math.min(tooltipWidth - 10, centerX - left));
+
+                return (
+                  <View
+                    style={{
+                      position: "absolute",
+                      left,
+                      top,
+                      width: tooltipWidth,
+                      alignItems: "center",
+                      zIndex: 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        minHeight: tooltipHeight,
+                        borderRadius: 999,
+                        backgroundColor: "#C8D0D6",
+                        paddingHorizontal: 10,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text className="text-sm font-proximanova-semibold text-[#11293A]">
+                        {`${Number(selected.hours || 0).toFixed(0)} Hr Worked`}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeftWidth: 6,
+                        borderRightWidth: 6,
+                        borderTopWidth: 8,
+                        borderLeftColor: "transparent",
+                        borderRightColor: "transparent",
+                        borderTopColor: "#C8D0D6",
+                        marginTop: -1,
+                        marginLeft: pointerLeft - tooltipWidth / 2,
+                      }}
+                    />
+                  </View>
+                );
+              })()}
+
               <View style={{ flexDirection: "row", alignItems: "flex-end", height: chartInnerHeight }}>
                 {chartData.map((item) => {
                   const ratio = yDomainMax > 0 ? item.hours / yDomainMax : 0;
@@ -233,20 +289,22 @@ const WorkHoursChart = ({
                   const barHeight = item.hours > 0 ? Math.max(4, computedHeight) : 1;
 
                   return (
-                    <View
+                    <TouchableOpacity
                       key={`bar-${item.x}-${item.label}`}
+                      onPress={() => setSelectedBarIndex(item.x)}
+                      activeOpacity={0.8}
                       style={{ width: barSlotWidth, alignItems: "center", justifyContent: "flex-end" }}
                     >
                       <View
                         style={{
                           width: 30,
                           height: barHeight,
-                          backgroundColor: "#93C5FD",
+                          backgroundColor: selectedBarIndex === item.x ? "#4FB2F3" : "#93C5FD",
                           borderTopLeftRadius: 16,
                           borderTopRightRadius: 16,
                         }}
                       />
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
