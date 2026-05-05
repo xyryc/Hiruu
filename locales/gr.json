@@ -1335,6 +1335,16 @@
       "failedToOpenCamera": "Αποτυχία ανοίγματος κάμερας",
       "failedToOpenImageLibrary": "Αποτυχία ανοίγματος βιβλιοθήκης εικόνων",
       "tapToChange": "Πατήστε για αλλαγή φωτογραφίας"
+    },
+    "qr": {
+      "enterInviteCodeTitle": "Εισαγωγή κωδικού πρόσκλησης",
+      "joinYourTeam": "Γίνε μέλος της ομάδας σου",
+      "enterCodeDescription": "Εισήγαγε τον 6ψήφιο κωδικό πρόσκλησης από τον διαχειριστή σου.",
+      "joinBusiness": "Συμμετοχή στην επιχείρηση",
+      "joining": "Συμμετοχή...",
+      "scanQrInstead": "Σάρωση QR αντί αυτού",
+      "joinBusinessSuccess": "Συμμετείχες επιτυχώς στην επιχείρηση!",
+      "joinBusinessFailed": "Αποτυχία συμμετοχής στην επιχείρηση"
     }
   },
   "api": {

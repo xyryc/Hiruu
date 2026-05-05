@@ -1,5 +1,6 @@
 import TitleHeader from "@/components/header/TitleHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import OTPInput from "@/components/ui/inputs/OTPInput";
 import { useAuthStore } from "@/stores/authStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
@@ -11,7 +12,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -25,55 +25,6 @@ const Verify = () => {
   const didRequestInitialCode = useRef(false);
   const autoVerifyInFlightRef = useRef(false);
   const lastAutoSubmittedOtpRef = useRef("");
-
-  // Create refs for each input
-  const inputRefs = useRef<(TextInput | null)[]>([]);
-
-  const handleOtpChange = (value: string, index: number) => {
-    const digits = value.replace(/\D/g, "");
-    const newOtp = [...otp];
-
-    if (!digits) {
-      newOtp[index] = "";
-      setOtp(newOtp);
-      return;
-    }
-
-    // Handle multi-digit paste/autofill into any box.
-    if (digits.length > 1) {
-      const remainingSlots = 6 - index;
-      const fillDigits = digits.slice(0, remainingSlots).split("");
-
-      fillDigits.forEach((digit, offset) => {
-        newOtp[index + offset] = digit;
-      });
-
-      setOtp(newOtp);
-
-      const nextFocusIndex = index + fillDigits.length;
-      if (nextFocusIndex <= 5) {
-        inputRefs.current[nextFocusIndex]?.focus();
-      } else {
-        inputRefs.current[5]?.blur();
-      }
-      return;
-    }
-
-    newOtp[index] = digits;
-    setOtp(newOtp);
-
-    // Auto focus next input
-    if (index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyPress = (key: string, index: number) => {
-    // Handle backspace
-    if (key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
 
   const isOtpComplete = otp.every((digit) => digit !== "");
 
@@ -208,27 +159,7 @@ const Verify = () => {
           />
 
           {/* OTP Input Boxes */}
-          <View className="flex-row justify-between px-2">
-            {otp.map((digit, index) => (
-              <TextInput
-                key={index}
-                //@ts-ignore
-                ref={(ref) => (inputRefs.current[index] = ref)}
-                className={`w-14 h-14 border rounded-[10px] text-center text-lg place-items-center ${digit
-                  ? "border-gray-300 bg-white"
-                  : "border-[#EEEEEE] bg-white"
-                  }`}
-                value={digit}
-                onChangeText={(value) => handleOtpChange(value, index)}
-                onKeyPress={({ nativeEvent }) =>
-                  handleKeyPress(nativeEvent.key, index)
-                }
-                keyboardType="numeric"
-                maxLength={6}
-                selectTextOnFocus
-              />
-            ))}
-          </View>
+          <OTPInput otp={otp} setOtp={setOtp} />
 
           <Text className="text-xs mt-4 text-[#7D7D7D]">
             *Do Not Communicate this code to stranger

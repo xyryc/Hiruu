@@ -1273,6 +1273,16 @@
       "failedToOpenImageLibrary": "Failed to open image library",
       "tapToChange": "Tap to change photo"
     },
+    "qr": {
+      "enterInviteCodeTitle": "Enter Invite Code",
+      "joinYourTeam": "Join Your Team",
+      "enterCodeDescription": "Enter the 6-digit invitation code from your manager.",
+      "joinBusiness": "Join Business",
+      "joining": "Joining...",
+      "scanQrInstead": "Scan QR instead",
+      "joinBusinessSuccess": "You joined the business successfully!",
+      "joinBusinessFailed": "Failed to join business"
+    },
     "noJobsAvailableDescription": "There are no job openings at the moment. Check back later for new opportunities.",
     "noShiftsAvailable": "No Shifts Available",
     "noShiftsAvailableDescription": "There are no shifts scheduled for this date. Check another date or create a new shift.",

@@ -4,6 +4,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -11,6 +12,7 @@ import { toast } from "sonner-native";
 const CODE_LENGTH = 6;
 
 const EnterJoinCode = () => {
+  const { t } = useTranslation();
   const { joinBusiness, isJoiningBusiness } = useBusinessStore();
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -26,11 +28,14 @@ const EnterJoinCode = () => {
         next[i] = chars[i] || "";
       }
       setCode(next);
-      if (chars.length < CODE_LENGTH) {
-        inputRefs.current[chars.length]?.focus();
-      } else {
-        inputRefs.current[CODE_LENGTH - 1]?.blur();
-      }
+      // Move cursor after state has rendered new values.
+      requestAnimationFrame(() => {
+        if (chars.length < CODE_LENGTH) {
+          inputRefs.current[chars.length]?.focus();
+          return;
+        }
+        inputRefs.current.forEach((ref) => ref?.blur());
+      });
       return;
     }
 
@@ -56,10 +61,12 @@ const EnterJoinCode = () => {
 
     try {
       await joinBusiness(invitationCode);
-      toast.success("You joined the business successfully!");
+      toast.success(t("common.qr.joinBusinessSuccess"));
       router.replace("/(tabs)/home");
     } catch (err: any) {
-      toast.error(translateApiMessage(err?.message || "Failed to join business"));
+      toast.error(
+        translateApiMessage(err?.message || t("common.qr.joinBusinessFailed"))
+      );
     }
   };
 
@@ -72,20 +79,20 @@ const EnterJoinCode = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="Enter Invite Code"
+          title={t("common.qr.enterInviteCodeTitle")}
           titleClass="text-primary dark:text-dark-primary"
         />
       </View>
 
       <View className="px-5 pt-10">
         <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary text-center">
-          Join Your Team
+          {t("common.qr.joinYourTeam")}
         </Text>
         <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary text-center mt-2">
-          Enter the 6-digit invitation code from your manager.
+          {t("common.qr.enterCodeDescription")}
         </Text>
 
-        <View className="flex-row justify-between mt-8">
+        <View className="flex-row justify-between mt-8 px-2">
           {code.map((digit, index) => (
             <TextInput
               key={`invite-code-${index}`}
@@ -98,16 +105,24 @@ const EnterJoinCode = () => {
                 handleKeyPress(nativeEvent.key, index)
               }
               keyboardType="numeric"
-              maxLength={1}
+              maxLength={CODE_LENGTH}
+              autoComplete="sms-otp"
+              textContentType="oneTimeCode"
               selectTextOnFocus
-              className="w-12 h-14 border border-[#EEEEEE] rounded-xl text-center text-lg font-proximanova-semibold text-primary dark:text-dark-primary"
+              className={`w-14 h-14 border rounded-[10px] text-center text-lg place-items-center font-proximanova-semibold text-primary dark:text-dark-primary ${
+                digit ? "border-gray-300 bg-white" : "border-[#EEEEEE] bg-white"
+              }`}
             />
           ))}
         </View>
 
         <PrimaryButton
           className="mt-8"
-          title={isJoiningBusiness ? "Joining..." : "Join Business"}
+          title={
+            isJoiningBusiness
+              ? t("common.qr.joining")
+              : t("common.qr.joinBusiness")
+          }
           onPress={handleJoin}
           disabled={!isCodeComplete || isJoiningBusiness}
           loading={isJoiningBusiness}
@@ -118,7 +133,7 @@ const EnterJoinCode = () => {
           className="mt-4 py-2"
         >
           <Text className="text-sm font-proximanova-semibold text-[#4FB2F3] text-center">
-            Scan QR instead
+            {t("common.qr.scanQrInstead")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -127,4 +142,3 @@ const EnterJoinCode = () => {
 };
 
 export default EnterJoinCode;
-
