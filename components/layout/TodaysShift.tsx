@@ -117,12 +117,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
       if (!accessToken || !isFocused) return;
 
       fetchHomeShifts(selectedEmploymentBusinessIds)
-        .then((response) => {
-          console.log(
-            "[TodaysShift] fetchHomeShifts response",
-            JSON.stringify(response, null, 2)
-          );
-        })
+        .then(() => undefined)
         .catch((error) => {
           console.error("[TodaysShift] fetchHomeShifts error:", error);
         });

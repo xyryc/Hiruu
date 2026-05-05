@@ -1,4 +1,5 @@
 import axiosInstance from "@/utils/axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
 export type BusinessColleagueItem = {
@@ -989,9 +990,31 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   createShiftReport: async (payload) => {
     try {
       set({ createShiftReportLoading: true, createShiftReportError: null });
-      const response = await axiosInstance.post("/shift-reports", payload);
-      const result = response?.data;
-
+      let result: any;
+      if (payload instanceof FormData) {
+        const baseURL = String(process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
+        if (!baseURL) {
+          throw new Error("API base URL is missing");
+        }
+        const accessToken = await AsyncStorage.getItem("auth_access_token");
+        const response = await fetch(`${baseURL}/shift-reports`, {
+          method: "POST",
+          headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: payload,
+        });
+        result = await response.json();
+        if (!response.ok) {
+          throw new Error(result?.message || "Failed to submit shift report");
+        }
+      } else {
+        const response = await axiosInstance.post("/shift-reports", payload, {
+          timeout: 60000,
+          transformRequest: (data) => data,
+        });
+        result = response?.data;
+      }
       if (!result?.success) {
         throw new Error(result?.message || "Failed to submit shift report");
       }

@@ -4,7 +4,8 @@ import AttachmentUpload from "@/components/ui/inputs/AttachmentUpload";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import * as DocumentPicker from "expo-document-picker";
-import { useRouter } from "expo-router";
+import * as FileSystem from "expo-file-system";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
@@ -22,9 +23,48 @@ const ALLOWED_ATTACHMENT_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
+const ALLOWED_ATTACHMENT_LABEL =
+  "Allowed: JPG, JPEG, PNG, GIF, WEBP, PDF, DOC, DOCX, TXT";
+
+const getSafeFileName = (name: string, mimeType: string) => {
+  const sanitizedBase = (name || "attachment")
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 80);
+
+  const extByMime: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+    "application/pdf": "pdf",
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+      "docx",
+    "text/plain": "txt",
+  };
+  const ext = extByMime[mimeType] || "bin";
+  return `${sanitizedBase || "attachment"}.${ext}`;
+};
 
 const ShiftSummary = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    shiftAssignmentId?: string | string[];
+    employmentId?: string | string[];
+    id?: string | string[];
+    employment_id?: string | string[];
+  }>();
+  const shiftAssignmentId = Array.isArray(params.shiftAssignmentId)
+    ? params.shiftAssignmentId[0]
+    : params.shiftAssignmentId || (Array.isArray(params.id) ? params.id[0] : params.id);
+  const employmentId = Array.isArray(params.employmentId)
+    ? params.employmentId[0]
+    : params.employmentId ||
+      (Array.isArray(params.employment_id)
+        ? params.employment_id[0]
+        : params.employment_id);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [reason, setReason] = useState("");
@@ -62,16 +102,42 @@ const ShiftSummary = () => {
 
   const handleSubmitSummary = async () => {
     try {
+      if (!employmentId) {
+        toast.error("Employment id is missing");
+        return;
+      }
+      if (!shiftAssignmentId) {
+        toast.error("Shift assignment id is missing");
+        return;
+      }
+
       setIsSubmitting(true);
       const formData = new FormData();
       formData.append("type", "summary");
       formData.append("notes", reason.trim());
+      formData.append("employmentId", employmentId);
+      formData.append("shiftAssignmentId", shiftAssignmentId);
       if (attachment) {
         if (!ALLOWED_ATTACHMENT_TYPES.includes(attachment.type)) {
           toast.error("Attachment type is not allowed");
           return;
         }
-        formData.append("attachment", attachment as any);
+        const safeFileName = getSafeFileName(attachment.name, attachment.type);
+        let uploadUri = attachment.uri;
+        if (uploadUri.startsWith("content://")) {
+          const targetPath = `${FileSystem.cacheDirectory}${Date.now()}_${safeFileName}`;
+          await FileSystem.copyAsync({
+            from: uploadUri,
+            to: targetPath,
+          });
+          uploadUri = targetPath;
+        }
+
+        formData.append("attachment", {
+          uri: uploadUri,
+          name: safeFileName,
+          type: attachment.type,
+        } as any);
       }
 
       const result = await createShiftReport(formData as any);
@@ -133,6 +199,9 @@ const ShiftSummary = () => {
           {/* upload */}
           <View>
             <AttachmentUpload onPress={handleFileUpload} />
+            <Text className="mt-2 text-xs text-secondary">
+              {ALLOWED_ATTACHMENT_LABEL}
+            </Text>
             {attachment?.name ? (
               <Text className="mt-2 text-xs text-secondary">{attachment.name}</Text>
             ) : null}

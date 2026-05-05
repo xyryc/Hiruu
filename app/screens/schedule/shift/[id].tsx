@@ -42,6 +42,10 @@ const ShiftDetails = () => {
   }, [getShiftAssignmentDetails, shiftId]);
 
   const details = shiftAssignmentDetails;
+  const resolvedEmploymentId =
+    details?.employmentId ||
+    details?.employment?.employmentId ||
+    undefined;
 
   const badge = useMemo(() => {
     const raw = String(details?.status || "").toLowerCase();
@@ -316,7 +320,7 @@ const ShiftDetails = () => {
                     pathname: "/screens/schedule/shift/request-overtime",
                     params: {
                       shiftAssignmentId: shiftId || details?.id,
-                      employmentId: details?.employmentId,
+                      employmentId: resolvedEmploymentId,
                       shiftEndAt: shiftEndIso,
                     },
                   });
@@ -334,7 +338,7 @@ const ShiftDetails = () => {
                     params: {
                       businessId: details?.business?.id,
                       shiftAssignmentId: shiftId || details?.id,
-                      employmentId: details?.employmentId,
+                      employmentId: resolvedEmploymentId,
                     },
                   })
                 }
@@ -350,7 +354,7 @@ const ShiftDetails = () => {
                   pathname: "/screens/schedule/shift/submit-shift-report",
                   params: {
                     shiftAssignmentId: shiftId || details?.id,
-                    employmentId: details?.employmentId,
+                    employmentId: resolvedEmploymentId,
                   },
                 })
               }
@@ -428,7 +432,15 @@ const ShiftDetails = () => {
         <PrimaryButton
           className='my-10'
           title={t("user.jobs.schedule.submitShiftSummary", { defaultValue: "Submit Shift Summary" })}
-          onPress={() => router.push("./summary")}
+          onPress={() =>
+            router.push({
+              pathname: "./summary",
+              params: {
+                shiftAssignmentId: shiftId || details?.id,
+                employmentId: resolvedEmploymentId,
+              },
+            })
+          }
         />
       </ScrollView>
     </SafeAreaView>
