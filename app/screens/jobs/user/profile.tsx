@@ -90,7 +90,10 @@ const JobProfile = () => {
     0,
     Math.min(5, Number(job?.business?.rating ?? 0))
   );
-  const companyRatingLabel = Number(companyRatingValue.toFixed(1)).toString();
+  const companyRatingLabel =
+    Number.isFinite(companyRatingValue) && companyRatingValue > 0
+      ? `${companyRatingValue.toFixed(1)}/5`
+      : "N/A";
   const locationLabel =
     job?.business?.address?.state ||
     job?.business?.address?.address ||
@@ -262,7 +265,7 @@ const JobProfile = () => {
               </View>
 
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {companyRatingLabel}/5{" "}
+                {companyRatingLabel}{" "}
                 <Fontisto name="star" size={14} color="#F1C400" />
               </Text>
             </View>

@@ -25,6 +25,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -158,9 +159,24 @@ const Edit = () => {
       if (Array.isArray(result.data?.experiences)) {
         const mappedExperiences: Companies[] = result.data.experiences.map(
           (exp: any) => ({
-            companyId: exp.companyId,
-            companyName: exp?.company?.name || "Company",
-            logo: exp?.company?.logo || undefined,
+            id: exp?.id,
+            companyId:
+              exp?.businessId ||
+              exp?.companyId ||
+              `custom_${exp?.customBusinessName || exp?.company?.name || Date.now()}`,
+            businessId: exp?.businessId || exp?.companyId || undefined,
+            companyName:
+              exp?.company?.name ||
+              exp?.business?.name ||
+              exp?.customBusinessName ||
+              "Company",
+            logo:
+              exp?.company?.logo ||
+              exp?.business?.logo ||
+              exp?.customBusinessLogo ||
+              undefined,
+            customBusinessName: exp?.customBusinessName || undefined,
+            customBusinessLogo: exp?.customBusinessLogo || null,
             startDate: exp.startDate || "",
             endDate: exp.endDate || "",
             position: exp.position || "",
@@ -171,11 +187,13 @@ const Edit = () => {
 
         const companyMap = new Map<string, Company>();
         mappedExperiences.forEach((exp) => {
+          if (!exp.companyId) return;
           if (!companyMap.has(exp.companyId)) {
             companyMap.set(exp.companyId, {
               id: exp.companyId,
               name: exp.companyName || "Company",
               logo: exp.logo || undefined,
+              isCustom: !exp.businessId,
             });
           }
         });
@@ -352,20 +370,68 @@ const Edit = () => {
     setProfileColor(color);
   };
 
-  const handlePickerTypeChange = (nextType: "solid" | "gradient") => {
+  const handlePickerTypeChange = (
+    nextType: SetStateAction<"solid" | "gradient">
+  ) => {
     setIsAppearanceDirty(true);
-    setPickerType(nextType);
+    setPickerType((prev) =>
+      typeof nextType === "function" ? nextType(prev) : nextType
+    );
   };
 
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
+      const normalizedExperiences = workExperiences.filter(
+        (exp) =>
+          Boolean(
+            exp?.businessId ||
+              exp?.customBusinessName ||
+              exp?.companyId ||
+              exp?.companyName
+          )
+      );
+
+      for (const exp of normalizedExperiences) {
+        const hasBusinessRef = Boolean(exp?.businessId);
+        const hasCustomName = Boolean(String(exp?.customBusinessName || exp?.companyName || "").trim());
+        const hasPosition = Boolean(String(exp?.position || "").trim());
+        const hasStartDate = Boolean(exp?.startDate);
+
+        if (!hasBusinessRef && !hasCustomName) {
+          console.log("[EditProfile] experience validation failed: missing company reference", {
+            experience: exp,
+          });
+          toast.error("Please select a company or enter a custom company name.");
+          return;
+        }
+        if (!hasPosition) {
+          console.log("[EditProfile] experience validation failed: missing position", {
+            experience: exp,
+          });
+          toast.error("Please enter your position for each experience.");
+          return;
+        }
+        if (!hasStartDate) {
+          console.log("[EditProfile] experience validation failed: missing startDate", {
+            experience: exp,
+          });
+          toast.error("Please select a start date for each experience.");
+          return;
+        }
+      }
+
       // Keep one draft per company from UI
       const uniqueExperienceDrafts = new Map<string, Companies>();
-      workExperiences.forEach((exp) => {
-        if (!exp?.companyId) return;
-        if (!uniqueExperienceDrafts.has(exp.companyId)) {
-          uniqueExperienceDrafts.set(exp.companyId, exp);
+      normalizedExperiences.forEach((exp) => {
+        const key =
+          exp?.id ||
+          exp?.businessId ||
+          exp?.companyId ||
+          exp?.customBusinessName;
+        if (!key) return;
+        if (!uniqueExperienceDrafts.has(String(key))) {
+          uniqueExperienceDrafts.set(String(key), exp);
         }
       });
 
@@ -459,6 +525,9 @@ const Edit = () => {
         Array.from(uniqueExperienceDrafts.values()),
         Array.isArray(profileData?.experiences) ? profileData.experiences : []
       );
+      console.log("[EditProfile] syncExperiences completed", {
+        draftCount: uniqueExperienceDrafts.size,
+      });
       await getProfile();
 
       const messageKey = result?.message || "profile_updated_successfully";

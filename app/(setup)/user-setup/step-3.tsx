@@ -41,7 +41,15 @@ export default function Step3({
       // Transform work experiences for API
       const profileData = {
         experiences: workExperiences.map((exp) => ({
-          companyId: exp.companyId,
+          businessId:
+            exp.businessId ||
+            (typeof exp.companyId === "string" && !exp.companyId.startsWith("custom_")
+              ? exp.companyId
+              : undefined),
+          customBusinessName:
+            exp.customBusinessName ||
+            (!exp.businessId ? exp.companyName : undefined),
+          customBusinessLogo: exp.customBusinessLogo || undefined,
           position: exp.position || undefined,
           description: exp.description || undefined,
           startDate:

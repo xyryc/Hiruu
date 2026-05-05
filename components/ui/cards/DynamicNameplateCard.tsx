@@ -62,6 +62,12 @@ const DynamicNameplateCard = ({
   mode = "shop",
   preview,
 }: DynamicNameplateCardProps) => {
+  const previewRating = Number(preview?.rating);
+  const previewRatingLabel =
+    Number.isFinite(previewRating) && previewRating > 0
+      ? `${previewRating.toFixed(1)}/5`
+      : "N/A";
+
   const border = metadata?.border;
   const background = metadata?.background;
   const icon = metadata?.element?.icon;
@@ -249,7 +255,7 @@ const DynamicNameplateCard = ({
                       />
                       <View className="px-5 py-1 bg-white -ml-4 z-10 rounded-r-[40px]">
                         <Text className="text-xs font-proximanova-semibold">
-                          {preview?.coins ?? "05"}
+                          {preview?.coins ?? "05"}5
                         </Text>
                       </View>
                     </View>
@@ -308,7 +314,7 @@ const DynamicNameplateCard = ({
             <View className="flex-row gap-1 px-2 py-1 bg-white/40 rounded-md">
               <Octicons name="star-fill" size={12} color="#F1C400" />
               <Text className="font-proximanova-semibold text-xs text-primary">
-                {preview?.rating ?? "0.0"}/5
+                {previewRatingLabel}
               </Text>
             </View>
           </View>

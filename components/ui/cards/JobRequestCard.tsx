@@ -47,14 +47,18 @@ const JobRequestCard = ({
     businessRoleBusiness?.isVerified === true;
   const businessRating =
     typeof job?.business?.rating === "number" && job.business.rating > 0
-      ? Number(job.business.rating.toFixed(1))
+      ? job.business.rating
       : typeof recruitmentBusiness?.rating === "number" &&
         recruitmentBusiness.rating > 0
-        ? Number(recruitmentBusiness.rating.toFixed(1))
+        ? recruitmentBusiness.rating
         : typeof businessRoleBusiness?.rating === "number" &&
           businessRoleBusiness.rating > 0
-          ? Number(businessRoleBusiness.rating.toFixed(1))
-          : null;
+          ? businessRoleBusiness.rating
+          : NaN;
+  const businessRatingLabel =
+    Number.isFinite(businessRating) && businessRating > 0
+      ? `${businessRating.toFixed(1)}/5`
+      : "N/A";
   const displaySalaryMin =
     typeof job?.invitationSalaryMin === "number"
       ? job.invitationSalaryMin
@@ -237,14 +241,12 @@ const JobRequestCard = ({
                 </View>
               ) : null}
 
-              {businessRating !== null ? (
-                <View className="flex-row items-center gap-1.5 px-3 py-2 rounded-full bg-[#F5F5F5]">
-                  <FontAwesome name="star" size={15} color="#F3C315" />
-                  <Text className="font-proximanova-regular text-[12px] text-[#222222]">
-                    {businessRating}
-                  </Text>
-                </View>
-              ) : null}
+              <View className="flex-row items-center gap-1.5 px-3 py-2 rounded-full bg-[#F5F5F5]">
+                <FontAwesome name="star" size={15} color="#F3C315" />
+                <Text className="font-proximanova-regular text-[12px] text-[#222222]">
+                  {businessRatingLabel}
+                </Text>
+              </View>
 
               {displayJobType ? (
                 <View className="px-3 py-2 rounded-full bg-[#F5F5F5]">
@@ -322,14 +324,12 @@ const JobRequestCard = ({
                 </View>
               ) : null}
 
-              {businessRating !== null ? (
-                <View className="flex-row items-center gap-1.5 px-3 py-2 rounded-full bg-[#F5F5F5]">
-                  <FontAwesome name="star" size={15} color="#F3C315" />
-                  <Text className="font-proximanova-regular text-[12px] text-[#222222]">
-                    {businessRating}
-                  </Text>
-                </View>
-              ) : null}
+              <View className="flex-row items-center gap-1.5 px-3 py-2 rounded-full bg-[#F5F5F5]">
+                <FontAwesome name="star" size={15} color="#F3C315" />
+                <Text className="font-proximanova-regular text-[12px] text-[#222222]">
+                  {businessRatingLabel}
+                </Text>
+              </View>
 
               {displayJobType ? (
                 <View className="px-3 py-2 rounded-full bg-[#F5F5F5]">

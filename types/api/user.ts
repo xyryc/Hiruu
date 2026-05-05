@@ -19,7 +19,15 @@ export interface SocialData {
 }
 
 export interface ExperienceData {
-  companyId: string;
+  id?: string;
+  companyId?: string;
+  businessId?: string;
+  customBusinessName?: string;
+  customBusinessLogo?: string | {
+    uri: string;
+    type: string;
+    name: string;
+  };
   position?: string;
   description?: string;
   startDate?: string;

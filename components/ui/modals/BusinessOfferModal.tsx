@@ -321,7 +321,10 @@ const BusinessOfferModal = ({
     profile?.highlightedExperience ||
     t("user.jobs.businessOfferModal.openToWorkFallback");
   const ratingValue = Number(profile?.user?.rating ?? 0);
-  const ratingLabel = Number.isFinite(ratingValue) ? ratingValue.toFixed(1) : "0.0";
+  const ratingLabel =
+    Number.isFinite(ratingValue) && ratingValue > 0
+      ? `${ratingValue.toFixed(1)}/5`
+      : "N/A";
   const isModalLoading = isLoadingProfile || isLoadingBusinesses || isLoadingRoles;
 
 

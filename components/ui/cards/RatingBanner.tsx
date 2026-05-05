@@ -12,9 +12,10 @@ type RatingBannerProps = {
 const RatingBanner = ({ averageRating, totalRatings = 0, onPress }: RatingBannerProps) => {
 
   const safeAverageRating = Number.isFinite(averageRating) ? averageRating : 0;
-  const formattedRating = Number.isFinite(averageRating)
-    ? Number(averageRating.toFixed(1)).toString()
-    : "0";
+  const formattedRating =
+    Number.isFinite(averageRating) && averageRating > 0
+      ? `${averageRating.toFixed(1)}/5`
+      : "N/A";
   const safeTotalRatings = Number.isFinite(totalRatings) ? Math.max(0, totalRatings) : 0;
   const ratingSummaryText =
     safeTotalRatings === 1

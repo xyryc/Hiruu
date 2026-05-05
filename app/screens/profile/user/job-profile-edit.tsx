@@ -29,6 +29,25 @@ const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
     return item.startTime < item.endTime;
   });
 
+const DEFAULT_WEEKLY_AVAILABILITY: WeeklyAvailabilityItem[] = [
+  { day: "monday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "tuesday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "wednesday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "thursday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "friday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "saturday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+  { day: "sunday", isOpen: true, startTime: "9:00 AM", endTime: "5:00 PM" },
+];
+
+const resolveWeeklyAvailability = (
+  availability?: WeeklyAvailabilityItem[]
+): WeeklyAvailabilityItem[] => {
+  if (!Array.isArray(availability) || availability.length === 0) {
+    return DEFAULT_WEEKLY_AVAILABILITY;
+  }
+  return availability;
+};
+
 const getMetadataString = (
   metadata: JobProfileData["metadata"],
   key: string
@@ -72,7 +91,7 @@ const buildFormState = (profile: JobProfileData | null) => ({
   preferredRoleIds: Array.isArray(profile?.preferredRoleIds)
     ? profile.preferredRoleIds.filter((item): item is string => typeof item === "string")
     : [],
-  weeklyAvailability: profile?.weeklyAvailability || [],
+  weeklyAvailability: resolveWeeklyAvailability(profile?.weeklyAvailability),
 });
 
 const SectionHeader = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
@@ -256,6 +275,17 @@ const JobProfileEdit = () => {
     try {
       setIsSaving(true);
 
+      if (!isValidWeeklyAvailability(weeklyAvailability)) {
+        toast.error("Please set a valid weekly availability schedule.");
+        return;
+      }
+
+      const hasAtLeastOneOpenDay = weeklyAvailability.some((item) => item.isOpen);
+      if (isOpenToWork && !hasAtLeastOneOpenDay) {
+        toast.error("Open to work is enabled, so at least one day must be open.");
+        return;
+      }
+
       const currentMetadata =
         jobProfile?.metadata && typeof jobProfile.metadata === "object"
           ? jobProfile.metadata
@@ -265,6 +295,7 @@ const JobProfileEdit = () => {
         isOpenToWork,
         preferredSalaryType: salaryType.trim() || null,
         preferredRoleIds,
+        weeklyAvailability,
         expectedSalaryMin: expectedSalaryMin.trim()
           ? Number(expectedSalaryMin)
           : null,
