@@ -65,14 +65,14 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
         style={{ backgroundColor: bgColor }}
       >
         <Text
-          className={`font-proximanova-regular text-sm ${value ? "text-primary" : "text-secondary"}`}
+          className={`font-proximanova-regular text-[13px] ${value ? "text-primary" : "text-secondary"}`}
         >
           {formatMonth(value)}
         </Text>
         <SimpleLineIcons
-          className="p-1.5"
+          className="p-1"
           name="arrow-down"
-          size={12}
+          size={11}
           color="#111111"
         />
       </TouchableOpacity>
@@ -82,45 +82,45 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
           <TouchableOpacity activeOpacity={1} onPress={handleCancel} className="absolute inset-0" />
 
           <View className="bg-white rounded-t-3xl">
-            <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
+            <View className="absolute -top-20 inset-x-0 items-center pt-3 pb-2">
               <TouchableOpacity onPress={handleCancel}>
-                <View className="bg-[#1f1f1f] rounded-full p-2.5">
-                  <EvilIcons name="close" size={30} color="white" />
+                <View className="bg-[#1f1f1f] rounded-full p-2">
+                  <EvilIcons name="close" size={26} color="white" />
                 </View>
               </TouchableOpacity>
             </View>
 
-            <SafeAreaView edges={["bottom"]} className="px-4 py-4">
-              <View className="flex-row items-center justify-between mb-4">
-                <TouchableOpacity onPress={() => changeTempYear(-1)} className="p-2">
-                  <Ionicons name="chevron-back" size={24} color="#202020" />
+            <SafeAreaView edges={["bottom"]} className="px-4 py-3">
+              <View className="flex-row items-center justify-between mb-3">
+                <TouchableOpacity onPress={() => changeTempYear(-1)} className="p-1.5">
+                  <Ionicons name="chevron-back" size={20} color="#202020" />
                 </TouchableOpacity>
 
                 <View className="flex-row gap-2">
-                  <View className="px-4 py-2 rounded-full bg-[#E5F4FD]">
-                    <Text className="font-proximanova-semibold text-lg text-primary capitalize">
+                  <View className="px-3 py-1.5 rounded-full bg-[#E5F4FD]">
+                    <Text className="font-proximanova-semibold text-base text-primary capitalize">
                       {months[tempDate.getMonth()]}
                     </Text>
                   </View>
 
                   <TouchableOpacity
                     onPress={() => setShowYearPicker((prev) => !prev)}
-                    className="px-4 py-2 rounded-full bg-[#E5F4FD] flex-row items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-full bg-[#E5F4FD] flex-row items-center gap-1"
                   >
-                    <Text className="font-proximanova-semibold text-lg text-primary">
+                    <Text className="font-proximanova-semibold text-base text-primary">
                       {tempDate.getFullYear()}
                     </Text>
-                    <Ionicons name="chevron-down" size={16} color="#202020" />
+                    <Ionicons name="chevron-down" size={14} color="#202020" />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => changeTempYear(1)} className="p-2">
-                  <Ionicons name="chevron-forward" size={24} color="#202020" />
+                <TouchableOpacity onPress={() => changeTempYear(1)} className="p-1.5">
+                  <Ionicons name="chevron-forward" size={20} color="#202020" />
                 </TouchableOpacity>
               </View>
 
               {showYearPicker ? (
-                <View className="mb-4 border border-[#EEEEEE] rounded-2xl p-2.5 max-h-[120px]">
+                <View className="mb-3 border border-[#EEEEEE] rounded-2xl p-2 max-h-[108px]">
                   <ScrollView showsVerticalScrollIndicator={false}>
                     <View className="flex-row flex-wrap gap-2 justify-center">
                       {years.map((year) => {
@@ -132,11 +132,11 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
                               setTempYear(year);
                               setShowYearPicker(false);
                             }}
-                            className={`px-4 py-2 rounded-full border ${active ? "bg-[#4FB2F3] border-[#4FB2F3]" : "bg-white border-[#E5E7EB]"
+                            className={`px-3 py-1.5 rounded-full border ${active ? "bg-[#4FB2F3] border-[#4FB2F3]" : "bg-white border-[#E5E7EB]"
                               }`}
                           >
                             <Text
-                              className={`font-proximanova-semibold text-sm ${active ? "text-white" : "text-primary"
+                              className={`font-proximanova-semibold text-xs ${active ? "text-white" : "text-primary"
                                 }`}
                             >
                               {year}
@@ -149,18 +149,18 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
                 </View>
               ) : null}
 
-              <View className="flex-row flex-wrap justify-between gap-y-3">
+              <View className="flex-row flex-wrap justify-between gap-y-2.5">
                 {months.map((month, index) => {
                   const active = index === tempDate.getMonth();
                   return (
                     <TouchableOpacity
                       key={month}
                       onPress={() => selectMonth(index)}
-                      className={`w-[23%] h-16 rounded-2xl border items-center justify-center ${active ? "bg-[#4FB2F3] border-[#4FB2F3]" : "bg-white border-[#E5E7EB]"
+                      className={`w-[23%] h-12 rounded-xl border items-center justify-center ${active ? "bg-[#4FB2F3] border-[#4FB2F3]" : "bg-white border-[#E5E7EB]"
                         }`}
                     >
                       <Text
-                        className={`font-proximanova-semibold text-xl ${active ? "text-white" : "text-primary"
+                        className={`font-proximanova-semibold text-base ${active ? "text-white" : "text-primary"
                           }`}
                       >
                         {month}
