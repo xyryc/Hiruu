@@ -146,7 +146,7 @@ const QuickActionBusiness = ({ className }: QuickActionBusinessProps) => {
             />
           }
           title={t("user.jobs.quickActions.weekSchedule")}
-          onPress={() => router.push("/screens/schedule/business/weekly-schedule")}
+          onPress={() => router.push("/screens/schedule/business/apply-weekly-schedule")}
         />
       </ScrollView>
     </View>

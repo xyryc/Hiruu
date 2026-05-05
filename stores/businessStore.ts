@@ -62,7 +62,14 @@ interface BusinessState {
     payload: any
   ) => Promise<any>;
   getShiftTemplates: (businessId: string) => Promise<any>;
-  fillWeeklyBlockAutomatic: (businessId: string) => Promise<{
+  fillWeeklyBlockAutomatic: (
+    businessId: string,
+    payload: {
+      startDate: string;
+      endDate: string;
+      templateByDate: Record<string, string[]>;
+    }
+  ) => Promise<{
     template?: {
       startDate?: string;
       name?: string;
@@ -550,12 +557,13 @@ export const useBusinessStore = create<BusinessState>()(
         }
       },
 
-      fillWeeklyBlockAutomatic: async (businessId) => {
+      fillWeeklyBlockAutomatic: async (businessId, payload) => {
         try {
           if (!businessId) return null;
 
           const response = await axiosInstance.post(
-            `/ai-engine/${businessId}/fill-weekly-block-automatic`
+            `/ai-engine/${businessId}/fill-weekly-block-automatic`,
+            payload
           );
           const result = response.data;
 

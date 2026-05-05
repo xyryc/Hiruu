@@ -23,16 +23,6 @@ type MarkedDates = Record<
   }
 >;
 
-const daysData = [
-  { label: "Monday" },
-  { label: "Tuesday" },
-  { label: "Wednesday" },
-  { label: "Thursday" },
-  { label: "Friday" },
-  { label: "Saturday" },
-  { label: "Sunday" },
-];
-
 const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -58,13 +48,7 @@ const WeeklyScheduleApply = () => {
   const insets = useSafeAreaInsets();
   const {
     selectedBusinesses,
-    weeklyShiftSelections,
-    weeklyRoleAssignments,
-    createWeeklyScheduleBlock,
-    updateWeeklyScheduleBlock,
     getWeeklyScheduleBlocks,
-    clearWeeklyShiftSelections,
-    clearWeeklyRoleAssignments,
   } = useBusinessStore();
   const [isApplying, setIsApplying] = useState(false);
   const params = useLocalSearchParams<{
@@ -99,59 +83,6 @@ const WeeklyScheduleApply = () => {
       setSelectedEndDate(params.endDate);
     }
   }, [isEditMode, params.endDate, params.startDate]);
-
-  const selectedTemplateCount = useMemo(
-    () =>
-      daysData.reduce((total, day) => {
-        const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
-          ? weeklyShiftSelections[day.label]
-          : [];
-        return total + selectedTemplates.length;
-      }, 0),
-    [weeklyShiftSelections]
-  );
-
-  const buildPayload = () => {
-    const slots = daysData.flatMap((day) => {
-      const selectedTemplates = Array.isArray(weeklyShiftSelections[day.label])
-        ? weeklyShiftSelections[day.label]
-        : [];
-
-      return selectedTemplates
-        .filter((template: any) => Boolean(template?.id))
-        .map((template: any, sequence: number) => {
-          const assignmentKey = `${day.label}::${template?.id}`;
-          const selectedByRole = weeklyRoleAssignments[assignmentKey] || {};
-          const employmentIds = Array.from(
-            new Set(
-              Object.values(selectedByRole)
-                .flat()
-                .filter(Boolean)
-            )
-          );
-          const requiredEmployees = Array.isArray(template?.roleRequirements)
-            ? template.roleRequirements.reduce(
-              (total: number, role: any) => total + Number(role?.count || 0),
-              0
-            )
-            : employmentIds.length;
-
-          return {
-            sequence,
-            shiftTemplateId: template?.id,
-            dayOfWeek: day.label.toLowerCase(),
-            requiredEmployees: requiredEmployees > 0 ? requiredEmployees : 1,
-            employmentIds,
-          };
-        });
-    });
-
-    return {
-      startDate: selectedStartDate,
-      name: `Week ${selectedStartDate} ${Math.random().toString(36).slice(2, 7)}`,
-      slots,
-    };
-  };
 
   const markedDates = useMemo(() => {
     const marks: MarkedDates = {};
@@ -215,6 +146,16 @@ const WeeklyScheduleApply = () => {
       end: selectedEndDate,
     });
   }, [selectedEndDate, selectedStartDate, t]);
+
+  const selectedDaysCount = useMemo(() => {
+    if (!selectedStartDate || !selectedEndDate) return 0;
+    return (
+      Math.floor(
+        (toDate(selectedEndDate).getTime() - toDate(selectedStartDate).getTime()) /
+          (24 * 60 * 60 * 1000)
+      ) + 1
+    );
+  }, [selectedEndDate, selectedStartDate]);
 
   const doesRangeOverlapExistingBlocks = useCallback(
     (startYmd: string, endYmd: string, skipBlockId?: string) => {
@@ -327,16 +268,6 @@ const WeeklyScheduleApply = () => {
       toast.error(t("user.jobs.schedule.onlyOneWeek"));
       return;
     }
-    if (selectedTemplateCount === 0) {
-      toast.error(t("user.jobs.schedule.noScheduleItems"));
-      return;
-    }
-
-    const payload = buildPayload();
-    if (!Array.isArray(payload.slots) || payload.slots.length === 0) {
-      toast.error(t("user.jobs.schedule.noScheduleItems"));
-      return;
-    }
     if (
       doesRangeOverlapExistingBlocks(
         selectedStartDate,
@@ -350,19 +281,18 @@ const WeeklyScheduleApply = () => {
 
     try {
       setIsApplying(true);
-      if (isEditMode && typeof params.blockId === "string" && params.blockId) {
-        await updateWeeklyScheduleBlock(businessId, params.blockId, {
-          name: payload.name,
-          slots: payload.slots,
-        });
-        toast.success(t("api.weekly_block_updated_successfully"));
-      } else {
-        await createWeeklyScheduleBlock(businessId, payload);
-        toast.success(t("api.weekly_block_created_successfully"));
-      }
-      clearWeeklyShiftSelections();
-      clearWeeklyRoleAssignments();
-      router.replace("/(tabs)/business-schedule");
+      router.push({
+        pathname: "/screens/schedule/business/weekly-schedule",
+        params: {
+          ...(isEditMode ? { mode: "edit", blockId: params.blockId } : {}),
+          startDate: selectedStartDate,
+          endDate: selectedEndDate,
+          name:
+            typeof params.name === "string" && params.name.trim().length > 0
+              ? params.name
+              : `Week ${selectedStartDate}`,
+        },
+      });
     } catch (error: any) {
       const apiMessageKey =
         error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
@@ -437,10 +367,20 @@ const WeeklyScheduleApply = () => {
           </Text>
           <View className="flex-row items-center justify-between mt-3">
             <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-              {t("user.jobs.schedule.summary.templatesSelectedLabel")}
+              {t("user.jobs.schedule.summary.weekLengthLabel", {
+                defaultValue: "Week length",
+              })}
             </Text>
             <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-              {selectedTemplateCount}
+              {selectedDaysCount > 0
+                ? t("user.jobs.schedule.summary.daysCount", {
+                    count: selectedDaysCount,
+                    defaultValue:
+                      selectedDaysCount === 1
+                        ? `${selectedDaysCount} day`
+                        : `${selectedDaysCount} days`,
+                  })
+                : "--"}
             </Text>
           </View>
           <View className="flex-row items-center justify-between mt-2">
@@ -468,10 +408,8 @@ const WeeklyScheduleApply = () => {
         <PrimaryButton
           title={
             isApplying
-              ? t("common.applying")
-              : isEditMode
-                ? t("user.jobs.schedule.updateSchedule")
-                : t("user.jobs.schedule.applySchedule")
+              ? t("common.loading")
+              : t("common.next")
           }
           className="mt-6 mb-5"
           onPress={handleApply}

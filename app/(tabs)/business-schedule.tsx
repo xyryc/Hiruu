@@ -523,8 +523,8 @@ const BusinessScheduleScreen = () => {
       title: t("user.jobs.schedule.weeklySchedule"),
       icon: "calendar-clear-outline",
       onPress: () => {
-        checkAndNavigate("/screens/schedule/business/weekly-schedule" as RelativePathString)
-        // router.push("/screens/schedule/business/weekly-schedule");
+        checkAndNavigate("/screens/schedule/business/apply-weekly-schedule" as RelativePathString)
+        // router.push("/screens/schedule/business/apply-weekly-schedule");
       },
     },
     {

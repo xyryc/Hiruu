@@ -38,6 +38,17 @@ const formatDateYmd = (value: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const parseYmdDate = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
+};
+
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
 const buildRoleAwareAssignment = (template: any, employmentIds: string[]) => {
   const normalizedAssigned = Array.from(
     new Set((Array.isArray(employmentIds) ? employmentIds : []).filter(Boolean))
@@ -97,6 +108,7 @@ const SavedShiftTemplate = () => {
     getWeeklyScheduleBlockById,
     getShiftTemplates,
     fillWeeklyBlockAutomatic,
+    createWeeklyScheduleBlock,
     updateWeeklyScheduleBlock,
     setWeeklyShiftSelection,
     setWeeklyRoleAssignment,
@@ -297,10 +309,53 @@ const SavedShiftTemplate = () => {
       toast.error(t("user.profile.noBusinessSelected"));
       return;
     }
+    if (typeof params.startDate !== "string" || !params.startDate) {
+      toast.error(t("user.jobs.schedule.selectWeekStartDate"));
+      return;
+    }
+    if (typeof params.endDate !== "string" || !params.endDate) {
+      toast.error(t("user.jobs.schedule.selectWeekStartDate"));
+      return;
+    }
 
     try {
       setIsFillingAI(true);
-      const aiData = await fillWeeklyBlockAutomatic(businessId);
+      const start = parseYmdDate(params.startDate);
+      const end = parseYmdDate(params.endDate);
+      const totalDays =
+        Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+
+      if (totalDays !== 7) {
+        toast.error(t("user.jobs.schedule.onlyOneWeek"));
+        return;
+      }
+
+      const templateByDate: Record<string, string[]> = {};
+      for (let index = 0; index < 7; index += 1) {
+        const currentDate = addDays(start, index);
+        const dateKey = formatDateYmd(currentDate);
+        const dayLabel = currentDate.toLocaleDateString("en-US", { weekday: "long" });
+        const selectedTemplates = Array.isArray(weeklyShiftSelections[dayLabel])
+          ? weeklyShiftSelections[dayLabel]
+          : [];
+        const templateIds = selectedTemplates
+          .map((template: any) => String(template?.id || ""))
+          .filter(Boolean);
+        if (templateIds.length > 0) {
+          templateByDate[dateKey] = templateIds;
+        }
+      }
+
+      if (Object.keys(templateByDate).length === 0) {
+        toast.error(t("user.jobs.schedule.selectAtLeastOneTemplate"));
+        return;
+      }
+
+      const aiData = await fillWeeklyBlockAutomatic(businessId, {
+        startDate: params.startDate,
+        endDate: params.endDate,
+        templateByDate,
+      });
       const aiSlots = Array.isArray(aiData?.template?.slots)
         ? aiData.template.slots
         : [];
@@ -322,45 +377,16 @@ const SavedShiftTemplate = () => {
         ])
       );
 
-      const dayLabelMap = new Map(
-        daysData.map((day) => [day.label.toLowerCase(), day.label])
-      );
-      const dayOrder = new Map(
-        daysData.map((day, index) => [day.label.toLowerCase(), index])
-      );
-
-      const sortedSlots = [...aiSlots].sort((a: any, b: any) => {
-        const dayA = String(a?.dayOfWeek || "").toLowerCase();
-        const dayB = String(b?.dayOfWeek || "").toLowerCase();
-        const dayDiff = (dayOrder.get(dayA) ?? 99) - (dayOrder.get(dayB) ?? 99);
-        if (dayDiff !== 0) return dayDiff;
-        return Number(a?.sequence ?? 0) - Number(b?.sequence ?? 0);
-      });
-
-      const nextSelections: Record<string, any[]> = {};
       const nextAssignments: Record<string, Set<string>> = {};
 
-      sortedSlots.forEach((slot: any) => {
-        const dayKey = String(slot?.dayOfWeek || "").toLowerCase();
-        const dayLabel = dayLabelMap.get(dayKey);
+      aiSlots.forEach((slot: any) => {
+        const dayLabelRaw = String(slot?.dayOfWeek || "");
+        const dayLabel =
+          dayLabelRaw.charAt(0).toUpperCase() + dayLabelRaw.slice(1).toLowerCase();
         if (!dayLabel) return;
 
         const shiftTemplateId = String(slot?.shiftTemplateId || "");
         if (!shiftTemplateId) return;
-
-        const template = templateMap.get(shiftTemplateId);
-        if (!template) return;
-
-        if (!Array.isArray(nextSelections[dayLabel])) {
-          nextSelections[dayLabel] = [];
-        }
-        if (
-          !nextSelections[dayLabel].some(
-            (item: any) => String(item?.id) === shiftTemplateId
-          )
-        ) {
-          nextSelections[dayLabel].push(template);
-        }
 
         const assignmentKey = `${dayLabel}::${shiftTemplateId}`;
         if (!nextAssignments[assignmentKey]) {
@@ -374,24 +400,7 @@ const SavedShiftTemplate = () => {
         });
       });
 
-      const hasMappedTemplates = Object.values(nextSelections).some(
-        (items) => Array.isArray(items) && items.length > 0
-      );
-      if (!hasMappedTemplates) {
-        toast.error(
-          t("api.invalid_ai_schedule_payload", {
-            defaultValue: t("user.jobs.schedule.aiSlotsUnmapped"),
-          })
-        );
-        return;
-      }
-
-      clearWeeklyShiftSelections();
       clearWeeklyRoleAssignments();
-
-      Object.entries(nextSelections).forEach(([dayLabel, templatesForDay]) => {
-        setWeeklyShiftSelection(dayLabel, templatesForDay);
-      });
 
       Object.entries(nextAssignments).forEach(([assignmentKey, idsSet]) => {
         const [, shiftTemplateId = ""] = assignmentKey.split("::");
@@ -489,7 +498,43 @@ const SavedShiftTemplate = () => {
       return;
     }
 
-    router.push("/screens/schedule/business/apply-weekly-schedule");
+    if (typeof params.startDate !== "string" || !params.startDate) {
+      router.push("/screens/schedule/business/apply-weekly-schedule");
+      return;
+    }
+
+    const slots = buildSlotsPayload();
+    if (!Array.isArray(slots) || slots.length === 0) {
+      toast.error(t("user.jobs.schedule.noScheduleItems"));
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      await createWeeklyScheduleBlock(businessId, {
+        startDate: params.startDate,
+        name:
+          typeof params.name === "string" && params.name.trim().length > 0
+            ? params.name
+            : `Week ${String(params.startDate || "")}`,
+        slots,
+      });
+      toast.success(t("api.weekly_block_created_successfully"));
+      clearWeeklyShiftSelections();
+      clearWeeklyRoleAssignments();
+      router.replace("/(tabs)/business-schedule");
+    } catch (error: any) {
+      const apiMessageKey =
+        error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
+      toast.error(
+        t(`api.${apiMessageKey}`, {
+          defaultValue:
+            apiMessageKey || t("user.jobs.schedule.failedToApplyWeeklySchedule"),
+        })
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleClearSlots = () => {
@@ -662,7 +707,9 @@ const SavedShiftTemplate = () => {
               }
               icon={<Ionicons name="sparkles-outline" size={20} color="white" />}
               onPress={handleFillWithAI}
-              disabled={isHydratingEdit || isUpdating || isFillingAI}
+              disabled={
+                !hasAtLeastOneTemplate || isHydratingEdit || isUpdating || isFillingAI
+              }
             />
             <PrimaryButton
               title={
