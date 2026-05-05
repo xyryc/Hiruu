@@ -24,7 +24,7 @@ const ExperienceCard = ({
   const { t } = useTranslation();
   return (
     <View
-      className={`p-2.5  ${className} ${isCurrent ? " border rounded-2xl mt-11" : "border border-[#0000000D] rounded-2xl"}`}>
+      className={`p-2.5  ${className} ${isCurrent ? " border rounded-2xl mt-12" : "border border-[#0000000D] rounded-2xl"}`}>
       {isCurrent && (
         <View className="absolute -top-9 right-2">
           <Image
