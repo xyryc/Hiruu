@@ -140,6 +140,29 @@ const UserProfilePreview = () => {
       .map((item: string) => item.trim().toLowerCase())
       .filter(Boolean);
   }, [profile]);
+  const experiences = useMemo(() => {
+    const source = Array.isArray(profile?.user?.experiences)
+      ? profile.user.experiences
+      : [];
+
+    return source.map((experience: any) => ({
+      id: experience?.id,
+      companyName:
+        experience?.business?.name ||
+        experience?.customBusinessName ||
+        t("user.profile.userProfile.company"),
+      position:
+        experience?.position || t("user.profile.userProfile.roleNotSpecified"),
+      companyLogo:
+        experience?.business?.logo ||
+        experience?.customBusinessLogo ||
+        require("@/assets/images/placeholder.png"),
+      isVerified: Boolean(
+        experience?.business?.isVerified || experience?.isOfficial
+      ),
+      isCurrent: Boolean(experience?.isCurrent),
+    }));
+  }, [profile, t]);
 
   const formatMetric = (value?: number) => {
     if (typeof value !== "number" || Number.isNaN(value)) return "0%";
@@ -583,18 +606,33 @@ const UserProfilePreview = () => {
           </Text>
         </View>
 
-        <ExperienceCard
-          focus
-          className="mt-8 mx-5"
-          companyName={profile?.user?.name || t("common.user")}
-          position={profile?.headline || t("user.profile.userProfile.roleNotSpecified")}
-          companyLogo={
-            profile?.user?.avatar ||
-            require("@/assets/images/placeholder.png")
-          }
-          isVerified
-          isCurrent={Boolean(profile?.isOpenToWork)}
-        />
+        {experiences.length > 0 ? (
+          experiences.map((experience: any, index: number) => (
+            <ExperienceCard
+              key={experience?.id || `${experience?.companyName}-${index}`}
+              focus
+              className="mt-2.5 mx-5"
+              companyName={experience.companyName}
+              position={experience.position}
+              companyLogo={experience.companyLogo}
+              isVerified={experience.isVerified}
+              isCurrent={experience.isCurrent}
+            />
+          ))
+        ) : (
+          <ExperienceCard
+            focus
+            className="mt-8 mx-5"
+            companyName={profile?.user?.name || t("common.user")}
+            position={profile?.headline || t("user.profile.userProfile.roleNotSpecified")}
+            companyLogo={
+              profile?.user?.avatar ||
+              require("@/assets/images/placeholder.png")
+            }
+            isVerified
+            isCurrent={Boolean(profile?.isOpenToWork)}
+          />
+        )}
 
         {/* Achievement */}
         <View className=" mx-5 mt-8">
