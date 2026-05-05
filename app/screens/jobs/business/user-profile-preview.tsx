@@ -120,14 +120,11 @@ const UserProfilePreview = () => {
     return t("common.locationUnavailable");
   }, [profile, t]);
 
-  const shortIntro = useMemo(() => {
-    return (
-      profile?.about ||
-      profile?.highlightedExperience ||
-      profile?.user?.bio ||
-      t("user.profile.userProfile.noProfileSummary")
-    );
-  }, [profile, t]);
+  const bioText = useMemo(() => {
+    return typeof profile?.user?.bio === "string" ? profile.user.bio.trim() : "";
+  }, [profile?.user?.bio]);
+  const hasBio = bioText.length > 0;
+  const shortIntro = bioText;
   const interests = useMemo(() => {
     const source = Array.isArray(profile?.user?.interest)
       ? profile.user.interest
@@ -563,76 +560,69 @@ const UserProfilePreview = () => {
         <BadgeCard className="mx-5 mt-3.5" />
 
         {/* short intro */}
-        <View className="mx-5 mt-8 flex-row gap-2.5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <Foundation name="clipboard" size={16} color="black" />
-          </DynamicBackground>
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.shortIntro")}
-          </Text>
-        </View>
-        <View className="mx-5 mt-4">
-          <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-            {showText
-              ? shortIntro
-              : `${shortIntro.slice(0, 120)}${shortIntro.length > 120 ? "..." : ""}`}
-            {"   "}
-            <Text
-              onPress={() => setShowText(!showText)}
-              className="font-proximanova-semibold text-sm text-[#11293A]"
-            >
-              {shortIntro.length > 120 ? (showText ? t("user.profile.userProfile.seeLess") : t("user.profile.userProfile.readMore")) : ""}
-            </Text>
-          </Text>
-        </View>
-
-        {/* Experience */}
-        <View className="mx-5 mt-8 flex-row gap-2.5">
-          <DynamicBackground
-            className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
-            pickerType={pickerType}
-            profileColor={profileColor}
-            gradientColors={gradientColors}
-          >
-            <Foundation name="clipboard" size={16} color="black" />
-          </DynamicBackground>
-          <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-            {t("user.profile.userProfile.experience")}
-          </Text>
-        </View>
+        {hasBio ? (
+          <>
+            <View className="mx-5 mt-8 flex-row gap-2.5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <Foundation name="clipboard" size={16} color="black" />
+              </DynamicBackground>
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.shortIntro")}
+              </Text>
+            </View>
+            <View className="mx-5 mt-4">
+              <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
+                {showText
+                  ? shortIntro
+                  : `${shortIntro.slice(0, 120)}${shortIntro.length > 120 ? "..." : ""}`}
+                {"   "}
+                <Text
+                  onPress={() => setShowText(!showText)}
+                  className="font-proximanova-semibold text-sm text-[#11293A]"
+                >
+                  {shortIntro.length > 120 ? (showText ? t("user.profile.userProfile.seeLess") : t("user.profile.userProfile.readMore")) : ""}
+                </Text>
+              </Text>
+            </View>
+          </>
+        ) : null}
 
         {experiences.length > 0 ? (
-          experiences.map((experience: any, index: number) => (
-            <ExperienceCard
-              key={experience?.id || `${experience?.companyName}-${index}`}
-              focus
-              className="mt-2.5 mx-5"
-              companyName={experience.companyName}
-              position={experience.position}
-              companyLogo={experience.companyLogo}
-              isVerified={experience.isVerified}
-              isCurrent={experience.isCurrent}
-            />
-          ))
-        ) : (
-          <ExperienceCard
-            focus
-            className="mt-8 mx-5"
-            companyName={profile?.user?.name || t("common.user")}
-            position={profile?.headline || t("user.profile.userProfile.roleNotSpecified")}
-            companyLogo={
-              profile?.user?.avatar ||
-              require("@/assets/images/placeholder.png")
-            }
-            isVerified
-            isCurrent={Boolean(profile?.isOpenToWork)}
-          />
-        )}
+          <>
+            {/* Experience */}
+            <View className="mx-5 mt-8 flex-row gap-2.5">
+              <DynamicBackground
+                className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                pickerType={pickerType}
+                profileColor={profileColor}
+                gradientColors={gradientColors}
+              >
+                <Foundation name="clipboard" size={16} color="black" />
+              </DynamicBackground>
+              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                {t("user.profile.userProfile.experience")}
+              </Text>
+            </View>
+
+            {experiences.map((experience: any, index: number) => (
+              <ExperienceCard
+                key={experience?.id || `${experience?.companyName}-${index}`}
+                focus
+                className="mt-2.5 mx-5"
+                companyName={experience.companyName}
+                position={experience.position}
+                companyLogo={experience.companyLogo}
+                isVerified={experience.isVerified}
+                isCurrent={experience.isCurrent}
+              />
+            ))}
+          </>
+        ) : null}
 
         {/* Achievement */}
         <View className=" mx-5 mt-8">

@@ -519,47 +519,40 @@ const Profile = () => {
               </TouchableOpacity>
             )}
 
-            {/* Experience */}
-            <View className="mx-5 mt-7 flex-row gap-2.5">
-              <DynamicBackground
-                className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
-                pickerType={pickerType}
-                profileColor={profileColor}
-                gradientColors={gradientColors}
-              >
-                <MaterialCommunityIcons
-                  name="file-document-check-outline"
-                  size={16}
-                  color="black"
-                />
-              </DynamicBackground>
-              <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                {t("user.profile.userProfile.experience")}
-              </Text>
-            </View>
-
             {resolvedExperiences.length > 0 ? (
-              resolvedExperiences.map((experience: any, index: number) => (
-                <ExperienceCard
-                  key={experience?.id || `${experience?.companyId}-${index}`}
-                  isCurrent={experience.isCurrent}
-                  className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
-                  companyName={experience.companyName}
-                  position={experience.position}
-                  companyLogo={experience.companyLogo}
-                  isVerified={experience.isVerified}
-                />
-              ))
-            ) : (
-              <TouchableOpacity
-                onPress={() => router.push("/screens/profile/user/edit-profile")}
-                className="mx-5 mt-2.5 border border-[#0000000D] rounded-xl p-3"
-              >
-                <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
-                  Add experience
-                </Text>
-              </TouchableOpacity>
-            )}
+              <>
+                {/* Experience */}
+                <View className="mx-5 mt-7 flex-row gap-2.5">
+                  <DynamicBackground
+                    className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                    pickerType={pickerType}
+                    profileColor={profileColor}
+                    gradientColors={gradientColors}
+                  >
+                    <MaterialCommunityIcons
+                      name="file-document-check-outline"
+                      size={16}
+                      color="black"
+                    />
+                  </DynamicBackground>
+                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                    {t("user.profile.userProfile.experience")}
+                  </Text>
+                </View>
+
+                {resolvedExperiences.map((experience: any, index: number) => (
+                  <ExperienceCard
+                    key={experience?.id || `${experience?.companyId}-${index}`}
+                    isCurrent={experience.isCurrent}
+                    className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
+                    companyName={experience.companyName}
+                    position={experience.position}
+                    companyLogo={experience.companyLogo}
+                    isVerified={experience.isVerified}
+                  />
+                ))}
+              </>
+            ) : null}
 
             {/* Achievement */}
             <View className=" mx-5 mt-7">
