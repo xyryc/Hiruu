@@ -184,6 +184,28 @@ const Profile = () => {
   const experiences = Array.isArray(profileData?.experiences)
     ? profileData.experiences
     : [];
+  const resolvedExperiences = experiences.map((experience: any) => {
+    const companyName =
+      experience?.business?.name ||
+      experience?.company?.name ||
+      experience?.customBusinessName ||
+      t("user.profile.userProfile.company");
+    const companyLogo =
+      experience?.business?.logo ||
+      experience?.company?.logo ||
+      experience?.customBusinessLogo ||
+      require("@/assets/images/placeholder.png");
+
+    return {
+      id: experience?.id,
+      companyId: experience?.companyId,
+      companyName,
+      position: experience?.position,
+      companyLogo,
+      isCurrent: Boolean(experience?.isCurrent),
+      isVerified: Boolean(experience?.isOfficial || experience?.company?.isVerified),
+    };
+  });
   const jobProfilePreview = [
     typeof jobProfile?.headline === "string" ? jobProfile.headline.trim() : "",
     typeof jobProfile?.about === "string" ? jobProfile.about.trim() : "",
@@ -516,17 +538,27 @@ const Profile = () => {
               </Text>
             </View>
 
-            {experiences.map((experience: any, index: number) => (
-              <ExperienceCard
-                key={experience?.id || `${experience?.companyId}-${index}`}
-                isCurrent={Boolean(experience?.isCurrent)}
-                className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
-                companyName={experience?.company?.name}
-                position={experience?.position}
-                companyLogo={experience?.company?.logo}
-                isVerified={Boolean(experience?.company?.isVerified)}
-              />
-            )
+            {resolvedExperiences.length > 0 ? (
+              resolvedExperiences.map((experience: any, index: number) => (
+                <ExperienceCard
+                  key={experience?.id || `${experience?.companyId}-${index}`}
+                  isCurrent={experience.isCurrent}
+                  className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
+                  companyName={experience.companyName}
+                  position={experience.position}
+                  companyLogo={experience.companyLogo}
+                  isVerified={experience.isVerified}
+                />
+              ))
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.push("/screens/profile/user/edit-profile")}
+                className="mx-5 mt-2.5 border border-[#0000000D] rounded-xl p-3"
+              >
+                <Text className="font-proximanova-regular text-sm text-[#7A7A7A] dark:text-dark-secondary">
+                  Add experience
+                </Text>
+              </TouchableOpacity>
             )}
 
             {/* Achievement */}
