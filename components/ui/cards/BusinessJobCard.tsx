@@ -12,7 +12,6 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   Linking,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { toast } from "sonner-native";
 import StatusBadge from "../badges/StatusBadge";
 import SecondaryButton from "../buttons/SecondaryButton";
@@ -36,6 +36,7 @@ const BusinessJobCard = ({
   received,
   profile,
   disableModalOpen,
+  enableHeaderProfileTap,
   onAccept,
   onReject,
   actionLoading,
@@ -112,9 +113,9 @@ const BusinessJobCard = ({
   const preferenceJobType =
     typeof preferenceJobTypeRaw === "string" && preferenceJobTypeRaw.trim()
       ? preferenceJobTypeRaw
-          .trim()
-          .replace(/[_-]+/g, " ")
-          .replace(/\b\w/g, (char) => char.toUpperCase())
+        .trim()
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
       : null;
   const dialPhoneNumber =
     (typeof profile?.user?.dialPhoneNumber === "string" && profile.user.dialPhoneNumber.trim())
@@ -235,7 +236,11 @@ const BusinessJobCard = ({
             </View>
           )}
           {/* content */}
-          <View className="flex-row items-center gap-2.5 p-1 z-10">
+          <Pressable
+            onPress={enableHeaderProfileTap ? () => handleViewProfile() : undefined}
+            onStartShouldSetResponder={() => true}
+            className="flex-row items-center gap-2.5 p-1 z-10"
+          >
             {/* profile image */}
             <Image
               source={userAvatarSource}
@@ -260,7 +265,7 @@ const BusinessJobCard = ({
                 {userName}
               </Text>
             </View>
-          </View>
+          </Pressable>
 
           {/* background */}
           {status === "featured" && (
@@ -351,7 +356,7 @@ const BusinessJobCard = ({
             width: "100%",
             marginVertical: 10,
           }}
-          contentFit="contain"
+          contentFit="cover"
         />
 
         {/* bottom */}
@@ -419,7 +424,7 @@ const BusinessJobCard = ({
 
         {/* bottom */}
         {received && (
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-end justify-between">
             {/* left */}
             <View onStartShouldSetResponder={() => true}>
               <SecondaryButton
@@ -428,57 +433,58 @@ const BusinessJobCard = ({
                 textClass="text-[#4FB2F3]"
                 iconBackground="bg-white"
                 iconColor="#4FB2F3"
+                className='pl-1.5'
               />
             </View>
 
             {/* right */}
             <View className="flex-row items-center gap-1.5" onStartShouldSetResponder={() => true}>
-                <TouchableOpacity
-                  onPress={handleMessageClick}
-                  disabled={isCreatingChat}
-                  className="bg-[#E5F4FD] border-[0.5px] border-[#FFFFFF00] rounded-full p-2"
-                >
-                  {isCreatingChat ? (
-                    <ActivityIndicator size="small" color="#4FB2F3" />
-                  ) : (
-                    <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
-                  )}
-                </TouchableOpacity>
-
-                {finalReceivedStatus ? (
-                  <StatusBadge status={finalReceivedStatus} />
+              <TouchableOpacity
+                onPress={handleMessageClick}
+                disabled={isCreatingChat}
+                className="bg-[#E5F4FD] border-[0.5px] border-[#FFFFFF00] rounded-full p-2"
+              >
+                {isCreatingChat ? (
+                  <ActivityIndicator size="small" color="#4FB2F3" />
                 ) : (
-                  <>
-                    <TouchableOpacity
-                      onPress={onReject}
-                      disabled={actionLoading !== null}
-                      className={`${actionLoading !== null ? "opacity-70" : ""}`}
-                    >
-                      {actionLoading === "rejected" ? (
-                        <ActivityIndicator size="small" color="#F34F4F" style={{ width: 40 }} />
-                      ) : (
-                        <MaterialCommunityIcons
-                          name="close-circle"
-                          size={40}
-                          color="#F34F4F"
-                        />
-                      )}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={onAccept}
-                      disabled={actionLoading !== null}
-                      className={`${actionLoading !== null ? "opacity-70" : ""}`}
-                    >
-                      {actionLoading === "approved" ? (
-                        <ActivityIndicator size="small" color="#292D32" style={{ width: 40 }} />
-                      ) : (
-                        <Ionicons name="checkmark-circle" size={40} color="#292D32" />
-                      )}
-                    </TouchableOpacity>
-                  </>
+                  <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
                 )}
-              </View>
+              </TouchableOpacity>
+
+              {finalReceivedStatus ? (
+                <StatusBadge status={finalReceivedStatus} />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={onReject}
+                    disabled={actionLoading !== null}
+                    className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                  >
+                    {actionLoading === "rejected" ? (
+                      <ActivityIndicator size="small" color="#F34F4F" style={{ width: 40 }} />
+                    ) : (
+                      <MaterialCommunityIcons
+                        name="close-circle"
+                        size={40}
+                        color="#F34F4F"
+                      />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={onAccept}
+                    disabled={actionLoading !== null}
+                    className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                  >
+                    {actionLoading === "approved" ? (
+                      <ActivityIndicator size="small" color="#292D32" style={{ width: 40 }} />
+                    ) : (
+                      <Ionicons name="checkmark-circle" size={40} color="#292D32" />
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
           </View>
         )}
       </AutoSkeletonView>

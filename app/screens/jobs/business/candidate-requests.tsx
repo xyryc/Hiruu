@@ -50,6 +50,10 @@ const CandidateRequests = () => {
   } | null>(null);
   const limit = 10;
   const [isUnreadForbidden, setIsUnreadForbidden] = useState(false);
+  const skeletonItems = useMemo(
+    () => Array.from({ length: 6 }, (_, index) => ({ id: `candidate-request-skeleton-${index}` })),
+    []
+  );
 
   const currentBusinessId = selectedBusinesses?.[0] || null;
   const { canRead: canReadJoinRequests } = useBusinessPermission("people.join_requests", {
@@ -269,6 +273,34 @@ const CandidateRequests = () => {
     };
   };
 
+  const CandidateRequestCardSkeleton = () => (
+    <View className="px-5">
+      <View className="mt-4 p-2.5 rounded-xl border border-[#4FB2F330]">
+        <View className="flex-row items-center gap-2.5 p-1">
+          <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+          <View className="flex-1">
+            <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+            <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+          </View>
+        </View>
+
+        <View className="mt-3 h-3 w-48 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-36 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-44 rounded-md bg-[#E5E7EB]" />
+
+        <View className="mt-4 h-[2px] w-full rounded-full bg-[#E5E7EB]" />
+
+        <View className="mt-4 flex-row items-center justify-between">
+          <View className="h-3 w-24 rounded-md bg-[#E5E7EB]" />
+          <View className="flex-row items-center gap-2">
+            <View className="h-8 w-20 rounded-full bg-[#E5E7EB]" />
+            <View className="h-8 w-20 rounded-full bg-[#E5E7EB]" />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
   if (!currentBusinessId) {
     return (
       <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
@@ -351,33 +383,38 @@ const CandidateRequests = () => {
 
       {/* content */}
       <FlatList
-        data={visibleItems}
+        data={isLoading ? skeletonItems : visibleItems}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => (
-          <View className="px-5">
+          isLoading ? (
+            <CandidateRequestCardSkeleton />
+          ) : (
+            <View className="px-5">
             <BusinessJobCard
               candidate={isActive === "sent"}
               received={isActive === "received"}
+              enableHeaderProfileTap={true}
               disableModalOpen={isActive === "received" || isActive === 'sent'}
               className="mt-4"
               profile={mapToProfile(item)}
-              onAccept={
-                isActive === "received"
-                  ? () => handleApplicationAction(String(item?.id), "approved")
-                  : undefined
-              }
-              onReject={
-                isActive === "received"
-                  ? () => handleApplicationAction(String(item?.id), "rejected")
-                  : undefined
-              }
-              actionLoading={
-                actionLoading?.applicationId === String(item?.id)
-                  ? actionLoading.status
-                  : null
-              }
-            />
-          </View>
+                onAccept={
+                  isActive === "received"
+                    ? () => handleApplicationAction(String(item?.id), "approved")
+                    : undefined
+                }
+                onReject={
+                  isActive === "received"
+                    ? () => handleApplicationAction(String(item?.id), "rejected")
+                    : undefined
+                }
+                actionLoading={
+                  actionLoading?.applicationId === String(item?.id)
+                    ? actionLoading.status
+                    : null
+                }
+              />
+            </View>
+          )
         )}
         ListHeaderComponent={
           <View className="px-5 pt-5 pb-4 bg-white">
@@ -385,11 +422,7 @@ const CandidateRequests = () => {
           </View>
         }
         ListEmptyComponent={
-          isLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
-            </View>
-          ) : (
+          !isLoading ? (
             <View className="px-5 pb-5">
               <StatusStateCard
                 image={require("@/assets/images/toolbox.svg")}
@@ -405,7 +438,7 @@ const CandidateRequests = () => {
                 }
               />
             </View>
-          )
+          ) : null
         }
         ListFooterComponent={
           <View className="pb-5">

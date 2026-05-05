@@ -79,10 +79,6 @@ const Assign = () => {
         date: selectedDate,
         shiftTemplateId: templateId,
       });
-      console.log(
-        "[Assign] getShiftAssignmentAvailability response",
-        JSON.stringify(data, null, 2)
-      );
       const normalized = Array.isArray(data?.candidates) ? data.candidates : [];
       setAvailabilityCandidates(normalized);
       setSelectedRoleId(null);
@@ -310,9 +306,6 @@ const Assign = () => {
                   </Text>
                   <Text className="text-sm text-secondary dark:text-dark-secondary font-proximanova-regular">
                     {item?.email || t("common.noEmail")}
-                  </Text>
-                  <Text className="mt-1 text-xs text-secondary dark:text-dark-secondary font-proximanova-semibold">
-                    {item?.roleName || t("user.jobs.postJob.role")}
                   </Text>
                   <Text
                     className={`mt-1 text-xs font-proximanova-semibold ${

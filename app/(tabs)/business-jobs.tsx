@@ -10,7 +10,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   RefreshControl,
@@ -38,8 +37,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-const JOB_CARD_RADIUS = 12;
-
 const normalizeRoleIds = (value?: string[] | string) => {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (typeof value === "string" && value.length > 0) {
@@ -85,6 +82,25 @@ const withDialPhoneNumber = (profiles: any[]) => {
     };
   });
 };
+
+const CandidateCardSkeleton = ({ className = "" }: { className?: string }) => (
+  <View className={`${className} p-2.5 rounded-xl border border-[#4FB2F330]`}>
+    <View className="flex-row items-center gap-2.5 p-1">
+      <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+      <View className="flex-1">
+        <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+        <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+      </View>
+    </View>
+    <View className="mt-3 h-3 w-48 bg-[#E5E7EB] rounded-md" />
+    <View className="mt-2 h-3 w-36 bg-[#E5E7EB] rounded-md" />
+    <View className="mt-4 h-[2px] w-full bg-[#E5E7EB] rounded-full" />
+    <View className="mt-4 flex-row items-center justify-between">
+      <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+      <View className="h-8 w-24 bg-[#E5E7EB] rounded-full" />
+    </View>
+  </View>
+);
 
 const BusinessJobs = () => {
   const { colorScheme } = useColorScheme();
@@ -354,18 +370,11 @@ const BusinessJobs = () => {
             </View>
 
             {isLoadingFeatured ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-                <>
-                  {featuredSkeletonItems.map((profile: any) => (
-                    <BusinessJobCard
-                      key={profile.id}
-                      className="mt-4"
-                      status="featured"
-                      profile={profile}
-                    />
-                  ))}
-                </>
-              </AutoSkeletonView>
+              <>
+                {featuredSkeletonItems.map((profile: any) => (
+                  <CandidateCardSkeleton key={profile.id} className="mt-4" />
+                ))}
+              </>
             ) : (
               filteredFeaturedProfiles.slice(0, 10).map((profile: any) => (
                 <BusinessJobCard
@@ -401,17 +410,11 @@ const BusinessJobs = () => {
             </View>
 
             {isLoadingSuggested ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-                <>
-                  {suggestedSkeletonItems.map((profile: any) => (
-                    <BusinessJobCard
-                      key={profile.id}
-                      className="mt-4"
-                      profile={profile}
-                    />
-                  ))}
-                </>
-              </AutoSkeletonView>
+              <>
+                {suggestedSkeletonItems.map((profile: any) => (
+                  <CandidateCardSkeleton key={profile.id} className="mt-4" />
+                ))}
+              </>
             ) : (
               filteredSuggestedProfiles.slice(0, 4).map((profile: any) => (
                 <BusinessJobCard

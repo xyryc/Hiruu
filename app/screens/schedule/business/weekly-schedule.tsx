@@ -10,7 +10,6 @@ import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -595,12 +594,36 @@ const SavedShiftTemplate = () => {
         />
 
         {isHydratingEdit ? (
-          <View className="mx-5 flex-1 items-center justify-center gap-3">
-            <ActivityIndicator size="large" color="#4FB2F3" />
-            <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-              {t("user.jobs.schedule.loadingWeeklySchedule")}
-            </Text>
-          </View>
+          <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
+            <View className="mt-3">
+              {Array.from({ length: 4 }, (_, index) => (
+                <View key={`weekly-day-skeleton-${index}`} className="mt-3">
+                  <View className="border border-[#eeeeee] rounded-[10px] py-4 px-4 flex-row items-center">
+                    <View className="h-6 w-6 rounded-full bg-[#E5E7EB]" />
+                    <View className="ml-4 flex-1">
+                      <View className="h-4 w-28 rounded-md bg-[#E5E7EB]" />
+                      <View className="mt-2 h-3 w-36 rounded-md bg-[#E5E7EB]" />
+                    </View>
+                  </View>
+
+                  <View className="mt-3 border border-[#EEEEEE] rounded-[14px] p-4">
+                    <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+                    <View className="mt-3 h-3 w-full rounded-md bg-[#E5E7EB]" />
+                    <View className="mt-2 h-3 w-[85%] rounded-md bg-[#E5E7EB]" />
+                    <View className="mt-2 h-3 w-[65%] rounded-md bg-[#E5E7EB]" />
+                    <View className="mt-4 h-[2px] w-full rounded-full bg-[#E5E7EB]" />
+                    <View className="mt-3 flex-row items-center">
+                      <View className="h-7 w-7 rounded-full bg-[#E5E7EB]" />
+                      <View className="ml-2 h-3 w-32 rounded-md bg-[#E5E7EB]" />
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <View className="mt-10 h-12 rounded-xl bg-[#E5E7EB]" />
+            <View className="mt-4 mb-4 h-12 rounded-xl bg-[#E5E7EB]" />
+          </ScrollView>
         ) : (
           <ScrollView className="mx-5" showsVerticalScrollIndicator={false}>
 

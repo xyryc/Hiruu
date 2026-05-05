@@ -24,7 +24,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -338,6 +337,42 @@ const BusinessScheduleScreen = () => {
         status: "upcoming",
       })),
     []
+  );
+
+  const ShiftCardSkeleton = () => (
+    <View className="mt-3 border border-[#EEEEEE] rounded-[14px] p-4 bg-white">
+      <View className="flex-row items-start justify-between">
+        <View className="flex-row items-center flex-1">
+          <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+          <View className="ml-3 flex-1">
+            <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+            <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+          </View>
+        </View>
+        <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+      </View>
+
+      <View className="mt-4">
+        <View className="flex-row justify-between">
+          <View className="h-3 w-20 rounded-md bg-[#E5E7EB]" />
+          <View className="h-3 w-28 rounded-md bg-[#E5E7EB]" />
+        </View>
+        <View className="mt-2.5 flex-row justify-between">
+          <View className="h-3 w-16 rounded-md bg-[#E5E7EB]" />
+          <View className="h-3 w-40 rounded-md bg-[#E5E7EB]" />
+        </View>
+      </View>
+
+      <View className="mt-4 h-[2px] w-full rounded-full bg-[#E5E7EB]" />
+
+      <View className="mt-4 flex-row items-center justify-between">
+        <View className="h-4 w-24 rounded-md bg-[#E5E7EB]" />
+        <View className="flex-row items-center gap-2">
+          <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+          <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+        </View>
+      </View>
+    </View>
   );
 
   const handleOpenShiftChat = async (shift: any) => {
@@ -725,9 +760,7 @@ const BusinessScheduleScreen = () => {
 	        {businessAssignmentsLoading ? (
 	          <View pointerEvents="none">
 	            {skeletonShifts.map((shift) => (
-	              <AutoSkeletonView key={shift.id} isLoading={true} defaultRadius={12}>
-	                <ShiftCard shift={shift} onMessagePress={undefined} />
-	              </AutoSkeletonView>
+                <ShiftCardSkeleton key={shift.id} />
 	            ))}
 	          </View>
 

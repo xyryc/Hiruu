@@ -435,6 +435,7 @@ export interface BusinessJobCardProps {
   received?: boolean;
   profile?: any;
   disableModalOpen?: boolean;
+  enableHeaderProfileTap?: boolean;
   onAccept?: () => void;
   onReject?: () => void;
   actionLoading?: "approved" | "rejected" | null;

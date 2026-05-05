@@ -30,7 +30,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -138,10 +137,6 @@ const ManageTeamPanel = () => {
       try {
         setLoading(true);
         const source = await getBusinessEmployees(resolvedBusinessId);
-        console.log(
-          "[ManageTeam] GET /employment/businesses/{businessId}/employees response",
-          JSON.stringify(source, null, 2)
-        );
         const mapped = (Array.isArray(source) ? source : [])
           .map((item: any) => {
             const user = item?.user;
@@ -268,7 +263,10 @@ const ManageTeamPanel = () => {
             <View className="w-[42px] h-[42px] rounded-full bg-[#E5E7EB]" />
             <View className="flex-1">
               <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
-              <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-2 flex-row items-center gap-2">
+                <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+                <View className="h-4 w-16 bg-[#E5E7EB] rounded-full" />
+              </View>
             </View>
           </View>
           <View className="flex-row items-center gap-2">
@@ -278,13 +276,13 @@ const ManageTeamPanel = () => {
         </View>
 
         <View className="mt-4">
-          <View className="flex-row justify-between">
-            <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
-            <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
-          </View>
-          <View className="flex-row justify-between mt-2.5">
-            <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+          <View className="flex-row justify-between items-center">
+            <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
             <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+          </View>
+          <View className="flex-row justify-between items-center mt-2.5">
+            <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+            <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
           </View>
         </View>
 
@@ -778,9 +776,7 @@ const ManageTeamPanel = () => {
           {loading ? (
             <View pointerEvents="none" className="pb-10">
               {skeletonTeamMembers.map((item) => (
-                <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
-                  <TeamMemberCardSkeleton />
-                </AutoSkeletonView>
+                <TeamMemberCardSkeleton key={item.id} />
               ))}
             </View>
           ) : (

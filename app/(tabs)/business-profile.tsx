@@ -31,7 +31,6 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from 'sonner-native';
 
@@ -359,34 +358,56 @@ const BusinessProfile = () => {
         }
       >
         {showInitialSkeleton ? (
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+          <View>
             <View className="relative">
               <View className="w-full h-[137px] bg-[#E5E7EB]" />
-              <View className="absolute -bottom-11 left-6 h-[90px] w-[90px] rounded-full bg-[#E5E7EB]" />
+              <View className="absolute -bottom-11 left-6 h-[90px] w-[90px] rounded-full bg-[#E5E7EB] border-4 border-white" />
+              <View className="absolute -bottom-5 right-6 h-7 w-28 rounded-full bg-[#E5E7EB]" />
             </View>
 
             <View className="mx-6 mt-16">
-              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
-              <View className="h-4 w-60 rounded-md bg-[#E5E7EB] mt-3" />
+              <View className="h-5 w-44 rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-64 rounded-md bg-[#E5E7EB] mt-3" />
             </View>
 
-            <View className="mx-5 mt-4 flex-row gap-4">
-              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
-              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+            <View className="mx-5 mt-5 flex-row">
+              <View className="w-1/2 items-center">
+                <View className="h-4 w-20 rounded-md bg-[#E5E7EB]" />
+              </View>
+              <View className="w-1/2 items-center">
+                <View className="h-4 w-16 rounded-md bg-[#E5E7EB]" />
+              </View>
+            </View>
+
+            <View className="mx-5 mt-5 border border-[#EEEEEE] rounded-2xl p-4">
+              <View className="h-5 w-44 rounded-md bg-[#E5E7EB]" />
+              <View className="mt-4 h-10 w-full rounded-xl bg-[#E5E7EB]" />
+              <View className="mt-3 h-10 w-full rounded-xl bg-[#E5E7EB]" />
+              <View className="mt-3 h-10 w-full rounded-xl bg-[#E5E7EB]" />
             </View>
 
             <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
               <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
-              <View className="h-4 w-full rounded-md bg-[#E5E7EB] mt-4" />
-              <View className="h-4 w-[80%] rounded-md bg-[#E5E7EB] mt-2.5" />
+              <View className="mt-4 h-4 w-full rounded-md bg-[#E5E7EB]" />
+              <View className="mt-2.5 h-4 w-[85%] rounded-md bg-[#E5E7EB]" />
+              <View className="mt-2.5 h-4 w-[70%] rounded-md bg-[#E5E7EB]" />
             </View>
 
-            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
-              <View className="h-5 w-48 rounded-md bg-[#E5E7EB]" />
-              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-4" />
-              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-3" />
+            <View className="mx-5 mt-6">
+              <View className="h-5 w-36 rounded-md bg-[#E5E7EB]" />
+              <View className="mt-4 border border-[#EEEEEE] rounded-xl p-4">
+                <View className="flex-row items-center gap-3">
+                  <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+                  <View className="flex-1">
+                    <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+                    <View className="mt-2 h-3 w-28 rounded-md bg-[#E5E7EB]" />
+                  </View>
+                </View>
+                <View className="mt-4 h-3 w-56 rounded-md bg-[#E5E7EB]" />
+                <View className="mt-2 h-3 w-44 rounded-md bg-[#E5E7EB]" />
+              </View>
             </View>
-          </AutoSkeletonView>
+          </View>
         ) : null}
 
         {!showInitialSkeleton ? (
