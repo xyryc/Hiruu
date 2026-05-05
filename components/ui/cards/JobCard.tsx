@@ -169,13 +169,13 @@ const JobCard = ({
 
             if (businessId && recruitmentId) {
               router.push({
-                pathname: "/screens/jobs/user/profile",
+                pathname: "/screens/jobs/user/job-profile",
                 params: { businessId, recruitmentId },
               });
               return;
             }
 
-            router.push("/screens/jobs/user/profile");
+            router.push("/screens/jobs/user/job-profile");
           }}
           className="flex-1 relative"
         >

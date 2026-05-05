@@ -9,7 +9,6 @@ import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -302,6 +301,34 @@ const ShiftSchedule = () => {
     []
   );
 
+  const ShiftRowSkeleton = ({ index }: { index: number }) => (
+    <View className={`flex-row mb-4 overflow-hidden relative ${index === 0 ? "mt-2" : ""}`}>
+      <View className="mr-5 items-center">
+        <View className="h-4 w-12 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-8 rounded-md bg-[#E5E7EB]" />
+      </View>
+
+      <View className="flex-1 rounded-2xl border border-[#EEEEEE] px-4 pb-4 pt-4 bg-white">
+        <View className="flex-row items-center justify-between">
+          <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
+          <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+        </View>
+
+        <View className="mt-3 h-3 w-40 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-3 h-3 w-3/4 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-2/3 rounded-md bg-[#E5E7EB]" />
+
+        <View className="mt-4 h-px w-full bg-[#E5E7EB]" />
+
+        <View className="mt-4 flex-row items-center justify-between">
+          <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+          <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView
       className="flex-1 bg-white dark:bg-dark-background"
@@ -326,21 +353,7 @@ const ShiftSchedule = () => {
       >
         {myShiftsLoading ? (
           skeletonRows.map((item, index) => (
-            <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={12}>
-              <View className={`flex-row mb-4 overflow-hidden relative ${index === 0 ? "mt-2" : ""}`}>
-                <View className="mr-5">
-                  <Text className="font-proximanova-regular w-10 text-center uppercase">
-                    --:--
-                  </Text>
-                </View>
-
-                <View className="flex-1 rounded-2xl border border-[#EEEEEE] px-4 pb-4 pt-12">
-                  <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
-                  <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-3" />
-                  <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-6" />
-                </View>
-              </View>
-            </AutoSkeletonView>
+            <ShiftRowSkeleton key={item.id} index={index} />
           ))
         ) : filteredShifts.length > 0 ? (
           filteredShifts.map((shift, index) => (

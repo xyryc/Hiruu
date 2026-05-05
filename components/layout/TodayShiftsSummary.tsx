@@ -204,7 +204,7 @@ const TodayShiftsSummary = ({ className }: any) => {
 
         <PrimaryButton
           title={t("user.profile.todayShiftsSummary.viewShiftReport")}
-          onPress={() => router.push("/screens/home/shift/reports")}
+          onPress={() => router.push("/screens/home/shift/shift-reports-history")}
         />
       </View>
     </LinearGradient>

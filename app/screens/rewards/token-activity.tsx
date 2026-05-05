@@ -8,7 +8,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -35,6 +34,35 @@ const formatYmd = (value: Date) => {
   const day = `${value.getDate()}`.padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const TokenActivityItemSkeleton = ({ first }: { first?: boolean }) => (
+  <View className={`flex-row justify-between ${first ? "mt-3" : "mt-5"}`}>
+    <View className="flex-row gap-2.5 items-center flex-1 pr-4">
+      <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+      <View className="flex-1">
+        <View className="h-4 w-44 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+      </View>
+    </View>
+
+    <View className="flex-row gap-1.5 items-center">
+      <View className="h-5 w-14 rounded-md bg-[#E5E7EB]" />
+      <View className="w-[22px] h-[22px] rounded-full bg-[#E5E7EB]" />
+    </View>
+  </View>
+);
+
+const TokenActivityGroupSkeleton = ({ showDivider = false }: { showDivider?: boolean }) => (
+  <View>
+    <View className="mx-5">
+      <View className="mt-4 h-6 w-40 rounded-md bg-[#E5E7EB]" />
+      <TokenActivityItemSkeleton first />
+      <TokenActivityItemSkeleton />
+      <TokenActivityItemSkeleton />
+    </View>
+    {showDivider ? <View className="mt-5 border-b-4 border-[#F5F5F5]" /> : null}
+  </View>
+);
 
 const TokenActivity = () => {
   const { colorScheme } = useColorScheme();
@@ -267,8 +295,9 @@ const TokenActivity = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {isLoadingTransactions ? (
-          <View className="py-8 items-center">
-            <ActivityIndicator color="#4FB2F3" />
+          <View className="pb-6">
+            <TokenActivityGroupSkeleton showDivider />
+            <TokenActivityGroupSkeleton />
           </View>
         ) : groupedTransactions.length === 0 ? (
           <View className="py-8 items-center">

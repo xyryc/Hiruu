@@ -319,6 +319,7 @@
         "failedToDeleteWeeklySchedule": "Failed to delete weekly schedule.",
         "manageWeeklySchedules": "Manage Weekly Schedules",
         "allShift": "All Shift",
+        "noShiftScheduled": "No Shift Scheduled",
         "holidayNoShifts": "Today is a Holiday, No Shifts Scheduled.",
         "cannotApplyPastWeek": "You can only apply a weekly schedule from today onwards.",
         "cannotEditPastWeek": "Past weekly schedules can’t be edited."

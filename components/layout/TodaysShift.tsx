@@ -8,7 +8,6 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { ScrollView, Text, View } from "react-native";
 import { toast } from "sonner-native";
 import ActionCard from "../ui/cards/ActionCard";
@@ -21,20 +20,16 @@ import BusinessSelectionModal from "../ui/modals/BusinessSelectionModal";
 const TodaysShiftCardSkeleton = () => {
   return (
     <View className="w-[320px] shrink-0 mr-4 rounded-[14px] px-4 pb-4 pt-4 bg-[#e5f4fd83] border border-[#4fb1f359]">
-      <View className="flex-row items-center gap-3">
+      <View className="flex-row items-start gap-3">
         <View className="w-20 h-20 rounded-[10px] bg-[#E5E7EB]" />
-        <View className="flex-1">
-          <View className="h-4 w-44 bg-[#E5E7EB] rounded-md mb-3" />
-          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md" />
-
-          <View className="mt-4 flex-row items-center justify-between">
-            <View className="flex-row">
-              <View className="w-8 h-8 rounded-full bg-[#E5E7EB]" />
-              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
-              <View className="w-8 h-8 rounded-full bg-[#E5E7EB] -ml-2" />
-            </View>
-            <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+        <View className="flex-1 pt-1">
+          <View className="flex-row items-center justify-between">
+            <View className="h-4 w-28 bg-[#E5E7EB] rounded-md" />
+            <View className="h-5 w-14 bg-[#E5E7EB] rounded-full" />
           </View>
+          <View className="h-4 w-44 bg-[#E5E7EB] rounded-md mt-3" />
+          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md mt-2.5" />
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md mt-2.5" />
         </View>
       </View>
 
@@ -44,8 +39,11 @@ const TodaysShiftCardSkeleton = () => {
 
       <View className="flex-row justify-between items-center gap-4">
         <View className="flex-row items-center flex-1">
-          <View className="mr-2 h-[34px] w-[34px] bg-[#E5E7EB] rounded-md" />
-          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+          <View className="mr-2 h-[34px] w-[34px] bg-[#E5E7EB] rounded-full" />
+          <View>
+            <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+            <View className="h-3 w-20 bg-[#E5E7EB] rounded-md mt-2" />
+          </View>
         </View>
         <View className="h-9 w-24 bg-[#E5E7EB] rounded-full" />
       </View>
@@ -361,9 +359,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
           {homeShiftsLoading ? (
             <View pointerEvents="none" className="py-1 flex-row">
               {skeletonCards.map((item) => (
-                <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={14}>
-                  <TodaysShiftCardSkeleton />
-                </AutoSkeletonView>
+                <TodaysShiftCardSkeleton key={item.id} />
               ))}
             </View>
           ) : (

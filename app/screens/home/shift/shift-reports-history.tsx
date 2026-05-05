@@ -7,7 +7,6 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   RefreshControl,
@@ -79,20 +78,33 @@ const formatShiftWindow = (
 
 const ShiftReportCardSkeleton = () => {
   return (
-    <View className="border border-[#EEEEEE] rounded-2xl p-4 mb-3">
+    <View className="border border-[#EEEEEE] rounded-2xl p-4 mb-3 bg-white">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
           <View>
-            <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
-            <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+            <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+            <View className="mt-2 h-3 w-20 rounded-md bg-[#E5E7EB]" />
           </View>
         </View>
         <View className="h-6 w-24 rounded-full bg-[#E5E7EB]" />
       </View>
-      <View className="mt-4 h-3 w-44 rounded-md bg-[#E5E7EB]" />
-      <View className="mt-2 h-3 w-full rounded-md bg-[#E5E7EB]" />
-      <View className="mt-2 h-3 w-2/3 rounded-md bg-[#E5E7EB]" />
+
+      <View className="mt-3">
+        <View className="h-3 w-16 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-4/5 rounded-md bg-[#E5E7EB]" />
+      </View>
+
+      <View className="mt-3">
+        <View className="h-3 w-12 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-full rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-3/4 rounded-md bg-[#E5E7EB]" />
+      </View>
+
+      <View className="mt-3 flex-row justify-between items-center">
+        <View className="h-3 w-20 rounded-md bg-[#E5E7EB]" />
+        <View className="h-3 w-28 rounded-md bg-[#E5E7EB]" />
+      </View>
     </View>
   );
 };
@@ -195,9 +207,7 @@ const ShiftReports = () => {
         {loading ? (
           <View pointerEvents="none">
             {skeletonItems.map((id) => (
-              <AutoSkeletonView key={id} isLoading={true} defaultRadius={12}>
-                <ShiftReportCardSkeleton />
-              </AutoSkeletonView>
+              <ShiftReportCardSkeleton key={id} />
             ))}
           </View>
         ) : reports.length === 0 ? (

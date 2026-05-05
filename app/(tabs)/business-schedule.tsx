@@ -1,4 +1,4 @@
-import HolidayCard from "@/components/ui/cards/HolidayCard";
+import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import ShiftCard from "@/components/ui/cards/ShiftCard";
 import AnimatedFABMenu from "@/components/ui/dropdown/AnimatedFabMenu";
 import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
@@ -772,24 +772,14 @@ const BusinessScheduleScreen = () => {
               onMessagePress={() => handleOpenShiftChat(shift)}
             />
           ))
-        ) : selectedBusinesses.length > 0 ? (
-          <HolidayCard
-            shift={{
-              subtitle: t("user.jobs.schedule.holidayNoShifts"),
-              companyLogo: selectedBusiness?.logo,
-              workTime: "--:--",
-            }}
-          />
-
         ) : (
-          <HolidayCard
-            shift={{
-              subtitle: t("user.jobs.schedule.holidayNoShifts"),
-              companyLogo: undefined,
-              workTime: "--:--",
-            }}
-          />
-
+          <View className="pt-6">
+            <StatusStateCard
+              image={require("@/assets/images/holiday.svg")}
+              title={t("user.jobs.schedule.noShiftScheduled")}
+              text={t("user.jobs.schedule.holidayNoShifts")}
+            />
+          </View>
         )}
         {isFetchingMore ? (
           <View className="py-4 items-center">

@@ -347,7 +347,7 @@ const ShiftDetails = () => {
               title={t("user.jobs.schedule.reportIssue", { defaultValue: "Report Issue" })}
               onPress={() =>
                 router.push({
-                  pathname: "/screens/schedule/shift/report",
+                  pathname: "/screens/schedule/shift/submit-shift-report",
                   params: {
                     shiftAssignmentId: shiftId || details?.id,
                     employmentId: details?.employmentId,

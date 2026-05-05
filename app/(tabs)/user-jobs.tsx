@@ -21,7 +21,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -40,7 +39,39 @@ const styles = StyleSheet.create({
 });
 
 const JOBS_PAGE_LIMIT = 10;
-const JOB_CARD_RADIUS = 12;
+
+const FeaturedJobCardSkeleton = () => (
+  <View className="mr-2.5 w-[360px] rounded-2xl border border-[#EEEEEE] bg-white p-4">
+    <View className="h-5 w-44 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-3 h-3 w-36 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-4 h-[1px] w-full rounded-full bg-[#E5E7EB]" />
+    <View className="mt-4 flex-row items-center justify-between">
+      <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+      <View className="h-8 w-28 rounded-full bg-[#E5E7EB]" />
+    </View>
+  </View>
+);
+
+const SuggestedJobCardSkeleton = () => (
+  <View className="mb-4 rounded-2xl border border-[#EEEEEE] bg-white p-4">
+    <View className="flex-row items-center">
+      <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+      <View className="ml-3 flex-1">
+        <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-28 rounded-md bg-[#E5E7EB]" />
+      </View>
+    </View>
+    <View className="mt-4 h-3 w-4/5 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-2 h-3 w-2/3 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-2 h-3 w-1/2 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-4 h-[1px] w-full rounded-full bg-[#E5E7EB]" />
+    <View className="mt-4 flex-row items-center justify-between">
+      <View className="h-3 w-28 rounded-md bg-[#E5E7EB]" />
+      <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+    </View>
+  </View>
+);
 
 const UserJobs = () => {
   const { t } = useTranslation();
@@ -61,12 +92,8 @@ const UserJobs = () => {
     autoRefresh: true,
     refreshInterval: 30000,
   });
-  const featuredSkeletonItems = Array.from({ length: 3 }, (_, index) => ({
-    id: `featured-skeleton-${index}`,
-  }));
-  const suggestedSkeletonItems = Array.from({ length: 4 }, (_, index) => ({
-    id: `suggested-skeleton-${index}`,
-  }));
+  const featuredSkeletonItems = Array.from({ length: 3 }, (_, index) => index);
+  const suggestedSkeletonItems = Array.from({ length: 4 }, (_, index) => index);
 
   const mergeById = (current: any[], incoming: any[]) => {
     const seen = new Set<string>();
@@ -308,48 +335,40 @@ const UserJobs = () => {
             </View>
 
             {isLoadingFeatured ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="ml-5"
-                >
-                  {featuredSkeletonItems.map((item: any) => (
-                    <JobCard
-                      key={item?.id}
-                      job={item}
-                      className="mr-2.5 w-[360px]"
-                    />
-                  ))}
-                </ScrollView>
-              </AutoSkeletonView>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="ml-5"
+              >
+                {featuredSkeletonItems.map((item) => (
+                  <FeaturedJobCardSkeleton key={`featured-skeleton-${item}`} />
+                ))}
+              </ScrollView>
             ) : (
-              <AutoSkeletonView isLoading={false} defaultRadius={JOB_CARD_RADIUS}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="pl-5"
-                  onScroll={(event) => {
-                    if (isNearHorizontalEnd(event)) {
-                      loadMoreFeaturedJobs();
-                    }
-                  }}
-                  scrollEventThrottle={16}
-                >
-                  {featuredJobs.map((item: any) => (
-                    <JobCard
-                      key={item?.id}
-                      job={item}
-                      className="mr-2.5 w-[360px]"
-                    />
-                  ))}
-                  {isLoadingMoreFeatured && (
-                    <View className="w-14 justify-center items-center">
-                      <ActivityIndicator />
-                    </View>
-                  )}
-                </ScrollView>
-              </AutoSkeletonView>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="pl-5"
+                onScroll={(event) => {
+                  if (isNearHorizontalEnd(event)) {
+                    loadMoreFeaturedJobs();
+                  }
+                }}
+                scrollEventThrottle={16}
+              >
+                {featuredJobs.map((item: any) => (
+                  <JobCard
+                    key={item?.id}
+                    job={item}
+                    className="mr-2.5 w-[360px]"
+                  />
+                ))}
+                {isLoadingMoreFeatured && (
+                  <View className="w-14 justify-center items-center">
+                    <ActivityIndicator />
+                  </View>
+                )}
+              </ScrollView>
             )}
           </View>
         )}
@@ -377,34 +396,26 @@ const UserJobs = () => {
             </View>
 
             {isLoadingSuggested ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-                <>
-                  {suggestedSkeletonItems.map((item: any) => (
-                    <JobCard
-                      key={`suggested-${item?.id}`}
-                      job={item}
-                      className="bg-white border border-[#EEEEEE] mb-4"
-                    />
-                  ))}
-                </>
-              </AutoSkeletonView>
+              <>
+                {suggestedSkeletonItems.map((item) => (
+                  <SuggestedJobCardSkeleton key={`suggested-skeleton-${item}`} />
+                ))}
+              </>
             ) : (
-              <AutoSkeletonView isLoading={false} defaultRadius={JOB_CARD_RADIUS}>
-                <>
-                  {suggestedJobs.map((item: any) => (
-                    <JobCard
-                      key={`suggested-${item?.id}`}
-                      job={item}
-                      className="bg-white border border-[#EEEEEE] mb-4"
-                    />
-                  ))}
-                  {isLoadingMoreSuggested && (
-                    <View className="py-2 items-center">
-                      <ActivityIndicator />
-                    </View>
-                  )}
-                </>
-              </AutoSkeletonView>
+              <>
+                {suggestedJobs.map((item: any) => (
+                  <JobCard
+                    key={`suggested-${item?.id}`}
+                    job={item}
+                    className="bg-white border border-[#EEEEEE] mb-4"
+                  />
+                ))}
+                {isLoadingMoreSuggested && (
+                  <View className="py-2 items-center">
+                    <ActivityIndicator />
+                  </View>
+                )}
+              </>
             )}
           </View>
         )}
