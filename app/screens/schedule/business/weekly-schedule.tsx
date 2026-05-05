@@ -49,6 +49,24 @@ const addDays = (date: Date, days: number) => {
   return result;
 };
 
+const resolveDateForDayLabel = (
+  startDateYmd: string,
+  dayLabel: string
+) => {
+  if (!startDateYmd) return "";
+  const start = parseYmdDate(startDateYmd);
+  for (let index = 0; index < 7; index += 1) {
+    const current = addDays(start, index);
+    const currentDayLabel = current.toLocaleDateString("en-US", {
+      weekday: "long",
+    });
+    if (currentDayLabel.toLowerCase() === dayLabel.toLowerCase()) {
+      return formatDateYmd(current);
+    }
+  }
+  return "";
+};
+
 const buildRoleAwareAssignment = (template: any, employmentIds: string[]) => {
   const normalizedAssigned = Array.from(
     new Set((Array.isArray(employmentIds) ? employmentIds : []).filter(Boolean))
@@ -686,7 +704,14 @@ const SavedShiftTemplate = () => {
                           businessLogo={template?.business?.logo}
                           templateId={template?.id}
                           businessId={template?.businessId}
-                          assignParams={{ day: day.label, templateId: template?.id }}
+                          assignParams={{
+                            day: day.label,
+                            templateId: template?.id,
+                            date:
+                              typeof params.startDate === "string" && params.startDate
+                                ? resolveDateForDayLabel(params.startDate, day.label)
+                                : "",
+                          }}
                           assignmentStatusText={assignmentStatusText}
                           isAssignmentComplete={isAssignmentComplete}
                         />

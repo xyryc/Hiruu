@@ -62,6 +62,24 @@ interface BusinessState {
     payload: any
   ) => Promise<any>;
   getShiftTemplates: (businessId: string) => Promise<any>;
+  getShiftAssignmentAvailability: (
+    businessId: string,
+    params: { date: string; shiftTemplateId: string }
+  ) => Promise<{
+    date?: string;
+    shiftTemplateId?: string;
+    candidates?: Array<{
+      employmentId: string;
+      userId?: string;
+      name?: string;
+      email?: string;
+      avatar?: string;
+      roleId?: string;
+      roleName?: string;
+      isAvailable?: boolean;
+      reasons?: string[];
+    }>;
+  } | null>;
   fillWeeklyBlockAutomatic: (
     businessId: string,
     payload: {
@@ -554,6 +572,40 @@ export const useBusinessStore = create<BusinessState>()(
         } catch (error) {
           console.error("Fetch shift templates error:", error);
           throw error;
+        }
+      },
+
+      getShiftAssignmentAvailability: async (businessId, params) => {
+        try {
+          if (!businessId) return null;
+          const response = await axiosInstance.get(
+            `/shift-assignment/${businessId}/availability`,
+            {
+              params: {
+                date: params?.date,
+                shiftTemplateId: params?.shiftTemplateId,
+              },
+            }
+          );
+          const result = response.data;
+          if (!result?.success) {
+            const errorMsg =
+              result?.error?.message ||
+              result?.message ||
+              "Failed to fetch assignment candidates";
+            throw new Error(errorMsg);
+          }
+          return result?.data || null;
+        } catch (error: any) {
+          const messageKey =
+            error?.response?.data?.message ||
+            error?.response?.data?.error?.message ||
+            error?.message ||
+            "Failed to fetch assignment candidates";
+          const translatedMessage = translateApiMessage(messageKey);
+          const finalError = new Error(translatedMessage);
+          console.error("Fetch assignment availability error:", finalError);
+          throw finalError;
         }
       },
 

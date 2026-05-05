@@ -38,6 +38,7 @@ type TeamMember = {
   id: string;
   userId: string;
   name: string;
+  status: string;
   roleId: string | null;
   role: string;
   profilePic: string | null;
@@ -137,6 +138,10 @@ const ManageTeamPanel = () => {
       try {
         setLoading(true);
         const source = await getBusinessEmployees(resolvedBusinessId);
+        console.log(
+          "[ManageTeam] GET /employment/businesses/{businessId}/employees response",
+          JSON.stringify(source, null, 2)
+        );
         const mapped = (Array.isArray(source) ? source : [])
           .map((item: any) => {
             const user = item?.user;
@@ -152,6 +157,7 @@ const ManageTeamPanel = () => {
               id: String(item.id),
               userId: String(user.id),
               name: user?.name || t("common.na"),
+              status: String(item?.status || "").toLowerCase(),
               roleId:
                 (typeof item?.role?.id === "string" && item.role.id) ||
                 (typeof item?.roleId === "string" && item.roleId) ||
@@ -243,6 +249,7 @@ const ManageTeamPanel = () => {
         id: `manage-team-skeleton-${index}`,
         userId: "",
         name: "",
+        status: "",
         roleId: null,
         role: "",
         profilePic: null,
@@ -563,6 +570,7 @@ const ManageTeamPanel = () => {
 
   const renderTeamMember = ({ item }: { item: TeamMember }) => {
     const isOwnerRole = item.role.trim().toLowerCase() === "owner";
+    const isTerminated = item.status === "terminated";
 
     return (
       <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-3xl p-4">
@@ -577,9 +585,18 @@ const ManageTeamPanel = () => {
               <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
                 {item.name}
               </Text>
-              <Text className="text-sm text-secondary dark:text-dark-secondary">
-                {item.role}
-              </Text>
+              <View className="mt-0.5 flex-row items-center gap-2">
+                <Text className="text-sm text-secondary dark:text-dark-secondary">
+                  {item.role}
+                </Text>
+                {isTerminated ? (
+                  <View className="px-2 py-0.5 rounded-full bg-[#FEF2F2] border border-[#FECACA]">
+                    <Text className="text-[10px] font-proximanova-semibold text-[#DC2626] uppercase">
+                      {item.status}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
           <View className="flex-row items-center gap-2">
@@ -602,7 +619,8 @@ const ManageTeamPanel = () => {
             ) : null}
             <TouchableOpacity
               onPress={() => openFireModal(item)}
-              disabled={isOwnerRole}
+              disabled={isOwnerRole || isTerminated}
+              className={isOwnerRole || isTerminated ? "opacity-40" : ""}
             >
               <Entypo name="dots-three-vertical" size={18} color="#666" />
             </TouchableOpacity>
@@ -660,7 +678,8 @@ const ManageTeamPanel = () => {
           <View className="flex-row items-center gap-4">
             <TouchableOpacity
               onPress={() => openWorkingHourModal(item)}
-              className="p-1"
+              disabled={isTerminated}
+              className={`p-1 ${isTerminated ? "opacity-40" : ""}`}
             >
               <AntDesign name="field-time" size={24} color="black" />
             </TouchableOpacity>
@@ -668,7 +687,8 @@ const ManageTeamPanel = () => {
             {!isOwnerRole ? (
               <TouchableOpacity
                 onPress={() => openRoleModal(item.id)}
-                className="bg-[#11293A] px-5 py-2 rounded-full"
+                disabled={isTerminated}
+                className={`px-5 py-2 rounded-full ${isTerminated ? "bg-[#9CA3AF]" : "bg-[#11293A]"}`}
               >
                 <Text className="text-[#ffffff] text-sm font-proximanova-semibold">
                   {t("user.profile.manageTeam.manageRole")}

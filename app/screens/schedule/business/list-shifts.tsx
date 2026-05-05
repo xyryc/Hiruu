@@ -8,7 +8,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -40,6 +39,10 @@ const ListofShifts = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShiftIds, setSelectedShiftIds] = useState<string[]>([]);
+  const skeletonItems = React.useMemo(
+    () => Array.from({ length: 6 }, (_, index) => ({ id: `shift-skeleton-${index}` })),
+    []
+  );
 
   const to12Hour = (value?: string) => {
     if (!value) return t("common.timePlaceholder");
@@ -133,12 +136,22 @@ const ListofShifts = () => {
 
         <FlatList
           className="mx-5 flex-1"
-          data={templates}
+          data={isLoading ? skeletonItems : templates}
           keyExtractor={(item) => String(item?.id)}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
           renderItem={({ item }) => (
+            isLoading ? (
+              <View className="flex-row items-center p-4 mt-4 rounded-xl border border-[#eeeeee]">
+                <View className="w-12 h-12 rounded-full mr-3 bg-[#ECECEC]" />
+                <View className="flex-1">
+                  <View className="h-4 w-1/2 rounded bg-[#ECECEC]" />
+                  <View className="h-3 w-2/3 rounded bg-[#ECECEC] mt-2" />
+                </View>
+                <View className="w-6 h-6 rounded-full bg-[#ECECEC]" />
+              </View>
+            ) : (
             <TouchableOpacity
               onPress={() => handleShiftPress(item?.id)}
               className="flex-row items-center p-4 mt-4 rounded-xl border border-[#eeeeee]"
@@ -170,13 +183,10 @@ const ListofShifts = () => {
                 color={selectedShiftIds.includes(item?.id) ? "#11293A" : "#C7C7CC"}
               />
             </TouchableOpacity>
+            )
           )}
           ListEmptyComponent={
-            isLoading ? (
-              <View className="py-10 items-center">
-                <ActivityIndicator size="large" />
-              </View>
-            ) : (
+            !isLoading ? (
               <View className="py-10 items-center px-4">
                 {businessId ? (
                   <>
@@ -204,7 +214,7 @@ const ListofShifts = () => {
                   </Text>
                 )}
               </View>
-            )
+            ) : null
           }
         />
 

@@ -1,8 +1,8 @@
 import RoleChip, { DEFAULT_ROLE_CHIPS } from "@/components/ui/badges/RoleChip";
-import { useTranslation } from "react-i18next";
 import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const ShiftTemplateCard = ({
@@ -49,16 +49,16 @@ const ShiftTemplateCard = ({
 
   const formattedBreakSegments = Array.isArray(breakDurations)
     ? breakDurations
-        .map((item: any) => {
-          const start = item?.startTime ? to12Hour(item.startTime) : "";
-          const end = item?.endTime ? to12Hour(item.endTime) : "";
+      .map((item: any) => {
+        const start = item?.startTime ? to12Hour(item.startTime) : "";
+        const end = item?.endTime ? to12Hour(item.endTime) : "";
 
-          if (!start && !end) return "";
-          if (!start) return end;
-          if (!end) return start;
-          return `${start} - ${end}`;
-        })
-        .filter(Boolean)
+        if (!start && !end) return "";
+        if (!start) return end;
+        if (!end) return start;
+        return `${start} - ${end}`;
+      })
+      .filter(Boolean)
     : [];
 
   const resolvedBreakTimeRange =
@@ -84,7 +84,7 @@ const ShiftTemplateCard = ({
                     params: assignParams,
                   })
                 }
-                className="h-10 w-10 rounded-full bg-[#FFF] flex-row justify-center items-center"
+                className="h-9 w-9 rounded-full bg-[#FFF] flex-row justify-center items-center"
               >
                 <AntDesign name="user-add" size={16} color="black" />
               </TouchableOpacity>
@@ -162,14 +162,13 @@ const ShiftTemplateCard = ({
               >
                 {roleChips.map((item: any, index: number) => (
                   <RoleChip
-                    key={`${
-                      item?.businessRoleName ||
+                    key={`${item?.businessRoleName ||
                       item?.roleName ||
                       item?.name ||
                       item?.role?.name ||
                       item?.roleId ||
                       "role"
-                    }-${item?.roleId || index}`}
+                      }-${item?.roleId || index}`}
                     name={
                       item?.businessRoleName ||
                       item?.roleName ||
