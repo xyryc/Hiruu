@@ -19,7 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -56,24 +55,31 @@ const OvertimeRequestCardSkeleton = ({
 }) => {
   return (
     <View className="mx-5 border border-[#EEEEEE] mb-3 rounded-[14px] p-4 bg-white dark:bg-dark-background">
-      <View className="h-5 w-48 bg-[#E5E7EB] rounded-md mb-3" />
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="h-5 w-48 bg-[#E5E7EB] rounded-md" />
+        <View className="h-5 w-16 bg-[#E5E7EB] rounded-full" />
+      </View>
 
       <View className="gap-2.5">
         <View className="flex-row justify-between">
+          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between">
           <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
           <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
         </View>
         <View className="flex-row justify-between">
-          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
           <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
-        </View>
-        <View className="flex-row justify-between">
           <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
-          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
         </View>
         <View className="flex-row justify-between">
-          <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
           <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between">
+          <View className="h-3 w-14 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-36 bg-[#E5E7EB] rounded-md" />
         </View>
       </View>
 
@@ -401,11 +407,9 @@ const OvertimeHistory = () => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 20, paddingTop: 6 }}
             renderItem={() => (
-              <AutoSkeletonView isLoading={true} defaultRadius={14}>
-                <View pointerEvents="none">
-                  <OvertimeRequestCardSkeleton showActions={isBusinessProfile} />
-                </View>
-              </AutoSkeletonView>
+              <View pointerEvents="none">
+                <OvertimeRequestCardSkeleton showActions={isBusinessProfile} />
+              </View>
             )}
           />
         ) : (

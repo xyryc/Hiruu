@@ -57,6 +57,7 @@ const OvertimeRequest = () => {
     return base;
   });
   const [reason, setReason] = useState("");
+  const showInitialSkeleton = myEmploymentsLoading && !selectedEmployment;
 
   useEffect(() => {
     getMyEmployments().catch((error: any) => {
@@ -174,63 +175,93 @@ const OvertimeRequest = () => {
         className="flex-1 bg-white dark:bg-dark-background"
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 py-6">
-          {/* Overtime Details Section */}
-          <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary mb-7">
-            Overtime Details
-          </Text>
+        {showInitialSkeleton ? (
+          <View className="px-5 py-6">
+            <View className="h-6 w-48 rounded-md bg-[#E5E7EB] mb-7" />
 
-          {/* Select Dates */}
-          <View className="mb-5">
-            <DatePicker title="Select Dates" value={requestedDate} onChange={setRequestedDate} />
-          </View>
-
-          {/* Overtime Start and End Time */}
-          <View className="flex-row mb-5 gap-3">
-            {/* Overtime Start */}
-            <View className="flex-1">
-              <TimePicker
-                title="Overtime Start"
-                value={overtimeStart}
-                onChangeTime={setOvertimeStart}
-              />
+            <View className="mb-5">
+              <View className="h-4 w-24 rounded-md bg-[#E5E7EB] mb-2.5" />
+              <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
             </View>
 
-            {/* To Separator */}
-            <View className="items-center justify-end pb-3.5">
-              <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-                To
-              </Text>
+            <View className="flex-row mb-5 gap-3">
+              <View className="flex-1">
+                <View className="h-4 w-28 rounded-md bg-[#E5E7EB] mb-2.5" />
+                <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
+              </View>
+              <View className="items-center justify-end pb-3.5">
+                <View className="h-3 w-6 rounded-md bg-[#E5E7EB]" />
+              </View>
+              <View className="flex-1">
+                <View className="h-4 w-28 rounded-md bg-[#E5E7EB] mb-2.5" />
+                <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
+              </View>
             </View>
 
-            {/* Overtime End */}
-            <View className="flex-1">
-              <TimePicker
-                title=" Overtime End"
-                value={overtimeEnd}
-                onChangeTime={setOvertimeEnd}
-              />
+            <View className="mb-5">
+              <View className="h-4 w-32 rounded-md bg-[#E5E7EB] mb-2.5" />
+              <View className="h-[120px] w-full rounded-xl bg-[#E5E7EB]" />
             </View>
           </View>
-
-          {/* Reason (Optional) */}
-          <View className="mb-5">
-            <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
-              Reason (Optional)
+        ) : (
+          <View className="px-5 py-6">
+            {/* Overtime Details Section */}
+            <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary mb-7">
+              Overtime Details
             </Text>
-            <View className="bg-white dark:bg-dark-surface rounded-xl border border-[#EEEEEE] dark:border-dark-border overflow-hidden">
-              <TextInput
-                className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary min-h-[120px]"
-                placeholder="Mention any reason or notes for manager...."
-                placeholderTextColor="#7D7D7D"
-                multiline
-                textAlignVertical="top"
-                value={reason}
-                onChangeText={setReason}
-              />
+
+            {/* Select Dates */}
+            <View className="mb-5">
+              <DatePicker title="Select Dates" value={requestedDate} onChange={setRequestedDate} />
+            </View>
+
+            {/* Overtime Start and End Time */}
+            <View className="flex-row mb-5 gap-3">
+              {/* Overtime Start */}
+              <View className="flex-1">
+                <TimePicker
+                  title="Overtime Start"
+                  value={overtimeStart}
+                  onChangeTime={setOvertimeStart}
+                />
+              </View>
+
+              {/* To Separator */}
+              <View className="items-center justify-end pb-3.5">
+                <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
+                  To
+                </Text>
+              </View>
+
+              {/* Overtime End */}
+              <View className="flex-1">
+                <TimePicker
+                  title=" Overtime End"
+                  value={overtimeEnd}
+                  onChangeTime={setOvertimeEnd}
+                />
+              </View>
+            </View>
+
+            {/* Reason (Optional) */}
+            <View className="mb-5">
+              <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary mb-2.5">
+                Reason (Optional)
+              </Text>
+              <View className="bg-white dark:bg-dark-surface rounded-xl border border-[#EEEEEE] dark:border-dark-border overflow-hidden">
+                <TextInput
+                  className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary min-h-[120px]"
+                  placeholder="Mention any reason or notes for manager...."
+                  placeholderTextColor="#7D7D7D"
+                  multiline
+                  textAlignVertical="top"
+                  value={reason}
+                  onChangeText={setReason}
+                />
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
 
       <View className="mx-5 absolute bottom-0 left-0 right-0 py-5 items-center justify-end bg-white dark:bg-dark-background rounded-t-[20px]">

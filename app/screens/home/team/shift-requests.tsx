@@ -10,7 +10,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ScrollView,
   StyleSheet,
@@ -43,7 +42,10 @@ const styles = StyleSheet.create({
 const ShiftRequestCardSkeleton = ({ showActions }: { showActions?: boolean }) => {
   return (
     <View className="border border-[#EEEEEE] dark:border-[#222] rounded-3xl p-4 mb-3 bg-white dark:bg-dark-background">
-      <View className="h-4 w-24 bg-[#E5E7EB] rounded-md mb-3" />
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
+        <View className="h-6 w-20 bg-[#E5E7EB] rounded-full" />
+      </View>
 
       <View className="flex-row items-start justify-between">
         <View className="flex-row items-center gap-3 flex-1">
@@ -53,27 +55,33 @@ const ShiftRequestCardSkeleton = ({ showActions }: { showActions?: boolean }) =>
             <View className="mt-2 h-3 w-28 bg-[#E5E7EB] rounded-md" />
           </View>
         </View>
-        <View className="h-7 w-20 bg-[#E5E7EB] rounded-full" />
+        <View className="h-4 w-16 bg-[#E5E7EB] rounded-md ml-2" />
       </View>
 
       <View className="mt-4">
         <View className="flex-row justify-between">
-          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
-          <View className="h-3 w-28 bg-[#E5E7EB] rounded-md" />
-        </View>
-        <View className="flex-row justify-between mt-2.5">
           <View className="h-3 w-20 bg-[#E5E7EB] rounded-md" />
           <View className="h-3 w-32 bg-[#E5E7EB] rounded-md" />
         </View>
+        <View className="flex-row justify-between mt-2.5">
+          <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-40 bg-[#E5E7EB] rounded-md" />
+        </View>
+        <View className="flex-row justify-between mt-2.5">
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+          <View className="h-3 w-24 bg-[#E5E7EB] rounded-md" />
+        </View>
       </View>
 
+      <View className="my-4 h-[2px] w-full bg-[#E5E7EB] rounded-full" />
+
       {showActions ? (
-        <View className="mt-4 flex-row gap-3">
+        <View className="flex-row gap-3">
           <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
           <View className="h-10 flex-1 bg-[#E5E7EB] rounded-full" />
         </View>
       ) : (
-        <View className="mt-4 items-end">
+        <View className="items-end">
           <View className="h-8 w-24 bg-[#E5E7EB] rounded-full" />
         </View>
       )}
@@ -260,11 +268,10 @@ const ShiftRequest = () => {
         {businessShiftRequestsLoading ? (
           <View pointerEvents="none" className="pt-4 pb-10">
             {skeletonRequests.map((item) => (
-              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={24}>
-                <ShiftRequestCardSkeleton
-                  showActions={selectedTab === "Pending Requests"}
-                />
-              </AutoSkeletonView>
+              <ShiftRequestCardSkeleton
+                key={item.id}
+                showActions={selectedTab === "Pending Requests"}
+              />
             ))}
           </View>
         ) : (
