@@ -14,7 +14,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -393,42 +392,97 @@ const CreateTemplate = () => {
         <ScrollView className="mx-5" showsVerticalScrollIndicator={false} contentContainerStyle={{
           paddingBottom: 120
         }}>
-          {/* input */}
-          <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
-            {t("user.jobs.schedule.templateName")}
-          </Text>
-          <TextInput
-            value={templateName}
-            onChangeText={setTemplateName}
-            className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary  border border-[#EEEEEE] mt-2.5 rounded-[10px]"
-            placeholder={t("user.jobs.schedule.morningShift")}
-            placeholderTextColor="#7D7D7D"
-            textAlignVertical="top"
-          />
+          {myEmploymentsLoading ? (
+            <View pointerEvents="none" className="mt-7">
+              {/* Template name */}
+              <View className="h-4 w-28 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-2.5 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
 
-          {/* Time Picker shift  */}
-          <View className="mt-8">
-            <View className="flex-row gap-4 items-center">
-              <TimePicker
-                title={t("user.jobs.schedule.shiftStartTime")}
-                value={shiftStartTime}
-                onChangeTime={setShiftStartTime}
-              />
+              {/* Shift time */}
+              <View className="mt-8 flex-row gap-4 items-end">
+                <View className="flex-1">
+                  <View className="h-3.5 w-24 bg-[#E5E7EB] rounded-md" />
+                  <View className="mt-2.5 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                </View>
+                <View className="h-3.5 w-6 bg-[#E5E7EB] rounded-md mb-4" />
+                <View className="flex-1">
+                  <View className="h-3.5 w-24 bg-[#E5E7EB] rounded-md" />
+                  <View className="mt-2.5 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                </View>
+              </View>
 
-              <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-                {t("user.jobs.schedule.to")}
-              </Text>
+              {/* Break row */}
+              <View className="mt-8 flex-row items-center gap-2">
+                <View className="h-4 w-4 rounded-sm bg-[#E5E7EB]" />
+                <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+              </View>
+              <View className="mt-3 flex-row gap-4 items-center">
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                <View className="h-3.5 w-6 bg-[#E5E7EB] rounded-md" />
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+              </View>
 
-              <TimePicker
-                title={t("user.jobs.schedule.shiftEndTime")}
-                value={shiftEndTime}
-                onChangeTime={setShiftEndTime}
-              />
+              {/* Business row with avatar */}
+              <View className="mt-8 h-4 w-32 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-4 px-4 py-2.5 border border-[#EEEEEE] rounded-[10px] flex-row items-center gap-2.5">
+                <View className="h-7 w-7 rounded-full bg-[#E5E7EB]" />
+                <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+              </View>
+              <View className="mt-2 h-3 w-2/3 bg-[#E5E7EB] rounded-md" />
+
+              {/* Roles */}
+              <View className="mt-8 flex-row items-center justify-between">
+                <View className="h-4 w-12 bg-[#E5E7EB] rounded-md" />
+                <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
+              </View>
+              <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+              <View className="mt-4 border border-[#EEEEEE] rounded-[10px] px-4 py-4">
+                <View className="h-4 w-32 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-3 h-10 w-full bg-[#E5E7EB] rounded-[10px]" />
+                <View className="mt-3 h-10 w-full bg-[#E5E7EB] rounded-[10px]" />
+              </View>
+
+              {/* Save button */}
+              <View className="mt-8 mb-5 h-12 w-full bg-[#E5E7EB] rounded-full" />
             </View>
-          </View>
+          ) : (
+            <>
+              {/* input */}
+              <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">
+                {t("user.jobs.schedule.templateName")}
+              </Text>
+              <TextInput
+                value={templateName}
+                onChangeText={setTemplateName}
+                className="px-4 py-3 text-sm font-proximanova-regular text-primary dark:text-dark-primary  border border-[#EEEEEE] mt-2.5 rounded-[10px]"
+                placeholder={t("user.jobs.schedule.morningShift")}
+                placeholderTextColor="#7D7D7D"
+                textAlignVertical="top"
+              />
 
-          {/* Break (optional) */}
-          <View className="mt-8">
+              {/* Time Picker shift  */}
+              <View className="mt-8">
+                <View className="flex-row gap-4 items-center">
+                  <TimePicker
+                    title={t("user.jobs.schedule.shiftStartTime")}
+                    value={shiftStartTime}
+                    onChangeTime={setShiftStartTime}
+                  />
+
+                  <Text className="mt-7 font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
+                    {t("user.jobs.schedule.to")}
+                  </Text>
+
+                  <TimePicker
+                    title={t("user.jobs.schedule.shiftEndTime")}
+                    value={shiftEndTime}
+                    onChangeTime={setShiftEndTime}
+                  />
+                </View>
+              </View>
+
+              {/* Break (optional) */}
+              <View className="mt-8">
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setHasBreak((prev) => !prev)}
@@ -472,45 +526,40 @@ const CreateTemplate = () => {
                 {breakTimeValidationError}
               </Text>
             ) : null}
-          </View>
+              </View>
 
-          {/* business info */}
-          <View>
+              {/* business info */}
+              <View>
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-8">
               {t("user.jobs.schedule.businessFallback")}
             </Text>
 
-            {myEmploymentsLoading ? (
-              <View className="mt-4 py-4 items-center border border-[#EEEEEE] rounded-[10px]">
-                <ActivityIndicator size="small" />
-              </View>
-            ) : (
-              <View className="mt-4 px-4 py-1 border border-[#EEEEEE] rounded-[10px]">
-                <View className="flex-row items-center gap-2.5">
-                  <Image
-                    source={
-                      selectedBusinessInfo?.logo
-                        ? { uri: selectedBusinessInfo.logo }
-                        : require("@/assets/images/placeholder.png")
-                    }
-                    style={{ width: 28, height: 28, borderRadius: 999 }}
-                    contentFit="cover"
-                  />
-                  <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary flex-1">
-                    {selectedBusinessInfo?.name || t("user.jobs.schedule.noBusinessSelected")}
-                  </Text>
+                <View className="mt-4 px-4 py-1 border border-[#EEEEEE] rounded-[10px]">
+                  <View className="flex-row items-center gap-2.5">
+                    <Image
+                      source={
+                        selectedBusinessInfo?.logo
+                          ? { uri: selectedBusinessInfo.logo }
+                          : require("@/assets/images/placeholder.png")
+                      }
+                      style={{ width: 28, height: 28, borderRadius: 999 }}
+                      contentFit="cover"
+                    />
+                    <Text className="text-sm font-proximanova-semibold text-primary dark:text-dark-primary flex-1">
+                      {selectedBusinessInfo?.name || t("user.jobs.schedule.noBusinessSelected")}
+                    </Text>
+                  </View>
+                  {selectedBusinessInfo?.address?.address ? (
+                    <Text className="mt-1 text-xs font-proximanova-regular text-secondary">
+                      {selectedBusinessInfo.address.address}
+                    </Text>
+                  ) : null}
                 </View>
-                {selectedBusinessInfo?.address?.address ? (
-                  <Text className="mt-1 text-xs font-proximanova-regular text-secondary">
-                    {selectedBusinessInfo.address.address}
-                  </Text>
-                ) : null}
               </View>
-            )}
-          </View>
+              
 
-          {/* role required */}
-          <View className="mt-8 flex-row items-center justify-between">
+              {/* role required */}
+              <View className="mt-8 flex-row items-center justify-between">
             <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
               {t("user.jobs.schedule.roles")}
             </Text>
@@ -520,37 +569,35 @@ const CreateTemplate = () => {
                 {t("user.jobs.schedule.requiredCount")}: {currentRoleSlotsTotal}
               </Text>
             </View>
-          </View>
-
-          {/* role list */}
-          <View className="mt-4">
-            {rolesLoading ? (
-              <View className="py-4 items-center border border-[#EEEEEE] rounded-[10px]">
-                <ActivityIndicator size="small" />
               </View>
-            ) : (
-              <SelectDropdown
-                placeholder={
-                  selectedBusiness ? t("user.jobs.schedule.chooseRole") : t("user.jobs.schedule.selectBusinessFirst")
-                }
-                options={roleOptions}
-                value={selectedRole}
-                openTrigger={openRoleDropdownTrigger}
-                onSelect={(value: string) => {
-                  setSelectedRole(value);
-                  setRoleSelectionVersion((prev) => prev + 1);
-                }}
-              />
-            )}
-          </View>
+
+              {/* role list */}
+              <View className="mt-4">
+                {rolesLoading ? (
+                  <View className="h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+                ) : (
+                  <SelectDropdown
+                    placeholder={
+                      selectedBusiness ? t("user.jobs.schedule.chooseRole") : t("user.jobs.schedule.selectBusinessFirst")
+                    }
+                    options={roleOptions}
+                    value={selectedRole}
+                    openTrigger={openRoleDropdownTrigger}
+                    onSelect={(value: string) => {
+                      setSelectedRole(value);
+                      setRoleSelectionVersion((prev) => prev + 1);
+                    }}
+                  />
+                )}
+              </View>
 
           {/* <SearchBar
             className="mt-4 py-1"
             onSearch={(text) => {}}
           /> */}
 
-          {/* role slot */}
-          <RoleSlotsInput
+              {/* role slot */}
+              <RoleSlotsInput
             titleHeight={true}
             selectedRoleToAdd={
               selectedRoleOption
@@ -568,20 +615,22 @@ const CreateTemplate = () => {
               }
               setOpenRoleDropdownTrigger((prev) => prev + 1);
             }}
-          />
+              />
 
-          <View className="mt-8 mb-5">
-            <PrimaryButton
-              onPress={handleOpenPreview}
-              loading={isSubmitting}
-              disabled={
-                isSubmitting ||
-                Boolean(shiftTimeValidationError) ||
-                Boolean(breakTimeValidationError)
-              }
-              title={t("user.jobs.schedule.saveTemplate")}
-            />
-          </View>
+              <View className="mt-8 mb-5">
+                <PrimaryButton
+                  onPress={handleOpenPreview}
+                  loading={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    Boolean(shiftTimeValidationError) ||
+                    Boolean(breakTimeValidationError)
+                  }
+                  title={t("user.jobs.schedule.saveTemplate")}
+                />
+              </View>
+            </>
+          )}
         </ScrollView>
 
         <PreviewTemplateModal

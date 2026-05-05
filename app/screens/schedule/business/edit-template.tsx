@@ -397,47 +397,62 @@ const EditTemplate = () => {
           showsVerticalScrollIndicator={false}
         >
           {isLoadingTemplate ? (
-            <AutoSkeletonView isLoading={true} defaultRadius={12}>
-              <View pointerEvents="none" className="mt-7">
-                {/* Template name */}
-                <View className="h-4 w-32 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-3 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+            <View pointerEvents="none" className="mt-7">
+              {/* Template name */}
+              <View className="h-4 w-28 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-2.5 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
 
-                {/* Description */}
-                <View className="mt-6 h-4 w-40 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-3 h-24 w-full bg-[#E5E7EB] rounded-[10px]" />
-
-                {/* Shift time */}
-                <View className="mt-8 h-4 w-36 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-4 flex-row gap-4">
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+              {/* Shift time */}
+              <View className="mt-8 flex-row gap-4 items-end">
+                <View className="flex-1">
+                  <View className="h-3.5 w-24 bg-[#E5E7EB] rounded-md" />
+                  <View className="mt-2.5 h-12 bg-[#E5E7EB] rounded-[10px]" />
                 </View>
-
-                {/* Break time */}
-                <View className="mt-8 h-5 w-48 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-4 flex-row gap-4 items-center">
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
-                  <View className="h-4 w-10 bg-[#E5E7EB] rounded-md" />
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
-                </View>
-
-                {/* Business selection */}
-                <View className="mt-8 h-4 w-44 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
-
-                {/* Roles */}
-                <View className="mt-8 h-4 w-20 bg-[#E5E7EB] rounded-md" />
-                <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
-                <View className="mt-4 h-40 w-full bg-[#E5E7EB] rounded-[10px]" />
-
-                {/* Actions */}
-                <View className="mt-8 mb-5 flex-row gap-2">
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
-                  <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
+                <View className="h-3.5 w-6 bg-[#E5E7EB] rounded-md mb-4" />
+                <View className="flex-1">
+                  <View className="h-3.5 w-24 bg-[#E5E7EB] rounded-md" />
+                  <View className="mt-2.5 h-12 bg-[#E5E7EB] rounded-[10px]" />
                 </View>
               </View>
-            </AutoSkeletonView>
+
+              {/* Break row */}
+              <View className="mt-8 flex-row items-center gap-2">
+                <View className="h-4 w-4 rounded-sm bg-[#E5E7EB]" />
+                <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+              </View>
+              <View className="mt-3 flex-row gap-4 items-center">
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+                <View className="h-3.5 w-6 bg-[#E5E7EB] rounded-md" />
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-[10px]" />
+              </View>
+
+              {/* Business selection with avatar */}
+              <View className="mt-8 h-4 w-32 bg-[#E5E7EB] rounded-md" />
+              <View className="mt-4 px-4 py-2.5 border border-[#EEEEEE] rounded-[10px] flex-row items-center gap-2.5">
+                <View className="h-7 w-7 rounded-full bg-[#E5E7EB]" />
+                <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
+              </View>
+
+              {/* Roles header + required count */}
+              <View className="mt-8 flex-row justify-between items-center">
+                <View className="h-4 w-12 bg-[#E5E7EB] rounded-md" />
+                <View className="h-4 w-24 bg-[#E5E7EB] rounded-md" />
+              </View>
+
+              {/* Role dropdown + role slot list */}
+              <View className="mt-4 h-12 w-full bg-[#E5E7EB] rounded-[10px]" />
+              <View className="mt-4 border border-[#EEEEEE] rounded-[10px] px-4 py-4">
+                <View className="h-4 w-32 bg-[#E5E7EB] rounded-md" />
+                <View className="mt-3 h-10 w-full bg-[#E5E7EB] rounded-[10px]" />
+                <View className="mt-3 h-10 w-full bg-[#E5E7EB] rounded-[10px]" />
+              </View>
+
+              {/* Bottom buttons */}
+              <View className="mt-8 mb-5 flex-row gap-2">
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
+                <View className="flex-1 h-12 bg-[#E5E7EB] rounded-full" />
+              </View>
+            </View>
           ) : (
             <>
               <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-7">

@@ -8,7 +8,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -33,6 +32,7 @@ const SavedShiftTemplate = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const skeletonRows = [1, 2, 3];
   const businessId = selectedBusinesses[0];
 
   const loadTemplates = useCallback(async () => {
@@ -99,8 +99,30 @@ const SavedShiftTemplate = () => {
           className="mx-5"
           showsVerticalScrollIndicator={false}>
           {isLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" />
+            <View className="pt-8">
+              {skeletonRows.map((item, index) => (
+                <View
+                  key={`template-skeleton-${item}`}
+                  className={`${index === 0 ? "mt-0" : "mt-4"} rounded-2xl border border-[#EEEEEE] bg-white px-4 py-4`}
+                >
+                  <View className="flex-row justify-between items-start">
+                    <View className="h-5 w-36 rounded-full bg-[#E5E7EB]" />
+                    <View className="h-4 w-14 rounded-full bg-[#E5E7EB]" />
+                  </View>
+
+                  <View className="mt-3 h-3.5 w-28 rounded-full bg-[#E5E7EB]" />
+                  <View className="mt-2 h-3.5 w-44 rounded-full bg-[#E5E7EB]" />
+
+                  <View className="mt-4 flex-row gap-2">
+                    <View className="h-6 w-20 rounded-full bg-[#E5E7EB]" />
+                    <View className="h-6 w-24 rounded-full bg-[#E5E7EB]" />
+                    <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+                  </View>
+
+                  <View className="mt-4 h-3 w-3/4 rounded-full bg-[#E5E7EB]" />
+                  <View className="mt-2 h-3 w-1/2 rounded-full bg-[#E5E7EB]" />
+                </View>
+              ))}
             </View>
           ) : templates.length > 0 ? (
             templates.map((template, index) => {
