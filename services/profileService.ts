@@ -68,8 +68,28 @@ class ProfileService {
     }
 
     private normalizeExperiencePayload(experience: any) {
+        const normalizedBusinessId =
+            experience?.businessId ||
+            (typeof experience?.companyId === "string" &&
+            !experience.companyId.startsWith("custom_")
+                ? experience.companyId
+                : undefined);
+        const normalizedCustomBusinessName = !normalizedBusinessId
+            ? experience?.customBusinessName || experience?.companyName
+            : undefined;
+        const normalizedCustomBusinessLogo = !normalizedBusinessId
+            ? experience?.customBusinessLogo ||
+              (typeof experience?.logo === "string" &&
+              /^https?:\/\//i.test(experience.logo)
+                  ? experience.logo
+                  : undefined)
+            : undefined;
+
         return {
-            companyId: experience?.companyId,
+            id: experience?.id,
+            businessId: normalizedBusinessId,
+            customBusinessName: normalizedCustomBusinessName || undefined,
+            customBusinessLogo: normalizedCustomBusinessLogo || undefined,
             position: experience?.position || undefined,
             description: experience?.description || undefined,
             startDate: this.toIsoString(experience?.startDate),
@@ -81,7 +101,10 @@ class ProfileService {
     private isExperienceChanged(existing: any, next: any): boolean {
         const existingStart = this.toIsoString(existing?.startDate);
         const existingEnd = this.toIsoString(existing?.endDate);
+        const nextIsOfficial = Boolean(next?.businessId);
         return (
+            (!nextIsOfficial &&
+              (existing?.customBusinessName || "") !== (next?.customBusinessName || "")) ||
             (existing?.position || "") !== (next?.position || "") ||
             (existing?.description || "") !== (next?.description || "") ||
             (existingStart || "") !== (next?.startDate || "") ||
@@ -90,46 +113,137 @@ class ProfileService {
         );
     }
 
+    private buildExperienceFormData(payload: Record<string, any>) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+            if (value === null || value === undefined || value === "") return;
+            if (this.isFileLike(value)) {
+                formData.append(key, value as any);
+                return;
+            }
+            formData.append(key, String(value));
+        });
+        return formData;
+    }
+
+    private hasFileInExperiencePayload(payload: Record<string, any>) {
+        return Object.values(payload).some((value) => this.isFileLike(value));
+    }
+
+    private compactPayload<T extends Record<string, any>>(payload: T): Partial<T> {
+        return Object.fromEntries(
+            Object.entries(payload).filter(([, value]) => value !== undefined)
+        ) as Partial<T>;
+    }
+
     async syncExperiences(experiences: any[], existingExperiences: any[] = []): Promise<void> {
         try {
             if (!Array.isArray(experiences)) return;
 
-            const existingByCompanyId = new Map<string, any>();
+            const existingById = new Map<string, any>();
             existingExperiences.forEach((item) => {
-                if (item?.companyId) {
-                    existingByCompanyId.set(item.companyId, item);
-                }
+                if (item?.id) existingById.set(String(item.id), item);
             });
 
-            const incomingCompanyIds = new Set<string>();
+            const incomingIds = new Set<string>();
             experiences.forEach((exp) => {
-                if (exp?.companyId) incomingCompanyIds.add(exp.companyId);
+                const normalized = this.normalizeExperiencePayload(exp);
+                if (normalized?.id) incomingIds.add(String(normalized.id));
             });
 
             // Delete experiences removed from the edit list
             for (const existing of existingExperiences) {
-                if (!existing?.id || !existing?.companyId) continue;
-                if (!incomingCompanyIds.has(existing.companyId)) {
-                    await axiosInstance.delete(`/experiences/${existing.id}`);
+                if (!existing?.id) continue;
+                if (!incomingIds.has(String(existing.id))) {
+                    console.log("[ProfileService] DELETE /experiences/:id", {
+                        id: existing.id,
+                    });
+                    const deleteResponse = await axiosInstance.delete(`/experiences/${existing.id}`);
+                    const deleteResult = deleteResponse?.data;
+                    console.log("[ProfileService] DELETE /experiences/:id response", {
+                        id: existing.id,
+                        result: deleteResult,
+                    });
+                    if (deleteResult?.success === false) {
+                        throw new Error(deleteResult?.message || "Failed to delete experience");
+                    }
                 }
             }
 
             for (const raw of experiences) {
                 const payload = this.normalizeExperiencePayload(raw);
-                if (!payload.companyId) continue;
+                if (!payload.businessId && !payload.customBusinessName) continue;
                 if (!payload.startDate) continue;
 
-                const existing = existingByCompanyId.get(payload.companyId);
+                const existing = payload.id ? existingById.get(String(payload.id)) : undefined;
+
+                const requestPayload = this.compactPayload({
+                    businessId: payload.businessId,
+                    customBusinessName: payload.businessId
+                        ? undefined
+                        : payload.customBusinessName,
+                    customBusinessLogo: payload.businessId
+                        ? undefined
+                        : payload.customBusinessLogo,
+                    position: payload.position,
+                    description: payload.description,
+                    startDate: payload.startDate,
+                    endDate: payload.endDate,
+                    isCurrent: payload.isCurrent,
+                });
+
                 if (existing?.id) {
-                    if (!this.isExperienceChanged(existing, payload)) {
+                    if (!this.isExperienceChanged(existing, requestPayload)) {
+                        console.log("[ProfileService] PATCH /experiences skipped (no changes)", {
+                            id: existing.id,
+                        });
                         continue;
                     }
-                    await axiosInstance.patch(`/experiences/${existing.id}`, payload);
+                    console.log("[ProfileService] PATCH /experiences/:id", {
+                        id: existing.id,
+                        payload: requestPayload,
+                    });
+                    const patchResponse = this.hasFileInExperiencePayload(requestPayload)
+                        ? await axiosInstance.patch(
+                            `/experiences/${existing.id}`,
+                            this.buildExperienceFormData(requestPayload),
+                            { headers: { "Content-Type": "multipart/form-data" } }
+                        )
+                        : await axiosInstance.patch(`/experiences/${existing.id}`, requestPayload);
+                    const patchResult = patchResponse?.data;
+                    console.log("[ProfileService] PATCH /experiences/:id response", {
+                        id: existing.id,
+                        result: patchResult,
+                    });
+                    if (patchResult?.success === false) {
+                        throw new Error(patchResult?.message || "Failed to update experience");
+                    }
                 } else {
-                    await axiosInstance.post("/experiences", payload);
+                    console.log("[ProfileService] POST /experiences", {
+                        payload: requestPayload,
+                    });
+                    const postResponse = this.hasFileInExperiencePayload(requestPayload)
+                        ? await axiosInstance.post(
+                            "/experiences",
+                            this.buildExperienceFormData(requestPayload),
+                            { headers: { "Content-Type": "multipart/form-data" } }
+                        )
+                        : await axiosInstance.post("/experiences", requestPayload);
+                    const postResult = postResponse?.data;
+                    console.log("[ProfileService] POST /experiences response", {
+                        result: postResult,
+                    });
+                    if (postResult?.success === false) {
+                        throw new Error(postResult?.message || "Failed to create experience");
+                    }
                 }
             }
         } catch (error: any) {
+            console.log("[ProfileService] syncExperiences error", {
+                message: error?.message,
+                status: error?.response?.status,
+                data: error?.response?.data,
+            });
             throw this.handleError(error);
         }
     }
@@ -137,39 +251,65 @@ class ProfileService {
     // Update user profile
     async updateProfile(data: UpdateProfileData): Promise<ProfileResponse> {
         try {
-            const formData = new FormData();
-            let hasFile = false;
+            const nonFilePayload: Record<string, any> = {};
+            const filePayload: Record<string, { uri: string; type: string; name: string }> = {};
 
             Object.keys(data).forEach((key) => {
                 const value = data[key as keyof UpdateProfileData];
                 if (this.isFileLike(value)) {
-                    hasFile = true;
+                    filePayload[key] = value;
+                } else {
+                    nonFilePayload[key] = value;
                 }
-                this.appendFormValue(formData, key, value);
             });
 
+            const hasFile = Object.keys(filePayload).length > 0;
+
             if (hasFile) {
+                let finalResult: any = null;
+
+                // Send non-file fields as JSON so numeric values (e.g. address lat/lng) keep their types.
+                if (Object.keys(nonFilePayload).length > 0) {
+                    console.log("[ProfileService] PATCH /users/profile json payload", JSON.stringify(nonFilePayload, null, 2));
+                    const jsonResponse = await axiosInstance.patch('/users/profile', nonFilePayload);
+                    const jsonResult = jsonResponse.data;
+                    console.log("[ProfileService] json response", JSON.stringify(jsonResult, null, 2));
+
+                    if (!jsonResult?.success) {
+                        throw new Error(jsonResult?.message || 'Profile update failed');
+                    }
+                    finalResult = jsonResult;
+                }
+
+                // Send file fields separately as multipart.
                 const baseUrl = process.env.EXPO_PUBLIC_API_URL;
                 if (!baseUrl) {
                     throw new Error('API URL not configured');
                 }
-
                 const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-                console.log("[ProfileService] PATCH /users/profile multipart form-data");
-                const response = await fetch(`${baseUrl}/users/profile`, {
-                    method: 'PATCH',
-                    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
-                    body: formData,
-                });
 
-                const result = await response.json();
-                console.log("[ProfileService] multipart response", JSON.stringify(result, null, 2));
+                for (const [key, value] of Object.entries(filePayload)) {
+                    const formData = new FormData();
+                    formData.append(key, value as any);
 
-                if (!response.ok || !result?.success) {
-                    throw new Error(result?.message || 'Profile update failed');
+                    console.log("[ProfileService] PATCH /users/profile multipart form-data");
+                    const response = await fetch(`${baseUrl}/users/profile`, {
+                        method: 'PATCH',
+                        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+                    console.log("[ProfileService] multipart response", JSON.stringify(result, null, 2));
+
+                    if (!response.ok || !result?.success) {
+                        throw new Error(result?.message || 'Profile update failed');
+                    }
+
+                    finalResult = result;
                 }
 
-                return result;
+                return finalResult;
             }
 
             console.log("[ProfileService] PATCH /users/profile json payload", JSON.stringify(data, null, 2));

@@ -275,8 +275,8 @@ export const useBusinessStore = create<BusinessState>()(
       fetchBusinesses: async (search = "") => {
         try {
           const query = search.trim();
-          const response = await axiosInstance.get("/companies", {
-            params: query ? { search: query } : undefined,
+          const response = await axiosInstance.get("/business/search", {
+            params: query ? { q: query } : undefined,
           });
 
           const result = response.data;
@@ -293,6 +293,8 @@ export const useBusinessStore = create<BusinessState>()(
             ? result.data
             : Array.isArray(result?.data?.data)
               ? result.data.data
+              : Array.isArray(result?.businesses)
+                ? result.businesses
               : [];
 
           return companies;

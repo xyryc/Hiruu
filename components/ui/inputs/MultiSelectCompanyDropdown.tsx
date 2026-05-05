@@ -27,7 +27,7 @@ const MultiSelectCompanyDropdown = ({
   onWorkExperiencesChange,
 }: MultiSelectCompanyDropdownProps) => {
   const { t } = useTranslation();
-  const { fetchBusinesses, createCompanyManual } = useBusinessStore();
+  const { fetchBusinesses } = useBusinessStore();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isAddingCompany, setIsAddingCompany] = useState(false);
 
@@ -42,10 +42,16 @@ const MultiSelectCompanyDropdown = ({
 
       // Transform API data to Company format
       const transformedCompanies = (Array.isArray(businesses) ? businesses : []).map((business: any) => ({
-        id: business.id,
-        name: business.name,
-        logo: business.logo || business.profileImage,
-      }));
+        id:
+          business?.id ||
+          business?.businessId ||
+          business?._id ||
+          business?.uuid ||
+          "",
+        name: business?.name || business?.businessName || "",
+        logo: business?.logo || business?.profileImage || business?.avatar,
+      }))
+      .filter((company: Company) => Boolean(company.id) && Boolean(company.name));
 
       setCompanies(transformedCompanies);
     } catch (error) {
@@ -92,8 +98,11 @@ const MultiSelectCompanyDropdown = ({
       const updatedCompanies = [...selectedCompanies, company];
       const newExperience: Companies = {
         companyId: company.id,
+        businessId: company.id,
         companyName: company.name,
         logo: company.logo,
+        customBusinessName: undefined,
+        customBusinessLogo: null,
         startDate: "",
         endDate: "",
         position: "",
@@ -135,7 +144,6 @@ const MultiSelectCompanyDropdown = ({
   };
 
   const addManualCompany = async () => {
-    // Validate both company name and logo are present
     if (!manualCompanyName.trim()) {
       Alert.alert(
         t("common.error"),
@@ -144,35 +152,26 @@ const MultiSelectCompanyDropdown = ({
       return;
     }
 
-    if (!manualCompanyLogo) {
-      Alert.alert(
-        t("common.error"),
-        t("user.profile.multiSelectCompany.pleaseAddCompanyLogo")
-      );
-      return;
-    }
-
     try {
       setIsAddingCompany(true);
-      const apiResponse = await createCompanyManual({
-        companyName: manualCompanyName.trim(),
-        logo: manualCompanyLogo,
-      });
-
-      // The store returns the created company object directly.
+      const customId = `custom_${Date.now()}`;
       const newCompany: Company = {
-        id: apiResponse?.id || `manual_${Date.now()}`,
-        name: apiResponse?.name || manualCompanyName.trim(),
-        logo: apiResponse?.logo || manualCompanyLogo?.uri,
+        id: customId,
+        name: manualCompanyName.trim(),
+        logo: manualCompanyLogo?.uri,
+        isCustom: true,
       };
 
       setCompanies([...companies, newCompany]);
 
       const updatedCompanies = [...selectedCompanies, newCompany];
       const newExperience: Companies = {
-        companyId: newCompany.id,
+        companyId: customId,
+        businessId: undefined,
         companyName: newCompany.name,
         logo: newCompany.logo,
+        customBusinessName: newCompany.name,
+        customBusinessLogo: manualCompanyLogo || null,
         startDate: "",
         endDate: "",
         position: "",
@@ -540,9 +539,9 @@ const MultiSelectCompanyDropdown = ({
                   <TouchableOpacity
                     onPress={addManualCompany}
                     disabled={
-                      isAddingCompany || !manualCompanyName.trim() || !manualCompanyLogo
+                      isAddingCompany || !manualCompanyName.trim()
                     }
-                    className={`px-6 py-3 rounded-xl ${manualCompanyName.trim() && manualCompanyLogo && !isAddingCompany
+                    className={`px-6 py-3 rounded-xl ${manualCompanyName.trim() && !isAddingCompany
                       ? "bg-[#11293A]"
                       : "bg-gray-300"
                       }`}

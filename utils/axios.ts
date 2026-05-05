@@ -236,13 +236,7 @@ axiosInstance.interceptors.response.use(
 
     // Log errors in development
     if (process.env.NODE_ENV === 'development' && !shouldSkipErrorLog) {
-      if (isServerUnavailable) {
-        const now = Date.now();
-        if (now - lastServerUnavailableLogAt > 60000) {
-          lastServerUnavailableLogAt = now;
-          console.warn('API unavailable: server is down or unreachable. Backing off requests.');
-        }
-      } else {
+      if (!isServerUnavailable) {
         console.error('API Error:', {
           url: error.config?.url,
           method: error.config?.method,
@@ -269,6 +263,14 @@ axiosInstance.interceptors.response.use(
       (error as any).isServerUnavailable = true;
       if (!(error as any).message || isServerUnavailable) {
         (error as any).message = 'SERVER_UNAVAILABLE';
+      }
+
+      if (process.env.NODE_ENV === 'development' && !shouldSkipErrorLog) {
+        const now = Date.now();
+        if (now - lastServerUnavailableLogAt > 60000) {
+          lastServerUnavailableLogAt = now;
+          console.warn('API unavailable: server is down or unreachable. Backing off requests.');
+        }
       }
 
       useServerStatusStore.getState().setServerDown(

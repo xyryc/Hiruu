@@ -69,12 +69,17 @@ export interface Company {
   id: string;
   name: string;
   logo?: string;
+  isCustom?: boolean;
 }
 
 export interface Companies {
+  id?: string;
   companyId: string;
+  businessId?: string;
   companyName: string;
   logo?: string;
+  customBusinessName?: string;
+  customBusinessLogo?: string | { uri: string; type: string; name: string } | null;
   startDate?: string | Date | null;
   endDate?: string | Date | null;
   position?: string;
