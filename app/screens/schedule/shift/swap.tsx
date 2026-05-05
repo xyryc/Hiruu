@@ -5,20 +5,36 @@ import SearchBar from "@/components/ui/inputs/SearchBar";
 import SwapRequestModal from "@/components/ui/modals/SwapRequestModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { BusinessColleagueItem, useShiftStore } from "@/stores/shiftStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+const SwapColleagueRowSkeleton = () => (
+  <View className="flex-row items-center pb-3 mb-3 border-b border-[#0B113C1A]">
+    <View className="rounded-full mr-4 justify-center items-center">
+      <View className="w-10 h-10 rounded-full bg-[#E5E7EB]" />
+    </View>
+
+    <View className="flex-1">
+      <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+      <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+    </View>
+
+    <View className="w-5 h-5 rounded-full bg-[#E5E7EB]" />
+  </View>
+);
 
 const SwapShiftsRequest = () => {
   const router = useRouter();
@@ -67,7 +83,9 @@ const SwapShiftsRequest = () => {
         }
       } catch (error: any) {
         if (active) {
-          toast.error(error?.message || "Failed to load colleagues");
+          toast.error(
+            translateApiMessage(error?.message || "failed_to_load_colleagues")
+          );
           setColleagues([]);
         }
       } finally {
@@ -92,6 +110,10 @@ const SwapShiftsRequest = () => {
       return `${name} ${role}`.toLowerCase().includes(q);
     });
   }, [colleagues, search]);
+  const skeletonRows = useMemo(
+    () => Array.from({ length: 8 }, (_, index) => `swap-colleague-skeleton-${index}`),
+    []
+  );
 
   const isSelected = (employmentId: string) => selectedUsers.includes(employmentId);
 
@@ -123,7 +145,9 @@ const SwapShiftsRequest = () => {
       });
       setShowModal(true);
     } catch (error: any) {
-      toast.error(error?.message || "Failed to submit swap request");
+      toast.error(
+        translateApiMessage(error?.message || "failed_to_submit_swap_request")
+      );
     }
   };
 
@@ -155,8 +179,12 @@ const SwapShiftsRequest = () => {
           </Text>
 
           {isLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="small" color="#4FB2F3" />
+            <View className="flex-1" pointerEvents="none">
+              {skeletonRows.map((id) => (
+                <AutoSkeletonView key={id} isLoading={true} defaultRadius={12}>
+                  <SwapColleagueRowSkeleton />
+                </AutoSkeletonView>
+              ))}
             </View>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false}>

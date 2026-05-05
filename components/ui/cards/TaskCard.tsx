@@ -29,6 +29,7 @@ const TaskCard = ({
   city,
   onLoginPress,
   onLogoutPress,
+  hideAttendanceActions = false,
   presentStatus = "logged_out",
   status = "ongoing",
   requestLog = false,
@@ -334,7 +335,9 @@ const TaskCard = ({
         </View>
 
         {/* Button */}
-        {requestLog ? (
+        {hideAttendanceActions ? (
+          <StatusBadge status={liveStatus} />
+        ) : requestLog ? (
           <SmallButton title={t("user.jobs.schedule.requestLog")} onPress={onLoginPress} />
         ) : (
           <>

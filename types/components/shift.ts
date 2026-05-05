@@ -21,6 +21,7 @@ export type ApiShift = {
     id?: string;
     name?: string;
     logo?: string | null;
+    attendanceMode?: "automatic" | "manual" | string;
     address?:
       | string
       | {
@@ -56,6 +57,7 @@ export type ShiftCardData = {
   city: string;
   status: ShiftCardStatus;
   presentStatus?: ShiftPresentStatus;
+  hideAttendanceActions?: boolean;
 };
 
 export type UserScheduleApiShift = {

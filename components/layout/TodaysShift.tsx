@@ -104,6 +104,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
             address: "",
             imageUrl: business.logo || "",
             logo: business.logo || "",
+            attendanceMode: business.attendanceMode || "",
           };
         })
         .filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -115,9 +116,16 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     useCallback(() => {
       if (!accessToken || !isFocused) return;
 
-      fetchHomeShifts(selectedEmploymentBusinessIds).catch((error) => {
-        console.error("[TodaysShift] fetchHomeShifts error:", error);
-      });
+      fetchHomeShifts(selectedEmploymentBusinessIds)
+        .then((response) => {
+          console.log(
+            "[TodaysShift] fetchHomeShifts response",
+            JSON.stringify(response, null, 2)
+          );
+        })
+        .catch((error) => {
+          console.error("[TodaysShift] fetchHomeShifts error:", error);
+        });
     }, [accessToken, fetchHomeShifts, isFocused, selectedEmploymentBusinessIds])
   );
 
@@ -271,6 +279,12 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
 
     return afterItemTypeFilter.map((shift) => {
       const business = shift?.business;
+      const fallbackBusiness = employmentBusinesses.find(
+        (item) => item.id === (business?.id || "")
+      );
+      const attendanceMode = String(
+        business?.attendanceMode || fallbackBusiness?.attendanceMode || ""
+      ).toLowerCase();
       const addressPayload = business?.address;
       const address =
         typeof addressPayload === "string"
@@ -302,9 +316,18 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         city,
         status: getShiftStatus(shift),
         presentStatus: shift?.presentStatus || "logged_out",
+        hideAttendanceActions:
+          attendanceMode === "automatic" || attendanceMode.length === 0,
       };
     });
-  }, [getShiftStatus, homeShifts, selectedEmploymentBusinessIds, t, to12Hour]);
+  }, [
+    employmentBusinesses,
+    getShiftStatus,
+    homeShifts,
+    selectedEmploymentBusinessIds,
+    t,
+    to12Hour,
+  ]);
 
   // Get display content for header button
   const getDisplayContent = () => {
@@ -380,6 +403,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
                 address={card.address}
                 city={card.city}
                 presentStatus={card.presentStatus}
+                hideAttendanceActions={card.hideAttendanceActions}
                 onLoginPress={() => handleShiftAction(card)}
                 onLogoutPress={() => handleShiftAction(card)}
                 status={card.status}

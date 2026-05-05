@@ -271,6 +271,7 @@ export interface WorkShiftCardProps {
   city: string;
   onLoginPress: () => void;
   onLogoutPress?: () => void;
+  hideAttendanceActions?: boolean;
   presentStatus?: "logged_in" | "logged_out" | string;
   requestLog?: boolean;
   status?:
