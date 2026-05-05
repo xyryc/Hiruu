@@ -1,12 +1,11 @@
-import { ProfileSwitchModalProps } from "@/types";
 import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { ProfileSwitchModalProps } from "@/types";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   Modal,
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfileSwitchModal = ({
@@ -63,12 +63,12 @@ const ProfileSwitchModal = ({
         await Promise.all([
           shouldFetchProfile
             ? getProfile()
-                .then((result) => {
-                  if (isMounted) {
-                    setProfile(result.data);
-                  }
-                })
-                .catch(() => undefined)
+              .then((result) => {
+                if (isMounted) {
+                  setProfile(result.data);
+                }
+              })
+              .catch(() => undefined)
             : Promise.resolve(),
           shouldFetchEmployments
             ? getMyEmployments(false).catch(() => undefined)
@@ -197,9 +197,8 @@ const ProfileSwitchModal = ({
                       onSelectBusinessProfile(business.id);
                     }}
                     disabled={isSwitchDisabled}
-                    className={`mt-3 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center ${
-                      isSwitchDisabled ? "opacity-60" : ""
-                    }`}
+                    className={`mt-3 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center ${isSwitchDisabled ? "opacity-60" : ""
+                      }`}
                   >
                     <Image
                       source={business.logo || require("@/assets/images/placeholder.png")}

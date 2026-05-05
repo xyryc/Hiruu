@@ -7,6 +7,7 @@ import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
 import { useProfileStore } from "@/stores/profileStore";
+import { translateApiMessage } from "@/utils/apiMessages";
 import {
   EvilIcons,
   Feather,
@@ -697,12 +698,21 @@ const BusinessProfile = () => {
             router.replace("/(tabs)/user-profile");
           });
         }}
-        onSelectBusinessProfile={(nextBusinessId) => {
-          setIsProfileSwitchOpen(false);
-          setSelectedBusinesses([nextBusinessId]);
-          requestAnimationFrame(() => {
-            router.replace("/(tabs)/business-profile");
-          });
+        onSelectBusinessProfile={async (nextBusinessId) => {
+          try {
+            await getBusinessProfile(nextBusinessId);
+            setIsProfileSwitchOpen(false);
+            setSelectedBusinesses([nextBusinessId]);
+            requestAnimationFrame(() => {
+              router.replace("/(tabs)/business-profile");
+            });
+          } catch (error: any) {
+            const messageKey =
+              error?.response?.data?.message ||
+              error?.message ||
+              "user.profile.businessProfile.failedToLoadBusiness";
+            toast.error(translateApiMessage(messageKey));
+          }
         }}
       />
     </SafeAreaView>

@@ -54,7 +54,7 @@ const Profile = () => {
   ];
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
-  const { setSelectedBusinesses } = useBusinessStore();
+  const { setSelectedBusinesses, getBusinessProfile } = useBusinessStore();
   const {
     updateProfile,
     getProfile,
@@ -349,12 +349,21 @@ const Profile = () => {
                 router.replace("/(tabs)/user-profile");
               });
             }}
-            onSelectBusinessProfile={(businessId) => {
-              setIsProfileSwitchOpen(false);
-              setSelectedBusinesses([businessId]);
-              requestAnimationFrame(() => {
-                router.replace("/(tabs)/business-profile");
-              });
+            onSelectBusinessProfile={async (businessId) => {
+              try {
+                await getBusinessProfile(businessId);
+                setIsProfileSwitchOpen(false);
+                setSelectedBusinesses([businessId]);
+                requestAnimationFrame(() => {
+                  router.replace("/(tabs)/business-profile");
+                });
+              } catch (error: any) {
+                const messageKey =
+                  error?.response?.data?.message ||
+                  error?.message ||
+                  "user.profile.businessProfile.failedToLoadBusiness";
+                toast.error(translateApiMessage(messageKey));
+              }
             }}
           />
 

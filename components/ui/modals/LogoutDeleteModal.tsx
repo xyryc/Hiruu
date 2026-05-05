@@ -41,6 +41,8 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
     const buttonName = String(data?.buttonName || "").toLowerCase();
     return buttonName.includes("logout") ? "Logging out..." : "Processing...";
   })();
+  const imageSize = Number(data?.imageSize) > 0 ? Number(data.imageSize) : 117;
+  const isRoundImage = Boolean(data?.roundImage);
 
   return (
     <Modal
@@ -65,10 +67,11 @@ const LogoutDeleteModal = ({ visible, onClose, data, onConfirm }: any) => {
             <Image
               source={data?.img}
               style={{
-                width: 117,
-                height: 111,
+                width: imageSize,
+                height: imageSize,
+                borderRadius: isRoundImage ? imageSize / 2 : 0,
               }}
-              contentFit="contain"
+              contentFit={isRoundImage ? "cover" : "contain"}
             />
 
             <Text className="text-center font-proximanova-semibold text-xl text-primary dark:text-dark-primary px-8 mt-5">
