@@ -1,7 +1,7 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
-import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
-import DatePicker from "@/components/ui/inputs/DatePicker";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import DatePicker from "@/components/ui/inputs/DatePicker";
+import AssignRoleModal from "@/components/ui/modals/AssignRoleModal";
 import WorkingHourSettingsModal from "@/components/ui/modals/WorkingHourSettingsModal";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { chatService } from "@/services/chatService";
@@ -9,14 +9,13 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { useFocusEffect } from "@react-navigation/native";
+import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -31,6 +30,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -174,8 +174,8 @@ const ManageTeamPanel = () => {
               workHourAmount:
                 typeof item?.workHourAmount === "number" &&
                   Number.isFinite(item.workHourAmount)
-                    ? item.workHourAmount
-                    : null,
+                  ? item.workHourAmount
+                  : null,
               location: location || t("common.cityUnavailable"),
             } as TeamMember;
           })
@@ -433,8 +433,8 @@ const ManageTeamPanel = () => {
       toast.error(
         translateApiMessage(
           error?.response?.data?.message ||
-            error?.message ||
-            "Failed to terminate employee"
+          error?.message ||
+          "Failed to terminate employee"
         )
       );
     } finally {
@@ -734,7 +734,7 @@ const ManageTeamPanel = () => {
         </View>
 
         <View className="flex-1">
-          <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 my-5">
+          <View className="flex-row items-center border border-[#EEEEEE] rounded-xl px-3 py-2 mx-5 mt-5">
             <EvilIcons name="search" size={24} color="#666" />
             <TextInput
               placeholder={t("common.searchHere")}
@@ -746,43 +746,34 @@ const ManageTeamPanel = () => {
             />
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              alignItems: "center",
-            }}
-          >
-            {filterOptions.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                onPress={() => setFilter(option.value)}
-                className={`px-4 py-1 rounded-full mb-4 mr-2 border ${filter === option.value
-                  ? "bg-[#11293A] border-[#11293A]"
-                  : "bg-white dark:bg-dark-background border-[#EEEEEE]"
-                  }`}
-                style={{
-                  flexShrink: 0,
-                  maxWidth: 180,
-                  minHeight: 30,
-                  justifyContent: "center",
-                }}
-              >
-                <Text
-                  className={`font-proximanova-regular text-sm ${filter === option.value
-                    ? "text-white font-proximanova-semibold"
-                    : "text-primary dark:text-dark-primary"
+          <View>
+            <FlatList
+              data={filterOptions}
+              keyExtractor={(item) => item.value}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingHorizontal: 16, marginVertical: 15 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => setFilter(item.value)}
+                  className={`mr-2 px-4 py-2 border border-[#EEEEEE] rounded-full ${filter === item.value ? "bg-[#11293A]" : ""
                     }`}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
                 >
-                  {option.label} ({option.count})
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <Text
+                    className={`text-center text-sm ${filter === item.value
+                      ? "font-proximanova-semibold text-white"
+                      : "font-proximanova-regular text-primary"
+                      }`}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.label} ({item.count})
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
 
           {loading ? (
             <View pointerEvents="none" className="pb-10">
@@ -793,24 +784,26 @@ const ManageTeamPanel = () => {
               ))}
             </View>
           ) : (
-            <FlatList
-              data={filteredTeamMembers}
-              renderItem={renderTeamMember}
-              keyExtractor={(item) => item.id}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              contentContainerStyle={{ paddingBottom: 100 }}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View className="px-5 pt-10">
-                  <StatusStateCard
-                    image={require("@/assets/images/male.svg")}
-                    title={t("user.profile.manageTeam.emptyTitle")}
-                    text={t("user.profile.manageTeam.emptyText")}
-                  />
-                </View>
-              }
-            />
+            <View>
+              <FlatList
+                data={filteredTeamMembers}
+                renderItem={renderTeamMember}
+                keyExtractor={(item) => item.id}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View className="px-5 pt-10">
+                    <StatusStateCard
+                      image={require("@/assets/images/male.svg")}
+                      title={t("user.profile.manageTeam.emptyTitle")}
+                      text={t("user.profile.manageTeam.emptyText")}
+                    />
+                  </View>
+                }
+              />
+            </View>
           )}
         </View>
       </KeyboardAvoidingView>

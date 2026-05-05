@@ -5,12 +5,12 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { formatDate } from "@/utils/date";
 import { EvilIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   FlatList,
   StyleSheet,
@@ -19,8 +19,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
 import { toast } from "sonner-native";
 
 const styles = StyleSheet.create({
@@ -379,16 +379,14 @@ const OvertimeHistory = () => {
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => setFilter(item)}
-                className={`mr-2 px-4 py-2 border border-[#EEEEEE] rounded-full ${
-                  filter === item ? "bg-[#11293A]" : ""
-                }`}
+                className={`mr-2 px-4 py-2 border border-[#EEEEEE] rounded-full ${filter === item ? "bg-[#11293A]" : ""
+                  }`}
               >
                 <Text
-                  className={`text-center text-sm ${
-                    filter === item
-                      ? "font-proximanova-semibold text-white"
-                      : "font-proximanova-regular text-primary"
-                  }`}
+                  className={`text-center text-sm ${filter === item
+                    ? "font-proximanova-semibold text-white"
+                    : "font-proximanova-regular text-primary"
+                    }`}
                 >
                   <Text className="capitalize">{item}</Text> ({getFilterCount(item)})
                 </Text>
