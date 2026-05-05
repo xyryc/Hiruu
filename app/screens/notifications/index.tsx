@@ -11,7 +11,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -471,24 +470,27 @@ const NotificationScreen = () => {
         ListEmptyComponent={
           notificationsLoading ? (
             <View className="pt-2">
-              {skeletonRows.map((row) => (
-                <AutoSkeletonView key={row.id} isLoading={true} defaultRadius={10}>
-                  <View>
-                    <View className="w-full flex-row gap-3 px-6 py-4 bg-white">
-                      <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
-
-                      <View className="flex-1">
-                        <View className="flex-row justify-between items-center">
-                          <View className="h-3.5 w-40 rounded-md bg-[#E5E7EB]" />
-                          <View className="h-3 w-14 rounded-md bg-[#E5E7EB]" />
-                        </View>
-                        <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-3" />
-                        <View className="h-3 w-4/5 rounded-md bg-[#E5E7EB] mt-2" />
-                      </View>
+              {skeletonRows.map((row, index) => (
+                <View key={row.id}>
+                  {index === 0 || index === 3 ? (
+                    <View className="px-6 pt-3 pb-1">
+                      <View className="h-3 w-20 rounded-full bg-[#E5E7EB]" />
                     </View>
-                    <View className="border-b border-[#eeeeee]" />
+                  ) : null}
+                  <View className="w-full flex-row gap-3 px-6 py-4 bg-white">
+                    <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-center">
+                        <View className="h-3.5 w-44 rounded-md bg-[#E5E7EB]" />
+                        <View className="h-3 w-12 rounded-md bg-[#E5E7EB]" />
+                      </View>
+                      <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-3" />
+                      <View className="h-3 w-3/4 rounded-md bg-[#E5E7EB] mt-2" />
+                    </View>
                   </View>
-                </AutoSkeletonView>
+                  <View className="border-b border-[#eeeeee]" />
+                </View>
               ))}
             </View>
           ) : (

@@ -9,7 +9,7 @@ interface Message {
     content: string;
     senderId: string;
     chatRoomId: string;
-    status: 'sent' | 'delivered' | 'read' | 'failed';
+    status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
     createdAt: string;
     type?: string;
     attachments?: {
@@ -59,6 +59,16 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         return payload.call || payload.callData || payload.callMeta || payload.metadata?.call || null;
     }, []);
 
+    const normalizeMessageStatus = useCallback((status: any): Message['status'] => {
+        const value = String(status || '').toLowerCase();
+        if (value === 'sending' || value === 'pending') return 'sending';
+        if (value === 'sent') return 'sent';
+        if (value === 'delivered') return 'delivered';
+        if (value === 'read' || value === 'seen') return 'read';
+        if (value === 'failed') return 'failed';
+        return 'sent';
+    }, []);
+
     const extractMessagesFromResult = useCallback((result: any): any[] => {
         const candidates = [
             result?.data?.data,
@@ -92,7 +102,15 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
             }
 
             if (isMounted.current) {
-                setMessages(Array.isArray(data) ? data.reverse() : []);
+                const normalized = Array.isArray(data)
+                    ? data
+                        .map((msg: any) => ({
+                            ...msg,
+                            status: normalizeMessageStatus(msg?.status),
+                        }))
+                        .reverse()
+                    : [];
+                setMessages(normalized);
             }
         } catch (error) {
             console.error('Failed to load messages:', error);
@@ -104,7 +122,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 setLoading(false);
             }
         }
-    }, [roomId, onError, extractMessagesFromResult, extractCallBody]);
+    }, [roomId, onError, extractMessagesFromResult, extractCallBody, normalizeMessageStatus]);
 
     const clearTypingState = useCallback(() => {
         setIsTyping(false);
@@ -171,7 +189,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 content: input.content?.trim() || '',
                 senderId: user?.id || '',
                 chatRoomId: roomId,
-                status: 'sent',
+                status: 'sending',
                 type: media.length > 0 ? 'media' : 'text',
                 attachments,
                 createdAt: new Date().toISOString(),
@@ -187,6 +205,25 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 },
             };
         },
+        [roomId, user?.avatar, user?.id, currentUserDisplayName]
+    );
+
+    const buildTempTextMessage = useCallback(
+        (tempId: string, content: string): Message => ({
+            id: tempId,
+            content,
+            senderId: user?.id || '',
+            chatRoomId: roomId,
+            status: 'sending',
+            type: 'text',
+            attachments: [],
+            createdAt: new Date().toISOString(),
+            sender: {
+                id: user?.id || '',
+                name: currentUserDisplayName,
+                avatar: user?.avatar,
+            },
+        }),
         [roomId, user?.avatar, user?.id, currentUserDisplayName]
     );
 
@@ -230,16 +267,30 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
             try {
                 setSending(true);
+                const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+                const tempTextMessage = buildTempTextMessage(tempId, content);
+                setMessages((prev) => [tempTextMessage, ...prev]);
+
                 if (socketService.isConnected()) {
                     socketService.sendMessage({
                         chatRoomId: roomId,
                         content,
                     });
+                    setTimeout(() => {
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === tempId && msg.status === 'sending'
+                                    ? { ...msg, status: 'failed' }
+                                    : msg
+                            )
+                        );
+                    }, 12000);
                 } else {
-                    await chatService.sendMessage(roomId, {
+                    const result = await chatService.sendMessage(roomId, {
                         content,
                         media,
                     });
+                    replaceTempMessage(tempId, result?.data);
                 }
 
                 return true;
@@ -259,6 +310,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
             sending,
             onError,
             clearTypingState,
+            buildTempTextMessage,
             buildTempMediaMessage,
             markTempMessageFailed,
             replaceTempMessage,
@@ -299,6 +351,27 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         },
         [roomId, onError, markTempMessageFailed, replaceTempMessage]
     );
+
+    const markOutgoingMessageRead = useCallback((messageId?: string | null) => {
+        if (!messageId) return;
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === messageId && msg.senderId === user?.id
+                    ? { ...msg, status: 'read' }
+                    : msg
+            )
+        );
+    }, [user?.id]);
+
+    const markAllOutgoingMessagesRead = useCallback(() => {
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.senderId === user?.id && msg.status !== 'read'
+                    ? { ...msg, status: 'read' }
+                    : msg
+            )
+        );
+    }, [user?.id]);
 
     // Typing indicators
     const startTyping = useCallback(() => {
@@ -365,19 +438,60 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                     }
 
                     if (eventRoomId === roomId) {
-                        const normalizedMessage =
+                        const baseMessage =
                             incomingMessage?.chatRoomId
                                 ? incomingMessage
                                 : { ...incomingMessage, chatRoomId: eventRoomId };
+                        const isMine = baseMessage?.senderId === user?.id;
+                        const normalizedStatus = normalizeMessageStatus(baseMessage?.status);
+                        const statusForUi: Message['status'] = isMine
+                            ? normalizedStatus === 'read'
+                                ? 'read'
+                                : normalizedStatus === 'delivered'
+                                    ? 'delivered'
+                                    : 'delivered'
+                            : normalizedStatus;
+                        const normalizedMessage = {
+                            ...baseMessage,
+                            status: statusForUi,
+                        };
 
                         clearTypingState();
                         setMessages((prev) => {
-                            // Add new message if not already present
-                            if (!prev.some((msg) => msg.id === normalizedMessage.id)) {
-                                return [normalizedMessage, ...prev];
+                            const hasExistingById = prev.some((msg) => msg.id === normalizedMessage.id);
+                            if (hasExistingById) {
+                                return prev.map((msg) =>
+                                    msg.id === normalizedMessage.id
+                                        ? { ...msg, ...normalizedMessage }
+                                        : msg
+                                );
                             }
-                            return prev;
+
+                            // Reconcile optimistic "sending" text message.
+                            const tempIndex = prev.findIndex(
+                                (msg) =>
+                                    msg.id.startsWith('temp-') &&
+                                    msg.senderId === normalizedMessage.senderId &&
+                                    msg.chatRoomId === normalizedMessage.chatRoomId &&
+                                    (msg.content || '').trim() === (normalizedMessage.content || '').trim()
+                            );
+
+                            if (tempIndex >= 0) {
+                                const next = [...prev];
+                                next.splice(tempIndex, 1);
+                                return [normalizedMessage, ...next];
+                            }
+
+                            return [normalizedMessage, ...prev];
                         });
+
+                        // If peer's message arrives while room is open, mark it read immediately.
+                        if (!isMine && normalizedMessage?.id) {
+                            void chatService.markAsRead(String(normalizedMessage.id)).catch(() => undefined);
+                            if (socketService.isConnected()) {
+                                socketService.markAsRead(roomId, String(normalizedMessage.id));
+                            }
+                        }
                     }
                 };
 
@@ -446,6 +560,24 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
                 socketService.onNewMessage(handleNewMessage);
                 socketService.onUserTyping(handleUserTyping);
+                const handleMessageRead = (data: any) => {
+                    const payload = data || {};
+                    const eventRoomId = payload.chatRoomId || payload.roomId || payload.chatId;
+                    if (!eventRoomId || eventRoomId !== roomId) return;
+                    const readMessageId =
+                        payload.messageId ||
+                        payload.lastReadMessageId ||
+                        payload?.message?.id ||
+                        payload?.data?.messageId ||
+                        null;
+                    if (readMessageId) {
+                        markOutgoingMessageRead(String(readMessageId));
+                    } else {
+                        // Some backends send room-level read events without a concrete message id.
+                        markAllOutgoingMessagesRead();
+                    }
+                };
+                socketService.onMessageRead(handleMessageRead);
                 socket.on('typing_stop', handleTypingStop);
                 socket.on('error', handleError);
 
@@ -454,6 +586,7 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                     handleSocketDisconnect,
                     handleNewMessage,
                     handleUserTyping,
+                    handleMessageRead,
                     handleTypingStop,
                     handleError,
                 };
@@ -465,7 +598,13 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
         // Setup socket and load messages once
         setupSocket();
-        loadMessages();
+        loadMessages().finally(() => {
+            void chatService.markRoomAsRead(roomId).catch(() => undefined);
+            if (socketService.isConnected()) {
+                const latestIncoming = messagesRef.current.find((msg) => msg.senderId !== user?.id);
+                socketService.markAsRead(roomId, latestIncoming?.id);
+            }
+        });
 
         return () => {
             isMounted.current = false;
@@ -481,12 +620,13 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
                 socketService.getSocket()?.off('disconnect', handlers.handleSocketDisconnect);
                 socketService.offNewMessage(handlers.handleNewMessage);
                 socketService.offUserTyping(handlers.handleUserTyping);
+                socketService.offMessageRead(handlers.handleMessageRead);
                 socketService.getSocket()?.off('typing_stop', handlers.handleTypingStop);
                 socketService.getSocket()?.off('error', handlers.handleError);
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [roomId, user?.id, clearTypingState, scheduleTypingReset, extractCallBody]);
+    }, [roomId, user?.id, clearTypingState, scheduleTypingReset, extractCallBody, normalizeMessageStatus, markOutgoingMessageRead, markAllOutgoingMessagesRead]);
 
     useEffect(() => {
         return () => {

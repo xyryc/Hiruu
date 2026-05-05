@@ -12,6 +12,28 @@ type ChatListItemProps = {
   avatar?: string;
   unreadCount?: number;
   badgeAvatar?: string;
+  messageStatus?: string;
+  isOwnMessage?: boolean;
+};
+
+const getStatusMeta = (status?: string) => {
+  const value = String(status || "").toLowerCase();
+  if (value === "read" || value === "seen") {
+    return { name: "checkmark-done" as const, color: "#4FB2F3" };
+  }
+  if (value === "delivered") {
+    return { name: "checkmark-done" as const, color: "#111827" };
+  }
+  if (value === "sent") {
+    return { name: "checkmark" as const, color: "#111827" };
+  }
+  if (value === "sending" || value === "pending") {
+    return { name: "time-outline" as const, color: "#6B7280" };
+  }
+  if (value === "failed") {
+    return { name: "alert-circle" as const, color: "#EF4444" };
+  }
+  return null;
 };
 
 const ChatListItem = ({
@@ -22,8 +44,11 @@ const ChatListItem = ({
   avatar,
   unreadCount = 0,
   badgeAvatar,
+  messageStatus,
+  isOwnMessage = false,
 }: ChatListItemProps) => {
   const { t } = useTranslation();
+  const statusMeta = getStatusMeta(messageStatus);
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -73,10 +98,12 @@ const ChatListItem = ({
         {/* bottom */}
         <View className="flex-1 flex-row justify-between items-center">
           <View className="flex-row gap-1.5 items-center">
-            <Ionicons name="checkmark-done" size={14} color="black" />
+            {isOwnMessage && statusMeta ? (
+              <Ionicons name={statusMeta.name} size={14} color={statusMeta.color} />
+            ) : null}
 
             <Text
-              className="text-sm font-proximanova-regular text-primary w-4/5"
+              className={`text-sm font-proximanova-regular text-primary ${isOwnMessage && statusMeta ? "w-4/5" : "w-[88%]"}`}
               numberOfLines={1}
             >
               {subtitle || t("common.chat.noMessagesYet")}

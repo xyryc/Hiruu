@@ -59,13 +59,38 @@ const AppBootstrap = () => {
     );
   }, []);
 
+  const parseJsonField = useCallback((value: unknown) => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }, []);
+
   const extractChatNotificationPayload = useCallback((rawData: any) => {
     // console.log("[NotifDebug] extractChatNotificationPayload:input", rawData);
     if (!rawData || typeof rawData !== "object") return null;
 
     const type = typeof rawData.type === "string" ? rawData.type : "";
-    const chatRoomId =
-      typeof rawData.chatRoomId === "string" ? rawData.chatRoomId : "";
+    const metadata =
+      (parseJsonField(rawData?.metadata) as Record<string, any> | null) ||
+      null;
+    const actions =
+      (parseJsonField(rawData?.actions) as Record<string, any>[] | null) ||
+      null;
+    const firstAction = Array.isArray(actions) && actions.length > 0 ? actions[0] : null;
+    const actionPayload =
+      firstAction?.payload && typeof firstAction.payload === "object"
+        ? firstAction.payload
+        : null;
+    const chatRoomIdFromMetadata =
+      typeof metadata?.chatRoomId === "string" ? metadata.chatRoomId : "";
+    const chatRoomIdFromAction =
+      typeof actionPayload?.chatRoomId === "string" ? actionPayload.chatRoomId : "";
+    const chatRoomId = chatRoomIdFromMetadata || chatRoomIdFromAction;
     const messageId =
       typeof rawData.messageId === "string" ? rawData.messageId : undefined;
 
@@ -82,7 +107,7 @@ const AppBootstrap = () => {
     //   hasMessageId: Boolean(messageId),
     // });
     return { chatRoomId, messageId };
-  }, []);
+  }, [parseJsonField]);
 
   const resolveFcmDisplayText = useCallback((remoteMessage: any) => {
     const notificationTitle = String(remoteMessage?.notification?.title || "").trim();

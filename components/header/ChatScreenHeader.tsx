@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ChatScreenHeaderProps {
+  loading?: boolean;
   title?: string;
   avatar?: string | null;
   isOnline?: boolean;
@@ -21,6 +22,7 @@ interface ChatScreenHeaderProps {
 }
 
 const ChatScreenHeader = ({
+  loading = false,
   title,
   avatar,
   isOnline,
@@ -38,6 +40,32 @@ const ChatScreenHeader = ({
   const { t } = useTranslation();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+
+  if (loading) {
+    return (
+      <View className="bg-white px-4 pt-2.5 pb-5 flex-row items-center justify-between border-b border-[#EEEEEE]">
+        <View className="flex-row items-center flex-1 min-w-0 mr-2">
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <Ionicons name="arrow-back-outline" size={24} color="black" />
+          </TouchableOpacity>
+
+          <View className="flex-row items-center flex-1 min-w-0">
+            <View className="w-10 h-10 rounded-full bg-[#E1EAF2]" />
+            <View className="ml-3 flex-1 min-w-0">
+              <View className="h-4 w-32 rounded-full bg-[#E1EAF2]" />
+              <View className="h-3 w-20 rounded-full bg-[#E1EAF2] mt-2" />
+            </View>
+          </View>
+        </View>
+
+        <View className="flex-row items-center gap-4 shrink-0">
+          <View className="w-10 h-10 rounded-full bg-[#E1EAF2]" />
+          <View className="w-10 h-10 rounded-full bg-[#E1EAF2]" />
+          <View className="w-4 h-4 rounded-full bg-[#E1EAF2]" />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="bg-white px-4 pt-2.5 pb-5 flex-row items-center justify-between border-b border-[#EEEEEE]">

@@ -2,14 +2,14 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import ChatListItem from "@/components/ui/cards/ChatListItem";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import { chatService } from "@/services/chatService";
+import { socketService } from "@/services/socketService";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -26,9 +26,11 @@ const ChatList = () => {
   const [isActive, setIsActive] = useState("group");
   const [searchQuery, setSearchQuery] = useState("");
   const [rooms, setRooms] = useState<any[]>([]);
+  const [typingByRoom, setTypingByRoom] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
+  const typingTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const loadRooms = useCallback(
     async (isRefresh = false) => {
@@ -65,6 +67,181 @@ const ChatList = () => {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    let handlers: any = null;
+
+    const setupRealtime = async () => {
+      try {
+        const socket = await socketService.connect();
+        if (!socket || !isMounted) return;
+
+        const handleNewMessage = (data: any) => {
+          const incomingMessage = data?.message || data;
+          const roomId =
+            data?.chatRoomId ||
+            data?.roomId ||
+            data?.chatId ||
+            incomingMessage?.chatRoomId;
+          if (!roomId) return;
+
+          setTypingByRoom((prev) => {
+            if (!prev[roomId]) return prev;
+            const next = { ...prev };
+            delete next[roomId];
+            return next;
+          });
+
+          setRooms((prev) => {
+            const index = prev.findIndex((room) => room?.id === roomId);
+            if (index < 0) return prev;
+
+            const room = prev[index];
+            const isOwnMessage = incomingMessage?.senderId === user?.id;
+            const nextUnread = isOwnMessage
+              ? Number(room?.unreadCount || 0)
+              : Number(room?.unreadCount || 0) + 1;
+
+            const updatedRoom = {
+              ...room,
+              lastMessage: incomingMessage,
+              lastMessageAt:
+                incomingMessage?.createdAt ||
+                incomingMessage?.updatedAt ||
+                room?.lastMessageAt,
+              updatedAt:
+                incomingMessage?.createdAt ||
+                incomingMessage?.updatedAt ||
+                room?.updatedAt,
+              unreadCount: nextUnread,
+            };
+
+            const next = [...prev];
+            next.splice(index, 1);
+            next.unshift(updatedRoom);
+            return next;
+          });
+        };
+
+        const handleMessageRead = (data: any) => {
+          const payload = data || {};
+          const roomId = payload.chatRoomId || payload.roomId || payload.chatId;
+          if (!roomId) return;
+
+          const readMessageId =
+            payload.messageId ||
+            payload.lastReadMessageId ||
+            payload?.message?.id ||
+            payload?.data?.messageId ||
+            null;
+
+          setRooms((prev) =>
+            prev.map((room) => {
+              if (room?.id !== roomId) return room;
+              if (!room?.lastMessage) return room;
+              if (room?.lastMessage?.senderId !== user?.id) return room;
+              if (readMessageId && String(room?.lastMessage?.id) !== String(readMessageId)) {
+                return room;
+              }
+              return {
+                ...room,
+                lastMessage: {
+                  ...room.lastMessage,
+                  status: "read",
+                },
+              };
+            })
+          );
+        };
+
+        const clearTyping = (roomId: string) => {
+          setTypingByRoom((prev) => {
+            if (!prev[roomId]) return prev;
+            const next = { ...prev };
+            delete next[roomId];
+            return next;
+          });
+          const timeout = typingTimeoutsRef.current[roomId];
+          if (timeout) {
+            clearTimeout(timeout);
+            delete typingTimeoutsRef.current[roomId];
+          }
+        };
+
+        const handleUserTyping = (data: any) => {
+          const payload = data || {};
+          const roomId = payload.chatRoomId || payload.roomId || payload.chatId;
+          if (!roomId) return;
+          const typingUserId =
+            payload.userId ||
+            payload.senderId ||
+            payload.user?.id ||
+            payload.sender?.id;
+          if (typingUserId && typingUserId === user?.id) return;
+
+          const isTyping =
+            payload.isTyping !== false &&
+            payload.typing !== false;
+          if (!isTyping) {
+            clearTyping(roomId);
+            return;
+          }
+
+          const typingName =
+            payload.userName ||
+            payload.name ||
+            payload.user?.name ||
+            payload.sender?.name ||
+            "Typing...";
+
+          setTypingByRoom((prev) => ({ ...prev, [roomId]: typingName }));
+          const existingTimeout = typingTimeoutsRef.current[roomId];
+          if (existingTimeout) clearTimeout(existingTimeout);
+          typingTimeoutsRef.current[roomId] = setTimeout(() => {
+            clearTyping(roomId);
+          }, 2200);
+        };
+
+        const handleTypingStop = (data: any) => {
+          const payload = data || {};
+          const roomId = payload.chatRoomId || payload.roomId || payload.chatId;
+          if (!roomId) return;
+          clearTyping(roomId);
+        };
+
+        socketService.onNewMessage(handleNewMessage);
+        socketService.onMessageRead(handleMessageRead);
+        socketService.onUserTyping(handleUserTyping);
+        socket.on("typing_stop", handleTypingStop);
+
+        handlers = {
+          handleNewMessage,
+          handleMessageRead,
+          handleUserTyping,
+          handleTypingStop,
+        };
+      } catch {
+        // Ignore realtime setup failures in list view
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (handlers) {
+        socketService.offNewMessage(handlers.handleNewMessage);
+        socketService.offMessageRead(handlers.handleMessageRead);
+        socketService.offUserTyping(handlers.handleUserTyping);
+        socketService.getSocket()?.off("typing_stop", handlers.handleTypingStop);
+      }
+      Object.values(typingTimeoutsRef.current).forEach((timeout) =>
+        clearTimeout(timeout)
+      );
+      typingTimeoutsRef.current = {};
+    };
+  }, [user?.id]);
 
   const getDirectUser = useCallback(
     (room: any) => {
@@ -178,15 +355,24 @@ const ChatList = () => {
         {loading ? (
           <View className="pb-3">
             {skeletonItems.map((item) => (
-              <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={10}>
-                <ChatListItem
-                  onPress={() => undefined}
-                  title="Placeholder Name"
-                  subtitle="Loading recent message preview"
-                  time="00:00"
-                  unreadCount={2}
-                />
-              </AutoSkeletonView>
+              <View key={item.id} className="flex-row items-center gap-2.5 py-4 border-b border-[#EEEEEE]">
+                <View className="h-[50px] w-[50px] rounded-full bg-[#E8EEF3]" />
+
+                <View className="flex-1">
+                  <View className="flex-row justify-between items-center">
+                    <View className="h-5 w-32 rounded-full bg-[#E8EEF3]" />
+                    <View className="h-4 w-12 rounded-full bg-[#E8EEF3]" />
+                  </View>
+
+                  <View className="mt-2 flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-2">
+                      <View className="h-3.5 w-3.5 rounded-full bg-[#E8EEF3]" />
+                      <View className="h-4 w-44 rounded-full bg-[#E8EEF3]" />
+                    </View>
+                    <View className="h-6 w-6 rounded-full bg-[#D5E9F7]" />
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
         ) : filteredRooms.length === 0 ? (
@@ -206,9 +392,18 @@ const ChatList = () => {
                 : room.avatar || room?.business?.logo;
             const time = formatTime(room.lastMessageAt || room.updatedAt);
             const subtitle =
-              room.lastMessage?.content ||
-              room.lastMessage?.text ||
-              t("common.chat.noMessagesYet");
+              typingByRoom[room.id]
+                ? t("common.chat.typing")
+                : room.lastMessage?.content ||
+                  room.lastMessage?.text ||
+                  t("common.chat.noMessagesYet");
+            const lastMessageSenderId =
+              room?.lastMessage?.senderId ||
+              room?.lastMessage?.sender?.id ||
+              room?.lastMessage?.userId ||
+              null;
+            const isOwnLastMessage = Boolean(lastMessageSenderId && lastMessageSenderId === user?.id);
+            const messageStatus = room?.lastMessage?.status;
 
             return (
               <ChatListItem
@@ -224,6 +419,8 @@ const ChatList = () => {
                 time={time}
                 avatar={avatar}
                 unreadCount={room.unreadCount || 0}
+                messageStatus={messageStatus}
+                isOwnMessage={isOwnLastMessage}
               />
 
             );

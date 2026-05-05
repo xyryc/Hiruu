@@ -34,6 +34,7 @@ export type AchievementProgress = {
 
 export type AchievementItem = {
   id: string;
+  instanceKey?: string;
   key: string;
   icon?: string | null;
   title: string;
@@ -84,6 +85,7 @@ interface AchievementState {
   isLoadingMoreAchievements: boolean;
   isLoadingBoard: boolean;
   claimingAchievementId: string | null;
+  claimableCount: number;
   error: Error | null;
   getAchievements: (
     type: AchievementType,
@@ -92,7 +94,7 @@ interface AchievementState {
     append?: boolean
   ) => Promise<AchievementItem[]>;
   getBoard: () => Promise<AchievementBoardData | null>;
-  claimAchievement: (id: string) => Promise<any>;
+  claimAchievement: (id: string, instanceKey?: string) => Promise<any>;
   clearError: () => void;
 }
 
@@ -104,6 +106,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
   isLoadingMoreAchievements: false,
   isLoadingBoard: false,
   claimingAchievementId: null,
+  claimableCount: 0,
   error: null,
 
   getAchievements: async (type, page = 1, limit = 5, append = false) => {
@@ -114,7 +117,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
     });
 
     try {
-      const response = await axiosInstance.get("/achievements", {
+      const response = await axiosInstance.get("/achievements/me", {
         params: { type, page, limit },
       });
       const result = response.data;
@@ -126,17 +129,35 @@ export const useAchievementStore = create<AchievementState>((set) => ({
       }
 
         const nextPageItems: AchievementItem[] = Array.isArray(result?.data)
-          ? (result.data as AchievementItem[]).map((item) => ({
+          ? (result.data as AchievementItem[]).map((item) => {
+              const periodStart =
+                typeof item?.userProgress?.periodStart === "string"
+                  ? item.userProgress.periodStart
+                  : "no-period";
+              const periodEnd =
+                typeof item?.userProgress?.periodEnd === "string"
+                  ? item.userProgress.periodEnd
+                  : "no-period";
+              const resetAt =
+                typeof item?.userProgress?.resetAt === "string"
+                  ? item.userProgress.resetAt
+                  : "no-reset";
+
+              return ({
               ...item,
+              // `repeat` achievements can appear multiple times for different periods.
+              // Use a stable per-row key so they don't collapse by base achievement id.
+              instanceKey: `${item.id}::${periodStart}::${periodEnd}::${resetAt}`,
               rewardCoins:
                 typeof item?.rewardCoins === "number"
                   ? item.rewardCoins
               : typeof item?.rewards?.[0]?.coins === "number"
                 ? item.rewards[0].coins
                 : 0,
-        }))
+        })})
         : [];
       const pagination = result?.pagination || null;
+      const claimableCount = Number(result?.meta?.claimableCount || 0);
         let mergedItems: AchievementItem[] = nextPageItems;
 
       set((state) => {
@@ -144,7 +165,11 @@ export const useAchievementStore = create<AchievementState>((set) => ({
           ? [
             ...state.achievements,
             ...nextPageItems.filter(
-              (item) => !state.achievements.some((prev) => prev.id === item.id)
+              (item) =>
+                !state.achievements.some(
+                  (prev) =>
+                    (prev.instanceKey || prev.id) === (item.instanceKey || item.id)
+                )
             ),
           ]
           : nextPageItems;
@@ -152,6 +177,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         return {
           achievements: mergedItems,
           achievementsPagination: pagination,
+          claimableCount,
           isLoadingAchievements: false,
           isLoadingMoreAchievements: false,
         };
@@ -204,7 +230,7 @@ export const useAchievementStore = create<AchievementState>((set) => ({
     }
   },
 
-  claimAchievement: async (id) => {
+  claimAchievement: async (id, instanceKey) => {
     set({ claimingAchievementId: id, error: null });
 
     try {
@@ -218,7 +244,48 @@ export const useAchievementStore = create<AchievementState>((set) => ({
         );
       }
 
-      set({ claimingAchievementId: null });
+      const claimedAt =
+        typeof result?.data?.claimedAt === "string"
+          ? result.data.claimedAt
+          : new Date().toISOString();
+
+      set((state) => {
+        let hasUpdatedClaimable = false;
+        const achievements = state.achievements.map((achievement) => {
+          const matchesInstance =
+            typeof instanceKey === "string" &&
+            instanceKey.length > 0 &&
+            achievement.instanceKey === instanceKey;
+          const matchesIdFallback =
+            !instanceKey &&
+            achievement.id === id &&
+            achievement.userProgress?.canClaim === true &&
+            !hasUpdatedClaimable;
+
+          if (!matchesInstance && !matchesIdFallback) {
+            return achievement;
+          }
+
+          hasUpdatedClaimable = true;
+          return {
+            ...achievement,
+            userProgress: {
+              ...achievement.userProgress,
+              isClaimed: true,
+              canClaim: false,
+              claimedAt,
+            },
+          };
+        });
+
+        return {
+          achievements,
+          claimableCount: hasUpdatedClaimable
+            ? Math.max(0, state.claimableCount - 1)
+            : state.claimableCount,
+          claimingAchievementId: null,
+        };
+      });
       return result;
     } catch (error) {
       const axiosError = error as AxiosError<any>;
