@@ -5,7 +5,6 @@ import SettingsCard from "@/components/ui/cards/SettingsCard";
 import LogoutDeleteModal from "@/components/ui/modals/LogoutDeleteModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
-import axiosInstance from "@/utils/axios";
 import {
   Entypo,
   FontAwesome,
@@ -17,20 +16,17 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { toast } from "sonner-native";
 
 const Settings = () => {
   const logOutImg = require("@/assets/images/logout.svg");
   const [isModal, setIsModal] = useState(false);
-  const [isDeleteCompanyModal, setIsDeleteCompanyModal] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const getProfile = useProfileStore((state) => state.getProfile);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
-  const setSelectedBusinesses = useBusinessStore((state) => state.setSelectedBusinesses);
   const [data, setData] = useState<{
     img: any;
     title: string;
@@ -56,37 +52,8 @@ const Settings = () => {
     buttonName: t("user.profile.logoutAction"),
     buttonColor: "#11293A",
   };
-  const targetBusiness = useMemo(() => {
-    const ownedBusinesses = Array.isArray(profileData?.ownedBusinesses)
-      ? profileData.ownedBusinesses
-      : [];
-    const selectedBusinessId = selectedBusinesses?.[0];
-    if (selectedBusinessId) {
-      const selected = ownedBusinesses.find(
-        (item: any) => item?.id === selectedBusinessId
-      );
-      if (selected) return selected;
-    }
-    return ownedBusinesses[0] || null;
-  }, [profileData?.ownedBusinesses, selectedBusinesses]);
   const isBusinessProfileMode = selectedBusinesses.length > 0;
 
-  const deleteCompanyData = useMemo(
-    () => ({
-      title: targetBusiness?.name || t("user.profile.deleteCompany"),
-      subtitle: t("user.profile.deleteCompanySubtitle"),
-      img: targetBusiness?.logo
-        ? { uri: targetBusiness.logo }
-        : require("@/assets/images/placeholder.png"),
-      roundImage: true,
-      imageSize: 96,
-      color: "#F34F4F26",
-      border: "#F34F4F",
-      buttonName: t("user.profile.deleteCompanyAction"),
-      buttonColor: "#F34F4F",
-    }),
-    [t, targetBusiness?.logo, targetBusiness?.name]
-  );
 
   const loadProfile = useCallback(async () => {
     try {
@@ -116,53 +83,6 @@ const Settings = () => {
     if (e === "logout") {
       setData(logOutData);
       setIsModal(true);
-    }
-  };
-
-  const handleConfirmDeleteCompany = async () => {
-    const fallbackOwnedBusinessId = profileData?.ownedBusinesses?.[0]?.id;
-    const targetBusinessId = selectedBusinesses?.[0] || fallbackOwnedBusinessId;
-
-    if (!targetBusinessId) {
-      toast.error(
-        t("user.profile.noCompanyToDelete")
-      );
-      return;
-    }
-
-    try {
-      const response = await axiosInstance.delete(`/business/${targetBusinessId}`);
-      const result = response?.data;
-      if (result?.success === false) {
-        throw new Error(result?.message || "UNKNOWN_ERROR");
-      }
-
-      toast.success(
-        t(`api.${result?.message || "deleted_successfully"}`, {
-          defaultValue: "Company deleted successfully",
-        })
-      );
-      setIsDeleteCompanyModal(false);
-      setSelectedBusinesses([]);
-      setProfileData((prev: any) => {
-        const ownedBusinesses = Array.isArray(prev?.ownedBusinesses)
-          ? prev.ownedBusinesses
-          : [];
-        return {
-          ...(prev || {}),
-          ownedBusinesses: ownedBusinesses.filter(
-            (item: any) => item?.id !== targetBusinessId
-          ),
-        };
-      });
-    } catch (error: any) {
-      const messageKey =
-        error?.response?.data?.message || error?.message || "UNKNOWN_ERROR";
-      toast.error(
-        t(`api.${messageKey}`, {
-          defaultValue: messageKey,
-        })
-      );
     }
   };
 
@@ -321,17 +241,19 @@ const Settings = () => {
         />
 
         {isBusinessProfileMode ? (
-          <TouchableOpacity
-            onPress={() => setIsDeleteCompanyModal(true)}
-          >
-            <Text className="text-[#F34F4F] font-proximanova-bold mt-5">
-              {t("user.profile.deleteCompany")}
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              onPress={() => router.push("/screens/profile/settings/delete-company")}
+            >
+              <Text className="text-[#F34F4F] font-proximanova-bold mt-5">
+                {t("user.profile.deleteBusiness")}
+              </Text>
+            </TouchableOpacity>
+
+            <View className="border-b-2 border-[#EEEEEE] mt-5" />
+          </>
         ) : null}
 
-
-        <View className="border-b-2 border-[#EEEEEE] mt-5" />
         <TouchableOpacity
           onPress={() => router.push("/screens/profile/settings/delete-account")}
         >
@@ -341,6 +263,7 @@ const Settings = () => {
         </TouchableOpacity>
 
         <View className="border-b-2 border-[#EEEEEE] mt-5" />
+
         <TouchableOpacity onPress={() => handleClick("logout")}>
           <Text className="text-[#4FB2F3] font-proximanova-bold mt-5">
             {t("user.profile.logout")}
@@ -351,12 +274,6 @@ const Settings = () => {
           visible={isModal}
           onClose={() => setIsModal(false)}
           data={data}
-        />
-        <LogoutDeleteModal
-          visible={isDeleteCompanyModal}
-          onClose={() => setIsDeleteCompanyModal(false)}
-          data={deleteCompanyData}
-          onConfirm={handleConfirmDeleteCompany}
         />
       </ScrollView>
     </SafeAreaView>

@@ -51,8 +51,9 @@ const ProfileSwitchModal = ({
 
     const loadData = async () => {
       const shouldFetchProfile = !hasLoadedOnceRef.current && !hasProfile;
-      const shouldFetchEmployments =
-        employmentCount === 0;
+      // Always refresh employments when modal opens so profile switch list
+      // reflects recently created/deleted businesses immediately.
+      const shouldFetchEmployments = true;
 
       if (!shouldFetchProfile && !shouldFetchEmployments) return;
 
@@ -90,7 +91,7 @@ const ProfileSwitchModal = ({
     return () => {
       isMounted = false;
     };
-  }, [visible, getMyEmployments, getProfile, employmentCount, hasProfile]);
+  }, [visible, getMyEmployments, getProfile, hasProfile]);
 
   const activeEmploymentEntries = (Array.isArray(myEmployments) ? myEmployments : [])
     .filter((employment: any) => String(employment?.status || "").toLowerCase() === "active")
