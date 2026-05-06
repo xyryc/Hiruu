@@ -6,7 +6,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 const JoinColleague = ({ className }: JoinColleagueProps) => {
   return (
-    <View className={`${className} px-4`}>
+    <View className={`${className} px-4 mt-5`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
         Join Your Colleagues
       </Text>

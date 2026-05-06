@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -37,8 +37,8 @@ const BusinessScheduleMonthYearsPickerModal = ({
                 setPickerMode("month");
               }}
             >
-              <View className="bg-black rounded-full p-2.5">
-                <Ionicons name="close" size={33} color="white" />
+              <View className="bg-[#000] rounded-full p-2.5">
+                <Entypo name="cross" size={30} color="white" />
               </View>
             </TouchableOpacity>
           </View>

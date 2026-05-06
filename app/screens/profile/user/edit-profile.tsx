@@ -662,7 +662,7 @@ const Edit = () => {
             <View className="mx-5 mt-8">
               <View className="flex-row justify-between items-center mb-2.5">
                 <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary">
-                  {t("user.profile.editUserProfile.yourName", { defaultValue: "Your Name" })}
+                  Name
                 </Text>
                 <TouchableOpacity onPress={() => setIsEditingIdentity((prev) => !prev)}>
                   <Text className="font-proximanova-semibold text-sm text-[#4FB2F3] underline ">
@@ -680,7 +680,7 @@ const Edit = () => {
               />
 
               <Text className="font-proximanova-semibold text-xl text-primary dark:text-dark-primary mt-6 mb-3">
-                {t("user.profile.editUserProfile.yourAvatar", { defaultValue: "Your Avatar" })}
+                Avatar
               </Text>
               <ProfileImagePicker
                 value={avatarUri}

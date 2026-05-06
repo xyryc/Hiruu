@@ -1,5 +1,5 @@
 import { ColorPickerModalProps } from "@/types";
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
@@ -75,7 +75,7 @@ const ColorPickerModal = ({
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
             <TouchableOpacity onPress={onClose}>
               <View className="bg-[#000] rounded-full p-2.5">
-                <Ionicons name="close-outline" size={30} color="white" />
+                <Entypo name="cross" size={30} color="white" />
               </View>
             </TouchableOpacity>
           </View>

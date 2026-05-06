@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -68,12 +68,13 @@ const LeaveRequestModal = ({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View className="bg-white dark:bg-dark-surface rounded-t-3xl py-8 items-center">
-              <TouchableOpacity
-                onPress={() => setIsVisible(false)}
-                className="absolute top-3 -mt-20 p-3 rounded-full bg-[#00000080] dark:bg-dark-border"
-              >
-                <Ionicons name="close" size={28} color="#ffffff" />
-              </TouchableOpacity>
+              <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
+                <TouchableOpacity onPress={() => setIsVisible(false)}>
+                  <View className="bg-[#000] rounded-full p-2.5">
+                    <Entypo name="cross" size={30} color="white" />
+                  </View>
+                </TouchableOpacity>
+              </View>
               {/* Image */}
               <Image
                 source={require("@/assets/images/success.svg")}

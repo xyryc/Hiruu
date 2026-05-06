@@ -189,18 +189,6 @@ const PerformanceTrend = ({ className }: any) => {
           );
         }
 
-        if (__DEV__) {
-          console.log("[PerformanceTrend] fetched", {
-            businessId: selectedBusinessId,
-            graphType,
-            points: series.length,
-            totalCompletedFromSeries,
-            totalMissedFromSeries,
-            completedFromSummary,
-            missedFromSummary,
-          });
-        }
-
         const nextChartData = {
           completedShifts,
           missedShifts,

@@ -1,5 +1,5 @@
 import { VideoPlayerModalProps } from "@/types";
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import React, { useEffect } from "react";
 import { Modal, TouchableOpacity, View } from "react-native";
@@ -51,12 +51,13 @@ const VideoPlayerModal = ({ visible, videoUri, onClose }: VideoPlayerModalProps)
             nativeControls={true}
           />
         </View>
-        <TouchableOpacity
-          className="absolute top-12 right-4 p-2"
-          onPress={onClose}
-        >
-          <Ionicons name="close" size={28} color="white" />
-        </TouchableOpacity>
+        <View className="absolute top-8 inset-x-0 items-center pt-4 pb-2">
+          <TouchableOpacity onPress={onClose}>
+            <View className="bg-[#000] rounded-full p-2.5">
+              <Entypo name="cross" size={30} color="white" />
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </Modal>
   );

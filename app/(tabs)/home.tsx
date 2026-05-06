@@ -120,7 +120,6 @@ const UserHome = () => {
       <HomeHeader className="mt-2.5 mb-5" />
 
       <WelcomeHeader
-        className="pb-5"
         name={profileData?.name || profileData?.email}
         avatar={profileData?.avatar}
         coins={profileData?.wallet?.coins}
@@ -138,7 +137,7 @@ const UserHome = () => {
       >
         {/* shared section */}
         {isProfileIncomplete && (
-          <ProfileProgress onboarding={profileData?.onboarding} className='mb-7' />
+          <ProfileProgress onboarding={profileData?.onboarding} />
         )}
 
         {/* business profile sections */}

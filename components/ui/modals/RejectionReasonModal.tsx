@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import {
@@ -43,13 +43,13 @@ const RejectionReasonModal = () => {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View className="bg-white dark:bg-dark-surface rounded-t-3xl py-8 px-5 relative items-center">
-              {/* Close button centered */}
-              <TouchableOpacity
-                onPress={() => setIsVisible(false)}
-                className="absolute -top-16 right-1/2  p-3 rounded-full bg-[#00000080] dark:bg-gray-700"
-              >
-                <Ionicons name="close" size={24} color="#ffffff" />
-              </TouchableOpacity>
+              <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
+                <TouchableOpacity onPress={() => setIsVisible(false)}>
+                  <View className="bg-[#000] rounded-full p-2.5">
+                    <Entypo name="cross" size={30} color="white" />
+                  </View>
+                </TouchableOpacity>
+              </View>
 
               {/* Content */}
               <View className="w-full ">

@@ -1,5 +1,5 @@
 import { MonthPickerProps } from "@/types";
-import { EvilIcons, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
+import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -82,10 +82,10 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
           <TouchableOpacity activeOpacity={1} onPress={handleCancel} className="absolute inset-0" />
 
           <View className="bg-white rounded-t-3xl">
-            <View className="absolute -top-20 inset-x-0 items-center pt-3 pb-2">
+            <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
               <TouchableOpacity onPress={handleCancel}>
-                <View className="bg-[#1f1f1f] rounded-full p-2">
-                  <EvilIcons name="close" size={26} color="white" />
+                <View className="bg-[#000] rounded-full p-2.5">
+                  <Entypo name="cross" size={30} color="white" />
                 </View>
               </TouchableOpacity>
             </View>
