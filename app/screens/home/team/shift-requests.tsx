@@ -7,7 +7,7 @@ import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -90,6 +90,13 @@ const ShiftRequestCardSkeleton = ({ showActions }: { showActions?: boolean }) =>
 };
 
 const ShiftRequest = () => {
+  const params = useLocalSearchParams<{
+    startDate?: string;
+    endDate?: string;
+    sort?: string;
+    status?: string;
+    type?: string;
+  }>();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [selectedTab, setSelectedTab] = useState("Pending Requests");
@@ -111,6 +118,16 @@ const ShiftRequest = () => {
     businessShiftRequestsLoading,
   } = useShiftStore();
   const selectedBusinessId = selectedBusinesses?.[0];
+  const filterParams = useMemo(
+    () => ({
+      startDate: typeof params.startDate === "string" ? params.startDate : undefined,
+      endDate: typeof params.endDate === "string" ? params.endDate : undefined,
+      sort: typeof params.sort === "string" ? params.sort : undefined,
+      status: typeof params.status === "string" ? params.status : undefined,
+      type: typeof params.type === "string" ? params.type : undefined,
+    }),
+    [params.endDate, params.sort, params.startDate, params.status, params.type]
+  );
 
   const loadBusinessAttendanceMode = useCallback(async () => {
     if (!selectedBusinessId) return;
@@ -138,7 +155,15 @@ const ShiftRequest = () => {
   const loadShiftRequests = useCallback(async () => {
     if (!selectedBusinessId) return;
     try {
-      await getBusinessShiftRequests(selectedBusinessId, { page: 1, limit: 50 });
+      await getBusinessShiftRequests(selectedBusinessId, {
+        page: 1,
+        limit: 50,
+        startDate: filterParams.startDate,
+        endDate: filterParams.endDate,
+        sort: filterParams.sort,
+        status: filterParams.status,
+        type: filterParams.type,
+      } as any);
     } catch (error: any) {
       toast.error(
         translateApiMessage(
@@ -146,7 +171,7 @@ const ShiftRequest = () => {
         )
       );
     }
-  }, [getBusinessShiftRequests, selectedBusinessId]);
+  }, [filterParams.endDate, filterParams.sort, filterParams.startDate, filterParams.status, filterParams.type, getBusinessShiftRequests, selectedBusinessId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -226,7 +251,16 @@ const ShiftRequest = () => {
 
               <TouchableOpacity
                 onPress={() =>
-                  router.push("/screens/home/shift/shift-filter")
+                  router.push({
+                    pathname: "/screens/home/shift/shift-filter",
+                    params: {
+                      ...(filterParams.startDate ? { startDate: filterParams.startDate } : {}),
+                      ...(filterParams.endDate ? { endDate: filterParams.endDate } : {}),
+                      ...(filterParams.sort ? { sort: filterParams.sort } : {}),
+                      ...(filterParams.status ? { status: filterParams.status } : {}),
+                      ...(filterParams.type ? { type: filterParams.type } : {}),
+                    },
+                  })
                 }
                 className="h-10 w-10 bg-white rounded-full flex-row justify-center items-center"
               >
