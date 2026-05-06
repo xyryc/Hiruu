@@ -1,6 +1,10 @@
 import { useAuthStore } from "@/stores/authStore";
-import { consumePendingChatNavigation } from "@/utils/notificationNavigation";
+import {
+  consumePendingChatNavigation,
+  consumePendingRouteNavigation,
+} from "@/utils/notificationNavigation";
 import { Redirect } from "expo-router";
+import type { Href } from "expo-router";
 
 export default function Index() {
   const { user, isInitialized, sessionExpired } = useAuthStore();
@@ -37,6 +41,18 @@ export default function Index() {
                 ? { messageId: pendingChat.messageId }
                 : {}),
             },
+          }}
+        />
+      );
+    }
+
+    const pendingRoute = consumePendingRouteNavigation();
+    if (pendingRoute?.pathname) {
+      return (
+        <Redirect
+          href={{
+            pathname: pendingRoute.pathname as Href["pathname"],
+            params: pendingRoute.params || {},
           }}
         />
       );

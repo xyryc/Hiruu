@@ -7,10 +7,15 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useServerStatusStore } from "@/stores/serverStatusStore";
-import { translateApiMessage } from "@/utils/apiMessages";
 import {
+  setPendingRouteNavigation,
   setPendingChatNavigation,
 } from "@/utils/notificationNavigation";
+import {
+  extractChatNotificationPayload,
+  extractNotificationRoutePayload,
+  resolveFcmDisplayText,
+} from "@/utils/pushNotificationRouting";
 import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
@@ -59,80 +64,6 @@ const AppBootstrap = () => {
     );
   }, []);
 
-  const parseJsonField = useCallback((value: unknown) => {
-    if (typeof value !== "string") return null;
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    try {
-      return JSON.parse(trimmed);
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const extractChatNotificationPayload = useCallback((rawData: any) => {
-    // console.log("[NotifDebug] extractChatNotificationPayload:input", rawData);
-    if (!rawData || typeof rawData !== "object") return null;
-
-    const type = typeof rawData.type === "string" ? rawData.type : "";
-    const metadata =
-      (parseJsonField(rawData?.metadata) as Record<string, any> | null) ||
-      null;
-    const actions =
-      (parseJsonField(rawData?.actions) as Record<string, any>[] | null) ||
-      null;
-    const firstAction = Array.isArray(actions) && actions.length > 0 ? actions[0] : null;
-    const actionPayload =
-      firstAction?.payload && typeof firstAction.payload === "object"
-        ? firstAction.payload
-        : null;
-    const chatRoomIdFromMetadata =
-      typeof metadata?.chatRoomId === "string" ? metadata.chatRoomId : "";
-    const chatRoomIdFromAction =
-      typeof actionPayload?.chatRoomId === "string" ? actionPayload.chatRoomId : "";
-    const chatRoomId = chatRoomIdFromMetadata || chatRoomIdFromAction;
-    const messageId =
-      typeof rawData.messageId === "string" ? rawData.messageId : undefined;
-
-    if (type !== "chat_message" || !chatRoomId) {
-      // console.log("[NotifDebug] extractChatNotificationPayload:ignored", {
-      //   type,
-      //   chatRoomId,
-      // });
-      return null;
-    }
-
-    // console.log("[NotifDebug] extractChatNotificationPayload:resolved", {
-    //   chatRoomId,
-    //   hasMessageId: Boolean(messageId),
-    // });
-    return { chatRoomId, messageId };
-  }, [parseJsonField]);
-
-  const resolveFcmDisplayText = useCallback((remoteMessage: any) => {
-    const notificationTitle = String(remoteMessage?.notification?.title || "").trim();
-    const notificationBody = String(remoteMessage?.notification?.body || "").trim();
-    const dataTitle = String(
-      remoteMessage?.data?.title ||
-      remoteMessage?.data?.titleKey ||
-      ""
-    ).trim();
-    const dataBody = String(
-      remoteMessage?.data?.body ||
-      remoteMessage?.data?.message ||
-      remoteMessage?.data?.bodyKey ||
-      ""
-    ).trim();
-
-    const rawTitle = notificationTitle || dataTitle || "Notification";
-    const rawBody = notificationBody || dataBody || "You have a new message";
-
-    return {
-      title: translateApiMessage(rawTitle),
-      body: translateApiMessage(rawBody),
-    };
-  }, []);
-
   const navigateToChatRoom = useCallback((payload: { chatRoomId: string; messageId?: string }) => {
     // console.log("[NotifDebug] navigateToChatRoom:attempt", {
     //   payload,
@@ -155,6 +86,31 @@ const AppBootstrap = () => {
     // console.log("[NotifDebug] navigateToChatRoom:pushed", {
     //   roomId: payload.chatRoomId,
     // });
+  }, [appIsReady, router, user]);
+
+  const navigateFromNotificationData = useCallback((rawData: any) => {
+    const routePayload = extractNotificationRoutePayload(rawData);
+    if (!routePayload) return;
+
+    if (!appIsReady || !user) {
+      if (routePayload.pathname === "/screens/inbox/chat-screen") {
+        const roomId = routePayload.params?.roomId;
+        if (roomId) {
+          setPendingChatNavigation({ chatRoomId: roomId });
+          return;
+        }
+      }
+      setPendingRouteNavigation({
+        pathname: routePayload.pathname,
+        params: routePayload.params,
+      });
+      return;
+    }
+
+    router.push({
+      pathname: routePayload.pathname as any,
+      params: routePayload.params,
+    });
   }, [appIsReady, router, user]);
 
   useEffect(() => {
@@ -267,10 +223,7 @@ const AppBootstrap = () => {
       //   messageId: remoteMessage?.messageId,
       //   data: remoteMessage?.data,
       // });
-      const payload = extractChatNotificationPayload(remoteMessage?.data);
-      if (payload) {
-        navigateToChatRoom(payload);
-      }
+      navigateFromNotificationData(remoteMessage?.data);
     });
 
     getInitialNotification(messaging)
@@ -280,10 +233,7 @@ const AppBootstrap = () => {
           //   messageId: remoteMessage?.messageId,
           //   data: remoteMessage?.data,
           // });
-          const payload = extractChatNotificationPayload(remoteMessage?.data);
-          if (payload) {
-            navigateToChatRoom(payload);
-          }
+          navigateFromNotificationData(remoteMessage?.data);
         } else {
           // console.log("[NotifDebug] getInitialNotification:empty");
         }
@@ -303,9 +253,8 @@ const AppBootstrap = () => {
         const payload = extractChatNotificationPayload(
           response.notification.request.content.data
         );
-        if (payload) {
-          navigateToChatRoom(payload);
-        }
+        if (payload) navigateToChatRoom(payload);
+        else navigateFromNotificationData(response.notification.request.content.data);
       });
 
     return () => {
@@ -317,6 +266,7 @@ const AppBootstrap = () => {
     appIsReady,
     extractChatNotificationPayload,
     messaging,
+    navigateFromNotificationData,
     navigateToChatRoom,
     resolveFcmDisplayText,
     user,
