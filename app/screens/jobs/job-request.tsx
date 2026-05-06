@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -17,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -35,6 +37,7 @@ const styles = StyleSheet.create({
 });
 
 const JobRequest = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -43,8 +46,14 @@ const JobRequest = () => {
   const respondToMyApplication = useJobStore(
     (s) => s.respondToMyApplication
   );
-  const tabs = ["send request", "received"];
-  const [isActive, setIsActive] = useState("send request");
+  const tabs = useMemo(
+    () => [
+      { key: "sent", label: t("user.jobs.jobRequests.tabs.sent") },
+      { key: "received", label: t("user.jobs.jobRequests.tabs.received") },
+    ],
+    [t]
+  );
+  const [isActive, setIsActive] = useState<"sent" | "received">("sent");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -88,13 +97,13 @@ const JobRequest = () => {
         setTotalPages(nextTotalPages);
       } catch (error: any) {
         if (!append) setItems([]);
-        toast.error(error?.message || "Failed to fetch job requests");
+        toast.error(error?.message || t("user.jobs.jobRequests.failedToFetch"));
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
       }
     },
-    [getMyApplications]
+    [getMyApplications, t]
   );
 
   useFocusEffect(
@@ -110,7 +119,7 @@ const JobRequest = () => {
 
   const sourceFiltered = useMemo(() => {
     return items.filter((item: any) =>
-      isActive === "send request"
+      isActive === "sent"
         ? item?.source === "user_applied"
         : item?.source === "business_invited"
     );
@@ -166,7 +175,7 @@ const JobRequest = () => {
       const applicationId = item?.id;
 
       if (!applicationId) {
-        toast.error("Application information is unavailable");
+        toast.error(t("user.jobs.jobRequests.applicationUnavailable"));
         return;
       }
 
@@ -184,16 +193,16 @@ const JobRequest = () => {
         );
         toast.success(
           status === "approved"
-            ? "Invitation approved successfully"
-            : "Invitation rejected successfully"
+            ? t("user.jobs.jobRequests.approved")
+            : t("user.jobs.jobRequests.rejected")
         );
       } catch (error: any) {
-        toast.error(error?.message || "Failed to update invitation");
+        toast.error(error?.message || t("user.jobs.jobRequests.failedToUpdate"));
       } finally {
         setActionLoading(null);
       }
     },
-    [respondToMyApplication]
+    [respondToMyApplication, t]
   );
 
   const toNullableNumber = (value: unknown) => {
@@ -291,25 +300,25 @@ const JobRequest = () => {
         <ScreenHeader
           onPressBack={() => router.back()}
           className="px-5 pt-2.5 pb-4"
-          title="Job Request"
+          title={t("user.jobs.jobRequests.title")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111111"}
         />
 
         <View className="flex-row justify-center mx-5">
-          {tabs.map((tab, index) => {
-            const totalCount = tab === "send request" ? sentCount : receivedCount;
+          {tabs.map((tab) => {
+            const totalCount = tab.key === "sent" ? sentCount : receivedCount;
 
             return (
               <TouchableOpacity
-                key={index}
-                className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${isActive === tab && "border-[#11293A] border-b-2"}`}
-                onPress={() => setIsActive(tab)}
+                key={tab.key}
+                className={`w-1/2 flex-row items-center justify-center gap-2 border-b pb-3 ${isActive === tab.key && "border-[#11293A] border-b-2"}`}
+                onPress={() => setIsActive(tab.key as "sent" | "received")}
               >
                 <Text
-                  className={`text-center capitalize ${isActive === tab ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
+                  className={`text-center ${isActive === tab.key ? "font-proximanova-semibold text-primary dark:text-dark-primary" : "font-proximanova-regular text-secondary dark:text-dark-secondary"} `}
                 >
-                  {tab}
+                  {tab.label}
                 </Text>
 
                 <View className="w-6 h-6 bg-[#4FB2F3] rounded-full items-center justify-center">
@@ -331,7 +340,7 @@ const JobRequest = () => {
             <View className="px-5">
               <JobRequestCard
                 className="bg-white border border-[#EEEEEE] mb-4"
-                status={isActive as "send request" | "received"}
+                status={isActive === "sent" ? "send request" : "received"}
                 job={mapToJobCard(item)}
                 onApprove={
                   isActive === "received"
@@ -358,16 +367,40 @@ const JobRequest = () => {
           }
           ListEmptyComponent={
             isLoading ? (
-              <View className="py-10 items-center">
-                <ActivityIndicator size="large" color={isDark ? "#fff" : "#111"} />
+              <View className="px-5 pb-5">
+                <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <View
+                      key={`job-request-skeleton-${index}`}
+                      className="bg-white border border-[#EEEEEE] rounded-xl mb-4 p-4"
+                    >
+                      <View className="flex-row items-start">
+                        <View className="h-12 w-12 rounded-full bg-[#E5E7EB]" />
+                        <View className="flex-1 ml-3">
+                          <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+                          <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-2" />
+                        </View>
+                        <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+                      </View>
+
+                      <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-4" />
+                      <View className="h-3 w-10/12 rounded-md bg-[#E5E7EB] mt-2" />
+
+                      <View className="flex-row gap-3 mt-4">
+                        <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
+                        <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
+                      </View>
+                    </View>
+                  ))}
+                </AutoSkeletonView>
               </View>
             ) : (
               <View className="px-5 pb-5">
                 <StatusStateCard
                   style={styles.compactEmptyState}
                   image={require("@/assets/images/toolbox.svg")}
-                  title="No Job Requests"
-                  text="There are no job requests to show right now."
+                  title={t("user.jobs.jobRequests.emptyTitle")}
+                  text={t("user.jobs.jobRequests.emptyText")}
                   titleStyle={styles.compactEmptyStateTitle}
                   textStyle={styles.compactEmptyStateText}
                 />
@@ -398,12 +431,12 @@ const JobRequest = () => {
                         : "text-primary"
                         }`}
                     >
-                      Previous
+                      {t("user.jobs.jobRequests.previous")}
                     </Text>
                   </TouchableOpacity>
 
                   <Text className="text-sm font-proximanova-semibold text-secondary">
-                    Page {page} / {totalPages}
+                    {t("user.jobs.jobRequests.page", { page, totalPages })}
                   </Text>
 
                   <TouchableOpacity
@@ -420,7 +453,7 @@ const JobRequest = () => {
                         : "text-primary"
                         }`}
                     >
-                      Next
+                      {t("user.jobs.jobRequests.next")}
                     </Text>
                   </TouchableOpacity>
                 </View>

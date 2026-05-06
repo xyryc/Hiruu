@@ -352,6 +352,23 @@
           "sentDescription": "You haven't sent any job invitations yet. Browse available candidates and send invitations to potential employees.",
           "receivedDescription": "No candidates have applied to your job postings yet. Make sure your job posts are active and visible to attract applicants."
         }
+      },
+      "jobRequests": {
+        "title": "Job Request",
+        "failedToFetch": "Failed to fetch job requests",
+        "applicationUnavailable": "Application information is unavailable",
+        "approved": "Invitation approved successfully",
+        "rejected": "Invitation rejected successfully",
+        "failedToUpdate": "Failed to update invitation",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {{page}} / {{totalPages}}",
+        "tabs": {
+          "sent": "Send Request",
+          "received": "Received"
+        },
+        "emptyTitle": "No Job Requests",
+        "emptyText": "There are no job requests to show right now."
       }
     },
     "profile": {
