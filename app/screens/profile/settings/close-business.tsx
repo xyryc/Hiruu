@@ -100,7 +100,7 @@ const CloseBusiness = () => {
 
       toast.success(
         t(`api.${result?.message || "deleted_successfully"}`, {
-          defaultValue: "Company deleted successfully",
+          defaultValue: "Company closed successfully",
         })
       );
       setShowDeleteModal(false);

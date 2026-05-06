@@ -164,6 +164,32 @@ interface BusinessState {
       missedShifts?: number;
     }>;
   } | null>;
+  getMonthlyLeaderboard: (
+    businessId: string,
+    params?: { limit?: number }
+  ) => Promise<{
+    period?: {
+      resetAt?: string;
+    };
+    top?: {
+      userId: string;
+      userName?: string;
+      avatar?: string | null;
+      isPremium?: boolean;
+      rank: number;
+      points: number;
+    }[];
+    rewards?: {
+      rank: number;
+      coins: number;
+    }[];
+    me?: {
+      userId: string;
+      rank: number | null;
+      points: number;
+      isRanked?: boolean;
+    };
+  } | null>;
   getPublicBusinessProfile: (businessId: string) => Promise<any>;
   getBusinessEmployees: (businessId: string) => Promise<any[]>;
   updateMyBusinessProfile: (businessId: string, payload: any) => Promise<any>;
@@ -1091,6 +1117,40 @@ export const useBusinessStore = create<BusinessState>()(
             axiosError.response?.data?.error?.message ||
             axiosError.message ||
             "Failed to fetch performance trends";
+          throw new Error(errorMessage);
+        }
+      },
+
+      getMonthlyLeaderboard: async (businessId, params = {}) => {
+        try {
+          if (!businessId) return null;
+
+          const response = await axiosInstance.get(
+            `/analytics/leaderboard/monthly/${businessId}`,
+            {
+              params: {
+                limit: params?.limit ?? 3,
+              },
+            }
+          );
+          const result = response.data;
+
+          if (!result?.success) {
+            const errorMsg =
+              result?.error?.message ||
+              result?.message ||
+              "Failed to fetch monthly leaderboard";
+            throw new Error(errorMsg);
+          }
+
+          return result?.data || null;
+        } catch (error: any) {
+          const axiosError = error as AxiosError<any>;
+          const errorMessage =
+            axiosError.response?.data?.message ||
+            axiosError.response?.data?.error?.message ||
+            axiosError.message ||
+            "Failed to fetch monthly leaderboard";
           throw new Error(errorMessage);
         }
       },

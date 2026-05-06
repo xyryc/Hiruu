@@ -146,28 +146,15 @@ const UserHome = () => {
             {/* Business Summary */}
             {canViewBusinessOverview && (
               <>
-                <BusinessSummary />
+                <BusinessSummary className='mt-7' />
 
                 {/* todays shift summary */}
                 <TodayShiftsSummary />
 
                 {/* Today’s Attendance Summary */}
-                <AttendanceSummary className="mx-5 my-7" />
+                <AttendanceSummary className="mx-5 mt-7" />
               </>
             )}
-
-            {/* rank card */}
-            <ActionCard
-              className="mx-5"
-              title={t("user.profile.leaderboard.seeRank")}
-              buttonTitle={t("common.view")}
-              onPress={() => router.push("/screens/home/leaderboard")}
-              rightImage={require("@/assets/images/rank.svg")}
-              imageClass="absolute bottom-0 right-2.5"
-              imageWidth={144}
-              imageHeight={95}
-              background={require("@/assets/images/chessboard-bg.svg")}
-            />
 
             {/* performance trend */}
             {canViewBusinessStatistics && <PerformanceTrend className="mt-7" />}
@@ -182,9 +169,6 @@ const UserHome = () => {
 
             {/* quick actions */}
             <QuickActionBusiness className="mt-7" />
-
-            {/* your todays shift (for users who are employed in at least one business) */}
-            {hasJoinedAtLeastOneBusiness && <TodaysShift className="mt-7" />}
 
             <JobBoardCta
               className='mt-7'
@@ -222,6 +206,19 @@ const UserHome = () => {
 
             {hasJoinedAtLeastOneBusiness && (
               <>
+                {/* rank card */}
+                <ActionCard
+                  className="mx-5 mt-7"
+                  title={t("user.profile.leaderboard.seeRank")}
+                  buttonTitle={t("common.view")}
+                  onPress={() => router.push("/screens/home/leaderboard")}
+                  rightImage={require("@/assets/images/rank.svg")}
+                  imageClass="absolute bottom-0 right-2.5"
+                  imageWidth={144}
+                  imageHeight={95}
+                  background={require("@/assets/images/chessboard-bg.svg")}
+                />
+
                 {/* your todays shift */}
                 <TodaysShift className="mt-7" />
 

@@ -1,6 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
-import axiosInstance from "@/utils/axios";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
@@ -27,24 +26,46 @@ type LeaderboardTopItem = {
 const TopPerformer = ({ className }: any) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const myEmployments = useBusinessStore((state) => state.myEmployments);
+  const getMyEmployments = useBusinessStore((state) => state.getMyEmployments);
+  const getMonthlyLeaderboard = useBusinessStore((state) => state.getMonthlyLeaderboard);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const selectedBusinessId = selectedBusinesses?.[0];
   const [loading, setLoading] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [items, setItems] = useState<LeaderboardTopItem[]>([]);
+
+  const activeBusinessIds = useMemo(() => {
+    return (Array.isArray(myEmployments) ? myEmployments : [])
+      .filter((employment: any) => {
+        const employmentStatus = String(employment?.status || "").toLowerCase();
+        const businessStatus = String(employment?.business?.status || "").toLowerCase();
+        return employmentStatus === "active" && businessStatus === "active";
+      })
+      .map((employment: any) => employment?.business?.id || employment?.businessId)
+      .filter(Boolean);
+  }, [myEmployments]);
+
+  useEffect(() => {
+    getMyEmployments(true).catch(() => undefined);
+  }, [getMyEmployments]);
 
   const fetchTopPerformer = useCallback(async () => {
     if (!selectedBusinessId) {
       setItems([]);
+      setHasLoadedOnce(true);
+      return;
+    }
+    if (!activeBusinessIds.includes(selectedBusinessId)) {
+      setItems([]);
+      setHasLoadedOnce(true);
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axiosInstance.get(
-        `/analytics/leaderboard/monthly/${selectedBusinessId}`
-      );
-      const result = response?.data;
-      const top = Array.isArray(result?.data?.top) ? result.data.top : [];
+      const result = await getMonthlyLeaderboard(selectedBusinessId, { limit: 10 });
+      const top = Array.isArray(result?.top) ? result.top : [];
       setItems(top);
     } catch (error: any) {
       setItems([]);
@@ -55,8 +76,9 @@ const TopPerformer = ({ className }: any) => {
       );
     } finally {
       setLoading(false);
+      setHasLoadedOnce(true);
     }
-  }, [selectedBusinessId]);
+  }, [activeBusinessIds, getMonthlyLeaderboard, selectedBusinessId]);
 
   useEffect(() => {
     fetchTopPerformer();
@@ -66,6 +88,10 @@ const TopPerformer = ({ className }: any) => {
     () => [...items].sort((a, b) => (a?.rank ?? 0) - (b?.rank ?? 0)),
     [items]
   );
+
+  if (hasLoadedOnce && !loading && sortedItems.length === 0) {
+    return null;
+  }
 
   return (
     <View className={`${className}`}>

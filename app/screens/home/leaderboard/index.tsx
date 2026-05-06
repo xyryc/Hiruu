@@ -3,8 +3,8 @@ import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModa
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
 import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
-import axiosInstance from "@/utils/axios";
 import { MaterialCommunityIcons, SimpleLineIcons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -50,25 +50,51 @@ interface LeaderboardResponse {
 export default function LeaderboardScreen() {
   const myEmployments = useBusinessStore((state) => state.myEmployments);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
-  const setSelectedBusinesses = useBusinessStore(
-    (state) => state.setSelectedBusinesses
-  );
   const getMyEmployments = useBusinessStore((state) => state.getMyEmployments);
+  const getMonthlyLeaderboard = useBusinessStore((state) => state.getMonthlyLeaderboard);
   const authUser = useAuthStore((state) => state.user);
-  const currentBusinessId = selectedBusinesses?.[0] || null;
+  const selectedBusinessId = selectedBusinesses?.[0] || null;
+  const [leaderboardBusinessId, setLeaderboardBusinessId] = useState<string | null>(null);
+  const currentBusinessId = leaderboardBusinessId;
   const [showModal, setShowModal] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardResponse | null>(
     null
   );
+  const [isEmploymentsHydrated, setIsEmploymentsHydrated] = useState(false);
+  const isFocused = useIsFocused();
   const router = useRouter();
 
   useEffect(() => {
-    getMyEmployments().catch(() => undefined);
-  }, [getMyEmployments]);
+    if (!isFocused) {
+      setIsEmploymentsHydrated(false);
+      return;
+    }
+    let isMounted = true;
+    const hydrateEmployments = async () => {
+      try {
+        await getMyEmployments(true);
+        if (!isMounted) return;
+        setIsEmploymentsHydrated(true);
+      } catch {
+        if (!isMounted) return;
+        setIsEmploymentsHydrated(false);
+      }
+    };
+    void hydrateEmployments();
+    return () => {
+      isMounted = false;
+    };
+  }, [getMyEmployments, isFocused]);
 
   const activeBusinesses = useMemo(() => {
     const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
-      (employment: any) => String(employment?.status || "").toLowerCase() === "active"
+      (employment: any) => {
+        const employmentStatus = String(employment?.status || "").toLowerCase();
+        const businessStatus = String(
+          employment?.business?.status || ""
+        ).toLowerCase();
+        return employmentStatus === "active" && businessStatus === "active";
+      }
     );
     const uniqueByBusinessId = new Map<string, any>();
 
@@ -90,14 +116,34 @@ export default function LeaderboardScreen() {
   }, [myEmployments]);
 
   useEffect(() => {
-    if (selectedBusinesses.length > 0) return;
+    if (!isFocused) return;
+    if (!isEmploymentsHydrated) return;
+
+    const selectedIsActive = selectedBusinessId
+      ? activeBusinesses.some((business) => business.id === selectedBusinessId)
+      : false;
+    if (selectedIsActive) {
+      if (leaderboardBusinessId !== selectedBusinessId) {
+        setLeaderboardBusinessId(selectedBusinessId);
+      }
+      return;
+    }
+
     const firstBusinessId = activeBusinesses?.[0]?.id;
-    if (!firstBusinessId) return;
-    setSelectedBusinesses([firstBusinessId]);
-  }, [activeBusinesses, selectedBusinesses, setSelectedBusinesses]);
+    setLeaderboardBusinessId(firstBusinessId || null);
+  }, [activeBusinesses, isEmploymentsHydrated, isFocused, leaderboardBusinessId, selectedBusinessId]);
 
   useEffect(() => {
+    if (!isFocused) return;
+    if (!isEmploymentsHydrated) return;
     if (!currentBusinessId) {
+      setLeaderboardData(null);
+      return;
+    }
+    const isCurrentBusinessActive = activeBusinesses.some(
+      (business) => business.id === currentBusinessId
+    );
+    if (!isCurrentBusinessActive) {
       setLeaderboardData(null);
       return;
     }
@@ -106,15 +152,9 @@ export default function LeaderboardScreen() {
 
     const loadLeaderboard = async () => {
       try {
-        const response = await axiosInstance.get(
-          `/analytics/leaderboard/monthly/${currentBusinessId}`,
-          {
-            params: { limit: 3 },
-          }
-        );
-        const result = response?.data;
+        const result = await getMonthlyLeaderboard(currentBusinessId, { limit: 3 });
         if (!isMounted) return;
-        setLeaderboardData(result?.data ?? null);
+        setLeaderboardData(result ?? null);
       } catch {
         if (!isMounted) return;
         setLeaderboardData(null);
@@ -126,7 +166,13 @@ export default function LeaderboardScreen() {
     return () => {
       isMounted = false;
     };
-  }, [currentBusinessId]);
+  }, [
+    activeBusinesses,
+    currentBusinessId,
+    getMonthlyLeaderboard,
+    isEmploymentsHydrated,
+    isFocused,
+  ]);
 
   const topPerformers = useMemo<Performer[]>(() => {
     return (leaderboardData?.top ?? []).map((item) => ({
@@ -155,9 +201,15 @@ export default function LeaderboardScreen() {
   const getRewardCoins = (rank: number) =>
     leaderboardData?.rewards?.find((item) => item.rank === rank)?.coins ?? 0;
   const handleLeaderboardBusinessSelection = (ids: string[]) => {
-    const nextBusinessId = ids[0] || currentBusinessId || activeBusinesses?.[0]?.id;
+    const candidateId = ids[0] || null;
+    const isActiveCandidate = candidateId
+      ? activeBusinesses.some((business) => business.id === candidateId)
+      : false;
+    const nextBusinessId = isActiveCandidate
+      ? candidateId
+      : currentBusinessId || activeBusinesses?.[0]?.id;
     if (!nextBusinessId) return;
-    setSelectedBusinesses([nextBusinessId]);
+    setLeaderboardBusinessId(nextBusinessId);
   };
 
   const getRankBadge = (rank: number) => {
@@ -204,7 +256,7 @@ export default function LeaderboardScreen() {
         visible={showModal}
         onClose={() => setShowModal(false)}
         businesses={[]}
-        selectedBusinesses={selectedBusinesses}
+        selectedBusinesses={leaderboardBusinessId ? [leaderboardBusinessId] : []}
         onSelectionChange={handleLeaderboardBusinessSelection}
       />
 
