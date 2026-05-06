@@ -1,47 +1,69 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
-import Dropdown from "@/components/ui/dropdown/DropDown";
 import DatePicker from "@/components/ui/inputs/DatePicker";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const FilterShift = () => {
+  const params = useLocalSearchParams<{
+    startDate?: string;
+    endDate?: string;
+    sort?: string;
+    status?: string;
+    type?: string;
+  }>();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  const [selectedSort, setSelectedSort] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const parseDate = (value?: string) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+  const [dateFrom, setDateFrom] = useState<Date | null>(
+    parseDate(typeof params.startDate === "string" ? params.startDate : undefined)
+  );
+  const [dateTo, setDateTo] = useState<Date | null>(
+    parseDate(typeof params.endDate === "string" ? params.endDate : undefined)
+  );
+  const [selectedSort, setSelectedSort] = useState<string>(
+    typeof params.sort === "string" ? params.sort : ""
+  );
+  const [selectedType, setSelectedType] = useState<string>(
+    typeof params.type === "string" ? params.type : ""
+  );
   const sortOptions = [
-    { id: "employeeType", label: "Employee Type" },
-    { id: "date", label: "Date" },
-    { id: "requestType", label: "Request Type" },
+    { id: "createdAt:desc", label: "Newest First" },
+    { id: "createdAt:asc", label: "Oldest First" },
+    { id: "type:asc", label: "Request Type" },
   ];
 
-  const requesrType = [
-    { label: "Late Clock-In" },
-    { label: "Late Entry" },
-    { label: "Missed Clock-Out" },
-    { label: "Overtime" },
-    { label: "Auto Detected" },
+  const requestTypeOptions = [
+    { label: "Leave Request", value: "leave_request" },
+    { label: "Overtime Request", value: "overtime_request" },
+    { label: "Manual Attendance", value: "manual_attendance" },
+    { label: "Schedule Change", value: "schedule_change" },
+    { label: "Early Leave", value: "early_leave" },
+    { label: "Late Arrival", value: "late_arrival" },
   ];
-  const status = [
-    { label: "Approved" },
-    { label: "Pending" },
-    { label: "Declined" },
+  const statusOptions = [
+    { label: "Approved", value: "approved" },
+    { label: "Pending", value: "pending" },
+    { label: "Declined", value: "rejected" },
   ];
 
-  const [selectedIssue, setSelectedIssue] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const issues = [
-    { label: "Missed Punch", value: "Missed Punch" },
-    { label: "Late arrival", value: "Late arrival" },
-    { label: "Early Departure", value: "Early Departure" },
-    { label: "Forget to Tap", value: "Forget to Tap" },
-    { label: "Network Issues", value: "Network Issues" },
-  ];
+  const [selectedStatus, setSelectedStatus] = useState<string>(
+    typeof params.status === "string" ? params.status : ""
+  );
+  const [isApplying, setIsApplying] = useState(false);
+  const toIso = (date?: Date | null) => (date ? date.toISOString() : undefined);
+  const hasAnyFilter = useMemo(
+    () => Boolean(selectedSort || selectedType || selectedStatus || dateFrom || dateTo),
+    [dateFrom, dateTo, selectedSort, selectedStatus, selectedType]
+  );
 
   return (
     <SafeAreaView
@@ -59,11 +81,11 @@ const FilterShift = () => {
         <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
           Date From
         </Text>
-        <DatePicker className="mt-2.5" />
+        <DatePicker className="mt-2.5" value={dateFrom || undefined} onChange={setDateFrom} />
         <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary mt-2.5">
           Date To
         </Text>
-        <DatePicker className="mt-2.5" />
+        <DatePicker className="mt-2.5" value={dateTo || undefined} onChange={setDateTo} />
         <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-8">
           Sort by
         </Text>
@@ -97,46 +119,34 @@ const FilterShift = () => {
           Request Type
         </Text>
         <View className="flex-row flex-wrap gap-x-2 gap-y-4 mt-4">
-          {requesrType.map((request) => (
+          {requestTypeOptions.map((request) => (
             <TouchableOpacity
-              onPress={() => setSelectedType(request.label)}
-              key={request.label}
-              className={`px-4 py-3  rounded-full ${selectedType === request.label ? "bg-[#11293A]" : "border"} `}
+              onPress={() => setSelectedType(request.value)}
+              key={request.value}
+              className={`px-4 py-3  rounded-full ${selectedType === request.value ? "bg-[#11293A]" : "border"} `}
             >
               <Text
-                className={`font-proximanova-semibold text-sm ${selectedType === request.label ? "text-white" : "text-primary"}`}
+                className={`font-proximanova-semibold text-sm ${selectedType === request.value ? "text-white" : "text-primary"}`}
               >
                 {request.label}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Reason Type */}
-
-        <Dropdown
-          label="Reason Type"
-          placeholder="Select an issue"
-          className="mt-8"
-          fontSize={15}
-          options={issues}
-          value={selectedIssue}
-          onSelect={setSelectedIssue}
-        />
 
         {/* status Button */}
         <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-8">
           Status
         </Text>
         <View className="flex-row flex-wrap gap-x-2 gap-y-4 mt-4">
-          {status.map((request) => (
+          {statusOptions.map((request) => (
             <TouchableOpacity
-              onPress={() => setSelectedStatus(request.label)}
-              key={request.label}
-              className={`px-4 py-3  rounded-full ${selectedStatus === request.label ? "bg-[#11293A]" : "border"} `}
+              onPress={() => setSelectedStatus(request.value)}
+              key={request.value}
+              className={`px-4 py-3  rounded-full ${selectedStatus === request.value ? "bg-[#11293A]" : "border"} `}
             >
               <Text
-                className={`font-proximanova-semibold text-sm ${selectedStatus === request.label ? "text-white" : "text-primary"}`}
+                className={`font-proximanova-semibold text-sm ${selectedStatus === request.value ? "text-white" : "text-primary"}`}
               >
                 {request.label}
               </Text>
@@ -144,7 +154,27 @@ const FilterShift = () => {
           ))}
         </View>
 
-        <PrimaryButton title="Apply Filters" className="mt-10" />
+        <PrimaryButton
+          title="Apply Filters"
+          className="mt-10"
+          disabled={!hasAnyFilter || isApplying}
+          loading={isApplying}
+          onPress={() => {
+            const nextParams = {
+              ...(toIso(dateFrom) ? { startDate: toIso(dateFrom) } : {}),
+              ...(toIso(dateTo) ? { endDate: toIso(dateTo) } : {}),
+              ...(selectedSort ? { sort: selectedSort } : {}),
+              ...(selectedStatus ? { status: selectedStatus } : {}),
+              ...(selectedType ? { type: selectedType } : {}),
+            };
+            console.log("[ShiftFilter] apply payload", nextParams);
+            setIsApplying(true);
+            router.replace({
+              pathname: "/screens/home/team/shift-requests",
+              params: nextParams,
+            });
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -212,6 +212,9 @@ type ShiftStoreState = {
     params?: {
       page?: number;
       limit?: number;
+      startDate?: string;
+      endDate?: string;
+      sort?: string;
       status?: string;
       type?: string;
     }
@@ -701,19 +704,31 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         businessShiftRequestsLoading: true,
         businessShiftRequestsError: null,
       });
+      const rawParams = {
+        page: params?.page,
+        limit: params?.limit,
+        startDate: params?.startDate,
+        endDate: params?.endDate,
+        sort: params?.sort,
+        status: params?.status,
+        type: params?.type,
+      };
+      const requestParams = Object.fromEntries(
+        Object.entries(rawParams).filter(([, value]) => value !== undefined && value !== null && value !== "")
+      );
+      console.log("[ShiftStore] GET /shift-requests/business/:id payload", {
+        businessId,
+        params: requestParams,
+      });
 
       const response = await axiosInstance.get(
         `/shift-requests/business/${businessId}`,
         {
-          params: {
-            page: params?.page,
-            limit: params?.limit,
-            status: params?.status,
-            type: params?.type,
-          },
+          params: requestParams,
         }
       );
       const result = response?.data;
+      console.log("[ShiftStore] GET /shift-requests/business/:id response", result);
 
       if (!result?.success) {
         throw new Error(
