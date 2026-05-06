@@ -47,7 +47,11 @@ const ShiftHeader = ({
           <Text className="font-proximanova-regular text-primary dark:text-dark-primary">
             All Shift
           </Text>
-          <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => setCalenderModal(true)}
+            className="flex-row items-center"
+            activeOpacity={0.8}
+          >
             <Text className="text-xl font-proximanova-bold text-primary dark:text-dark-primary">
               {displayDate}
             </Text>
@@ -57,7 +61,7 @@ const ShiftHeader = ({
               color="#666"
               className="ml-2.5"
             />
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View className="flex-row items-center gap-1.5">
