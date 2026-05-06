@@ -6,10 +6,28 @@ import {
 } from '@/types';
 import axiosInstance from '@/utils/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from "expo-file-system";
 
 const ACCESS_TOKEN_STORAGE_KEY = 'auth_access_token';
 
 class ProfileService {
+    private getSafeFileName(name: string, mimeType: string) {
+        const sanitizedBase = (name || "file")
+            .replace(/\.[^/.]+$/, "")
+            .replace(/[^a-zA-Z0-9_-]/g, "_")
+            .slice(0, 80);
+
+        const extByMime: Record<string, string> = {
+            "image/jpeg": "jpg",
+            "image/jpg": "jpg",
+            "image/png": "png",
+            "image/gif": "gif",
+            "image/webp": "webp",
+        };
+        const ext = extByMime[mimeType] || "bin";
+        return `${sanitizedBase || "file"}.${ext}`;
+    }
+
     private isFileLike(value: any): value is { uri: string; type: string; name: string } {
         return Boolean(
             value &&
@@ -126,8 +144,65 @@ class ProfileService {
         return formData;
     }
 
+    private async prepareExperiencePayload(payload: Record<string, any>) {
+        const nextPayload: Record<string, any> = { ...payload };
+        const logo = nextPayload.customBusinessLogo;
+        if (!this.isFileLike(logo)) return nextPayload;
+
+        const safeFileName = this.getSafeFileName(logo.name, logo.type);
+        let uploadUri = logo.uri;
+        if (uploadUri.startsWith("content://")) {
+            const targetPath = `${FileSystem.cacheDirectory}${Date.now()}_${safeFileName}`;
+            await FileSystem.copyAsync({
+                from: uploadUri,
+                to: targetPath,
+            });
+            uploadUri = targetPath;
+        }
+
+        nextPayload.customBusinessLogo = {
+            uri: uploadUri,
+            name: safeFileName,
+            type: logo.type,
+        };
+
+        return nextPayload;
+    }
+
     private hasFileInExperiencePayload(payload: Record<string, any>) {
         return Object.values(payload).some((value) => this.isFileLike(value));
+    }
+
+    private async sendExperienceMultipart(
+        method: "POST" | "PATCH",
+        path: string,
+        payload: Record<string, any>
+    ) {
+        const baseUrl = process.env.EXPO_PUBLIC_API_URL;
+        if (!baseUrl) {
+            throw new Error("API URL not configured");
+        }
+        const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+        const formData = this.buildExperienceFormData(payload);
+        const response = await fetch(`${baseUrl}${path}`, {
+            method,
+            headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+            body: formData,
+        });
+
+        const rawText = await response.text();
+        let result: any = null;
+        try {
+            result = rawText ? JSON.parse(rawText) : null;
+        } catch {
+            result = null;
+        }
+
+        if (!response.ok || result?.success === false) {
+            throw new Error(result?.message || "Failed to sync experience");
+        }
+
+        return result;
     }
 
     private compactPayload<T extends Record<string, any>>(payload: T): Partial<T> {
@@ -191,9 +266,10 @@ class ProfileService {
                     endDate: payload.endDate,
                     isCurrent: payload.isCurrent,
                 });
+                const preparedPayload = await this.prepareExperiencePayload(requestPayload);
 
                 if (existing?.id) {
-                    if (!this.isExperienceChanged(existing, requestPayload)) {
+                    if (!this.isExperienceChanged(existing, preparedPayload)) {
                         console.log("[ProfileService] PATCH /experiences skipped (no changes)", {
                             id: existing.id,
                         });
@@ -201,16 +277,18 @@ class ProfileService {
                     }
                     console.log("[ProfileService] PATCH /experiences/:id", {
                         id: existing.id,
-                        payload: requestPayload,
+                        payload: preparedPayload,
                     });
-                    const patchResponse = this.hasFileInExperiencePayload(requestPayload)
-                        ? await axiosInstance.patch(
+                    const patchResponse = this.hasFileInExperiencePayload(preparedPayload)
+                        ? await this.sendExperienceMultipart(
+                            "PATCH",
                             `/experiences/${existing.id}`,
-                            this.buildExperienceFormData(requestPayload),
-                            { headers: { "Content-Type": "multipart/form-data" } }
+                            preparedPayload
                         )
-                        : await axiosInstance.patch(`/experiences/${existing.id}`, requestPayload);
-                    const patchResult = patchResponse?.data;
+                        : await axiosInstance.patch(`/experiences/${existing.id}`, preparedPayload);
+                    const patchResult = this.hasFileInExperiencePayload(preparedPayload)
+                        ? patchResponse
+                        : patchResponse?.data;
                     console.log("[ProfileService] PATCH /experiences/:id response", {
                         id: existing.id,
                         result: patchResult,
@@ -220,16 +298,18 @@ class ProfileService {
                     }
                 } else {
                     console.log("[ProfileService] POST /experiences", {
-                        payload: requestPayload,
+                        payload: preparedPayload,
                     });
-                    const postResponse = this.hasFileInExperiencePayload(requestPayload)
-                        ? await axiosInstance.post(
+                    const postResponse = this.hasFileInExperiencePayload(preparedPayload)
+                        ? await this.sendExperienceMultipart(
+                            "POST",
                             "/experiences",
-                            this.buildExperienceFormData(requestPayload),
-                            { headers: { "Content-Type": "multipart/form-data" } }
+                            preparedPayload
                         )
-                        : await axiosInstance.post("/experiences", requestPayload);
-                    const postResult = postResponse?.data;
+                        : await axiosInstance.post("/experiences", preparedPayload);
+                    const postResult = this.hasFileInExperiencePayload(preparedPayload)
+                        ? postResponse
+                        : postResponse?.data;
                     console.log("[ProfileService] POST /experiences response", {
                         result: postResult,
                     });
