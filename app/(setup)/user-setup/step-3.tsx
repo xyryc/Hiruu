@@ -25,7 +25,7 @@ export default function Step3({
   const hasPrefilledFromProfile = useRef(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
-  const { updateProfile, isLoading } = useProfileStore();
+  const { updateProfile, syncExperiences, isLoading } = useProfileStore();
 
   useEffect(() => {
     if (!user || hasPrefilledFromProfile.current) return;
@@ -43,7 +43,7 @@ export default function Step3({
         exp?.business?.name ||
         customBusinessName ||
         `Experience ${index + 1}`;
-      const companyId = businessId || exp?.id || `custom_${index}`;
+      const companyId = businessId || `custom_${exp?.id || index}`;
       return {
         id: exp?.id,
         companyId,
@@ -75,41 +75,63 @@ export default function Step3({
   const handleNext = async () => {
     // Skip if no work experience added
     if (workExperiences.length === 0) {
-      onComplete();
+      try {
+        await updateProfile({ onboarding: 3 });
+        onComplete();
+      } catch (error: any) {
+        toast.error(error.message || t("user.setup.profileUpdateError"));
+      }
       return;
     }
 
     try {
-      // Transform work experiences for API
-      const profileData = {
-        experiences: workExperiences.map((exp) => ({
-          businessId:
-            exp.businessId ||
-            (typeof exp.companyId === "string" && !exp.companyId.startsWith("custom_")
-              ? exp.companyId
-              : undefined),
-          customBusinessName:
-            exp.customBusinessName ||
-            (!exp.businessId ? exp.companyName : undefined),
-          customBusinessLogo: exp.customBusinessLogo || undefined,
-          position: exp.position || undefined,
-          description: exp.description || undefined,
-          startDate:
-            exp.startDate instanceof Date
-              ? exp.startDate.toISOString()
-              : exp.startDate || undefined,
-          endDate:
-            exp.endDate instanceof Date
-              ? exp.endDate.toISOString()
-              : exp.endDate || undefined,
-          isCurrent: Boolean(exp.isCurrent),
-        })),
-        onboarding: 3,
-      };
+      const normalizedExperiences = workExperiences.filter((exp) =>
+        Boolean(
+          exp?.businessId ||
+            exp?.customBusinessName ||
+            exp?.companyId ||
+            exp?.companyName
+        )
+      );
 
-      await updateProfile(profileData);
+      for (const exp of normalizedExperiences) {
+        const hasBusinessRef = Boolean(exp?.businessId);
+        const hasCustomName = Boolean(
+          String(exp?.customBusinessName || exp?.companyName || "").trim()
+        );
+        const hasPosition = Boolean(String(exp?.position || "").trim());
+        const hasStartDate = Boolean(exp?.startDate);
+
+        if (!hasBusinessRef && !hasCustomName) {
+          toast.error("Please select a company or enter a custom company name.");
+          return;
+        }
+        if (!hasPosition) {
+          toast.error("Please enter your position for each experience.");
+          return;
+        }
+        if (!hasStartDate) {
+          toast.error("Please select a start date for each experience.");
+          return;
+        }
+      }
+
+      const uniqueExperienceDrafts = new Map<string, Companies>();
+      normalizedExperiences.forEach((exp) => {
+        const key =
+          exp?.id ||
+          exp?.businessId ||
+          exp?.companyId ||
+          exp?.customBusinessName;
+        if (!key) return;
+        if (!uniqueExperienceDrafts.has(String(key))) {
+          uniqueExperienceDrafts.set(String(key), exp);
+        }
+      });
+
+      await updateProfile({ onboarding: 3 });
+      await syncExperiences(Array.from(uniqueExperienceDrafts.values()), []);
       onComplete();
-      // console.log("from step 3", profileData);
     } catch (error: any) {
       toast.error(error.message || t("user.setup.profileUpdateError"));
       console.error("Profile update error:", error);

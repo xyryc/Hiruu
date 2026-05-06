@@ -86,12 +86,7 @@ class ProfileService {
     }
 
     private normalizeExperiencePayload(experience: any) {
-        const normalizedBusinessId =
-            experience?.businessId ||
-            (typeof experience?.companyId === "string" &&
-            !experience.companyId.startsWith("custom_")
-                ? experience.companyId
-                : undefined);
+        const normalizedBusinessId = experience?.businessId;
         const normalizedCustomBusinessName = !normalizedBusinessId
             ? experience?.customBusinessName || experience?.companyName
             : undefined;
