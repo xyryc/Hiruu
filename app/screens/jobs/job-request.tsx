@@ -60,6 +60,7 @@ const JobRequest = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<{
     id: string;
     status: "approved" | "rejected";
@@ -159,6 +160,15 @@ const JobRequest = () => {
     if (!canLoadMore || isLoadingMore || isLoading) return;
     await loadApplications(page + 1, true);
   };
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      await loadApplications(1, false);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [loadApplications]);
 
   const goToPrevPage = async () => {
     if (page <= 1 || isLoading || isLoadingMore) return;
@@ -375,7 +385,10 @@ const JobRequest = () => {
                       className="bg-white border border-[#EEEEEE] rounded-xl mb-4 p-4"
                     >
                       <View className="flex-row items-start">
-                        <View className="h-12 w-12 rounded-full bg-[#E5E7EB]" />
+                        <View
+                          className="h-12 w-12 bg-[#E5E7EB]"
+                          style={{ borderRadius: 999, overflow: "hidden" }}
+                        />
                         <View className="flex-1 ml-3">
                           <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
                           <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-2" />
@@ -462,6 +475,8 @@ const JobRequest = () => {
           }
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
+          onRefresh={handleRefresh}
+          refreshing={isRefreshing}
           showsVerticalScrollIndicator={false}
           className="bg-white"
           keyboardShouldPersistTaps="handled"

@@ -201,29 +201,104 @@ const PublicBusinessProfile = () => {
           <AutoSkeletonView isLoading={true} defaultRadius={12}>
             <View className="relative">
               <View className="w-full h-[137px] bg-[#E5E7EB]" />
-              <View className="absolute -bottom-11 left-6 h-[90px] w-[90px] rounded-full bg-[#E5E7EB]" />
+              <View
+                className="absolute -bottom-11 left-6 h-[90px] w-[90px] bg-[#E5E7EB]"
+                style={{ borderRadius: 999, overflow: "hidden" }}
+              />
+              <View className="absolute -bottom-3 right-6 h-7 w-28 rounded-full bg-[#E5E7EB]" />
             </View>
 
             <View className="mx-6 mt-16">
-              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
-              <View className="h-4 w-60 rounded-md bg-[#E5E7EB] mt-3" />
+              <View className="flex-row items-center gap-2">
+                <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+                <View className="h-5 w-5 rounded-full bg-[#E5E7EB]" />
+                <View className="h-5 w-5 rounded-full bg-[#E5E7EB]" />
+              </View>
+              <View className="mt-3 flex-row items-center gap-2">
+                <View className="h-4 w-4 rounded-full bg-[#E5E7EB]" />
+                <View className="h-4 w-56 rounded-md bg-[#E5E7EB]" />
+              </View>
             </View>
 
             <View className="mx-5 mt-4 flex-row gap-4">
-              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
-              <View className="h-5 flex-1 rounded-md bg-[#E5E7EB]" />
+              <View className="h-7 flex-1 rounded-md bg-[#E5E7EB]" />
+              <View className="h-7 flex-1 rounded-md bg-[#E5E7EB]" />
             </View>
 
             <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
-              <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
-              <View className="h-4 w-full rounded-md bg-[#E5E7EB] mt-4" />
-              <View className="h-4 w-[80%] rounded-md bg-[#E5E7EB] mt-2.5" />
+              <View className="flex-row items-center justify-between">
+                <View className="h-5 w-40 rounded-md bg-[#E5E7EB]" />
+                <View className="h-4 w-20 rounded-md bg-[#E5E7EB]" />
+              </View>
+              <View className="mt-5 flex-row items-center justify-between">
+                <View className="h-16 flex-1 rounded-xl bg-[#E5E7EB]" />
+                <View className="mx-2 h-16 w-[1px] bg-[#E5E7EB]" />
+                <View className="h-16 flex-1 rounded-xl bg-[#E5E7EB]" />
+                <View className="mx-2 h-16 w-[1px] bg-[#E5E7EB]" />
+                <View className="h-16 flex-1 rounded-xl bg-[#E5E7EB]" />
+              </View>
             </View>
 
-            <View className="mx-5 mt-6 border border-[#EEEEEE] rounded-2xl p-4">
-              <View className="h-5 w-48 rounded-md bg-[#E5E7EB]" />
-              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-4" />
-              <View className="h-10 w-full rounded-xl bg-[#E5E7EB] mt-3" />
+            <View className="mx-5 mt-8 flex-row items-center gap-3">
+              <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+              <View className="h-6 w-28 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-4">
+              <View className="h-4 w-full rounded-md bg-[#E5E7EB]" />
+              <View className="h-4 w-[85%] rounded-md bg-[#E5E7EB] mt-2.5" />
+              <View className="h-4 w-[70%] rounded-md bg-[#E5E7EB] mt-2.5" />
+            </View>
+
+            <View className="mx-5 mt-8 flex-row items-center gap-3">
+              <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+              <View className="h-6 w-44 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-4 border border-[#EEEEEE] rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
+                <View className="h-4 w-8 rounded-md bg-[#E5E7EB]" />
+              </View>
+            </View>
+
+            <View className="mx-5 mt-4 border border-[#EEEEEE] rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+                <View className="h-4 w-10 rounded-md bg-[#E5E7EB]" />
+              </View>
+              <View className="mt-4 flex-row items-center justify-between">
+                <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+                <View className="h-4 w-10 rounded-md bg-[#E5E7EB]" />
+              </View>
+            </View>
+
+            <View className="mx-5 mt-8 flex-row items-center gap-3">
+              <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+              <View className="h-6 w-36 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-4 rounded-2xl bg-[#E5E7EB] px-3 py-3">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3">
+                  <View
+                    className="h-10 w-10 bg-[#D7D9DE]"
+                    style={{ borderRadius: 999, overflow: "hidden" }}
+                  />
+                  <View className="h-4 w-24 rounded-md bg-[#D7D9DE]" />
+                </View>
+                <View className="h-11 w-11 rounded-full bg-[#D7D9DE]" />
+              </View>
+            </View>
+
+            <View className="mx-5 mt-8 flex-row items-center gap-3">
+              <View className="h-8 w-8 rounded-full bg-[#E5E7EB]" />
+              <View className="h-6 w-28 rounded-md bg-[#E5E7EB]" />
+            </View>
+
+            <View className="mx-5 mt-4 mb-4">
+              <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
+              <View className="h-12 w-full rounded-xl bg-[#E5E7EB] mt-3" />
             </View>
           </AutoSkeletonView>
         ) : null}
