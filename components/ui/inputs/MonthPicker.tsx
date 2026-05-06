@@ -2,10 +2,12 @@ import { MonthPickerProps } from "@/types";
 import { Entypo, Ionicons, SimpleLineIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
+  const { t, i18n } = useTranslation();
   const [show, setShow] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(value || new Date());
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -18,8 +20,21 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
   }, [show, value]);
 
   const months = useMemo(
-    () => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    []
+    () => [
+      t("common.monthsShort.jan"),
+      t("common.monthsShort.feb"),
+      t("common.monthsShort.mar"),
+      t("common.monthsShort.apr"),
+      t("common.monthsShort.may"),
+      t("common.monthsShort.jun"),
+      t("common.monthsShort.jul"),
+      t("common.monthsShort.aug"),
+      t("common.monthsShort.sep"),
+      t("common.monthsShort.oct"),
+      t("common.monthsShort.nov"),
+      t("common.monthsShort.dec"),
+    ],
+    [t]
   );
 
   const years = useMemo(() => {
@@ -33,9 +48,9 @@ const MonthPicker = ({ value, onDateChange, bgColor }: MonthPickerProps) => {
   };
 
   const formatMonth = (date: Date | null) => {
-    if (!date) return "Month, Year";
+    if (!date) return t("common.monthYearPlaceholder");
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(i18n.language || undefined, {
       month: "long",
       year: "2-digit",
     });

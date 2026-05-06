@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   FlatList,
@@ -45,7 +46,19 @@ const getActionPayloadValue = (
   return toNonEmptyString((payload as Record<string, unknown>)[key]);
 };
 
-const formatRelativeTime = (value?: string | null) => {
+const isGenericNotificationText = (value?: string | null) => {
+  const normalized = String(value || "").trim().toLowerCase();
+  return (
+    normalized === "" ||
+    normalized === "notification" ||
+    normalized === "you have a new notification."
+  );
+};
+
+const formatRelativeTime = (
+  value: string | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string
+) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -55,14 +68,17 @@ const formatRelativeTime = (value?: string | null) => {
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
+  if (mins < 1) return t("notificationsScreen.time.justNow");
+  if (mins < 60) return t("notificationsScreen.time.minutesAgo", { count: mins });
+  if (hours < 24) return t("notificationsScreen.time.hoursAgo", { count: hours });
+  if (days < 7) return t("notificationsScreen.time.daysAgo", { count: days });
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-const getSectionLabel = (value?: string | null) => {
+const getSectionLabel = (
+  value: string | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string
+) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -76,8 +92,8 @@ const getSectionLabel = (value?: string | null) => {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 
-  if (isSameDay(date, today)) return "Today";
-  if (isSameDay(date, yesterday)) return "Yesterday";
+  if (isSameDay(date, today)) return t("notificationsScreen.time.today");
+  if (isSameDay(date, yesterday)) return t("notificationsScreen.time.yesterday");
   return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
 };
 
@@ -105,6 +121,13 @@ const resolveNotificationVisual = (type: string) => {
     };
   }
 
+  if (normalized.includes("shift")) {
+    return {
+      icon: <Ionicons name="calendar-outline" size={20} color="#4FB2F3" />,
+      iconBackgroundColor: "#E5F4FD",
+    };
+  }
+
   if (normalized.includes("cancel")) {
     return {
       icon: <EvilIcons name="close-o" size={22} color="#F34F4F" />,
@@ -125,7 +148,10 @@ const resolveNotificationVisual = (type: string) => {
   };
 };
 
-const resolveNotificationTitle = (item: NotificationItem) => {
+const resolveNotificationTitle = (
+  item: NotificationItem,
+  t: (key: string, options?: Record<string, unknown>) => string
+) => {
   const metadata = item.metadata || {};
 
   if (item.type === "chat_message") {
@@ -133,23 +159,31 @@ const resolveNotificationTitle = (item: NotificationItem) => {
     const roomName = String((metadata as any)?.roomName || "").trim();
 
     if (senderName) {
-      return roomName ? `Message from ${senderName} (${roomName})` : `Message from ${senderName}`;
+      return roomName
+        ? t("notificationsScreen.title.messageFromWithRoom", {
+            senderName,
+            roomName,
+          })
+        : t("notificationsScreen.title.messageFrom", { senderName });
     }
   }
 
   if (item.type === "call_incoming") {
     const callTypeRaw = String((metadata as any)?.callType || "").trim().toLowerCase();
-    const callType = callTypeRaw === "video" ? "Video" : "Audio";
-    return `Incoming ${callType} Call`;
+    const callType =
+      callTypeRaw === "video"
+        ? t("notificationsScreen.callType.video")
+        : t("notificationsScreen.callType.audio");
+    return t("notificationsScreen.title.incomingCall", { callType });
   }
 
   if (item.type === "business_announcement") {
-    return "Employee Joined Business";
+    return t("notificationsScreen.title.employeeJoinedBusiness");
   }
 
   if (item.type === "clock_in_reminder") {
     const rawTitle = String(item.title || "").trim();
-    return rawTitle || "Shift reminder";
+    return rawTitle || t("notificationsScreen.title.shiftReminder");
   }
 
   if (item.type === "coins_earned") {
@@ -158,20 +192,44 @@ const resolveNotificationTitle = (item: NotificationItem) => {
 
     if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
       if (Number.isFinite(rank) && rank > 0) {
-        return `You earned ${rewardCoins} coins (Rank #${rank})`;
+        return t("notificationsScreen.title.coinsEarnedWithRank", {
+          rewardCoins,
+          rank,
+        });
       }
-      return `You earned ${rewardCoins} coins`;
+      return t("notificationsScreen.title.coinsEarned", { rewardCoins });
     }
   }
 
+  if (item.type === "shift_assigned") {
+    const businessName = String((metadata as any)?.businessName || "").trim();
+    if (businessName) {
+      return t("notificationsScreen.title.newShiftAssignedAt", { businessName });
+    }
+    return t("notificationsScreen.title.newShiftAssigned");
+  }
+
+  if (item.type === "achievement_unlocked") {
+    const achievementTitle = String((metadata as any)?.achievementTitle || "").trim();
+    if (achievementTitle) {
+      return t("notificationsScreen.title.achievementUnlockedWithTitle", {
+        achievementTitle,
+      });
+    }
+    return t("notificationsScreen.title.achievementUnlocked");
+  }
+
   const raw = String(item.title || "").trim();
-  if (!raw) return "Notification";
+  if (isGenericNotificationText(raw)) return t("notificationsScreen.title.notification");
 
   const translated = translateApiMessage(raw);
   return translated || raw;
 };
 
-const resolveNotificationBody = (item: NotificationItem) => {
+const resolveNotificationBody = (
+  item: NotificationItem,
+  t: (key: string, options?: Record<string, unknown>) => string
+) => {
   const metadata = item.metadata || {};
   const raw = String(item.message || "").trim();
   const translated = raw ? translateApiMessage(raw) : "";
@@ -184,14 +242,16 @@ const resolveNotificationBody = (item: NotificationItem) => {
 
   if (item.type === "call_incoming") {
     const callerName = String((metadata as any)?.callerName || "").trim();
-    if (callerName) return `${callerName} is calling you`;
-    return "You have an incoming call.";
+    if (callerName) return t("notificationsScreen.body.callerIsCalling", { callerName });
+    return t("notificationsScreen.body.incomingCall");
   }
 
   if (item.type === "business_announcement") {
     const employeeName = String((metadata as any)?.joinedEmployeeName || "").trim();
-    if (employeeName) return `${employeeName} joined your business.`;
-    return "A new employee joined your business.";
+    if (employeeName) {
+      return t("notificationsScreen.body.employeeJoinedWithName", { employeeName });
+    }
+    return t("notificationsScreen.body.employeeJoined");
   }
 
   if (item.type === "clock_in_reminder") {
@@ -200,9 +260,11 @@ const resolveNotificationBody = (item: NotificationItem) => {
 
     const smartAlertMinutes = Number((metadata as any)?.smartAlertMinutes);
     if (Number.isFinite(smartAlertMinutes) && smartAlertMinutes > 0) {
-      return `Your shift starts in ${smartAlertMinutes} minutes.`;
+      return t("notificationsScreen.body.shiftStartsInMinutes", {
+        smartAlertMinutes,
+      });
     }
-    return "Your shift starts soon.";
+    return t("notificationsScreen.body.shiftStartsSoon");
   }
 
   if (item.type === "coins_earned") {
@@ -220,18 +282,70 @@ const resolveNotificationBody = (item: NotificationItem) => {
 
     if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
       if (Number.isFinite(rank) && rank > 0) {
-        return `You ranked #${rank} on the ${periodLabel} leaderboard and earned ${rewardCoins} coins.`;
+        return t("notificationsScreen.body.coinsEarnedWithRank", {
+          rank,
+          periodLabel,
+          rewardCoins,
+        });
       }
-      return `You earned ${rewardCoins} coins from the ${periodLabel} leaderboard.`;
+      return t("notificationsScreen.body.coinsEarnedLeaderboard", {
+        rewardCoins,
+        periodLabel,
+      });
     }
+  }
+
+  if (item.type === "shift_assigned") {
+    const businessName = String((metadata as any)?.businessName || "").trim();
+    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
+    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
+    const formattedShiftDate =
+      shiftDate && !Number.isNaN(shiftDate.getTime())
+        ? shiftDate.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : shiftDateRaw;
+
+    if (businessName && formattedShiftDate) {
+      return t("notificationsScreen.body.shiftAssignedByBusinessOnDate", {
+        businessName,
+        formattedShiftDate,
+      });
+    }
+    if (formattedShiftDate) {
+      return t("notificationsScreen.body.shiftAssignedOnDate", {
+        formattedShiftDate,
+      });
+    }
+    return t("notificationsScreen.body.shiftAssigned");
+  }
+
+  if (item.type === "achievement_unlocked") {
+    const achievementTitle = String((metadata as any)?.achievementTitle || "").trim();
+    const rewardCoins = Number((metadata as any)?.rewardCoins);
+    if (achievementTitle && Number.isFinite(rewardCoins) && rewardCoins > 0) {
+      return t("notificationsScreen.body.achievementCompletedWithReward", {
+        achievementTitle,
+        rewardCoins,
+      });
+    }
+    if (achievementTitle) {
+      return t("notificationsScreen.body.achievementCompleted", {
+        achievementTitle,
+      });
+    }
+    return t("notificationsScreen.body.achievementUnlocked");
   }
 
   if (translated) return translated;
   if (raw) return raw;
-  return "You have a new notification.";
+  return t("notificationsScreen.body.newNotification");
 };
 
 const NotificationScreen = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [modalVisible, setModalVisible] = useState(false);
@@ -260,10 +374,14 @@ const NotificationScreen = () => {
           append,
         });
       } catch (error: any) {
-        toast.error(translateApiMessage(error?.message || "Failed to fetch notifications"));
+        toast.error(
+          translateApiMessage(
+            error?.message || t("notificationsScreen.error.failedToFetch")
+          )
+        );
       }
     },
-    [fetchNotifications]
+    [fetchNotifications, t]
   );
 
   useFocusEffect(
@@ -277,7 +395,7 @@ const NotificationScreen = () => {
   const listData = useMemo<NotificationListItem[]>(() => {
     let previousLabel = "";
     return notifications.map((item) => {
-      const currentLabel = getSectionLabel(item.createdAt);
+      const currentLabel = getSectionLabel(item.createdAt, t);
       const showLabel = currentLabel && currentLabel !== previousLabel ? currentLabel : undefined;
       previousLabel = currentLabel;
       return {
@@ -285,7 +403,7 @@ const NotificationScreen = () => {
         timeTitle: showLabel,
       };
     });
-  }, [notifications]);
+  }, [notifications, t]);
   const skeletonRows = useMemo(
     () =>
       Array.from({ length: 6 }, (_, index) => ({
@@ -344,6 +462,10 @@ const NotificationScreen = () => {
         getActionPayloadValue(action, "shiftAssignmentId") ||
         toNonEmptyString(metadata.shiftAssignmentId) ||
         targetId;
+      const achievementId =
+        getActionPayloadValue(action, "achievementId") ||
+        toNonEmptyString(metadata.achievementId) ||
+        targetId;
 
       const callTypeRaw =
         getActionPayloadValue(action, "callType") ||
@@ -356,7 +478,7 @@ const NotificationScreen = () => {
         targetType === "chat_message"
       ) {
         if (!chatRoomId) {
-          toast.error("Unable to open chat for this notification.");
+          toast.error(t("notificationsScreen.error.unableToOpenChat"));
           return;
         }
         router.push({
@@ -368,7 +490,7 @@ const NotificationScreen = () => {
 
       if (actionKey === "join_call" || item.type === "call_incoming" || targetType === "call") {
         if (!targetId) {
-          toast.error("Unable to open call for this notification.");
+          toast.error(t("notificationsScreen.error.unableToOpenCall"));
           return;
         }
         router.push({
@@ -389,7 +511,7 @@ const NotificationScreen = () => {
         item.relatedEntityType === "shift_assignment"
       ) {
         if (!shiftAssignmentId) {
-          toast.error("Unable to open shift details for this notification.");
+          toast.error(t("notificationsScreen.error.unableToOpenShiftDetails"));
           return;
         }
         router.push({
@@ -398,8 +520,24 @@ const NotificationScreen = () => {
         });
         return;
       }
+
+      if (
+        actionKey === "view_achievement" ||
+        item.type === "achievement_unlocked" ||
+        targetType === "achievement_unlock"
+      ) {
+        if (achievementId) {
+          router.push({
+            pathname: "/screens/rewards/challenges",
+            params: { highlight: achievementId },
+          });
+        } else {
+          router.push("/screens/rewards/challenges");
+        }
+        return;
+      }
     },
-    [markNotificationAsRead]
+    [markNotificationAsRead, t]
   );
 
   const handleMarkAllAsRead = useCallback(async () => {
@@ -412,10 +550,12 @@ const NotificationScreen = () => {
       );
     } catch (error: any) {
       toast.error(
-        translateApiMessage(error?.message || "Failed to mark all notifications as read")
+        translateApiMessage(
+          error?.message || t("notificationsScreen.error.failedToMarkAllAsRead")
+        )
       );
     }
-  }, [markAllNotificationsAsRead]);
+  }, [markAllNotificationsAsRead, t]);
 
   return (
     <SafeAreaView
@@ -425,7 +565,7 @@ const NotificationScreen = () => {
       <View className="bg-[#E5F4FD] dark:bg-dark-border rounded-b-2xl pt-14 px-5 pb-4">
         <ScreenHeader
           onPressBack={() => router.back()}
-          title="Notifications"
+          title={t("notificationsScreen.headerTitle")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
           components={
@@ -456,9 +596,9 @@ const NotificationScreen = () => {
           return (
             <NotificationCard
               timeTitle={timeTitle}
-              title={resolveNotificationTitle(item)}
-              details={resolveNotificationBody(item)}
-              time={formatRelativeTime(item.createdAt)}
+              title={resolveNotificationTitle(item, t)}
+              details={resolveNotificationBody(item, t)}
+              time={formatRelativeTime(item.createdAt, t)}
               onPress={() => handleNotificationPress(item)}
               isUnread={!item.isRead}
               border
@@ -496,7 +636,7 @@ const NotificationScreen = () => {
           ) : (
             <View className="py-10 items-center">
               <Text className="text-sm text-secondary dark:text-dark-secondary">
-                No notifications yet.
+                {t("notificationsScreen.empty")}
               </Text>
             </View>
           )

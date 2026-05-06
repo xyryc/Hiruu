@@ -8,6 +8,7 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -45,6 +46,7 @@ const setAllValues = <T extends Record<string, boolean>>(input: T, value: boolea
   }, { ...input });
 
 const NotificationPreferences = () => {
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const user = useAuthStore((state) => state.user as any);
@@ -196,7 +198,9 @@ const NotificationPreferences = () => {
         lastSyncedPayloadRef.current = serializedPayload;
       } catch (error: any) {
         toast.error(
-          translateApiMessage(error?.message || "Failed to update preferences")
+          translateApiMessage(
+            error?.message || t("notificationsScreen.preferences.error.failedToUpdate")
+          )
         );
       }
     }, 500);
@@ -214,6 +218,7 @@ const NotificationPreferences = () => {
     user?.appSettings?.smartAlertTime,
     user?.appSettings?.theme,
     user?.appSettings?.timeZone,
+    t,
   ]);
 
   type GeneralKeys = keyof GeneralSettings;
@@ -279,26 +284,70 @@ const NotificationPreferences = () => {
   };
 
   const generalConfig: { key: GeneralKeys; label: string }[] = [
-    { key: "shiftReminders", label: "Shift Reminders" },
-    { key: "scheduleUpdates", label: "Schedule Updates" },
-    { key: "newAssigned", label: "New Assigned" },
-    { key: "shiftCancellation", label: "Shift Cancellation" },
-    { key: "managerMessages", label: "Manager Messages" },
+    {
+      key: "shiftReminders",
+      label: t("notificationsScreen.preferences.generalSettings.shiftReminders"),
+    },
+    {
+      key: "scheduleUpdates",
+      label: t("notificationsScreen.preferences.generalSettings.scheduleUpdates"),
+    },
+    {
+      key: "newAssigned",
+      label: t("notificationsScreen.preferences.generalSettings.newAssigned"),
+    },
+    {
+      key: "shiftCancellation",
+      label: t("notificationsScreen.preferences.generalSettings.shiftCancellation"),
+    },
+    {
+      key: "managerMessages",
+      label: t("notificationsScreen.preferences.generalSettings.managerMessages"),
+    },
   ];
 
   const emailConfig: { key: EmailKeys; label: string }[] = [
-    { key: "dailyWeeklyReports", label: "Daily/Weekly Reports" },
-    { key: "subscriptionPaymentUpdates", label: "Subscription Payment Updates" },
-    { key: "leaveRequestStatus", label: "Leave Request Status" },
-    { key: "shiftCancellation", label: "Shift Cancellation" },
-    { key: "importantAnnouncements", label: "Important Announcements" },
+    {
+      key: "dailyWeeklyReports",
+      label: t("notificationsScreen.preferences.emailSettings.dailyWeeklyReports"),
+    },
+    {
+      key: "subscriptionPaymentUpdates",
+      label: t(
+        "notificationsScreen.preferences.emailSettings.subscriptionPaymentUpdates"
+      ),
+    },
+    {
+      key: "leaveRequestStatus",
+      label: t("notificationsScreen.preferences.emailSettings.leaveRequestStatus"),
+    },
+    {
+      key: "shiftCancellation",
+      label: t("notificationsScreen.preferences.emailSettings.shiftCancellation"),
+    },
+    {
+      key: "importantAnnouncements",
+      label: t("notificationsScreen.preferences.emailSettings.importantAnnouncements"),
+    },
   ];
 
   const pushConfig: { key: PushKeys; label: string }[] = [
-    { key: "newMessageAlerts", label: "New Message Alerts" },
-    { key: "ratingReviewReceived", label: "Rating/Review Received" },
-    { key: "newJobOpportunities", label: "New Job Opportunities" },
-    { key: "appUpdatesTips", label: "App Updates / Tips" },
+    {
+      key: "newMessageAlerts",
+      label: t("notificationsScreen.preferences.pushSettings.newMessageAlerts"),
+    },
+    {
+      key: "ratingReviewReceived",
+      label: t("notificationsScreen.preferences.pushSettings.ratingReviewReceived"),
+    },
+    {
+      key: "newJobOpportunities",
+      label: t("notificationsScreen.preferences.pushSettings.newJobOpportunities"),
+    },
+    {
+      key: "appUpdatesTips",
+      label: t("notificationsScreen.preferences.pushSettings.appUpdatesTips"),
+    },
   ];
 
   return (
@@ -310,7 +359,7 @@ const NotificationPreferences = () => {
         <ScreenHeader
           className="my-4"
           onPressBack={() => router.back()}
-          title="Notification Preferences"
+          title={t("notificationsScreen.preferences.title")}
           titleClass="text-primary dark:text-dark-primary"
           iconColor={isDark ? "#fff" : "#111"}
         />
@@ -319,13 +368,13 @@ const NotificationPreferences = () => {
       <ScrollView showsVerticalScrollIndicator={false} className="px-5">
         <View className="flex-row justify-between items-center mt-7">
           <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
-            Enable All Notification
+            {t("notificationsScreen.preferences.enableAll")}
           </Text>
           <ToggleButton setIsOn={handleToggleAll} isOn={isAll} />
         </View>
 
         <NotificationPreferencesInput
-          title="General Notification"
+          title={t("notificationsScreen.preferences.generalTitle")}
           settingsConfig={generalConfig}
           settings={general}
           toggleSetting={toggleGeneral}
@@ -334,7 +383,7 @@ const NotificationPreferences = () => {
         />
 
         <NotificationPreferencesInput
-          title="Email Notification"
+          title={t("notificationsScreen.preferences.emailTitle")}
           settingsConfig={emailConfig}
           settings={email}
           toggleSetting={toggleEmail}
@@ -343,7 +392,7 @@ const NotificationPreferences = () => {
         />
 
         <NotificationPreferencesInput
-          title="Push Notification"
+          title={t("notificationsScreen.preferences.pushTitle")}
           settingsConfig={pushConfig}
           settings={push}
           toggleSetting={togglePush}

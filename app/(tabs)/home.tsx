@@ -174,7 +174,10 @@ const UserHome = () => {
 
             {/* Team Insights */}
             {canViewBusinessUserStats && (
-              <BusinessWorkInsights title="Team Insights" className="mt-7" />
+              <BusinessWorkInsights
+                title={t("common.teamInsights")}
+                className="mt-7"
+              />
             )}
 
             {/* quick actions */}

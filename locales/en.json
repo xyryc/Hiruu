@@ -1235,6 +1235,21 @@
     "findNow": "Find Now",
     "seeAll": "See All",
     "today": "Today",
+    "monthYearPlaceholder": "Month, Year",
+    "monthsShort": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    },
     "dateWithToday": "{{date}} (Today)",
     "hello": "👋 Hello, {{name}}",
     "readyForTodaysTask": "Ready for today's task?",
@@ -1251,6 +1266,9 @@
     "couldNotShareProfile": "Could not share profile",
     "failedToStartChat": "Failed to start chat",
     "teamInsights": "Team Insights",
+    "engagementPerksTitle": "Engagement & Perks",
+    "engagementPerksCardTitle": "Let’s Start Earning Your First Tokens!",
+    "howToEarn": "How to Earn",
     "failedToLoadAttendanceSummary": "Failed to load attendance summary",
     "failedToLoadPerformanceTrend": "Failed to load performance trends",
     "serverStatus": {
@@ -2264,6 +2282,96 @@
     "selectLocation": "Please select your location",
     "selectDateOfBirth": "Please select your date of birth",
     "selectGender": "Please select your gender"
+  },
+  "notificationsScreen": {
+    "headerTitle": "Notifications",
+    "empty": "No notifications yet.",
+    "modal": {
+      "title": "Manage Notification",
+      "marking": "Marking...",
+      "markAllAsRead": "Mark all as read",
+      "notificationPreferences": "Notification Preferences"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago",
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "callType": {
+      "audio": "Audio",
+      "video": "Video"
+    },
+    "title": {
+      "notification": "Notification",
+      "messageFrom": "Message from {{senderName}}",
+      "messageFromWithRoom": "Message from {{senderName}} ({{roomName}})",
+      "incomingCall": "Incoming {{callType}} Call",
+      "employeeJoinedBusiness": "Employee Joined Business",
+      "shiftReminder": "Shift reminder",
+      "coinsEarned": "You earned {{rewardCoins}} coins",
+      "coinsEarnedWithRank": "You earned {{rewardCoins}} coins (Rank #{{rank}})",
+      "newShiftAssigned": "New shift assigned",
+      "newShiftAssignedAt": "New shift assigned at {{businessName}}",
+      "achievementUnlocked": "Achievement unlocked",
+      "achievementUnlockedWithTitle": "Achievement unlocked: {{achievementTitle}}"
+    },
+    "body": {
+      "newNotification": "You have a new notification.",
+      "callerIsCalling": "{{callerName}} is calling you",
+      "incomingCall": "You have an incoming call.",
+      "employeeJoinedWithName": "{{employeeName}} joined your business.",
+      "employeeJoined": "A new employee joined your business.",
+      "shiftStartsInMinutes": "Your shift starts in {{smartAlertMinutes}} minutes.",
+      "shiftStartsSoon": "Your shift starts soon.",
+      "coinsEarnedWithRank": "You ranked #{{rank}} on the {{periodLabel}} leaderboard and earned {{rewardCoins}} coins.",
+      "coinsEarnedLeaderboard": "You earned {{rewardCoins}} coins from the {{periodLabel}} leaderboard.",
+      "shiftAssignedByBusinessOnDate": "{{businessName}} assigned you a shift on {{formattedShiftDate}}.",
+      "shiftAssignedOnDate": "You have been assigned a shift on {{formattedShiftDate}}.",
+      "shiftAssigned": "You have been assigned a new shift.",
+      "achievementCompletedWithReward": "{{achievementTitle}} completed. Reward: {{rewardCoins}} coins.",
+      "achievementCompleted": "{{achievementTitle}} completed.",
+      "achievementUnlocked": "You unlocked a new achievement."
+    },
+    "error": {
+      "failedToFetch": "Failed to fetch notifications",
+      "failedToMarkAllAsRead": "Failed to mark all notifications as read",
+      "unableToOpenChat": "Unable to open chat for this notification.",
+      "unableToOpenCall": "Unable to open call for this notification.",
+      "unableToOpenShiftDetails": "Unable to open shift details for this notification."
+    },
+    "preferences": {
+      "title": "Notification Preferences",
+      "enableAll": "Enable All Notification",
+      "generalTitle": "General Notification",
+      "emailTitle": "Email Notification",
+      "pushTitle": "Push Notification",
+      "generalSettings": {
+        "shiftReminders": "Shift Reminders",
+        "scheduleUpdates": "Schedule Updates",
+        "newAssigned": "New Assigned",
+        "shiftCancellation": "Shift Cancellation",
+        "managerMessages": "Manager Messages"
+      },
+      "emailSettings": {
+        "dailyWeeklyReports": "Daily/Weekly Reports",
+        "subscriptionPaymentUpdates": "Subscription Payment Updates",
+        "leaveRequestStatus": "Leave Request Status",
+        "shiftCancellation": "Shift Cancellation",
+        "importantAnnouncements": "Important Announcements"
+      },
+      "pushSettings": {
+        "newMessageAlerts": "New Message Alerts",
+        "ratingReviewReceived": "Rating/Review Received",
+        "newJobOpportunities": "New Job Opportunities",
+        "appUpdatesTips": "App Updates / Tips"
+      },
+      "error": {
+        "failedToUpdate": "Failed to update preferences"
+      }
+    }
   },
   "permissions_accept_reject_join_requests": "Accept/Reject join requests",
   "permissions_accept_reject_join_requests_title": "Accept/Reject Join Requests",

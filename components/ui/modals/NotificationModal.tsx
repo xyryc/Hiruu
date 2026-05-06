@@ -2,6 +2,7 @@ import { Entypo, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,6 +13,7 @@ type NotificationModalProps = {
 };
 
 const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationModalProps) => {
+  const { t } = useTranslation();
   const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const handleDone = () => {
@@ -56,8 +58,7 @@ const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationMo
           <SafeAreaView edges={["bottom"]} className="px-5 py-7">
             <View className="items-center mb-4">
               <Text className="font-proximanova-bold text-xl text-primary dark:text-dark-primary">
-                {" "}
-                Manage Notification
+                {t("notificationsScreen.modal.title")}
               </Text>
             </View>
             <View>
@@ -73,7 +74,9 @@ const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationMo
                 />
 
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  {markingAllRead ? "Marking..." : "Mark all as read"}
+                  {markingAllRead
+                    ? t("notificationsScreen.modal.marking")
+                    : t("notificationsScreen.modal.markAllAsRead")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -83,7 +86,7 @@ const NotificationModal = ({ visible, onClose, onMarkAllAsRead }: NotificationMo
                 <Ionicons name="settings-outline" size={24} color="black" />
 
                 <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                  Notification Preferences
+                  {t("notificationsScreen.modal.notificationPreferences")}
                 </Text>
               </TouchableOpacity>
             </View>

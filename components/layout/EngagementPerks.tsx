@@ -1,19 +1,22 @@
 import { EngagementPerksProps } from "@/types";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 import ActionCard from "../ui/cards/ActionCard";
 
 const EngagementPerks = ({ className }: EngagementPerksProps) => {
+  const { t } = useTranslation();
+
   return (
     <View className={`${className} px-4`}>
       <Text className="text-xl font-proximanova-semibold mb-4">
-        Engagement & Perks
+        {t("common.engagementPerksTitle")}
       </Text>
 
       {/* action card */}
       <ActionCard
-        title="Let’s Start Earning Your First Tokens!"
-        buttonTitle="How to Earn"
+        title={t("common.engagementPerksCardTitle")}
+        buttonTitle={t("common.howToEarn")}
         rightImage={require("@/assets/images/engagement.svg")}
         imageClass="right-4.5 -bottom-5"
         imageWidth={131}

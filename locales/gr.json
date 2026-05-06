@@ -1308,6 +1308,21 @@
     "average": "μέσος όρος",
     "findNow": "Βρες Τώρα",
     "seeAll": "Δες όλα",
+    "monthYearPlaceholder": "Μήνας, Έτος",
+    "monthsShort": {
+      "jan": "Ιαν",
+      "feb": "Φεβ",
+      "mar": "Μαρ",
+      "apr": "Απρ",
+      "may": "Μαϊ",
+      "jun": "Ιουν",
+      "jul": "Ιουλ",
+      "aug": "Αυγ",
+      "sep": "Σεπ",
+      "oct": "Οκτ",
+      "nov": "Νοε",
+      "dec": "Δεκ"
+    },
     "hello": "👋 Γειά σου, {{name}}",
     "readyForTodaysTask": "Έτοιμος/η για τις σημερινές εργασίες;",
     "welcomeTo": "Καλωσήρθες στο",
@@ -1323,6 +1338,9 @@
     "couldNotShareProfile": "Δεν ήταν δυνατή η κοινοποίηση του προφίλ",
     "failedToStartChat": "Αποτυχία έναρξης συνομιλίας",
     "teamInsights": "Στατιστικά Ομάδας",
+    "engagementPerksTitle": "Αφοσίωση & Προνόμια",
+    "engagementPerksCardTitle": "Ας ξεκινήσουμε να κερδίζουμε τα πρώτα σου tokens!",
+    "howToEarn": "Πώς να κερδίσεις",
     "connectSocials": {
       "facebook": "Facebook",
       "linkedin": "LinkedIn",
@@ -2265,6 +2283,96 @@
     "selectLocation": "Παρακαλώ επιλέξτε την τοποθεσία σας",
     "selectDateOfBirth": "Παρακαλώ επιλέξτε την ημερομηνία γέννησής σας",
     "selectGender": "Παρακαλώ επιλέξτε το φύλο σας"
+  },
+  "notificationsScreen": {
+    "headerTitle": "Ειδοποιήσεις",
+    "empty": "Δεν υπάρχουν ειδοποιήσεις ακόμα.",
+    "modal": {
+      "title": "Διαχείριση ειδοποιήσεων",
+      "marking": "Σήμανση...",
+      "markAllAsRead": "Σήμανση όλων ως αναγνωσμένων",
+      "notificationPreferences": "Προτιμήσεις ειδοποιήσεων"
+    },
+    "time": {
+      "justNow": "Μόλις τώρα",
+      "minutesAgo": "{{count}}λ πριν",
+      "hoursAgo": "{{count}}ω πριν",
+      "daysAgo": "{{count}}η πριν",
+      "today": "Σήμερα",
+      "yesterday": "Χθες"
+    },
+    "callType": {
+      "audio": "Ηχητική",
+      "video": "Βιντεο"
+    },
+    "title": {
+      "notification": "Ειδοποίηση",
+      "messageFrom": "Μήνυμα από {{senderName}}",
+      "messageFromWithRoom": "Μήνυμα από {{senderName}} ({{roomName}})",
+      "incomingCall": "Εισερχόμενη {{callType}} κλήση",
+      "employeeJoinedBusiness": "Νέος εργαζόμενος στην επιχείρηση",
+      "shiftReminder": "Υπενθύμιση βάρδιας",
+      "coinsEarned": "Κερδίσατε {{rewardCoins}} νομίσματα",
+      "coinsEarnedWithRank": "Κερδίσατε {{rewardCoins}} νομίσματα (Κατάταξη #{{rank}})",
+      "newShiftAssigned": "Νέα βάρδια ανατέθηκε",
+      "newShiftAssignedAt": "Νέα βάρδια ανατέθηκε στο {{businessName}}",
+      "achievementUnlocked": "Νέο επίτευγμα ξεκλειδώθηκε",
+      "achievementUnlockedWithTitle": "Επίτευγμα ξεκλειδώθηκε: {{achievementTitle}}"
+    },
+    "body": {
+      "newNotification": "Έχετε μια νέα ειδοποίηση.",
+      "callerIsCalling": "{{callerName}} σας καλεί",
+      "incomingCall": "Έχετε εισερχόμενη κλήση.",
+      "employeeJoinedWithName": "Ο/Η {{employeeName}} εντάχθηκε στην επιχείρησή σας.",
+      "employeeJoined": "Ένας νέος εργαζόμενος εντάχθηκε στην επιχείρησή σας.",
+      "shiftStartsInMinutes": "Η βάρδιά σας ξεκινά σε {{smartAlertMinutes}} λεπτά.",
+      "shiftStartsSoon": "Η βάρδιά σας ξεκινά σύντομα.",
+      "coinsEarnedWithRank": "Καταταχθήκατε #{{rank}} στο {{periodLabel}} leaderboard και κερδίσατε {{rewardCoins}} νομίσματα.",
+      "coinsEarnedLeaderboard": "Κερδίσατε {{rewardCoins}} νομίσματα από το {{periodLabel}} leaderboard.",
+      "shiftAssignedByBusinessOnDate": "Το {{businessName}} σας ανέθεσε βάρδια στις {{formattedShiftDate}}.",
+      "shiftAssignedOnDate": "Σας ανατέθηκε βάρδια στις {{formattedShiftDate}}.",
+      "shiftAssigned": "Σας ανατέθηκε νέα βάρδια.",
+      "achievementCompletedWithReward": "Ολοκληρώθηκε το {{achievementTitle}}. Ανταμοιβή: {{rewardCoins}} νομίσματα.",
+      "achievementCompleted": "Ολοκληρώθηκε το {{achievementTitle}}.",
+      "achievementUnlocked": "Ξεκλειδώσατε νέο επίτευγμα."
+    },
+    "error": {
+      "failedToFetch": "Αποτυχία φόρτωσης ειδοποιήσεων",
+      "failedToMarkAllAsRead": "Αποτυχία σήμανσης όλων ως αναγνωσμένων",
+      "unableToOpenChat": "Αδυναμία ανοίγματος συνομιλίας για αυτή την ειδοποίηση.",
+      "unableToOpenCall": "Αδυναμία ανοίγματος κλήσης για αυτή την ειδοποίηση.",
+      "unableToOpenShiftDetails": "Αδυναμία ανοίγματος λεπτομερειών βάρδιας για αυτή την ειδοποίηση."
+    },
+    "preferences": {
+      "title": "Προτιμήσεις ειδοποιήσεων",
+      "enableAll": "Ενεργοποίηση όλων των ειδοποιήσεων",
+      "generalTitle": "Γενικές ειδοποιήσεις",
+      "emailTitle": "Ειδοποιήσεις email",
+      "pushTitle": "Push ειδοποιήσεις",
+      "generalSettings": {
+        "shiftReminders": "Υπενθυμίσεις βαρδιών",
+        "scheduleUpdates": "Ενημερώσεις προγράμματος",
+        "newAssigned": "Νέες αναθέσεις",
+        "shiftCancellation": "Ακύρωση βάρδιας",
+        "managerMessages": "Μηνύματα διαχειριστή"
+      },
+      "emailSettings": {
+        "dailyWeeklyReports": "Ημερήσιες/Εβδομαδιαίες αναφορές",
+        "subscriptionPaymentUpdates": "Ενημερώσεις πληρωμών συνδρομής",
+        "leaveRequestStatus": "Κατάσταση αιτήματος άδειας",
+        "shiftCancellation": "Ακύρωση βάρδιας",
+        "importantAnnouncements": "Σημαντικές ανακοινώσεις"
+      },
+      "pushSettings": {
+        "newMessageAlerts": "Ειδοποιήσεις νέων μηνυμάτων",
+        "ratingReviewReceived": "Λήψη αξιολόγησης/κριτικής",
+        "newJobOpportunities": "Νέες ευκαιρίες εργασίας",
+        "appUpdatesTips": "Ενημερώσεις εφαρμογής / Συμβουλές"
+      },
+      "error": {
+        "failedToUpdate": "Αποτυχία ενημέρωσης προτιμήσεων"
+      }
+    }
   },
   "permissions_accept_reject_join_requests": "Αποδοχή/Απόρριψη αιτημάτων συμμετοχής",
   "permissions_accept_reject_join_requests_title": "Αποδοχή/Απόρριψη Αιτημάτων Συμμετοχής",
