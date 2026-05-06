@@ -64,10 +64,10 @@ const BasicNameplateCard = ({
           ) : null}
         </View>
 
-        <View className="flex-row items-center gap-1 mb-1.5">
+        <View className="flex-row gap-1 mb-1.5">
           <SimpleLineIcons name="location-pin" size={12} color="black" />
           <Text
-            numberOfLines={1}
+            numberOfLines={2}
             className="font-proximanova-regular text-xs text-primary"
           >
             {location || "Location unavailable"}

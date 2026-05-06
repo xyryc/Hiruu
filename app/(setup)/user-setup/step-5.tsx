@@ -40,6 +40,7 @@ export default function Step5({
   const [resendCountdown, setResendCountdown] = useState(0);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [onboardingSent, setOnboardingSent] = useState(false);
+  const hasPrefilledFromProfile = useRef(false);
   const autoVerifyInFlightRef = useRef(false);
   const lastAutoSubmittedOtpRef = useRef("");
   const fallbackCountry = useMemo(() => getCountryByCca2("US"), []);
@@ -52,6 +53,17 @@ export default function Step5({
       setOnboardingSent(true);
     }
   }, [onboardingSent, updateProfile, user?.isNumberVerified]);
+
+  useEffect(() => {
+    if (!user || hasPrefilledFromProfile.current) return;
+    if (typeof user.phoneNumber === "string" && user.phoneNumber) {
+      setPhoneNumber(user.phoneNumber);
+    }
+    if (typeof user.countryCode === "string" && user.countryCode) {
+      setCountryCode(normalizeCountryCode(user.countryCode));
+    }
+    hasPrefilledFromProfile.current = true;
+  }, [user]);
 
   const getDialCode = (country?: ICountry | null) => {
     // IMPORTANT: use only the country calling code.

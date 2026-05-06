@@ -4,6 +4,7 @@ import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import DateOfBirthInput from "@/components/ui/inputs/DateOfBirthInput";
 import GenderSelection from "@/components/ui/inputs/GenderSelection";
 import { useProfileStore } from "@/stores/profileStore";
+import { useAuthStore } from "@/stores/authStore";
 import { GenderOption, SocialData } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,7 +37,9 @@ export default function Step1({
   handleBack,
 }: any) {
   const { updateProfile, isLoading } = useProfileStore();
+  const { user } = useAuthStore();
   const { t: translate } = useTranslation();
+  const hasPrefilledFromProfile = useRef(false);
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -71,6 +74,66 @@ export default function Step1({
       .replace(NAME_ALLOWED_CHARS_REGEX, "")
       .replace(/\s{2,}/g, " ")
       .trimStart();
+
+  useEffect(() => {
+    if (!user || hasPrefilledFromProfile.current) return;
+    const profileUser = user as any;
+
+    const initialName = typeof profileUser?.name === "string" ? profileUser.name : "";
+    if (initialName) {
+      setFullName(initialName);
+    }
+
+    const profileAddress = profileUser?.address;
+    if (profileAddress?.address) {
+      const hydratedLocation: LocationOption = {
+        label: String(profileAddress.address),
+        value: String(profileAddress.address),
+        latitude: Number(profileAddress.latitude) || 0,
+        longitude: Number(profileAddress.longitude) || 0,
+        placeId: profileAddress.placeId,
+        city: profileAddress.city,
+        state: profileAddress.state,
+        country: profileAddress.country,
+      };
+
+      setLocation(hydratedLocation.label);
+      setLocationSearch(hydratedLocation.label);
+      setSelectedLocationOption(hydratedLocation);
+      if (!Number.isNaN(Number(profileAddress.latitude)) && !Number.isNaN(Number(profileAddress.longitude))) {
+        setSelectedCoords({
+          latitude: Number(profileAddress.latitude),
+          longitude: Number(profileAddress.longitude),
+        });
+      }
+    }
+
+    if (profileUser?.dateOfBirth) {
+      const dob = new Date(profileUser.dateOfBirth);
+      if (!Number.isNaN(dob.getTime())) {
+        setDateOfBirth(dob);
+      }
+    }
+
+    const profileGender = profileUser?.gender;
+    if (profileGender === "male" || profileGender === "female" || profileGender === "other") {
+      setSelectedGender(profileGender);
+    }
+
+    if (profileUser?.social && typeof profileUser.social === "object") {
+      setSocialLinks((prev) => ({
+        ...prev,
+        facebook: String(profileUser.social.facebook || ""),
+        linkedin: String(profileUser.social.linkedin || ""),
+        whatsapp: String(profileUser.social.whatsapp || ""),
+        twitter: String(profileUser.social.twitter || ""),
+        telegram: String(profileUser.social.telegram || ""),
+        instagram: String(profileUser.social.instagram || ""),
+      }));
+    }
+
+    hasPrefilledFromProfile.current = true;
+  }, [user]);
 
   useEffect(() => {
     if (!locationSearch || locationSearch.trim().length < 3) {

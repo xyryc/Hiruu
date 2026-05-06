@@ -2,9 +2,10 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ProfileImagePicker from "@/components/ui/inputs/ProfileImagePicker";
 import { useProfileStore } from "@/stores/profileStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -26,10 +27,24 @@ export default function Step2({
   handleBack,
 }: any) {
   const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const hasPrefilledFromProfile = useRef(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const router = useRouter();
   const { updateProfile, isLoading } = useProfileStore();
+
+  useEffect(() => {
+    if (!user || hasPrefilledFromProfile.current) return;
+    const profileUser = user as any;
+    if (typeof profileUser?.avatar === "string" && profileUser.avatar) {
+      setProfileImage(profileUser.avatar);
+    }
+    if (typeof profileUser?.bio === "string" && profileUser.bio) {
+      setBio(profileUser.bio);
+    }
+    hasPrefilledFromProfile.current = true;
+  }, [user]);
 
   // Handle form submission
   const handleNext = async () => {

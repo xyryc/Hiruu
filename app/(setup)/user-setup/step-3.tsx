@@ -1,11 +1,12 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompanyDropdown";
+import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { Companies, Company } from "@/types";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import * as Progress from "react-native-progress";
 import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
@@ -22,9 +23,56 @@ export default function Step3({
 }: any) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuthStore();
+  const hasPrefilledFromProfile = useRef(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
   const { updateProfile, isLoading } = useProfileStore();
+
+  useEffect(() => {
+    if (!user || hasPrefilledFromProfile.current) return;
+    const profileUser = user as any;
+    const profileExperiences = Array.isArray(profileUser?.experiences) ? profileUser.experiences : [];
+    if (!profileExperiences.length) {
+      hasPrefilledFromProfile.current = true;
+      return;
+    }
+
+    const hydratedExperiences: Companies[] = profileExperiences.map((exp: any, index: number) => {
+      const businessId = exp?.businessId || exp?.business?.id;
+      const customBusinessName = exp?.customBusinessName;
+      const companyName =
+        exp?.business?.name ||
+        customBusinessName ||
+        `Experience ${index + 1}`;
+      const companyId = businessId || exp?.id || `custom_${index}`;
+      return {
+        id: exp?.id,
+        companyId,
+        businessId,
+        companyName,
+        logo: exp?.business?.logo || exp?.customBusinessLogo || undefined,
+        customBusinessName: customBusinessName || undefined,
+        customBusinessLogo: exp?.customBusinessLogo || null,
+        startDate: exp?.startDate || "",
+        endDate: exp?.endDate || "",
+        position: exp?.position || "",
+        description: exp?.description || "",
+        isCurrent: Boolean(exp?.isCurrent),
+      };
+    });
+
+    const hydratedCompanies: Company[] = hydratedExperiences.map((exp) => ({
+      id: exp.companyId,
+      name: exp.companyName,
+      logo: exp.logo,
+      isCustom: !exp.businessId,
+    }));
+
+    setWorkExperiences(hydratedExperiences);
+    setSelectedCompanies(hydratedCompanies);
+    hasPrefilledFromProfile.current = true;
+  }, [user]);
 
   const handleSkip = () => {
     router.replace("/(tabs)/home");

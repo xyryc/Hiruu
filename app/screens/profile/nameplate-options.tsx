@@ -11,12 +11,12 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -132,9 +132,17 @@ const YourNamePlates = () => {
 
         {/* dynamic nameplate cards */}
         {cosmeticsInventoryLoading ? (
-          <View className="py-8 items-center justify-center">
-            <ActivityIndicator size="large" color="#4FB2F3" />
-          </View>
+          <AutoSkeletonView isLoading={true}>
+            <View className="mt-4 gap-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <View key={`nameplate-skeleton-${index}`}>
+                  <View className="h-5 w-40 rounded-md bg-[#E5E7EB] mb-2.5" />
+                  <View className="h-[116px] rounded-[14px] bg-[#E5E7EB] border border-[#EEEEEE]" />
+                  <View className="absolute top-12 right-3 h-6 w-6 rounded-full bg-[#D1D5DB]" />
+                </View>
+              ))}
+            </View>
+          </AutoSkeletonView>
         ) : (
           <View className="mt-4 gap-3">
             {nameplateItems.map((item) => (

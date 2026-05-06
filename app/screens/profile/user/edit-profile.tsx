@@ -44,6 +44,8 @@ import { toast } from "sonner-native";
 const DEFAULT_PROFILE_COLOR = "#E5F4FD";
 const DEFAULT_GRADIENT_COLORS: [string, string] = ["#E5F4FD", "#FFFFFF"];
 const GEOAPIFY_API_KEY = process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY;
+const NAME_ALLOWED_CHARS_REGEX = /[^\p{L}\s.'-]/gu;
+const NAME_VALIDATION_REGEX = /^[\p{L}][\p{L}\s.'-]{0,48}[\p{L}]$/u;
 
 type LocationOption = {
   label: string;
@@ -114,6 +116,12 @@ const Edit = () => {
     [profileData?.address?.city, profileData?.address?.country]
       .filter(Boolean)
       .join(", ");
+  const sanitizeName = (value: string) =>
+    value
+      .normalize("NFKC")
+      .replace(NAME_ALLOWED_CHARS_REGEX, "")
+      .replace(/\s{2,}/g, " ")
+      .trimStart();
 
   const loadProfile = useCallback(async () => {
     const requestId = ++profileRequestIdRef.current;
@@ -444,6 +452,12 @@ const Edit = () => {
       const normalizedName = displayName.trim();
       const fallbackName = String(profileData?.name || "").trim();
       const nextName = normalizedName || fallbackName;
+
+      if (nextName && !NAME_VALIDATION_REGEX.test(nextName)) {
+        toast.error(t("validation.invalidName"));
+        return;
+      }
+
       if (nextName) {
         payload.name = nextName;
       }
@@ -672,7 +686,7 @@ const Edit = () => {
               </View>
               <TextInput
                 value={displayName}
-                onChangeText={setDisplayName}
+                onChangeText={(text) => setDisplayName(sanitizeName(text))}
                 placeholder={t("user.profile.editUserProfile.enterYourName", { defaultValue: "Enter your name" })}
                 placeholderTextColor="#7A7A7A"
                 className="w-full text-sm text-primary border border-[#0000000D] rounded-xl p-3"

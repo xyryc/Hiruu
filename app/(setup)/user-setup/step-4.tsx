@@ -1,10 +1,11 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
+import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useRouter } from "expo-router";
 import { t } from "i18next";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import * as Progress from "react-native-progress";
 import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
@@ -20,8 +21,19 @@ export default function Step4({
   handleBack,
 }: any) {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const hasPrefilledFromProfile = useRef(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const { updateProfile, isLoading } = useProfileStore();
+
+  useEffect(() => {
+    if (!user || hasPrefilledFromProfile.current) return;
+    const profileUser = user as any;
+    if (Array.isArray(profileUser?.interest)) {
+      setSelectedInterests(profileUser.interest.filter((item: unknown) => typeof item === "string"));
+    }
+    hasPrefilledFromProfile.current = true;
+  }, [user]);
 
   const handleNext = async () => {
     if (selectedInterests.length === 0) {
