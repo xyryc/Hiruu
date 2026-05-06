@@ -243,10 +243,10 @@ const Settings = () => {
         {isBusinessProfileMode ? (
           <>
             <TouchableOpacity
-              onPress={() => router.push("/screens/profile/settings/delete-company")}
+              onPress={() => router.push("/screens/profile/settings/close-business")}
             >
               <Text className="text-[#F34F4F] font-proximanova-bold mt-5">
-                {t("user.profile.deleteBusiness")}
+                {t("user.profile.closeBusiness")}
               </Text>
             </TouchableOpacity>
 

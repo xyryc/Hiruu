@@ -5,6 +5,7 @@ import { ProfileSwitchModalProps } from "@/types";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -228,6 +229,14 @@ const ProfileSwitchModal = ({
                       key={employment?.id || business?.id}
                       onPress={() => {
                         if (isSwitchDisabled) return;
+                        if (isClosedBusiness) {
+                          onClose();
+                          router.push({
+                            pathname: "/screens/profile/settings/reopen-business",
+                            params: { businessId: business.id },
+                          });
+                          return;
+                        }
                         onSelectBusinessProfile(business.id);
                       }}
                       disabled={isSwitchDisabled}

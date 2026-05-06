@@ -23,7 +23,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
-const DeleteCompany = () => {
+const CloseBusiness = () => {
   const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -64,8 +64,8 @@ const DeleteCompany = () => {
 
   const deleteModalData = useMemo(
     () => ({
-      title: targetBusiness?.name || t("user.profile.deleteBusiness"),
-      subtitle: t("user.profile.deleteBusinessSubtitle"),
+      title: targetBusiness?.name || t("user.profile.closeBusiness"),
+      subtitle: t("user.profile.closeBusinessSubtitle"),
       img: targetBusiness?.logo
         ? { uri: targetBusiness.logo }
         : require("@/assets/images/placeholder.png"),
@@ -73,7 +73,7 @@ const DeleteCompany = () => {
       imageSize: 96,
       color: "#F34F4F26",
       border: "#F34F4F",
-      buttonName: t("user.profile.deleteBusinessAction"),
+      buttonName: t("user.profile.closeBusinessAction"),
       buttonColor: "#F34F4F",
     }),
     [t, targetBusiness?.logo, targetBusiness?.name]
@@ -142,7 +142,7 @@ const DeleteCompany = () => {
           <ScreenHeader
             className="px-5 pt-2.5 pb-4"
             onPressBack={() => router.back()}
-            title={t("user.profile.deleteBusiness")}
+            title={t("user.profile.closeBusiness")}
             titleClass="text-primary dark:text-dark-primary"
             iconColor={isDark ? "#fff" : "#111"}
           />
@@ -165,7 +165,7 @@ const DeleteCompany = () => {
               style={{ width: 90, height: 90, borderRadius: 999 }}
             />
             <Text className="mt-3 font-proximanova-semibold text-lg text-primary dark:text-dark-primary text-center">
-              {targetBusiness?.name || t("user.profile.deleteBusiness")}
+              {targetBusiness?.name || t("user.profile.closeBusiness")}
             </Text>
           </View>
 
@@ -226,14 +226,14 @@ const DeleteCompany = () => {
               color={isWarningChecked ? "#F34F4F" : isDark ? "#CBD5E1" : "#7A7A7A"}
             />
             <Text className="ml-3 flex-1 font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-              {t("user.profile.deleteBusinessSubtitle")}
+              {t("user.profile.closeBusinessWarning")}
             </Text>
           </TouchableOpacity>
         </ScrollView>
 
         <View className="absolute bottom-10 left-5 right-5">
           <PrimaryButton
-            title={t("user.profile.deleteBusinessAction")}
+            title={t("user.profile.closeBusinessAction")}
             onPress={() => setShowDeleteModal(true)}
             disabled={!canProceed || isDeleting}
             loading={isDeleting}
@@ -252,4 +252,4 @@ const DeleteCompany = () => {
   );
 };
 
-export default DeleteCompany;
+export default CloseBusiness;
