@@ -4,7 +4,6 @@ import MultiSelectCompanyDropdown from "@/components/ui/inputs/MultiSelectCompan
 import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { Companies, Company } from "@/types";
-import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -22,7 +21,6 @@ export default function Step3({
   handleBack,
 }: any) {
   const { t } = useTranslation();
-  const router = useRouter();
   const { user } = useAuthStore();
   const hasPrefilledFromProfile = useRef(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
@@ -73,10 +71,6 @@ export default function Step3({
     setSelectedCompanies(hydratedCompanies);
     hasPrefilledFromProfile.current = true;
   }, [user]);
-
-  const handleSkip = () => {
-    router.replace("/(tabs)/home");
-  };
 
   const handleNext = async () => {
     // Skip if no work experience added
@@ -134,7 +128,7 @@ export default function Step3({
         title={t("user.setup.workExperience")}
         buttonTitle={t("user.setup.skip")}
         className="mt-3"
-        onPress={handleSkip}
+        onPress={onComplete}
       />
 
       {/* progress details */}

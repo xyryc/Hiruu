@@ -57,6 +57,7 @@ export type GenderOption = "male" | "female" | "other" | null;
 export interface GenderSelectionProps {
   value: GenderOption;
   onGenderChange: (gender: GenderOption) => void;
+  disabled?: boolean;
 }
 
 export interface ProfileImagePickerProps {

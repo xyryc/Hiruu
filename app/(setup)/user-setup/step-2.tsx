@@ -3,7 +3,6 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ProfileImagePicker from "@/components/ui/inputs/ProfileImagePicker";
 import { useProfileStore } from "@/stores/profileStore";
 import { useAuthStore } from "@/stores/authStore";
-import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -31,7 +30,6 @@ export default function Step2({
   const hasPrefilledFromProfile = useRef(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bio, setBio] = useState("");
-  const router = useRouter();
   const { updateProfile, isLoading } = useProfileStore();
 
   useEffect(() => {
@@ -97,7 +95,7 @@ export default function Step2({
         title={t("user.setup.businessSetup.profilePhotoTitle")}
         buttonTitle={t("user.setup.skip")}
         className="mt-3"
-        onPress={() => router.replace("/(tabs)/home")}
+        onPress={onComplete}
       />
 
       {/* progress details */}

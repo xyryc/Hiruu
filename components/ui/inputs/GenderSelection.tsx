@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 const GenderSelection = ({
   value,
   onGenderChange,
+  disabled = false,
 }: GenderSelectionProps) => {
   const { t } = useTranslation();
   const genderOptions = [
@@ -62,11 +63,14 @@ const GenderSelection = ({
         return (
           <TouchableOpacity
             key={option.value}
-            onPress={() => onGenderChange(option.value)}
+            onPress={() => {
+              if (!disabled) onGenderChange(option.value);
+            }}
+            disabled={disabled}
             className={`flex-1 relative`}
           >
             <View
-              className={`p-6 rounded-2xl items-center ${cardStyle.container}`}
+              className={`p-6 rounded-2xl items-center ${cardStyle.container} ${disabled ? "opacity-50" : ""}`}
             >
               {/* Checkmark */}
               {cardStyle.checkmark && (

@@ -3,7 +3,6 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import InterestSelection from "@/components/ui/inputs/InterestSelection";
 import { useAuthStore } from "@/stores/authStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useRouter } from "expo-router";
 import { t } from "i18next";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -20,7 +19,6 @@ export default function Step4({
   onComplete,
   handleBack,
 }: any) {
-  const router = useRouter();
   const { user } = useAuthStore();
   const hasPrefilledFromProfile = useRef(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -64,7 +62,7 @@ export default function Step4({
         title="Interest"
         buttonTitle="Skip"
         className="mt-3"
-        onPress={() => router.replace("/(tabs)/home")}
+        onPress={onComplete}
       />
 
       {/* progress details */}

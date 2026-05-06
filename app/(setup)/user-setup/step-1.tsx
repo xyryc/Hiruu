@@ -75,6 +75,15 @@ export default function Step1({
       .replace(/\s{2,}/g, " ")
       .trimStart();
 
+  const isStep1ProfileLocked = Boolean(
+    (user as any)?.name &&
+      (user as any)?.address?.address &&
+      (user as any)?.dateOfBirth &&
+      ((user as any)?.gender === "male" ||
+        (user as any)?.gender === "female" ||
+        (user as any)?.gender === "other"),
+  );
+
   useEffect(() => {
     if (!user || hasPrefilledFromProfile.current) return;
     const profileUser = user as any;
@@ -327,7 +336,6 @@ export default function Step1({
       className="flex-1"
     >
       <ScreenHeader
-        onPressBack={handleBack}
         title={translate("user.setup.personalDetails")}
         className="mt-3"
       />
@@ -372,12 +380,15 @@ export default function Step1({
 
           <TextInput
             placeholder={translate("user.setup.enterYourName")}
-            className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
+            className={`w-full px-4 py-3 border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm ${
+              isStep1ProfileLocked ? "bg-[#F3F4F6] text-secondary" : "bg-white"
+            }`}
             keyboardType="default"
             autoCapitalize="words"
             value={fullName}
             onChangeText={(text) => setFullName(sanitizeName(text))}
             maxLength={50}
+            editable={!isStep1ProfileLocked}
           />
         </View>
 
@@ -394,6 +405,7 @@ export default function Step1({
               setTimeout(() => setIsLocationFocused(false), 250);
             }}
             onChangeText={(text) => {
+              if (isStep1ProfileLocked) return;
               setLocationSearch(text);
               if (selectedLocationOption && text !== selectedLocationOption.label) {
                 setSelectedLocationOption(null);
@@ -402,11 +414,14 @@ export default function Step1({
               }
             }}
             placeholder={translate("user.setup.selectLocation")}
-            className="w-full px-4 py-3 bg-white border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm"
+            className={`w-full px-4 py-3 border border-[#EEEEEE] rounded-[10px] text-placeholder text-sm ${
+              isStep1ProfileLocked ? "bg-[#F3F4F6] text-secondary" : "bg-white"
+            }`}
             autoCapitalize="none"
-            editable={!isLoading}
+            editable={!isLoading && !isStep1ProfileLocked}
           />
           {isLocationFocused &&
+            !isStep1ProfileLocked &&
             locationSearch.trim().length >= 3 &&
             locationOptions.length > 0 ? (
             <View className="mt-2 border border-[#EEEEEE] bg-white rounded-[10px] overflow-hidden">
@@ -431,12 +446,13 @@ export default function Step1({
               ))}
             </View>
           ) : null}
-          {isSearchingLocation ? (
+          {isSearchingLocation && !isStep1ProfileLocked ? (
             <Text className="mt-2 text-xs font-proximanova-regular text-secondary">
               {translate("user.setup.searchingLocations")}
             </Text>
           ) : null}
           {isLocationFocused &&
+            !isStep1ProfileLocked &&
             locationSearch.trim().length >= 3 &&
             !isSearchingLocation &&
             locationOptions.length === 0 ? (
@@ -452,7 +468,11 @@ export default function Step1({
             {translate("user.setup.dateOfBirth")}
           </Text>
 
-          <DateOfBirthInput value={dateOfBirth} onDateChange={setDateOfBirth} />
+          <DateOfBirthInput
+            value={dateOfBirth}
+            onDateChange={setDateOfBirth}
+            disabled={isStep1ProfileLocked}
+          />
         </View>
 
         {/* gender */}
@@ -464,6 +484,7 @@ export default function Step1({
           <GenderSelection
             value={selectedGender}
             onGenderChange={setSelectedGender}
+            disabled={isStep1ProfileLocked}
           />
         </View>
 

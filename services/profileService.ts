@@ -270,10 +270,8 @@ class ProfileService {
 
                 // Send non-file fields as JSON so numeric values (e.g. address lat/lng) keep their types.
                 if (Object.keys(nonFilePayload).length > 0) {
-                    console.log("[ProfileService] PATCH /users/profile json payload", JSON.stringify(nonFilePayload, null, 2));
                     const jsonResponse = await axiosInstance.patch('/users/profile', nonFilePayload);
                     const jsonResult = jsonResponse.data;
-                    console.log("[ProfileService] json response", JSON.stringify(jsonResult, null, 2));
 
                     if (!jsonResult?.success) {
                         throw new Error(jsonResult?.message || 'Profile update failed');
@@ -292,7 +290,6 @@ class ProfileService {
                     const formData = new FormData();
                     formData.append(key, value as any);
 
-                    console.log("[ProfileService] PATCH /users/profile multipart form-data");
                     const response = await fetch(`${baseUrl}/users/profile`, {
                         method: 'PATCH',
                         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
@@ -300,7 +297,6 @@ class ProfileService {
                     });
 
                     const result = await response.json();
-                    console.log("[ProfileService] multipart response", JSON.stringify(result, null, 2));
 
                     if (!response.ok || !result?.success) {
                         throw new Error(result?.message || 'Profile update failed');
@@ -312,10 +308,8 @@ class ProfileService {
                 return finalResult;
             }
 
-            console.log("[ProfileService] PATCH /users/profile json payload", JSON.stringify(data, null, 2));
             const response = await axiosInstance.patch('/users/profile', data);
             const result = response.data;
-            console.log("[ProfileService] json response", JSON.stringify(result, null, 2));
 
             // Check if update was successful
             if (!result.success) {
