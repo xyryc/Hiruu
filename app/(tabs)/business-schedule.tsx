@@ -68,6 +68,7 @@ const BusinessScheduleScreen = () => {
   const {
     businessAssignments,
     businessAssignmentsLoading,
+    businessAssignmentsMeta,
     businessAssignmentsPagination,
     fetchBusinessAssignments,
   } = useShiftStore();
@@ -477,6 +478,18 @@ const BusinessScheduleScreen = () => {
     });
   }, [selectedCalendarDate, t]);
 
+  const nextShiftDate = businessAssignmentsMeta?.nextShiftDate || null;
+  const nextShiftDateLabel = useMemo(() => {
+    if (!nextShiftDate) return "";
+    const parsed = new Date(nextShiftDate);
+    if (Number.isNaN(parsed.getTime())) return nextShiftDate;
+    return parsed.toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }, [nextShiftDate]);
+
   const handleLoadMore = async () => {
     const businessId = selectedBusinesses?.[0];
     if (!businessId) return;
@@ -779,6 +792,16 @@ const BusinessScheduleScreen = () => {
               title={t("user.jobs.schedule.noShiftScheduled")}
               text={t("user.jobs.schedule.holidayNoShifts")}
             />
+            {nextShiftDate ? (
+              <TouchableOpacity
+                onPress={() => setSelectedCalendarDate(nextShiftDate)}
+                className="mt-3 self-center rounded-full bg-[#E5F4FD] px-4 py-2"
+              >
+                <Text className="font-proximanova-semibold text-sm text-[#4FB2F3]">
+                  Next shifts on {nextShiftDateLabel}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         )}
         {isFetchingMore ? (

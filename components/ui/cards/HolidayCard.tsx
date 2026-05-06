@@ -9,7 +9,6 @@ const HolidayCard = ({ shift }) => {
 
   return (
     <View className="rounded-2xl border border-[#acdcf8] bg-[#e5f4fdc2] p-4">
-
       <View className=" items-center justify-center gap-5">
         <Image
           source={require("@/assets/images/holiday2.svg")}

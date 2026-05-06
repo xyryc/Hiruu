@@ -27,6 +27,9 @@ type ShiftStoreState = {
   businessAssignments: any[];
   businessAssignmentsLoading: boolean;
   businessAssignmentsError: string | null;
+  businessAssignmentsMeta: {
+    nextShiftDate?: string | null;
+  } | null;
   businessAssignmentsPagination: {
     total: number;
     page: number;
@@ -348,6 +351,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   businessAssignments: [],
   businessAssignmentsLoading: false,
   businessAssignmentsError: null,
+  businessAssignmentsMeta: null,
   businessAssignmentsPagination: null,
   shiftRequests: [],
   shiftRequestsLoading: false,
@@ -475,6 +479,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
           businessAssignments: [],
           businessAssignmentsLoading: false,
           businessAssignmentsError: null,
+          businessAssignmentsMeta: null,
           businessAssignmentsPagination: null,
         });
         return [];
@@ -502,6 +507,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
 
       const assignments = Array.isArray(result?.data) ? result.data : [];
       const pagination = result?.pagination || null;
+      const metadata = result?.metadata || null;
       const shouldAppend =
         Boolean(params?.append) || (typeof params?.page === "number" && params.page > 1);
       const previous = shouldAppend ? (Array.isArray(get().businessAssignments) ? get().businessAssignments : []) : [];
@@ -516,6 +522,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
       set({
         businessAssignments: merged,
         businessAssignmentsLoading: false,
+        businessAssignmentsMeta: metadata,
         businessAssignmentsPagination: pagination,
       });
       return merged;
@@ -528,6 +535,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         businessAssignments: [],
         businessAssignmentsLoading: false,
         businessAssignmentsError: message,
+        businessAssignmentsMeta: null,
         businessAssignmentsPagination: null,
       });
       throw error;
