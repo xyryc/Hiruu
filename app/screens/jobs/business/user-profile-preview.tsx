@@ -29,7 +29,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -269,7 +268,7 @@ const UserProfilePreview = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
         >
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+          <View>
             <View className="mx-5 mt-3.5">
               <View className="bg-white rounded-xl border border-[#4FB2F330] p-4">
                 <View className="flex-row items-center gap-3">
@@ -466,7 +465,7 @@ const UserProfilePreview = () => {
                 }}
               />
             </View>
-          </AutoSkeletonView>
+          </View>
         </ScrollView>
       </SafeAreaView>
     );

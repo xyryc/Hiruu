@@ -4,7 +4,7 @@ import AttachmentUpload from "@/components/ui/inputs/AttachmentUpload";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";

@@ -10,7 +10,7 @@ import {
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -171,7 +171,7 @@ const BusinessJobCard = ({
     }
   };
 
-  const handleViewProfile = (
+  const handleViewProfile = useCallback((
     override?: { userId?: string; profileId?: string }
   ) => {
     const userId = override?.userId || profile?.userId || profile?.user?.id;
@@ -188,7 +188,7 @@ const BusinessJobCard = ({
         profileId: override?.profileId || profile?.id || "",
       },
     });
-  };
+  }, [profile?.id, profile?.user?.id, profile?.userId, router, t]);
 
   const handleProfileRequestFromModal = (payload: {
     userId: string;

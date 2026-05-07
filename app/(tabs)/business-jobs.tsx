@@ -1,11 +1,12 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import BusinessJobCard from "@/components/ui/cards/BusinessJobCard";
+import SearchBar from "@/components/ui/inputs/SearchBar";
 import ChatBell from "@/components/ui/notification/ChatBell";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
-import { EvilIcons, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -16,7 +17,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -115,6 +115,7 @@ const BusinessJobs = () => {
   const [suggestedProfiles, setSuggestedProfiles] = useState<any[]>([]);
   const [isLoadingSuggested, setIsLoadingSuggested] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const featuredSkeletonItems = useMemo(
     () => Array.from({ length: 4 }, (_, index) => ({ id: `featured-skeleton-${index}` })),
     []
@@ -252,7 +253,6 @@ const BusinessJobs = () => {
     >
       <ScreenHeader
         className="my-4 mx-5"
-        onPressBack={() => router.back()}
         title={t("user.jobsTab.findEmployee")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
@@ -303,24 +303,11 @@ const BusinessJobs = () => {
       >
         {/* search and filter button */}
         <View className="flex-row items-center mt-4">
-          <View className="flex-1 border border-[#EEEEEE] rounded-[10px] ">
-            <View className="flex-row items-center ">
-              {/* Search Icon */}
-              <EvilIcons
-                name="search"
-                size={24}
-                color="black"
-                className="ml-4"
-              />
-
-              {/* Input */}
-              <TextInput
-                placeholder={t("user.jobs.filters.searchTitle")}
-                placeholderTextColor="#9CA3AF"
-                className="flex-1 ml-2 text-base text-gray-800 dark:text-gray-200"
-              />
-            </View>
-          </View>
+          <SearchBar
+            className="flex-1"
+            value={searchValue}
+            onSearch={setSearchValue}
+          />
 
           {/* Filter Icon Button */}
           <TouchableOpacity

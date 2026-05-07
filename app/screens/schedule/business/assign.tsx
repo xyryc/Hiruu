@@ -1,5 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
+import SearchBar from "@/components/ui/inputs/SearchBar";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +15,6 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -217,25 +217,7 @@ const Assign = () => {
           </View>
         </View>
 
-        <View className="border mt-9 border-[#eeeeee] rounded-[10px] px-4 flex-row items-center mx-5">
-          <Ionicons
-            name="search"
-            size={16}
-            color={isDark ? "#fff" : "#7A7A7A"}
-            style={{ marginRight: 10 }}
-          />
-          <TextInput
-            placeholder={t("common.searchHere")}
-            value={search}
-            onChangeText={setSearch}
-            placeholderTextColor={isDark ? "#fff" : "#7A7A7A"}
-            style={{
-              flex: 1,
-              color: isDark ? "#fff" : "#111",
-              backgroundColor: isDark ? "#111" : "#fff",
-            }}
-          />
-        </View>
+        <SearchBar className="mt-9 mx-5" value={search} onSearch={setSearch} />
 
         <ScrollView
           className="mx-5 flex-1"

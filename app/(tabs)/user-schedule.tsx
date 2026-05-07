@@ -8,7 +8,7 @@ import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime } from "@/utils/timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StatusBar, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 

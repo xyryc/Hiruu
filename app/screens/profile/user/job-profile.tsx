@@ -215,7 +215,7 @@ const JobProfile = () => {
     useCallback(() => {
       const loadProfile = async () => {
         try {
-          const data = await getMyJobProfile();
+          await getMyJobProfile();
 
         } catch (error: any) {
           toast.error(error?.message || t("user.profile.jobProfileScreen.failedToLoadJobProfile"));

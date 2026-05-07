@@ -111,8 +111,6 @@ const ShiftReportCardSkeleton = () => {
 
 const ShiftReports = () => {
   const { t } = useTranslation();
-  const tr = (key: string, defaultValue: string) =>
-    t(key, { defaultValue });
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
@@ -139,9 +137,9 @@ const ShiftReports = () => {
       toast.error(
         translateApiMessage(
           error?.message ||
-            tr(
+            t(
               "user.profile.todayShiftsSummary.shiftReports.failedToLoad",
-              "Failed to load shift reports"
+              { defaultValue: "Failed to load shift reports" }
             )
         )
       );

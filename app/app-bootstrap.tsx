@@ -264,11 +264,9 @@ const AppBootstrap = () => {
     };
   }, [
     appIsReady,
-    extractChatNotificationPayload,
     messaging,
     navigateFromNotificationData,
     navigateToChatRoom,
-    resolveFcmDisplayText,
     user,
   ]);
 

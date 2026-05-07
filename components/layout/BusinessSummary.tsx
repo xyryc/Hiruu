@@ -135,26 +135,6 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
     };
   }, [canReadBusinessOverview, getBusinessOverview, selectedBusinesses, t]);
 
-  // Get display content for header button
-  const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0) {
-      return { type: "all", content: t("user.profile.businessSummary.all") };
-    } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = activeBusinesses.find(
-        (b) => b.id === selectedBusinesses[0]
-      );
-      return { type: "single", content: selectedBusiness };
-    }
-    return {
-      type: "multi",
-      content: t("user.profile.businessSummary.selectedCount", {
-        count: selectedBusinesses.length,
-      }),
-    };
-  };
-
-  const displayContent = getDisplayContent();
-
   return (
     <View className={`${className} px-4 mb-4`}>
       <View className="flex-row justify-between items-center">

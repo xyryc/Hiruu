@@ -39,7 +39,6 @@ const ProfileSwitchModal = ({
     selectedBusinesses,
   } = useBusinessStore();
   const selectedBusinessId = selectedBusinesses[0] || null;
-  const employmentCount = Array.isArray(myEmployments) ? myEmployments.length : 0;
   const hasProfile = Boolean(profile);
 
   useEffect(() => {

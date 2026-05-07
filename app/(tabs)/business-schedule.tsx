@@ -228,30 +228,6 @@ const BusinessScheduleScreen = () => {
     }
   };
 
-  // Get display content for header button
-  const getDisplayContent = () => {
-    if (selectedBusinesses.length === 0) {
-      return { type: "all", content: t("common.all") };
-    } else if (selectedBusinesses.length === 1) {
-      const selectedBusiness = activeBusinesses.find(
-        (b) => b.id === selectedBusinesses[0]
-      );
-      return { type: "single", content: selectedBusiness };
-    }
-    return {
-      type: "multi",
-      content: t("user.jobs.schedule.selectedCount", {
-        count: selectedBusinesses.length,
-      }),
-    };
-  };
-
-  const displayContent = getDisplayContent();
-  const selectedBusiness = useMemo(
-    () => activeBusinesses.find((b) => b.id === selectedBusinesses?.[0]),
-    [activeBusinesses, selectedBusinesses]
-  );
-
   const to12Hour = (value?: string) => {
     if (!value) return "--:--";
     const [rawHour = "0", rawMinute = "0"] = value.split(":");
@@ -325,7 +301,7 @@ const BusinessScheduleScreen = () => {
 
     // console.log("[BusinessSchedule] shifts:", mappedShifts);
     return mappedShifts;
-  }, [businessAssignments, t]);
+  }, [businessAssignments, selectedBusinesses, t]);
 
   const skeletonShifts = useMemo(
     () =>

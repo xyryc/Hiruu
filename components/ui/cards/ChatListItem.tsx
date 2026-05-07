@@ -82,28 +82,28 @@ const ChatListItem = ({
       </View>
 
       {/* right */}
-      <View className="flex-1">
+      <View className="flex-1 min-w-0">
         {/* top */}
         <View className="flex-row justify-between items-center">
-          <Text className="font-proximanova-semibold text-lg text-primary">
+          <Text className="font-proximanova-semibold text-lg text-primary flex-1 pr-2" numberOfLines={1}>
             {title}
           </Text>
           {!!time && (
-            <Text className="font-proximanova-regular text-base text-primary">
+            <Text className="font-proximanova-regular text-base text-primary" numberOfLines={1}>
               {time}
             </Text>
           )}
         </View>
 
         {/* bottom */}
-        <View className="flex-1 flex-row justify-between items-center">
-          <View className="flex-row gap-1.5 items-center">
+        <View className="mt-0.5 flex-row justify-between items-center">
+          <View className="flex-1 min-w-0 flex-row gap-1.5 items-center pr-2">
             {isOwnMessage && statusMeta ? (
               <Ionicons name={statusMeta.name} size={14} color={statusMeta.color} />
             ) : null}
 
             <Text
-              className={`text-sm font-proximanova-regular text-primary ${isOwnMessage && statusMeta ? "w-4/5" : "w-[88%]"}`}
+              className="flex-1 text-sm font-proximanova-regular text-primary"
               numberOfLines={1}
             >
               {subtitle || t("common.chat.noMessagesYet")}

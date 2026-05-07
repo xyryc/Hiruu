@@ -11,6 +11,7 @@ import React from "react";
 import {
   ActivityIndicator,
   I18nManager,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -127,7 +128,7 @@ const ChatInput = ({
       )}
 
       <View className="flex-row items-center gap-3">
-        <View className="px-3.5 py-1 flex-1 bg-[#F5F5F5] rounded-full flex-row items-center gap-1.5">
+        <View className="px-3.5 py-1.5 flex-1 bg-[#F5F5F5] rounded-full flex-row items-center gap-1.5 min-h-12">
           <TouchableOpacity disabled={disabled || isSending} onPress={handlePickEmoji}>
             <MaterialCommunityIcons
               name="emoticon-outline"
@@ -143,6 +144,13 @@ const ChatInput = ({
             placeholder="Type Something...."
             placeholderTextColor="#999"
             className="flex-1 font-proximanova-regular text-sm text-secondary"
+            style={{
+              minHeight: 36,
+              paddingTop: Platform.OS === "ios" ? 8 : 6,
+              paddingBottom: Platform.OS === "ios" ? 8 : 6,
+              includeFontPadding: false,
+              textAlignVertical: "center",
+            }}
             editable={!disabled && !isSending}
             multiline
             maxLength={1000}

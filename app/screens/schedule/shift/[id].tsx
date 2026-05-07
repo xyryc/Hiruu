@@ -7,7 +7,6 @@ import { chatService } from "@/services/chatService";
 import { useShiftStore } from "@/stores/shiftStore";
 import {
   AntDesign,
-  Entypo,
   Feather,
   FontAwesome6,
   Ionicons,
@@ -16,7 +15,6 @@ import {
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -28,8 +26,6 @@ const ShiftDetails = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const shiftId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
   const {
     shiftAssignmentDetails,
     shiftAssignmentDetailsLoading,
