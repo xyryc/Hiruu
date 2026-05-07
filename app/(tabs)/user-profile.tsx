@@ -35,7 +35,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -389,7 +388,6 @@ const Profile = () => {
       </DynamicBackground>
 
       <ScrollView
-        className="bg-white"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: 80,
@@ -399,7 +397,7 @@ const Profile = () => {
         }
       >
         {showInitialSkeleton ? (
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+          <View>
             <View className="mx-5 mt-3.5 h-28 rounded-2xl bg-[#E5E7EB]" />
 
             <View className="mx-5 mt-5 flex-row items-center justify-between">
@@ -419,7 +417,7 @@ const Profile = () => {
 
             <View className="mx-5 mt-7 h-5 w-28 rounded-md bg-[#E5E7EB]" />
             <View className="mx-5 mt-3 h-24 rounded-xl border border-[#EEEEEE] bg-[#F3F4F6]" />
-          </AutoSkeletonView>
+          </View>
         ) : null}
 
         {!showInitialSkeleton ? (

@@ -155,7 +155,7 @@ const Preferences = () => {
         await updateMyJobProfile({
           weeklyAvailability: pendingAvailability,
         });
-      } catch {
+      } catch (error) {
         console.error("weekly schedule autosave error:", error);
       }
     }, 700);

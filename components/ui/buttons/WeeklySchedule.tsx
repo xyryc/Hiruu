@@ -124,7 +124,8 @@ const dayKeyMap: Record<string, keyof typeof DEFAULT_WEEK_SCHEDULE> = {
 
 const formatApiTime = (value?: string) => {
   if (!value) return DEFAULT_OPEN_START_TIME_DISPLAY;
-  const match = value.match(/^(\d{2}):(\d{2})$/);
+  const normalized = String(value).trim();
+  const match = normalized.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!match) return value;
 
   const hour24 = Number(match[1]);

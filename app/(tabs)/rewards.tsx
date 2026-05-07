@@ -18,7 +18,6 @@ import { StatusBar } from "expo-status-bar";
 import { DateTime } from "luxon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   Dimensions,
   RefreshControl,
@@ -282,22 +281,20 @@ const UserRewards = () => {
 
             <View className="bg-[#4FB2F3] p-4 rounded-2xl mt-8">
               {isLoadingBoard && !recentAchievement ? (
-                <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                  <View pointerEvents="none">
-                    <View className="h-5 w-40 bg-[#E5E7EB] rounded-md" />
+                <View pointerEvents="none">
+                  <View className="h-5 w-40 bg-[#E5E7EB] rounded-md" />
 
-                    <View className="flex-row gap-2 mt-3">
-                      <View className="w-[44px] h-[44px] bg-[#E5E7EB] rounded-xl" />
-                      <View className="flex-1">
-                        <View className="flex-row justify-between">
-                          <View className="h-3 w-44 bg-[#E5E7EB] rounded-md" />
-                          <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
-                        </View>
-                        <View className="mt-3 h-4 w-full bg-[#E5E7EB] rounded-full" />
+                  <View className="flex-row gap-2 mt-3">
+                    <View className="w-[44px] h-[44px] bg-[#E5E7EB] rounded-xl" />
+                    <View className="flex-1">
+                      <View className="flex-row justify-between">
+                        <View className="h-3 w-44 bg-[#E5E7EB] rounded-md" />
+                        <View className="h-3 w-16 bg-[#E5E7EB] rounded-md" />
                       </View>
+                      <View className="mt-3 h-4 w-full bg-[#E5E7EB] rounded-full" />
                     </View>
                   </View>
-                </AutoSkeletonView>
+                </View>
               ) : (
                 <>
                   <Text className="font-proximanova-semibold text-lg text-[#FFFFFF]">
@@ -410,32 +407,27 @@ const UserRewards = () => {
 
                 if (isLoadingBoard && standardChallenges.length === 0) {
                   return (
-                    <AutoSkeletonView
+                    <View
                       key={challenge?.id || String(index)}
-                      isLoading={true}
-                      defaultRadius={12}
+                      pointerEvents="none"
+                      style={{ width: screenWidth * 0.3 }}
+                      className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
                     >
                       <View
-                        pointerEvents="none"
-                        style={{ width: screenWidth * 0.3 }}
-                        className="border-[#EEEEEE] border p-3 rounded-xl mr-1 items-center"
-                      >
-                        <View
-                          className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl bg-[#E5E7EB]"
-                          style={{
-                            borderColor: cardStyle.border,
-                          }}
-                        />
-                        <View className="mt-3 h-4 w-20 bg-[#E5E7EB] rounded-md" />
-                        <View className="mt-2 h-4 w-16 bg-[#E5E7EB] rounded-md" />
+                        className="h-[72px] w-[63px] border border-b-[3px] justify-between items-center flex-row rounded-xl bg-[#E5E7EB]"
+                        style={{
+                          borderColor: cardStyle.border,
+                        }}
+                      />
+                      <View className="mt-3 h-4 w-20 bg-[#E5E7EB] rounded-md" />
+                      <View className="mt-2 h-4 w-16 bg-[#E5E7EB] rounded-md" />
 
-                        <View className="flex-row items-center justify-between gap-2 mt-3">
-                          <View className="h-[22px] w-[22px] bg-[#E5E7EB] rounded-full" />
-                          <View className="h-5 w-10 bg-[#E5E7EB] rounded-full" />
-                          <View className="h-[18px] w-[18px] bg-[#E5E7EB] rounded-md" />
-                        </View>
+                      <View className="flex-row items-center justify-between gap-2 mt-3">
+                        <View className="h-[22px] w-[22px] bg-[#E5E7EB] rounded-full" />
+                        <View className="h-5 w-10 bg-[#E5E7EB] rounded-full" />
+                        <View className="h-[18px] w-[18px] bg-[#E5E7EB] rounded-md" />
                       </View>
-                    </AutoSkeletonView>
+                    </View>
                   );
                 }
 

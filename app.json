@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hiruu",
     "slug": "Hiruu",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "notification": {
@@ -12,9 +12,10 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
+      "buildNumber": "3",
+      "bundleIdentifier": "com.xyryc.hiruu",
       "supportsTablet": true,
       "userInterfaceStyle": "automatic",
-      "bundleIdentifier": "com.xyryc.hiruu",
       "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": ["applinks:hiruu.app", "applinks:www.hiruu.app"],
       "infoPlist": {
@@ -24,6 +25,8 @@
       "appleTeamId": "3KZ7XWRYB7"
     },
     "android": {
+      "versionCode": 3,
+      "package": "com.xyryc.hiruu",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,7 +34,6 @@
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "userInterfaceStyle": "automatic",
-      "package": "com.xyryc.hiruu",
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",

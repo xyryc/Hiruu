@@ -1,7 +1,7 @@
 import { InterestGridProps } from "@/types";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { INTERESTS } from "@/constants/interests";
 
 const INTEREST_BG_COLOR_MAP: Record<string, string> = {
@@ -47,54 +47,52 @@ const InterestGrid = ({
       : interests;
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View className={`flex-row flex-wrap ${!readonly && "justify-between"}`}>
-        {visibleInterests.map((interest) => {
-          const selected = selectedInterests.includes(interest.id);
+    <View className={`flex-row flex-wrap ${!readonly && "justify-between"}`}>
+      {visibleInterests.map((interest) => {
+        const selected = selectedInterests.includes(interest.id);
 
-          return (
-            <TouchableOpacity
-              key={interest.id}
-              onPress={() => onToggle?.(interest.id)}
-              className="w-[23%] mb-4"
-              activeOpacity={0.7}
-              disabled={!onToggle || readonly}
-            >
-              <View className="items-center">
-                <View className="relative">
-                  <View
-                    className="w-16 h-16 rounded-full items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        INTEREST_BG_COLOR_MAP[interest.color] || "#F3F4F6",
-                      borderWidth: selected && !readonly ? 1 : 0,
-                      borderColor: selected && !readonly ? "#111111" : "transparent",
-                      borderRadius: 999,
-                    }}
-                  >
-                    <Text className="text-2xl">{interest.icon}</Text>
-                  </View>
-
-                  {selected && !readonly && (
-                    <View className="absolute top-0 -right-1 w-6 h-6 bg-gray-800 rounded-full items-center justify-center border-2 border-white">
-                      <Text className="text-white text-xs font-proximanova-bold">
-                        ✓
-                      </Text>
-                    </View>
-                  )}
+        return (
+          <TouchableOpacity
+            key={interest.id}
+            onPress={() => onToggle?.(interest.id)}
+            className="w-[23%] mb-4"
+            activeOpacity={0.7}
+            disabled={!onToggle || readonly}
+          >
+            <View className="items-center">
+              <View className="relative">
+                <View
+                  className="w-16 h-16 rounded-full items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      INTEREST_BG_COLOR_MAP[interest.color] || "#F3F4F6",
+                    borderWidth: selected && !readonly ? 1 : 0,
+                    borderColor: selected && !readonly ? "#111111" : "transparent",
+                    borderRadius: 999,
+                  }}
+                >
+                  <Text className="text-2xl">{interest.icon}</Text>
                 </View>
 
-                <Text
-                  className={`text-xs text-center mt-2 font-proximanova-medium ${selected ? "text-gray-900" : "text-gray-600"}`}
-                >
-                  {t(interest.name)}
-                </Text>
+                {selected && !readonly && (
+                  <View className="absolute top-0 -right-1 w-6 h-6 bg-gray-800 rounded-full items-center justify-center border-2 border-white">
+                    <Text className="text-white text-xs font-proximanova-bold">
+                      ✓
+                    </Text>
+                  </View>
+                )}
               </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </ScrollView>
+
+              <Text
+                className={`text-xs text-center mt-2 font-proximanova-medium ${selected ? "text-gray-900" : "text-gray-600"}`}
+              >
+                {t(interest.name)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
   );
 };
 

@@ -34,7 +34,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -601,7 +600,7 @@ const Edit = () => {
         keyboardDismissMode="on-drag"
       >
         {showInitialSkeleton ? (
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+          <View>
             <View className="mx-5">
               <View className="h-6 w-40 rounded-md bg-[#E5E7EB] mb-3" />
               <View className="h-28 rounded-2xl bg-[#E5E7EB]" />
@@ -628,7 +627,7 @@ const Edit = () => {
             </View>
 
             <View className="mx-5 my-10 h-14 rounded-full bg-[#E5E7EB]" />
-          </AutoSkeletonView>
+          </View>
         ) : null}
 
         {!showInitialSkeleton ? (
