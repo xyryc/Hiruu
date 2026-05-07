@@ -1,4 +1,5 @@
 import { useBusinessStore } from "@/stores/businessStore";
+import { useAuthStore } from "@/stores/authStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -27,6 +28,7 @@ const TopPerformer = ({ className }: any) => {
   const { t } = useTranslation();
   const router = useRouter();
   const myEmployments = useBusinessStore((state) => state.myEmployments);
+  const authUser = useAuthStore((state) => state.user as any);
   const getMyEmployments = useBusinessStore((state) => state.getMyEmployments);
   const getMonthlyLeaderboard = useBusinessStore((state) => state.getMonthlyLeaderboard);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
@@ -35,16 +37,51 @@ const TopPerformer = ({ className }: any) => {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [items, setItems] = useState<LeaderboardTopItem[]>([]);
 
-  const activeBusinessIds = useMemo(() => {
-    return (Array.isArray(myEmployments) ? myEmployments : [])
-      .filter((employment: any) => {
+  const premiumBusinessIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment: any) => {
+      const employmentStatus = String(employment?.status || "").toLowerCase();
+      const businessStatus = String(employment?.business?.status || "").toLowerCase();
+      const businessId = employment?.business?.id || employment?.businessId;
+      const isPremium = employment?.business?.isPremium === true;
+      if (
+        businessId &&
+        employmentStatus === "active" &&
+        businessStatus === "active" &&
+        isPremium
+      ) {
+        ids.add(String(businessId));
+      }
+    });
+
+    (Array.isArray(authUser?.employments) ? authUser.employments : []).forEach(
+      (employment: any) => {
         const employmentStatus = String(employment?.status || "").toLowerCase();
         const businessStatus = String(employment?.business?.status || "").toLowerCase();
-        return employmentStatus === "active" && businessStatus === "active";
-      })
-      .map((employment: any) => employment?.business?.id || employment?.businessId)
-      .filter(Boolean);
-  }, [myEmployments]);
+        const businessId = employment?.business?.id || employment?.businessId;
+        const isPremium = employment?.business?.isPremium === true;
+        if (
+          businessId &&
+          employmentStatus === "active" &&
+          businessStatus === "active" &&
+          isPremium
+        ) {
+          ids.add(String(businessId));
+        }
+      }
+    );
+
+    (Array.isArray(authUser?.ownedBusinesses) ? authUser.ownedBusinesses : []).forEach(
+      (business: any) => {
+        if (business?.id && business?.status === "active" && business?.isPremium === true) {
+          ids.add(String(business.id));
+        }
+      }
+    );
+
+    return Array.from(ids);
+  }, [authUser?.employments, authUser?.ownedBusinesses, myEmployments]);
 
   useEffect(() => {
     getMyEmployments(true).catch(() => undefined);
@@ -56,7 +93,7 @@ const TopPerformer = ({ className }: any) => {
       setHasLoadedOnce(true);
       return;
     }
-    if (!activeBusinessIds.includes(selectedBusinessId)) {
+    if (!premiumBusinessIds.includes(selectedBusinessId)) {
       setItems([]);
       setHasLoadedOnce(true);
       return;
@@ -78,7 +115,7 @@ const TopPerformer = ({ className }: any) => {
       setLoading(false);
       setHasLoadedOnce(true);
     }
-  }, [activeBusinessIds, getMonthlyLeaderboard, selectedBusinessId]);
+  }, [getMonthlyLeaderboard, premiumBusinessIds, selectedBusinessId]);
 
   useEffect(() => {
     fetchTopPerformer();

@@ -87,21 +87,75 @@ export default function LeaderboardScreen() {
   }, [getMyEmployments, isFocused]);
 
   const activeBusinesses = useMemo(() => {
-    const activeEmployments = (Array.isArray(myEmployments) ? myEmployments : []).filter(
-      (employment: any) => {
-        const employmentStatus = String(employment?.status || "").toLowerCase();
-        const businessStatus = String(
-          employment?.business?.status || ""
-        ).toLowerCase();
-        return employmentStatus === "active" && businessStatus === "active";
-      }
-    );
     const uniqueByBusinessId = new Map<string, any>();
 
-    activeEmployments.forEach((employment: any) => {
+    (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment: any) => {
+      const employmentStatus = String(employment?.status || "").toLowerCase();
+      const businessStatus = String(employment?.business?.status || "").toLowerCase();
       const business = employment?.business;
       const businessId = business?.id || employment?.businessId;
-      if (!businessId || uniqueByBusinessId.has(businessId)) return;
+      const isPremium = business?.isPremium === true;
+      if (
+        !businessId ||
+        uniqueByBusinessId.has(businessId) ||
+        employmentStatus !== "active" ||
+        businessStatus !== "active" ||
+        !isPremium
+      ) {
+        return;
+      }
+
+      uniqueByBusinessId.set(businessId, {
+        id: businessId,
+        name: business?.name || "Business",
+        address: business?.address,
+        imageUrl: business?.logo,
+        logo: business?.logo,
+      });
+    });
+
+    (Array.isArray((authUser as any)?.employments) ? (authUser as any).employments : []).forEach(
+      (employment: any) => {
+        const employmentStatus = String(employment?.status || "").toLowerCase();
+        const businessStatus = String(employment?.business?.status || "").toLowerCase();
+        const business = employment?.business;
+        const businessId = business?.id || employment?.businessId;
+        const isPremium = business?.isPremium === true;
+        if (
+          !businessId ||
+          uniqueByBusinessId.has(businessId) ||
+          employmentStatus !== "active" ||
+          businessStatus !== "active" ||
+          !isPremium
+        ) {
+          return;
+        }
+
+        uniqueByBusinessId.set(businessId, {
+          id: businessId,
+          name: business?.name || "Business",
+          address: business?.address,
+          imageUrl: business?.logo,
+          logo: business?.logo,
+        });
+      }
+    );
+
+    (Array.isArray((authUser as any)?.ownedBusinesses)
+      ? (authUser as any).ownedBusinesses
+      : []
+    ).forEach((business: any) => {
+      const businessId = business?.id;
+      const isPremium = business?.isPremium === true;
+      const businessStatus = String(business?.status || "").toLowerCase();
+      if (
+        !businessId ||
+        uniqueByBusinessId.has(businessId) ||
+        businessStatus !== "active" ||
+        !isPremium
+      ) {
+        return;
+      }
 
       uniqueByBusinessId.set(businessId, {
         id: businessId,
@@ -113,7 +167,7 @@ export default function LeaderboardScreen() {
     });
 
     return Array.from(uniqueByBusinessId.values());
-  }, [myEmployments]);
+  }, [authUser, myEmployments]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -211,6 +265,7 @@ export default function LeaderboardScreen() {
     if (!nextBusinessId) return;
     setLeaderboardBusinessId(nextBusinessId);
   };
+  const hasPremiumBusinesses = activeBusinesses.length > 0;
 
   const getRankBadge = (rank: number) => {
     switch (rank) {
@@ -269,6 +324,22 @@ export default function LeaderboardScreen() {
           showsVerticalScrollIndicator={false}
           className="h-screen-safe mx-4 pt-8"
         >
+          {!hasPremiumBusinesses ? (
+            <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl px-5 py-6">
+              <Text className="text-center font-proximanova-semibold text-lg text-primary">
+                {t("user.profile.leaderboard.premiumRequiredTitle", {
+                  defaultValue: "Premium Required",
+                })}
+              </Text>
+              <Text className="text-center font-proximanova-regular text-sm text-secondary mt-2">
+                {t("user.profile.leaderboard.premiumRequiredSubtitle", {
+                  defaultValue:
+                    "Leaderboard is available only for premium businesses.",
+                })}
+              </Text>
+            </View>
+          ) : (
+            <>
           {/* Countdown Timer Card */}
           <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl dark:bg-dark-surface">
             <Text className="text-center text-sm text-secondary dark:text-dark-secondary font-proximanova-regular mb-4">
@@ -392,45 +463,48 @@ export default function LeaderboardScreen() {
               ))}
             </View>
           </View>
+            </>
+          )}
         </ScrollView>
 
-        {/* Current User Card */}
-        <View className="bg-[#E5F4FD] dark:bg-blue-900/20 border border-[#EEEEEE] rounded-2xl px-4 py-6 flex-row items-center justify-between absolute bottom-0 inset-x-0">
-          <View className="flex-row items-center gap-4">
-            <Image
-              source={
-                currentUser.avatar
-                  ? { uri: currentUser.avatar }
-                  : require("@/assets/images/placeholder.png")
-              }
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: "#CECECE",
-              }}
-            />
-            <View className="flex-row items-center gap-1.5">
-              <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                {currentUser.name}
+        {hasPremiumBusinesses ? (
+          <View className="bg-[#E5F4FD] dark:bg-blue-900/20 border border-[#EEEEEE] rounded-2xl px-4 py-6 flex-row items-center justify-between absolute bottom-0 inset-x-0">
+            <View className="flex-row items-center gap-4">
+              <Image
+                source={
+                  currentUser.avatar
+                    ? { uri: currentUser.avatar }
+                    : require("@/assets/images/placeholder.png")
+                }
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: "#CECECE",
+                }}
+              />
+              <View className="flex-row items-center gap-1.5">
+                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {currentUser.name}
+                </Text>
+                {authUser?.isPremium === true ? (
+                  <MaterialCommunityIcons
+                    name="crown"
+                    size={16}
+                    color="#4FB2F3"
+                  />
+                ) : null}
+              </View>
+            </View>
+
+            <View className="bg-[#11293A] dark:bg-gray-700 px-3.5 py-2 rounded-full">
+              <Text className="text-white font-proximanova-semibold text-sm">
+                {currentUser.points} {t("user.profile.leaderboard.points")}
               </Text>
-              {authUser?.isPremium === true ? (
-                <MaterialCommunityIcons
-                  name="crown"
-                  size={16}
-                  color="#4FB2F3"
-                />
-              ) : null}
             </View>
           </View>
-
-          <View className="bg-[#11293A] dark:bg-gray-700 px-3.5 py-2 rounded-full">
-            <Text className="text-white font-proximanova-semibold text-sm">
-              {currentUser.points} {t("user.profile.leaderboard.points")}
-            </Text>
-          </View>
-        </View>
+        ) : null}
       </LinearGradient>
     </SafeAreaView>
   );
