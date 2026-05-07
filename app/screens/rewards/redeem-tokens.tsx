@@ -154,6 +154,7 @@ const RedeemTokens = () => {
           address: "",
           imageUrl: business.logo || "",
           logo: business.logo || "",
+          status: business.status,
         };
       })
       .filter((item): item is NonNullable<typeof item> => Boolean(item));

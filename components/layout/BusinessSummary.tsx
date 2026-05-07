@@ -59,6 +59,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
           address: business?.address,
           imageUrl: business?.logo,
           logo: business?.logo,
+          status: business?.status,
         },
       ];
     }, []);
@@ -180,6 +181,7 @@ const BusinessSummary = ({ className }: BusinessSummaryProps) => {
           address: b.address,
           imageUrl: b.logo,
           logo: b.logo,
+          status: b.status,
         }))}
         selectedBusinesses={selectedBusinesses}
         onSelectionChange={setSelectedBusinesses}

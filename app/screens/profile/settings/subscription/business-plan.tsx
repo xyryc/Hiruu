@@ -70,6 +70,7 @@ const BusinessPlan = () => {
         address: business?.address,
         imageUrl: business?.logo,
         logo: business?.logo,
+        status: business?.status,
       });
     });
 
@@ -328,6 +329,7 @@ const BusinessPlan = () => {
           address: b.address,
           imageUrl: b.logo,
           logo: b.logo,
+          status: b.status,
         }))}
         selectedBusinesses={selectedBusinessId ? [selectedBusinessId] : []}
         onSelectionChange={(ids: string[]) => {

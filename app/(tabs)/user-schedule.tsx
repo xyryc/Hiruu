@@ -260,7 +260,7 @@ const ShiftSchedule = () => {
   const modalBusinesses = useMemo(() => {
     const map = new Map<
       string,
-      { id: string; name: string; imageUrl: string; logo?: string }
+      { id: string; name: string; imageUrl: string; logo?: string; status?: string }
     >();
     (Array.isArray(myEmployments) ? myEmployments : []).forEach((employment) => {
       const business = employment?.business;
@@ -271,6 +271,7 @@ const ShiftSchedule = () => {
         name: business.name || "Business",
         imageUrl: business.logo || "",
         logo: business.logo,
+        status: business.status,
       });
     });
     return Array.from(map.values());

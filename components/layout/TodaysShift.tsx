@@ -105,6 +105,7 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
             imageUrl: business.logo || "",
             logo: business.logo || "",
             attendanceMode: business.attendanceMode || "",
+            status: business.status,
           };
         })
         .filter((item): item is NonNullable<typeof item> => Boolean(item));

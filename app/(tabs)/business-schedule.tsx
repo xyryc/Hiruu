@@ -102,6 +102,7 @@ const BusinessScheduleScreen = () => {
       address: employment.business.address,
       imageUrl: employment.business.logo,
       logo: employment.business.logo,
+      status: employment.business.status,
     }));
   }, [myEmployments, t]);
 
@@ -821,6 +822,7 @@ const BusinessScheduleScreen = () => {
           address: b.address,
           imageUrl: b.logo,
           logo: b.logo,
+          status: b.status,
         }))}
         selectedBusinesses={selectedBusinesses}
         onSelectionChange={setSelectedBusinesses}

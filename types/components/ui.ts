@@ -150,6 +150,7 @@ interface Business {
   id: string;
   name: string;
   imageUrl: string;
+  status?: string;
 }
 
 export interface BusinessSelectionModalProps {

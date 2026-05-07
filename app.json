@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hiruu",
     "slug": "Hiruu",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "notification": {
@@ -16,10 +16,7 @@
       "userInterfaceStyle": "automatic",
       "bundleIdentifier": "com.xyryc.hiruu",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "associatedDomains": [
-        "applinks:hiruu.app",
-        "applinks:www.hiruu.app"
-      ],
+      "associatedDomains": ["applinks:hiruu.app", "applinks:www.hiruu.app"],
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Hiruu to access your camera to scan QR codes.",
         "NSMicrophoneUsageDescription": "Allow Hiruu to access your microphone for audio calls."
@@ -64,10 +61,7 @@
               "pathPrefix": "/u/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

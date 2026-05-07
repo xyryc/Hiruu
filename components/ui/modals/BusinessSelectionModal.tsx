@@ -46,6 +46,7 @@ const BusinessSelectionModal = ({
         address: business?.address,
         imageUrl: business?.logo,
         logo: business?.logo,
+        status: business?.status,
       });
     });
 
@@ -93,6 +94,28 @@ const BusinessSelectionModal = ({
     if (businesses.length > 0) return;
     getMyEmployments().catch(() => undefined);
   }, [businesses.length, disableStoreFallback, getMyEmployments, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    console.log(
+      "[BusinessSelectionModal] getMyEmployments response",
+      Array.isArray(myEmployments) ? myEmployments : []
+    );
+  }, [myEmployments, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    console.log(
+      "[BusinessSelectionModal] businesses status snapshot",
+      (Array.isArray(displayedBusinesses) ? displayedBusinesses : []).map(
+        (business: any) => ({
+          id: business?.id,
+          name: business?.name,
+          status: business?.status,
+        })
+      )
+    );
+  }, [displayedBusinesses, visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -234,7 +257,12 @@ const BusinessSelectionModal = ({
                 const addressLabel = business?.address?.address || "";
                 const employment = employmentMetaByBusinessId.get(business.id);
                 const roleMissing = Boolean(employment) && !employment?.role;
-                const rowSelected = isSelected(business.id) && !roleMissing;
+                const businessStatus = String(
+                  business?.status || ""
+                ).toLowerCase();
+                const isClosedBusiness = businessStatus === "closed";
+                const isDisabled = roleMissing || isClosedBusiness;
+                const rowSelected = isSelected(business.id) && !isDisabled;
                 const roleName =
                   employment?.role?.role?.name ||
                   employment?.role?.name ||
@@ -248,11 +276,11 @@ const BusinessSelectionModal = ({
                   <TouchableOpacity
                     key={business.id}
                     onPress={() => {
-                      if (roleMissing) return;
+                      if (isDisabled) return;
                       toggleBusiness(business.id);
                     }}
-                    disabled={roleMissing}
-                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${roleMissing ? "opacity-60" : ""
+                    disabled={isDisabled}
+                    className={`flex-row items-center p-2.5 mb-3 rounded-xl ${isDisabled ? "opacity-60" : ""
                       } ${rowSelected ? "bg-[#4FB2F3]" : "bg-white"
                       }`}
                   >
@@ -291,16 +319,32 @@ const BusinessSelectionModal = ({
                         {business.name}
                       </Text>
                       {!!roleText && (
-                        <Text
-                          className={`text-xs ${rowSelected
-                            ? "text-white/80"
-                            : "text-gray-600"
-                            }`}
-                          numberOfLines={1}
-                        >
-                          {roleText}
-                        </Text>
+                        <View className="flex-row items-center gap-2">
+                          <Text
+                            className={`text-xs ${rowSelected
+                              ? "text-white/80"
+                              : "text-gray-600"
+                              }`}
+                            numberOfLines={1}
+                          >
+                            {roleText}
+                          </Text>
+                          {isClosedBusiness ? (
+                            <View className="px-2 py-0.5 rounded-full bg-[#FFE5E5]">
+                              <Text className="font-proximanova-semibold text-[10px] text-[#E54848]">
+                                {t("common.closed")}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
                       )}
+                      {!roleText && isClosedBusiness ? (
+                        <View className="self-start px-2 py-0.5 rounded-full bg-[#FFE5E5] mt-0.5">
+                          <Text className="font-proximanova-semibold text-[10px] text-[#E54848]">
+                            {t("common.closed")}
+                          </Text>
+                        </View>
+                      ) : null}
                       {!!addressLabel && (
                         <Text
                           className={`text-xs ${rowSelected
@@ -314,7 +358,7 @@ const BusinessSelectionModal = ({
                       )}
                     </View>
 
-                    {roleMissing ? (
+                    {isDisabled ? (
                       <Ionicons name="lock-closed-outline" size={18} color="#6B7280" />
                     ) : (
                       <Ionicons
