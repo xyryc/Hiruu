@@ -52,6 +52,15 @@ const Profile = () => {
     { label: t("user.profile.userProfile.cvStyles.sidebarRight"), value: "sidebar-right" },
   ];
   const [isProfileSwitchOpen, setIsProfileSwitchOpen] = useState(false);
+  const sectionIconStyle = {
+    width: 32,
+    height: 32,
+    minWidth: 32,
+    minHeight: 32,
+    borderRadius: 9999,
+    alignItems: "center",
+    justifyContent: "center",
+  } as const;
   const user = useAuthStore((state) => state.user);
   const { setSelectedBusinesses, getBusinessProfile } = useBusinessStore();
   const {
@@ -454,6 +463,7 @@ const Profile = () => {
               <View className="flex-row gap-2.5 items-center">
                 <DynamicBackground
                   className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                  style={sectionIconStyle}
                   pickerType={pickerType}
                   profileColor={profileColor}
                   gradientColors={gradientColors}
@@ -482,6 +492,7 @@ const Profile = () => {
             <View className="mx-5 mt-7 flex-row items-center gap-2.5 mb-4">
               <DynamicBackground
                 className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}
@@ -532,6 +543,7 @@ const Profile = () => {
                 <View className="mx-5 mt-7 flex-row gap-2.5">
                   <DynamicBackground
                     className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                    style={sectionIconStyle}
                     pickerType={pickerType}
                     profileColor={profileColor}
                     gradientColors={gradientColors}
@@ -566,6 +578,7 @@ const Profile = () => {
               <View className="flex-row gap-2.5 items-center">
                 <DynamicBackground
                   className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                  style={sectionIconStyle}
                   pickerType={pickerType}
                   profileColor={profileColor}
                   gradientColors={gradientColors}
@@ -615,6 +628,7 @@ const Profile = () => {
             <View className="mx-5 mt-2 flex-row gap-2.5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}
@@ -642,6 +656,7 @@ const Profile = () => {
             <View className="mx-5 mt-7 flex-row gap-2.5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}
@@ -678,6 +693,7 @@ const Profile = () => {
             <View className="flex-row items-center gap-2.5 mt-6 mx-5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row items-center justify-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}

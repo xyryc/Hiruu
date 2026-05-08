@@ -61,6 +61,15 @@ const Edit = () => {
   const { t } = useTranslation();
   const [isBadgeVisible, setIsBadgeVisible] = useState(false);
   const [visible, setVisible] = useState(false);
+  const sectionIconStyle = {
+    width: 32,
+    height: 32,
+    minWidth: 32,
+    minHeight: 32,
+    borderRadius: 9999,
+    alignItems: "center",
+    justifyContent: "center",
+  } as const;
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     "sports",
     "music",
@@ -773,6 +782,7 @@ const Edit = () => {
               <View className="flex-row gap-2.5 items-center">
                 <DynamicBackground
                   className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+                  style={sectionIconStyle}
                   pickerType={pickerType}
                   profileColor={profileColor}
                   gradientColors={gradientColors}
@@ -805,6 +815,7 @@ const Edit = () => {
                 <View className="flex-row gap-2.5">
                   <DynamicBackground
                     className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    style={sectionIconStyle}
                     pickerType={pickerType}
                     profileColor={profileColor}
                     gradientColors={gradientColors}
@@ -852,6 +863,7 @@ const Edit = () => {
                 <View className="flex-row gap-2.5">
                   <DynamicBackground
                     className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    style={sectionIconStyle}
                     pickerType={pickerType}
                     profileColor={profileColor}
                     gradientColors={gradientColors}
@@ -887,6 +899,7 @@ const Edit = () => {
                 <View className="flex-row gap-2.5">
                   <DynamicBackground
                     className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                    style={sectionIconStyle}
                     pickerType={pickerType}
                     profileColor={profileColor}
                     gradientColors={gradientColors}
@@ -932,6 +945,7 @@ const Edit = () => {
               <View className="flex-row gap-2.5">
                 <DynamicBackground
                   className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                  style={sectionIconStyle}
                   pickerType={pickerType}
                   profileColor={profileColor}
                   gradientColors={gradientColors}
