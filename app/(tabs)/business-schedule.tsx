@@ -778,6 +778,15 @@ const BusinessScheduleScreen = () => {
               key={shift.id}
               shift={shift}
               onMessagePress={() => handleOpenShiftChat(shift)}
+              onViewDetailsPress={() =>
+                router.push({
+                  pathname: "/screens/schedule/business/shift-details",
+                  params: {
+                    businessId: String(shift.businessId || ""),
+                    id: String(shift.id || ""),
+                  },
+                })
+              }
             />
           ))
         ) : (

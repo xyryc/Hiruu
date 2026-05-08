@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import StatusBadge from "../badges/StatusBadge";
 
-const ShiftCard = ({ shift, onMessagePress }: any) => {
+const ShiftCard = ({ shift, onMessagePress, onViewDetailsPress }: any) => {
   const { t } = useTranslation();
   const router = useRouter();
   const avatarSource =
@@ -112,7 +112,11 @@ const ShiftCard = ({ shift, onMessagePress }: any) => {
       {/* 3rd row */}
       <View className="mt-2.5 flex-row justify-between items-center">
         {/* view details */}
-        <TouchableOpacity className="flex-row items-center gap-1">
+        <TouchableOpacity
+          className="flex-row items-center gap-1"
+          onPress={onViewDetailsPress}
+          disabled={!onViewDetailsPress}
+        >
           <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
             {t("user.jobs.schedule.viewDetails")}
           </Text>

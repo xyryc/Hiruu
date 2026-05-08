@@ -224,6 +224,10 @@ type ShiftStoreState = {
   ) => Promise<any[]>;
   getBusinessColleagues: (businessId: string) => Promise<BusinessColleagueItem[]>;
   getShiftAssignmentDetails: (id: string) => Promise<any | null>;
+  getBusinessShiftAssignmentDetails: (
+    businessId: string,
+    id: string
+  ) => Promise<any | null>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   createShiftRequest: (
@@ -805,6 +809,51 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
       });
 
       const response = await axiosInstance.get(`/shift-assignment/details/${id}`);
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to load shift details");
+      }
+
+      const details = result?.data || null;
+      set({
+        shiftAssignmentDetails: details,
+        shiftAssignmentDetailsLoading: false,
+      });
+      return details;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load shift details";
+      set({
+        shiftAssignmentDetails: null,
+        shiftAssignmentDetailsLoading: false,
+        shiftAssignmentDetailsError: message,
+      });
+      throw new Error(message);
+    }
+  },
+
+  getBusinessShiftAssignmentDetails: async (businessId, id) => {
+    try {
+      if (!businessId || !id) {
+        set({
+          shiftAssignmentDetails: null,
+          shiftAssignmentDetailsLoading: false,
+          shiftAssignmentDetailsError: null,
+        });
+        return null;
+      }
+
+      set({
+        shiftAssignmentDetailsLoading: true,
+        shiftAssignmentDetailsError: null,
+      });
+
+      const response = await axiosInstance.get(
+        `/shift-assignment/${businessId}/details/${id}`
+      );
       const result = response?.data;
 
       if (!result?.success) {
