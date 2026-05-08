@@ -1288,7 +1288,7 @@
       "dec": "Dec"
     },
     "dateWithToday": "{{date}} (Today)",
-    "hello": "👋 Hello, {{name}}",
+    "hello": "Hello, {{name}}",
     "readyForTodaysTask": "Ready for today's task?",
     "welcomeTo": "Welcome to",
     "percentReady": "{{percent}}% Ready",

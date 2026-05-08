@@ -13,6 +13,8 @@ const WelcomeHeader = ({
 }: WelcomeHeaderProps) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const helloLabel = t("common.hello", { name: name || t("common.user") });
+  const helloText = helloLabel.replace(/^[^\p{L}\p{N}]+/u, "").trimStart();
 
   return (
     <View className={`${className} pb-2 px-4 flex-row justify-between`}>
@@ -33,9 +35,16 @@ const WelcomeHeader = ({
         </TouchableOpacity>
 
         <View className="w-56">
-          <Text className="text-sm text-[#7A7A7A] mb-1.5" numberOfLines={1}>
-            {t("common.hello", { name: name || t("common.user") })}
-          </Text>
+          <View className="mb-1.5 flex-row items-center">
+            <Image
+              source={require("@/assets/images/wave.png")}
+              style={{ width: 16, height: 16 }}
+              contentFit="contain"
+            />
+            <Text className="text-sm text-[#7A7A7A] ml-1" numberOfLines={1}>
+              {helloText}
+            </Text>
+          </View>
           <Text className="font-proximanova-semibold">
             {t("common.readyForTodaysTask")}
           </Text>
