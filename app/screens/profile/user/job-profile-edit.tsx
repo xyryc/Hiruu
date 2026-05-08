@@ -22,11 +22,80 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
+const toMinutesFrom12Hour = (value?: string) => {
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const period = match[3].toUpperCase();
+
+  if (!Number.isInteger(hour) || hour < 1 || hour > 12) return null;
+  if (!Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+
+  let normalizedHour = hour % 12;
+  if (period === "PM") normalizedHour += 12;
+
+  return normalizedHour * 60 + minute;
+};
+
+const toMinutesFrom24Hour = (value?: string) => {
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  if (!Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+
+  return hour * 60 + minute;
+};
+
+const toMinutes = (value?: string) => {
+  const as24 = toMinutesFrom24Hour(value);
+  if (as24 !== null) return as24;
+  return toMinutesFrom12Hour(value);
+};
+
+const toApiTime = (value?: string) => {
+  const minutes = toMinutes(value);
+  if (minutes === null) return null;
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 const isValidWeeklyAvailability = (availability: WeeklyAvailabilityItem[]) =>
   availability.every((item) => {
     if (!item.isOpen) return true;
     if (!item.startTime || !item.endTime) return false;
-    return item.startTime < item.endTime;
+
+    const start = toMinutes(item.startTime);
+    const end = toMinutes(item.endTime);
+    if (start === null || end === null) return false;
+
+    return start < end;
+  });
+
+const normalizeWeeklyAvailabilityForApi = (
+  availability: WeeklyAvailabilityItem[]
+): WeeklyAvailabilityItem[] =>
+  availability.map((item) => {
+    if (!item.isOpen) {
+      return { day: item.day, isOpen: false };
+    }
+
+    const startTime = toApiTime(item.startTime);
+    const endTime = toApiTime(item.endTime);
+
+    return {
+      day: item.day,
+      isOpen: true,
+      ...(startTime ? { startTime } : {}),
+      ...(endTime ? { endTime } : {}),
+    };
   });
 
 const DEFAULT_WEEKLY_AVAILABILITY: WeeklyAvailabilityItem[] = [
@@ -257,8 +326,9 @@ const JobProfileEdit = () => {
         if (!isValidWeeklyAvailability(weeklyAvailability)) {
           return;
         }
-
-        await updateMyJobProfile({ weeklyAvailability });
+        await updateMyJobProfile({
+          weeklyAvailability: normalizeWeeklyAvailabilityForApi(weeklyAvailability),
+        });
       } catch (error) {
         console.error("job profile weekly availability autosave error:", error);
       }
@@ -274,6 +344,11 @@ const JobProfileEdit = () => {
   const handleSave = async () => {
     try {
       setIsSaving(true);
+
+      if (!isOpenToWork) {
+        toast.error("Please enable Open to Work to save your job profile.");
+        return;
+      }
 
       if (!isValidWeeklyAvailability(weeklyAvailability)) {
         toast.error("Please set a valid weekly availability schedule.");
@@ -295,7 +370,7 @@ const JobProfileEdit = () => {
         isOpenToWork,
         preferredSalaryType: salaryType.trim() || null,
         preferredRoleIds,
-        weeklyAvailability,
+        weeklyAvailability: normalizeWeeklyAvailabilityForApi(weeklyAvailability),
         expectedSalaryMin: expectedSalaryMin.trim()
           ? Number(expectedSalaryMin)
           : null,
