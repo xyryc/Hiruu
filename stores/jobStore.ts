@@ -1062,7 +1062,7 @@ export const useJobStore = create<JobState>((set) => ({
       });
       const response = await axiosInstance.patch(
         `/recruitment-application/business/${businessId}/${id}`,
-        { status }
+        { action: status }
       );
       const result = response.data;
 
