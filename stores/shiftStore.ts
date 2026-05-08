@@ -228,6 +228,13 @@ type ShiftStoreState = {
     businessId: string,
     id: string
   ) => Promise<any | null>;
+  submitBusinessManualAttendance: (payload: {
+    businessId: string;
+    shiftAssignmentId: string;
+    clockInTime: string;
+    clockOutTime: string;
+    status: string;
+  }) => Promise<any>;
   clockIn: (shiftAssignmentId: string) => Promise<any>;
   clockOut: (shiftId: string) => Promise<any>;
   createShiftRequest: (
@@ -876,6 +883,42 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         shiftAssignmentDetailsLoading: false,
         shiftAssignmentDetailsError: message,
       });
+      throw new Error(message);
+    }
+  },
+
+  submitBusinessManualAttendance: async ({
+    businessId,
+    shiftAssignmentId,
+    clockInTime,
+    clockOutTime,
+    status,
+  }) => {
+    try {
+      if (!businessId || !shiftAssignmentId) {
+        throw new Error("Business id and shift assignment id are required");
+      }
+
+      const response = await axiosInstance.put(
+        `/attendance/business/${businessId}/shift/${shiftAssignmentId}/manual`,
+        {
+          clockInTime,
+          clockOutTime,
+          status,
+        }
+      );
+
+      const result = response?.data;
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to submit manual attendance");
+      }
+
+      return result;
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to submit manual attendance";
       throw new Error(message);
     }
   },
