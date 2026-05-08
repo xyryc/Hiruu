@@ -167,7 +167,7 @@ const FilterShift = () => {
               ...(selectedStatus ? { status: selectedStatus } : {}),
               ...(selectedType ? { type: selectedType } : {}),
             };
-            console.log("[ShiftFilter] apply payload", nextParams);
+            // console.log("[ShiftFilter] apply payload", nextParams);
             setIsApplying(true);
             router.replace({
               pathname: "/screens/home/team/shift-requests",

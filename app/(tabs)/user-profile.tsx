@@ -222,7 +222,7 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    console.log("[UserProfile] experiences", JSON.stringify(experiences, null, 2));
+    // console.log("[UserProfile] experiences", JSON.stringify(experiences, null, 2));
   }, [experiences, resolvedExperiences]);
   const jobProfilePreview = [
     typeof jobProfile?.headline === "string" ? jobProfile.headline.trim() : "",

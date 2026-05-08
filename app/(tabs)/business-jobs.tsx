@@ -6,6 +6,7 @@ import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useJobStore } from "@/stores/jobStore";
+import { buildDialablePhoneNumber } from "@/utils/phone";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
@@ -22,7 +23,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import { buildDialablePhoneNumber } from "@/utils/phone";
 
 const styles = StyleSheet.create({
   compactEmptyState: {
@@ -128,6 +128,8 @@ const BusinessJobs = () => {
   // Get current business ID
   const currentBusinessId = selectedBusinesses?.[0] || null;
 
+  console.log(JSON.stringify(featuredProfiles, null, 2));
+
 
   // Helper function to check if user is already employed by current business
   const isAlreadyEmployed = useCallback((profile: any) => {
@@ -174,9 +176,9 @@ const BusinessJobs = () => {
       setFeaturedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "featured")
-          .filter((profile) =>
-            matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
-          )
+            .filter((profile) =>
+              matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
+            )
         )
       );
 
@@ -211,9 +213,9 @@ const BusinessJobs = () => {
       setSuggestedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "suggested")
-          .filter((profile) =>
-            matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
-          )
+            .filter((profile) =>
+              matchesPreferredRoleIds(profile, businessCandidateFilters.preferredRoleIds)
+            )
         )
       );
     } catch (error: any) {
@@ -363,14 +365,17 @@ const BusinessJobs = () => {
                 ))}
               </>
             ) : (
-              filteredFeaturedProfiles.slice(0, 10).map((profile: any) => (
-                <BusinessJobCard
-                  key={profile.id}
-                  className="mt-4"
-                  status="featured"
-                  profile={profile}
-                />
-              ))
+              filteredFeaturedProfiles.slice(0, 10).map((profile: any) => {
+                // console.log("[FindEmployee] BusinessJobCard featured profile", JSON.stringify(profile, null, 2));
+                return (
+                  <BusinessJobCard
+                    key={profile.id}
+                    className="mt-4"
+                    status="featured"
+                    profile={profile}
+                  />
+                );
+              })
             )}
           </View>
         )}
@@ -403,13 +408,16 @@ const BusinessJobs = () => {
                 ))}
               </>
             ) : (
-              filteredSuggestedProfiles.slice(0, 4).map((profile: any) => (
-                <BusinessJobCard
-                  key={profile.id}
-                  className="mt-4"
-                  profile={profile}
-                />
-              ))
+              filteredSuggestedProfiles.slice(0, 4).map((profile: any) => {
+                // console.log("[FindEmployee] BusinessJobCard suggested profile", profile);
+                return (
+                  <BusinessJobCard
+                    key={profile.id}
+                    className="mt-4"
+                    profile={profile}
+                  />
+                );
+              })
             )}
           </View>
         )}

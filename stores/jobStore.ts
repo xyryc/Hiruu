@@ -831,6 +831,10 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const data = (result?.data ?? null) as JobProfileData | null;
+      console.log("[JobStore] getMyJobProfile response", {
+        preferredRoleIds: data?.preferredRoleIds,
+        data,
+      });
       set({
         jobProfile: data,
         isLoadingJobProfile: false,
@@ -877,6 +881,7 @@ export const useJobStore = create<JobState>((set) => ({
     set({ isLoadingJobProfile: true, error: null });
 
     try {
+      console.log("[JobStore] updateMyJobProfile request", payload);
       const response = await axiosInstance.patch("/job-profile/me", payload);
       const result = response.data;
 
@@ -890,6 +895,10 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const data = (result?.data ?? null) as JobProfileData | null;
+      console.log("[JobStore] updateMyJobProfile response", {
+        preferredRoleIds: data?.preferredRoleIds,
+        data,
+      });
       set((state) => ({
         jobProfile: data
           ? state.jobProfile

@@ -327,6 +327,8 @@ const JobProfileEdit = () => {
           return;
         }
         await updateMyJobProfile({
+          isOpenToWork,
+          preferredRoleIds,
           weeklyAvailability: normalizeWeeklyAvailabilityForApi(weeklyAvailability),
         });
       } catch (error) {
@@ -339,7 +341,13 @@ const JobProfileEdit = () => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [availabilityTouched, updateMyJobProfile, weeklyAvailability]);
+  }, [
+    availabilityTouched,
+    isOpenToWork,
+    preferredRoleIds,
+    updateMyJobProfile,
+    weeklyAvailability,
+  ]);
 
   const handleSave = async () => {
     try {

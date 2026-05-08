@@ -54,6 +54,7 @@ const BusinessJobCard = ({
   const isSkeleton = !profile?.user && !profile?.headline && !profile?.highlightedExperience;
   const alreadyOffered = offerSent || Boolean(profile?.alreadyOffered);
   const modalDisabled = Boolean(disableModalOpen) || alreadyOffered;
+  console.log(JSON.stringify(profile, null, 2));
 
   useEffect(() => {
     // Keep local state in sync when the profile changes (e.g. refresh/list reload).
@@ -71,7 +72,31 @@ const BusinessJobCard = ({
   const userAvatarSource = userAvatarUri
     ? { uri: userAvatarUri }
     : require("@/assets/images/placeholder.png");
-  const headline = profile?.headline || t("common.notSet");
+  const experienceList = Array.isArray(profile?.user?.experiences)
+    ? profile.user.experiences
+    : [];
+  const preferredRoleName =
+    Array.isArray(profile?.preferredRoles) &&
+    profile.preferredRoles.length > 0 &&
+    typeof profile.preferredRoles[0]?.name === "string" &&
+    profile.preferredRoles[0].name.trim().length > 0
+      ? profile.preferredRoles[0].name.trim()
+      : "";
+  const currentExperienceRole = experienceList.find(
+    (item: any) =>
+      item?.isCurrent === true &&
+      typeof item?.position === "string" &&
+      item.position.trim().length > 0
+  )?.position;
+  const fallbackExperienceRole = experienceList.find(
+    (item: any) => typeof item?.position === "string" && item.position.trim().length > 0
+  )?.position;
+  const headline =
+    profile?.headline ||
+    preferredRoleName ||
+    currentExperienceRole ||
+    fallbackExperienceRole ||
+    t("common.notSet");
   const isPremium = profile?.isPremium || false;
   const applicationStatus = String(profile?.applicationStatus || "").toLowerCase();
   const finalReceivedStatus =
