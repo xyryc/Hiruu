@@ -26,7 +26,7 @@ export default function RatingBar({ label, value, max }: TRatingBar) {
     <View className="mb-5">
       <View className="flex-row justify-between items-center">
         <Text className="font-proximanova-regular text-sm text-primary dark:text-dark-primary">
-          {label}
+          {label}{' '}
         </Text>
         <Text className="font-proximanova-bold text-[15px] text-primary dark:text-dark-primary">
           {displayValue}/{max}

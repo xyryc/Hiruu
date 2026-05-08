@@ -4,7 +4,6 @@ import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingCard from "@/components/ui/cards/RatingCard";
 import RatingBar from "@/components/ui/inputs/RatingBar";
 import RatingStarModal from "@/components/ui/modals/RatingStarModal";
-import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -49,12 +48,7 @@ const Rating = () => {
     : targetUserId
       ? `user:${targetUserId}`
       : "me";
-  const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isBusinessRatingView = Boolean(businessId) && !targetUserId;
-  const isOwnBusinessRatingView =
-    isBusinessRatingView &&
-    Boolean(selectedBusinesses?.[0]) &&
-    selectedBusinesses[0] === businessId;
   const canRate = params.canRate === "true" && Boolean(targetUserId && businessId);
   const shouldOpenAddRating = params.openAddRating === "true";
   const [resolvedRequestKey, setResolvedRequestKey] = useState("");
@@ -123,16 +117,25 @@ const Rating = () => {
   );
 
   const summaryBars = useMemo(() => {
+    const businessWorkEnvironmentLabel = t("user.profile.businessProfile.workEnvironment");
+    const resolvedBusinessWorkEnvironmentLabel =
+      businessWorkEnvironmentLabel &&
+        businessWorkEnvironmentLabel !== "user.profile.businessProfile.workEnvironment" &&
+        businessWorkEnvironmentLabel.trim().toLowerCase() !== "work"
+        ? businessWorkEnvironmentLabel
+        : "Work Environment";
+
     const labels = isBusinessRatingView
       ? {
         onTime: t("user.profile.businessProfile.payOnTime"),
-        trustWorthy: t("user.profile.businessProfile.workEnvironment"),
+        trustWorthy: resolvedBusinessWorkEnvironmentLabel,
         communication: t("user.profile.businessProfile.communication"),
       }
       : {
-        onTime: t("user.profile.rating.onTime"),
-        trustWorthy: t("user.profile.rating.trustWorthy"),
-        communication: t("user.profile.rating.communication"),
+        // Keep employee rating labels explicit so business wording never leaks here.
+        onTime: "On Time",
+        trustWorthy: "Trustworthy",
+        communication: "Communication",
       };
 
     if (isBusinessRatingView) {
@@ -249,7 +252,7 @@ const Rating = () => {
     return t("user.profile.rating.justNow");
   }, [t]);
 
-  const canSubmitRating = canRate || (isBusinessRatingView && !isOwnBusinessRatingView);
+  const canSubmitRating = canRate;
 
   useEffect(() => {
     if (shouldOpenAddRating && canSubmitRating) {
@@ -380,6 +383,7 @@ const Rating = () => {
           onClose={() => setIsVisible(false)}
           onSubmit={handleSubmitRating}
           loading={isSubmittingRating}
+          mode={isBusinessRatingView ? "business" : "employee"}
         />
       </ScrollView>
 

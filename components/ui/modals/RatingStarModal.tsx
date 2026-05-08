@@ -5,11 +5,33 @@ import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../buttons/PrimaryButton";
 
-const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
-  const DEFAULT_RATING_COMMENT = "Rated from employee profile.";
+type RatingMode = "employee" | "business";
+
+const RatingStarModal = ({
+  visible,
+  onClose,
+  onSubmit,
+  loading,
+  mode = "employee",
+}: any) => {
+  const DEFAULT_RATING_COMMENT =
+    mode === "business" ? "Rated from business profile." : "Rated from employee profile.";
   const handleDone = () => {
     onClose();
   };
+  const criteriaLabels: Record<RatingMode, { onTime: string; trust: string; communication: string }> = {
+    business: {
+      onTime: "Pay On Time",
+      trust: "Work Environment",
+      communication: "Communication",
+    },
+    employee: {
+      onTime: "Punctuality",
+      trust: "Work Trustworthy",
+      communication: "Communication",
+    },
+  };
+  const selectedLabels = criteriaLabels[mode as RatingMode] || criteriaLabels.employee;
   const starLabels = ["", "Bad", "Average", "Good", "Great", "Amazing"];
   const [paySelect, setPaySelect] = useState<number>();
   const [workSelect, setWorkSelect] = useState<number>();
@@ -66,9 +88,9 @@ const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
               Your rating helps improve workplace transparency
             </Text>
 
-            {/*  Pay On Time  */}
+            {/* Criterion 1 */}
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-8">
-              Pay On Time
+              {selectedLabels.onTime}
             </Text>
             <View className="flex-row justify-between mt-4">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -94,9 +116,9 @@ const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
               ))}
             </View>
 
-            {/*  work enviroment  */}
+            {/* Criterion 2 */}
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-8">
-              Work Enviroment
+              {selectedLabels.trust}
             </Text>
             <View className="flex-row justify-between mt-4">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -122,9 +144,9 @@ const RatingStarModal = ({ visible, onClose, onSubmit, loading }: any) => {
               ))}
             </View>
 
-            {/*  communication  */}
+            {/* Criterion 3 */}
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary mt-8">
-              Communication
+              {selectedLabels.communication}
             </Text>
             <View className="flex-row justify-between mt-4">
               {[1, 2, 3, 4, 5].map((star) => (
