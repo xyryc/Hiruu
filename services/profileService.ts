@@ -6,11 +6,24 @@ import {
 } from '@/types';
 import axiosInstance from '@/utils/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 const ACCESS_TOKEN_STORAGE_KEY = 'auth_access_token';
 
 class ProfileService {
+    private isSystemManagedExperience(experience: any) {
+        if (!experience || typeof experience !== "object") return false;
+
+        // Backend rejects edit/delete for system-added experiences.
+        // Typical indicators: official source and/or linked employment record.
+        const source = String(experience?.source || "").toLowerCase();
+        return Boolean(
+            experience?.employmentId ||
+            source === "official" ||
+            experience?.isOfficial === true
+        );
+    }
+
     private getSafeFileName(name: string, mimeType: string) {
         const sanitizedBase = (name || "file")
             .replace(/\.[^/.]+$/, "")
@@ -206,9 +219,25 @@ class ProfileService {
         ) as Partial<T>;
     }
 
-    async syncExperiences(experiences: any[], existingExperiences: any[] = []): Promise<void> {
+    async syncExperiences(
+        experiences: any[],
+        existingExperiences: any[] = []
+    ): Promise<{
+        created: number;
+        updated: number;
+        deleted: number;
+        skippedNoChanges: number;
+        skippedSystemManaged: number;
+    }> {
         try {
-            if (!Array.isArray(experiences)) return;
+            const summary = {
+                created: 0,
+                updated: 0,
+                deleted: 0,
+                skippedNoChanges: 0,
+                skippedSystemManaged: 0,
+            };
+            if (!Array.isArray(experiences)) return summary;
 
             const existingById = new Map<string, any>();
             existingExperiences.forEach((item) => {
@@ -225,6 +254,13 @@ class ProfileService {
             for (const existing of existingExperiences) {
                 if (!existing?.id) continue;
                 if (!incomingIds.has(String(existing.id))) {
+                    if (this.isSystemManagedExperience(existing)) {
+                        console.log("[ProfileService] DELETE /experiences/:id skipped (system-managed)", {
+                            id: existing.id,
+                        });
+                        summary.skippedSystemManaged += 1;
+                        continue;
+                    }
                     console.log("[ProfileService] DELETE /experiences/:id", {
                         id: existing.id,
                     });
@@ -237,6 +273,7 @@ class ProfileService {
                     if (deleteResult?.success === false) {
                         throw new Error(deleteResult?.message || "Failed to delete experience");
                     }
+                    summary.deleted += 1;
                 }
             }
 
@@ -264,10 +301,18 @@ class ProfileService {
                 const preparedPayload = await this.prepareExperiencePayload(requestPayload);
 
                 if (existing?.id) {
+                    if (this.isSystemManagedExperience(existing)) {
+                        console.log("[ProfileService] PATCH /experiences skipped (system-managed)", {
+                            id: existing.id,
+                        });
+                        summary.skippedSystemManaged += 1;
+                        continue;
+                    }
                     if (!this.isExperienceChanged(existing, preparedPayload)) {
                         console.log("[ProfileService] PATCH /experiences skipped (no changes)", {
                             id: existing.id,
                         });
+                        summary.skippedNoChanges += 1;
                         continue;
                     }
                     console.log("[ProfileService] PATCH /experiences/:id", {
@@ -291,6 +336,7 @@ class ProfileService {
                     if (patchResult?.success === false) {
                         throw new Error(patchResult?.message || "Failed to update experience");
                     }
+                    summary.updated += 1;
                 } else {
                     console.log("[ProfileService] POST /experiences", {
                         payload: preparedPayload,
@@ -311,8 +357,10 @@ class ProfileService {
                     if (postResult?.success === false) {
                         throw new Error(postResult?.message || "Failed to create experience");
                     }
+                    summary.created += 1;
                 }
             }
+            return summary;
         } catch (error: any) {
             console.log("[ProfileService] syncExperiences error", {
                 message: error?.message,

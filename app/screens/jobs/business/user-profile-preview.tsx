@@ -149,6 +149,8 @@ const UserProfilePreview = () => {
         t("user.profile.userProfile.company"),
       position:
         experience?.position || t("user.profile.userProfile.roleNotSpecified"),
+      startDate: experience?.startDate || null,
+      endDate: experience?.endDate || null,
       companyLogo:
         experience?.business?.logo ||
         experience?.customBusinessLogo ||
@@ -615,6 +617,8 @@ const UserProfilePreview = () => {
                 className="mt-2.5 mx-5"
                 companyName={experience.companyName}
                 position={experience.position}
+                startDate={experience.startDate}
+                endDate={experience.endDate}
                 companyLogo={experience.companyLogo}
                 isVerified={experience.isVerified}
                 isCurrent={experience.isCurrent}

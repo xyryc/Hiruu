@@ -209,6 +209,8 @@ const Profile = () => {
       companyId: experience?.companyId,
       companyName,
       position: experience?.position,
+      startDate: experience?.startDate || null,
+      endDate: experience?.endDate || null,
       companyLogo,
       isCurrent: Boolean(experience?.isCurrent),
       isVerified: Boolean(experience?.isOfficial || experience?.company?.isVerified),
@@ -566,6 +568,8 @@ const Profile = () => {
                     className={index === 0 ? "mt-2.5 mx-5" : "mt-2.5 mx-5"}
                     companyName={experience.companyName}
                     position={experience.position}
+                    startDate={experience.startDate}
+                    endDate={experience.endDate}
                     companyLogo={experience.companyLogo}
                     isVerified={experience.isVerified}
                   />

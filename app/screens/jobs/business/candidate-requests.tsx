@@ -210,6 +210,14 @@ const CandidateRequests = () => {
             : t("user.jobs.candidateRequests.rejected")
         );
       } catch (error: any) {
+        console.error("[CandidateRequests] update action failed", {
+          businessId: currentBusinessId,
+          applicationId,
+          status,
+          message: error?.message,
+          responseStatus: error?.response?.status,
+          responseData: error?.response?.data,
+        });
         toast.error(error?.message || t("user.jobs.candidateRequests.failedToUpdate"));
       } finally {
         setActionLoading(null);

@@ -543,14 +543,29 @@ const Edit = () => {
         profileColor,
         gradientColors,
       });
-      await syncExperiences(
+      const experienceSyncSummary = await syncExperiences(
         Array.from(uniqueExperienceDrafts.values()),
         Array.isArray(profileData?.experiences) ? profileData.experiences : []
       );
       console.log("[EditProfile] syncExperiences completed", {
         draftCount: uniqueExperienceDrafts.size,
+        summary: experienceSyncSummary,
       });
       await getProfile();
+
+      if (
+        experienceSyncSummary?.skippedSystemManaged > 0 &&
+        experienceSyncSummary?.created === 0 &&
+        experienceSyncSummary?.updated === 0 &&
+        experienceSyncSummary?.deleted === 0
+      ) {
+        toast.error(
+          translateApiMessage(
+            "exceptions_system_added_experiences_cannot_be_edited_or_deleted"
+          )
+        );
+        return;
+      }
 
       const messageKey = result?.message || "profile_updated_successfully";
       toast.success(translateApiMessage(messageKey));

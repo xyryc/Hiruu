@@ -170,7 +170,16 @@ interface ProfileState {
     };
     comment: string;
   }) => Promise<any>;
-  syncExperiences: (experiences: any[], existingExperiences?: any[]) => Promise<void>;
+  syncExperiences: (
+    experiences: any[],
+    existingExperiences?: any[]
+  ) => Promise<{
+    created: number;
+    updated: number;
+    deleted: number;
+    skippedNoChanges: number;
+    skippedSystemManaged: number;
+  }>;
   setLocalProfileAppearance: (appearance: NonNullable<User["profileAppearance"]>) => Promise<void>;
   setProfileComplete: (isComplete: boolean) => Promise<void>;
   loadProfileComplete: () => Promise<void>;
@@ -771,8 +780,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      await profileService.syncExperiences(experiences, existingExperiences);
+      const summary = await profileService.syncExperiences(
+        experiences,
+        existingExperiences
+      );
       set({ isLoading: false });
+      return summary;
     } catch (error) {
       const finalError = error instanceof Error ? error : new Error("Failed to sync experiences");
       set({ isLoading: false, error: finalError });

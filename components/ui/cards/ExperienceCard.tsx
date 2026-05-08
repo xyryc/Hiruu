@@ -8,6 +8,8 @@ type ExperienceCardProps = {
   className?: string;
   companyName?: string;
   position?: string;
+  startDate?: string | null;
+  endDate?: string | null;
   companyLogo?: string | { uri: string };
   isVerified?: boolean;
   isCurrent?: boolean;
@@ -18,10 +20,50 @@ const ExperienceCard = ({
   className,
   companyName,
   position,
+  startDate,
+  endDate,
   companyLogo,
   isVerified,
 }: ExperienceCardProps) => {
   const { t } = useTranslation();
+
+  const getDurationLabel = () => {
+    if (!startDate) return "";
+
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : new Date();
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "";
+    if (end.getTime() <= start.getTime()) return "";
+
+    const diffMs = end.getTime() - start.getTime();
+    const totalDays = Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+    if (totalDays < 7) {
+      return `${totalDays} ${totalDays === 1 ? "Day" : "Days"}`;
+    }
+
+    if (totalDays < 30) {
+      const weeks = Math.floor(totalDays / 7);
+      return `${weeks} ${weeks === 1 ? "Week" : "Weeks"}`;
+    }
+
+    const totalMonths = Math.floor(totalDays / 30);
+    if (totalMonths < 12) {
+      return `${totalMonths} ${totalMonths === 1 ? "Month" : "Months"}`;
+    }
+
+    const years = Math.floor(totalMonths / 12);
+    return `${years} ${years === 1 ? "Year" : "Years"}`;
+  };
+
+  const durationLabel = getDurationLabel();
+  const subtitle = position
+    ? durationLabel
+      ? `${durationLabel} As ${position}`
+      : `${t("user.profile.userProfile.workingAs")} ${position}`
+    : t("user.profile.userProfile.roleNotSpecified");
+
   return (
     <View className={`${className} ${isCurrent ? "pt-9" : ""}`}>
       {isCurrent && (
@@ -53,7 +95,7 @@ const ExperienceCard = ({
                 {companyName || t("user.profile.userProfile.company")}
               </Text>
               <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
-                {position ? `${t("user.profile.userProfile.workingAs")} ${position}` : t("user.profile.userProfile.roleNotSpecified")}
+                {subtitle}
               </Text>
             </View>
           </View>

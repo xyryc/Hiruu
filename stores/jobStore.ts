@@ -1055,6 +1055,11 @@ export const useJobStore = create<JobState>((set) => ({
 
   updateBusinessApplicationStatus: async (businessId, id, status) => {
     try {
+      console.log("[JobStore] updateBusinessApplicationStatus request", {
+        businessId,
+        applicationId: id,
+        status,
+      });
       const response = await axiosInstance.patch(
         `/recruitment-application/business/${businessId}/${id}`,
         { status }
@@ -1068,9 +1073,23 @@ export const useJobStore = create<JobState>((set) => ({
         throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
       }
 
+      console.log("[JobStore] updateBusinessApplicationStatus response", {
+        businessId,
+        applicationId: id,
+        status,
+        result,
+      });
       return result?.data || result;
     } catch (error) {
       const axiosError = error as AxiosError<any>;
+      console.error("[JobStore] updateBusinessApplicationStatus exception", {
+        businessId,
+        applicationId: id,
+        status,
+        message: axiosError.message,
+        responseStatus: axiosError.response?.status,
+        responseData: axiosError.response?.data,
+      });
       const message =
         translateApiMessage(axiosError.response?.data?.message) ||
         axiosError.message ||
