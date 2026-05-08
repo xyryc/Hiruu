@@ -9,7 +9,6 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   Keyboard,
@@ -212,11 +211,6 @@ const CreateRole = () => {
       return;
     }
 
-    if (Object.keys(permissionValues).length === 0) {
-      toast.error(t("user.jobs.schedule.selectAtLeastOnePermission"));
-      return;
-    }
-
     const payload = {
       roleId: selectedRole.id,
       description: description.trim() || null,
@@ -322,7 +316,7 @@ const CreateRole = () => {
           {/* toggle button */}
           <View>
             {permissionsLoading && (
-              <AutoSkeletonView isLoading={true} defaultRadius={10}>
+              <>
                 {Array.from({ length: 3 }, (_, index) => (
                   <View
                     key={`permission-skeleton-${index}`}
@@ -334,7 +328,7 @@ const CreateRole = () => {
                     </View>
                   </View>
                 ))}
-              </AutoSkeletonView>
+              </>
             )}
             {filteredGroups.map((group) => (
               <View

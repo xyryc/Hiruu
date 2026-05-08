@@ -185,9 +185,7 @@ const ManageTeamPanel = () => {
             error?.message || t("user.profile.manageTeam.failedToLoadTeamMembers")
           )
         );
-        if (isMounted) {
-          setTeamMembers([]);
-        }
+        // Preserve existing list on transient failures to avoid partial/blank flashes.
       } finally {
         if (isMounted) {
           setLoading(false);
