@@ -60,6 +60,10 @@ const BusinessJobCard = ({
     setOfferSent(Boolean(profile?.alreadyOffered));
   }, [profile?.alreadyOffered]);
 
+  useEffect(() => {
+    console.log("[BusinessJobCard] profile response", JSON.stringify(profile, null, 2));
+  }, [profile]);
+
   // Extract profile data
   const userName = profile?.user?.name || t("common.user");
   const userAvatarUri =
@@ -75,7 +79,7 @@ const BusinessJobCard = ({
       ? applicationStatus
       : null;
   const isVerified = Boolean(
-    profile?.user?.isEmailVerified || profile?.user?.isNumberVerified
+    profile?.user?.isEmailVerified && profile?.user?.isNumberVerified
   );
   const rawRating =
     profile?.rating ??
@@ -98,9 +102,9 @@ const BusinessJobCard = ({
     }
   }
 
-  const salaryMin = profile?.expectedSalaryMin || 5;
-  const salaryMax = profile?.expectedSalaryMax || 10;
-  const rawSalaryType = String(profile?.preferredSalaryType || "hourly").toLowerCase();
+  const salaryMin = profile?.expectedSalaryMin || 0;
+  const salaryMax = profile?.expectedSalaryMax || 0;
+  const rawSalaryType = String(profile?.preferredSalaryType || "-")
   const salaryType =
     rawSalaryType === "monthly"
       ? t("user.jobs.businessJobCard.salaryType.monthly")

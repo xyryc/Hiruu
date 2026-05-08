@@ -350,8 +350,56 @@ const JobProfileEdit = () => {
         return;
       }
 
+      if (!jobType.trim()) {
+        toast.error("Job type is required.");
+        return;
+      }
+
+      if (!shiftType.trim()) {
+        toast.error("Shift type is required.");
+        return;
+      }
+
+      if (!salaryType.trim()) {
+        toast.error("Salary type is required.");
+        return;
+      }
+
+      if (!expectedSalaryMin.trim()) {
+        toast.error("Minimum expected salary is required.");
+        return;
+      }
+
+      if (!expectedSalaryMax.trim()) {
+        toast.error("Maximum expected salary is required.");
+        return;
+      }
+
+      if (preferredRoleIds.length === 0) {
+        toast.error("At least one preferred role is required.");
+        return;
+      }
+
       if (!isValidWeeklyAvailability(weeklyAvailability)) {
         toast.error("Please set a valid weekly availability schedule.");
+        return;
+      }
+
+      const parsedExpectedSalaryMin = Number(expectedSalaryMin);
+      const parsedExpectedSalaryMax = Number(expectedSalaryMax);
+
+      if (!Number.isFinite(parsedExpectedSalaryMin) || parsedExpectedSalaryMin < 0) {
+        toast.error("Minimum expected salary must be a valid number.");
+        return;
+      }
+
+      if (!Number.isFinite(parsedExpectedSalaryMax) || parsedExpectedSalaryMax < 0) {
+        toast.error("Maximum expected salary must be a valid number.");
+        return;
+      }
+
+      if (parsedExpectedSalaryMin > parsedExpectedSalaryMax) {
+        toast.error("Minimum expected salary cannot be greater than maximum expected salary.");
         return;
       }
 
@@ -371,12 +419,8 @@ const JobProfileEdit = () => {
         preferredSalaryType: salaryType.trim() || null,
         preferredRoleIds,
         weeklyAvailability: normalizeWeeklyAvailabilityForApi(weeklyAvailability),
-        expectedSalaryMin: expectedSalaryMin.trim()
-          ? Number(expectedSalaryMin)
-          : null,
-        expectedSalaryMax: expectedSalaryMax.trim()
-          ? Number(expectedSalaryMax)
-          : null,
+        expectedSalaryMin: parsedExpectedSalaryMin,
+        expectedSalaryMax: parsedExpectedSalaryMax,
         metadata: {
           ...currentMetadata,
           preferredJobType: jobType.trim() || null,
