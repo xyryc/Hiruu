@@ -151,6 +151,10 @@ const UserProfilePreview = () => {
         experience?.position || t("user.profile.userProfile.roleNotSpecified"),
       startDate: experience?.startDate || null,
       endDate: experience?.endDate || null,
+      workedWeeks:
+        typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
+          ? experience.workedWeeks
+          : null,
       companyLogo:
         experience?.business?.logo ||
         experience?.customBusinessLogo ||
@@ -619,6 +623,7 @@ const UserProfilePreview = () => {
                 position={experience.position}
                 startDate={experience.startDate}
                 endDate={experience.endDate}
+                workedWeeks={experience.workedWeeks}
                 companyLogo={experience.companyLogo}
                 isVerified={experience.isVerified}
                 isCurrent={experience.isCurrent}

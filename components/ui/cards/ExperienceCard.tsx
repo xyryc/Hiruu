@@ -10,6 +10,7 @@ type ExperienceCardProps = {
   position?: string;
   startDate?: string | null;
   endDate?: string | null;
+  workedWeeks?: number | null;
   companyLogo?: string | { uri: string };
   isVerified?: boolean;
   isCurrent?: boolean;
@@ -22,12 +23,26 @@ const ExperienceCard = ({
   position,
   startDate,
   endDate,
+  workedWeeks,
   companyLogo,
   isVerified,
 }: ExperienceCardProps) => {
   const { t } = useTranslation();
 
   const getDurationLabel = () => {
+    if (typeof workedWeeks === "number" && Number.isFinite(workedWeeks) && workedWeeks > 0) {
+      const normalizedWeeks = Math.max(1, Math.floor(workedWeeks));
+      if (normalizedWeeks < 4) {
+        return `${normalizedWeeks} ${normalizedWeeks === 1 ? "Week" : "Weeks"}`;
+      }
+      const months = Math.max(1, Math.floor(normalizedWeeks / 4));
+      if (months >= 12) {
+        const years = Math.max(1, Math.floor(months / 12));
+        return `${years} ${years === 1 ? "Year" : "Years"}`;
+      }
+      return `${months} ${months === 1 ? "Month" : "Months"}`;
+    }
+
     if (!startDate) return "";
 
     const start = new Date(startDate);

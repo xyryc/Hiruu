@@ -211,11 +211,19 @@ const Profile = () => {
       position: experience?.position,
       startDate: experience?.startDate || null,
       endDate: experience?.endDate || null,
+      workedWeeks:
+        typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
+          ? experience.workedWeeks
+          : null,
       companyLogo,
       isCurrent: Boolean(experience?.isCurrent),
       isVerified: Boolean(experience?.isOfficial || experience?.company?.isVerified),
     };
   });
+
+  useEffect(() => {
+    console.log("[UserProfile] experiences", JSON.stringify(experiences, null, 2));
+  }, [experiences, resolvedExperiences]);
   const jobProfilePreview = [
     typeof jobProfile?.headline === "string" ? jobProfile.headline.trim() : "",
     typeof jobProfile?.about === "string" ? jobProfile.about.trim() : "",
@@ -570,6 +578,7 @@ const Profile = () => {
                     position={experience.position}
                     startDate={experience.startDate}
                     endDate={experience.endDate}
+                    workedWeeks={experience.workedWeeks}
                     companyLogo={experience.companyLogo}
                     isVerified={experience.isVerified}
                   />
