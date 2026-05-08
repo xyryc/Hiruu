@@ -106,6 +106,24 @@ const BusinessScheduleScreen = () => {
     }));
   }, [myEmployments, t]);
 
+  const displayContent = useMemo(() => {
+    if (selectedBusinesses.length === 0) {
+      return { type: "all", content: t("common.all") };
+    }
+    if (selectedBusinesses.length === 1) {
+      const selectedBusiness = activeBusinesses.find(
+        (b) => b.id === selectedBusinesses[0]
+      );
+      return { type: "single", content: selectedBusiness };
+    }
+    return {
+      type: "multi",
+      content: t("user.jobs.schedule.selectedCount", {
+        count: selectedBusinesses.length,
+      }),
+    };
+  }, [activeBusinesses, selectedBusinesses, t]);
+
   useEffect(() => {
     const businessId = selectedBusinesses?.[0];
     if (!businessId) return;

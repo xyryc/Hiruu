@@ -2,8 +2,8 @@ import { WelcomeHeaderProps } from "@/types";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Text, TouchableOpacity, View } from "react-native";
 
 const WelcomeHeader = ({
   className,
@@ -15,7 +15,7 @@ const WelcomeHeader = ({
   const router = useRouter();
 
   return (
-    <View className={`${className} px-4 flex-row justify-between`}>
+    <View className={`${className} pb-2 px-4 flex-row justify-between`}>
       {/* profile */}
       <View className="flex-row items-center gap-2.5">
         <TouchableOpacity
@@ -33,7 +33,7 @@ const WelcomeHeader = ({
         </TouchableOpacity>
 
         <View className="w-56">
-          <Text className="text-sm text-[#7A7A7A] mb-1.5 " numberOfLines={1}>
+          <Text className="text-sm text-[#7A7A7A] mb-1.5" numberOfLines={1}>
             {t("common.hello", { name: name || t("common.user") })}
           </Text>
           <Text className="font-proximanova-semibold">
