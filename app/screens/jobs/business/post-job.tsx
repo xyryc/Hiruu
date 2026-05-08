@@ -72,6 +72,16 @@ const PostJob = () => {
         const data = await getMyBusinessRoles(selectedBusinessId);
         if (isMounted) {
           const normalized = (Array.isArray(data) ? data : [])
+            .filter((item: any) => {
+              const roleName = String(item?.role?.name || item?.name || "")
+                .trim()
+                .toLowerCase();
+              return (
+                roleName !== "owner" &&
+                item?.isSystemLocked !== true &&
+                item?.role?.isSystemLocked !== true
+              );
+            })
             .map((item: any) => ({
               id: item?.id || item?.roleId || "",
               name: item?.role?.name || item?.name || "",
