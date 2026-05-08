@@ -187,7 +187,7 @@ const JobRequestCard = ({
                   job?.business?.logo ||
                   recruitmentBusiness?.logo ||
                   businessRoleBusiness?.logo ||
-                  "https://img.freepik.com/free-vector/elegant-luxury-hotel-logo_23-2147534418.jpg?semt=ais_hybrid&w=740&q=80"
+                  require("@/assets/images/placeholder.png")
                 }
                 style={{ width: 40, height: 40, borderRadius: 999 }}
                 contentFit="cover"
@@ -274,7 +274,7 @@ const JobRequestCard = ({
                   job?.business?.logo ||
                   recruitmentBusiness?.logo ||
                   businessRoleBusiness?.logo ||
-                  "https://img.freepik.com/free-vector/elegant-luxury-hotel-logo_23-2147534418.jpg?semt=ais_hybrid&w=740&q=80"
+                  require("@/assets/images/placeholder.png")
                 }
                 style={{ width: 40, height: 40, borderRadius: 999 }}
                 contentFit="cover"
