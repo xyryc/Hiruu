@@ -45,6 +45,13 @@ const normalizeRoleLabel = (item: any) =>
   item?.title ||
   "";
 
+const isRoleSelectableForOffer = (item: any) => {
+  // Hide locked/system roles (e.g. Owner) from offer flow.
+  if (item?.isSystemLocked === true) return false;
+  if (item?.role?.isSystemLocked === true) return false;
+  return true;
+};
+
 const BusinessOfferModal = ({
   visible,
   onClose,
@@ -186,6 +193,7 @@ const BusinessOfferModal = ({
         if (!active) return;
 
         let normalizedRoles = (Array.isArray(roles) ? roles : [])
+          .filter((item: any) => isRoleSelectableForOffer(item))
           .map((item: any) => ({
             label: normalizeRoleLabel(item),
             value: item?.id || item?.roleId || "",
@@ -197,6 +205,7 @@ const BusinessOfferModal = ({
           if (!active) return;
 
           normalizedRoles = (Array.isArray(fallbackRoles) ? fallbackRoles : [])
+            .filter((item: any) => isRoleSelectableForOffer(item))
             .map((item: any) => ({
               label: normalizeRoleLabel(item),
               value: item?.id || item?.roleId || "",
