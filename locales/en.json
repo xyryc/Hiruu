@@ -2352,6 +2352,10 @@
       "coinsEarnedWithRank": "You earned {{rewardCoins}} coins (Rank #{{rank}})",
       "newShiftAssigned": "New shift assigned",
       "newShiftAssignedAt": "New shift assigned at {{businessName}}",
+      "shiftSwapRequested": "Shift swap request",
+      "shiftSwapRequestedBy": "Shift swap request from {{requesterName}}",
+      "shiftSwapApproved": "Shift swap approved",
+      "shiftSwapApprovedBy": "Shift swap approved by {{acceptedByName}}",
       "achievementUnlocked": "Achievement unlocked",
       "achievementUnlockedWithTitle": "Achievement unlocked: {{achievementTitle}}"
     },
@@ -2368,6 +2372,12 @@
       "shiftAssignedByBusinessOnDate": "{{businessName}} assigned you a shift on {{formattedShiftDate}}.",
       "shiftAssignedOnDate": "You have been assigned a shift on {{formattedShiftDate}}.",
       "shiftAssigned": "You have been assigned a new shift.",
+      "shiftSwapRequested": "You have a new shift swap request.",
+      "shiftSwapRequestedBy": "{{requesterName}} requested a shift swap.",
+      "shiftSwapRequestedByOnDate": "{{requesterName}} requested a shift swap for {{formattedShiftDate}}.",
+      "shiftSwapApproved": "Your shift swap request was approved.",
+      "shiftSwapApprovedBy": "{{acceptedByName}} approved your shift swap request.",
+      "shiftSwapApprovedByOnDate": "{{acceptedByName}} approved your shift swap request for {{formattedShiftDate}}.",
       "achievementCompletedWithReward": "{{achievementTitle}} completed. Reward: {{rewardCoins}} coins.",
       "achievementCompleted": "{{achievementTitle}} completed.",
       "achievementUnlocked": "You unlocked a new achievement."

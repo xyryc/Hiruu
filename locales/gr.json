@@ -2353,6 +2353,10 @@
       "coinsEarnedWithRank": "Κερδίσατε {{rewardCoins}} νομίσματα (Κατάταξη #{{rank}})",
       "newShiftAssigned": "Νέα βάρδια ανατέθηκε",
       "newShiftAssignedAt": "Νέα βάρδια ανατέθηκε στο {{businessName}}",
+      "shiftSwapRequested": "Αίτημα ανταλλαγής βάρδιας",
+      "shiftSwapRequestedBy": "Αίτημα ανταλλαγής από {{requesterName}}",
+      "shiftSwapApproved": "Η ανταλλαγή βάρδιας εγκρίθηκε",
+      "shiftSwapApprovedBy": "Η ανταλλαγή εγκρίθηκε από {{acceptedByName}}",
       "achievementUnlocked": "Νέο επίτευγμα ξεκλειδώθηκε",
       "achievementUnlockedWithTitle": "Επίτευγμα ξεκλειδώθηκε: {{achievementTitle}}"
     },
@@ -2369,6 +2373,12 @@
       "shiftAssignedByBusinessOnDate": "Το {{businessName}} σας ανέθεσε βάρδια στις {{formattedShiftDate}}.",
       "shiftAssignedOnDate": "Σας ανατέθηκε βάρδια στις {{formattedShiftDate}}.",
       "shiftAssigned": "Σας ανατέθηκε νέα βάρδια.",
+      "shiftSwapRequested": "Έχετε νέο αίτημα ανταλλαγής βάρδιας.",
+      "shiftSwapRequestedBy": "Ο/Η {{requesterName}} ζήτησε ανταλλαγή βάρδιας.",
+      "shiftSwapRequestedByOnDate": "Ο/Η {{requesterName}} ζήτησε ανταλλαγή βάρδιας για {{formattedShiftDate}}.",
+      "shiftSwapApproved": "Το αίτημα ανταλλαγής βάρδιας εγκρίθηκε.",
+      "shiftSwapApprovedBy": "Ο/Η {{acceptedByName}} ενέκρινε το αίτημα ανταλλαγής βάρδιας σου.",
+      "shiftSwapApprovedByOnDate": "Ο/Η {{acceptedByName}} ενέκρινε το αίτημα ανταλλαγής βάρδιας σου για {{formattedShiftDate}}.",
       "achievementCompletedWithReward": "Ολοκληρώθηκε το {{achievementTitle}}. Ανταμοιβή: {{rewardCoins}} νομίσματα.",
       "achievementCompleted": "Ολοκληρώθηκε το {{achievementTitle}}.",
       "achievementUnlocked": "Ξεκλειδώσατε νέο επίτευγμα."
