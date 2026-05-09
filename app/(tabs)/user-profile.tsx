@@ -308,6 +308,11 @@ const Profile = () => {
   };
 
   const handleOpenCvPreview = (type: "pdf" | "image", url?: string) => {
+    console.log("[UserProfile] handleOpenCvPreview", {
+      type,
+      hasUrl: Boolean(url),
+      urlPreview: typeof url === "string" ? url.slice(0, 120) : null,
+    });
     if (!url) return;
     router.push({
       pathname: "/screens/profile/cv-preview",

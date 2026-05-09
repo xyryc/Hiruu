@@ -523,11 +523,11 @@ const JobProfileEdit = () => {
             loading={isLoadingRoles}
             selectedRoleIds={preferredRoleIds}
             placeholder={t("user.profile.jobProfileEdit.selectPreferredRoles")}
-            helperText={t("user.profile.jobProfileEdit.maxPreferredRolesHelper")}
-            maxSelection={4}
+            helperText={t("user.profile.jobProfileEdit.selectPreferredRoles")}
+            maxSelection={1}
             onChange={setPreferredRoleIds}
             onLimitReached={() =>
-              toast.error(t("user.profile.jobProfileEdit.maxPreferredRolesError"))
+              toast.error("You can select only one preferred role.")
             }
           />
         </View>

@@ -28,10 +28,24 @@ const CvPreview = () => {
   );
 
   useEffect(() => {
+    console.log("[CvPreview] route params resolved", {
+      rawType: params?.type,
+      rawUrlType: typeof params?.url,
+      previewType,
+      hasPreviewUrl: Boolean(previewUrl),
+      previewUrlPrefix: previewUrl ? previewUrl.slice(0, 120) : null,
+    });
+  }, [params?.type, params?.url, previewType, previewUrl]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const preparePdf = async () => {
       if (previewType !== "pdf" || !previewUrl) {
+        console.log("[CvPreview] skipping pdf prepare", {
+          previewType,
+          hasPreviewUrl: Boolean(previewUrl),
+        });
         if (isMounted) {
           setPdfLocalUri("");
           setIsPreparingPdf(false);
@@ -40,6 +54,9 @@ const CvPreview = () => {
       }
 
       if (previewUrl.startsWith("file://")) {
+        console.log("[CvPreview] using local file url directly", {
+          previewUrlPrefix: previewUrl.slice(0, 120),
+        });
         if (isMounted) {
           setPdfLocalUri(previewUrl);
           setIsPreparingPdf(false);
@@ -49,21 +66,32 @@ const CvPreview = () => {
 
       try {
         if (isMounted) setIsPreparingPdf(true);
+        console.log("[CvPreview] preparing remote pdf download", {
+          previewUrlPrefix: previewUrl.slice(0, 120),
+        });
         const cacheDir = new Directory(Paths.cache, "pdf-previews");
         if (!cacheDir.exists) {
           cacheDir.create({ idempotent: true, intermediates: true });
+          console.log("[CvPreview] created cache directory", { uri: cacheDir.uri });
         }
 
         const fileName = `preview-${Date.now()}.pdf`;
         const targetFile = new File(cacheDir, fileName);
+        console.log("[CvPreview] download target", { targetUri: targetFile.uri });
         const downloadedFile = await File.downloadFileAsync(previewUrl, targetFile, {
           idempotent: true,
         });
 
         if (isMounted) {
+          console.log("[CvPreview] pdf download success", { localUri: downloadedFile.uri });
           setPdfLocalUri(downloadedFile.uri);
         }
-      } catch {
+      } catch (error: any) {
+        console.log("[CvPreview] pdf download failed", {
+          message: error?.message,
+          name: error?.name,
+          previewUrlPrefix: previewUrl.slice(0, 120),
+        });
         if (isMounted) {
           setPdfLocalUri("");
           toast.error(t("user.profile.cvPreview.failedToLoadPdfPreview"));
@@ -127,7 +155,13 @@ const CvPreview = () => {
                 maxZoom={5}
                 distanceBetweenPages={16}
                 style={{ flex: 1, width: "100%" }}
-                onError={() => toast.error(t("user.profile.cvPreview.failedToLoadPdfPreview"))}
+                onError={(error) => {
+                  console.log("[CvPreview] PdfRendererView onError", {
+                    error: String(error),
+                    pdfLocalUri,
+                  });
+                  toast.error(t("user.profile.cvPreview.failedToLoadPdfPreview"));
+                }}
               />
             ) : (
               <View className="flex-1 items-center justify-center px-6">
