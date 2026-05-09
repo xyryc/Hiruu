@@ -31,6 +31,9 @@ export default function Step2({
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const { updateProfile, isLoading } = useProfileStore();
+  const isStep2ProfileLocked = Boolean(
+    (user as any)?.avatar || (typeof (user as any)?.bio === "string" && (user as any).bio.trim())
+  );
 
   useEffect(() => {
     if (!user || hasPrefilledFromProfile.current) return;
@@ -46,6 +49,11 @@ export default function Step2({
 
   // Handle form submission
   const handleNext = async () => {
+    if (isStep2ProfileLocked) {
+      onComplete();
+      return;
+    }
+
     if (!profileImage && !bio.trim()) {
       onComplete();
       return;
@@ -132,17 +140,17 @@ export default function Step2({
         className="flex-1" // Add flex-1 to ScrollView
       >
         {/* profile image */}
-        <View>
-          <ProfileImagePicker
-            value={profileImage}
-            onImageChange={setProfileImage}
-            size={120}
-          />
+        <View
+          pointerEvents={isStep2ProfileLocked ? "none" : "auto"}
+          style={{ opacity: isStep2ProfileLocked ? 0.7 : 1 }}
+        >
+          <ProfileImagePicker value={profileImage} onImageChange={setProfileImage} size={120} />
 
           {profileImage && (
             <TouchableOpacity
               onPress={() => setProfileImage(null)}
               className="mt-6 px-4 py-2 bg-red-500 rounded-lg"
+              disabled={isStep2ProfileLocked}
             >
               <Text className="text-white font-proximanova-medium text-center">
                 {t("user.setup.businessSetup.removePhoto")}
@@ -165,6 +173,7 @@ export default function Step2({
             textAlignVertical="top"
             value={bio}
             onChangeText={setBio}
+            editable={!isStep2ProfileLocked}
           />
         </View>
       </ScrollView>

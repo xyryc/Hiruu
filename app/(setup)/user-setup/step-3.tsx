@@ -26,6 +26,9 @@ export default function Step3({
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
   const { updateProfile, syncExperiences, isLoading } = useProfileStore();
+  const isStep3ProfileLocked = Boolean(
+    Array.isArray((user as any)?.experiences) && (user as any).experiences.length > 0
+  );
 
   useEffect(() => {
     if (!user || hasPrefilledFromProfile.current) return;
@@ -73,6 +76,11 @@ export default function Step3({
   }, [user]);
 
   const handleNext = async () => {
+    if (isStep3ProfileLocked) {
+      onComplete();
+      return;
+    }
+
     // Skip if no work experience added
     if (workExperiences.length === 0) {
       try {
@@ -195,8 +203,8 @@ export default function Step3({
           <MultiSelectCompanyDropdown
             selectedCompanies={selectedCompanies}
             workExperiences={workExperiences}
-            onCompaniesChange={setSelectedCompanies}
-            onWorkExperiencesChange={setWorkExperiences}
+            onCompaniesChange={isStep3ProfileLocked ? () => undefined : setSelectedCompanies}
+            onWorkExperiencesChange={isStep3ProfileLocked ? () => undefined : setWorkExperiences}
           />
         </View>
       </ScrollView>

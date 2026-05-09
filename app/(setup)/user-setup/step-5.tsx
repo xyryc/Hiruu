@@ -44,6 +44,7 @@ export default function Step5({
   const autoVerifyInFlightRef = useRef(false);
   const lastAutoSubmittedOtpRef = useRef("");
   const fallbackCountry = useMemo(() => getCountryByCca2("US"), []);
+  const isStep5ProfileLocked = Boolean(user?.isNumberVerified);
 
 
   useEffect(() => {
@@ -137,6 +138,7 @@ export default function Step5({
   }, [countryCode, phoneNumber]);
 
   const handleSendOtp = async () => {
+    if (isStep5ProfileLocked) return;
     const parsed = getPhonePayload();
     if (!parsed.phoneNumber || !parsed.countryCode) {
       toast.error(t("user.setup.pleaseEnterValidPhone"));
@@ -158,6 +160,11 @@ export default function Step5({
   };
 
   const handleVerifyOtp = useCallback(async (options?: { auto?: boolean }) => {
+    if (isStep5ProfileLocked) {
+      onComplete();
+      return;
+    }
+
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       if (!options?.auto) {
@@ -208,6 +215,7 @@ export default function Step5({
     }
   }, [
     getPhonePayload,
+    isStep5ProfileLocked,
     onComplete,
     onboardingSent,
     otp,
@@ -216,6 +224,7 @@ export default function Step5({
   ]);
 
   useEffect(() => {
+    if (isStep5ProfileLocked) return;
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       lastAutoSubmittedOtpRef.current = "";
@@ -223,7 +232,7 @@ export default function Step5({
     }
     if (!otpSent || isOtpVerified || isVerifyingOtp || isSendingOtp) return;
     handleVerifyOtp({ auto: true });
-  }, [handleVerifyOtp, isOtpVerified, isSendingOtp, isVerifyingOtp, otp, otpSent]);
+  }, [handleVerifyOtp, isOtpVerified, isSendingOtp, isStep5ProfileLocked, isVerifyingOtp, otp, otpSent]);
 
   return (
     <AnimatedView
@@ -298,6 +307,7 @@ export default function Step5({
               },
             }}
             phoneInputPlaceholderTextColor="#9CA3AF"
+            disabled={isStep5ProfileLocked}
           />
           {!isValidPhone && phoneNumber && (
             <Text className="text-red-500 text-xs mt-1 ml-1">
@@ -310,7 +320,7 @@ export default function Step5({
           {!otpSent ? (
             <TouchableOpacity
               onPress={handleSendOtp}
-              disabled={isSendingOtp || isVerifyingOtp}
+              disabled={isSendingOtp || isVerifyingOtp || isStep5ProfileLocked}
             >
               <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
                 {isSendingOtp ? t("user.setup.sendingOtp") : t("user.setup.sendOtp")}
@@ -326,7 +336,7 @@ export default function Step5({
           ) : (
             <TouchableOpacity
               onPress={handleSendOtp}
-              disabled={isSendingOtp || isVerifyingOtp}
+              disabled={isSendingOtp || isVerifyingOtp || isStep5ProfileLocked}
             >
               <Text className="text-sm font-proximanova-semibold text-[#4FB2F3]">
                 {isSendingOtp ? t("user.setup.sendingOtp") : t("user.setup.resendOtp")}
@@ -348,9 +358,9 @@ export default function Step5({
         <PrimaryButton
           title={t("user.setup.next")}
           className="w-full"
-          onPress={onComplete}
+          onPress={isStep5ProfileLocked ? onComplete : onComplete}
           loading={isLoading}
-          disabled={!isOtpVerified || isVerifyingOtp}
+          disabled={isStep5ProfileLocked ? false : !isOtpVerified || isVerifyingOtp}
         />
       </View>
     </AnimatedView>

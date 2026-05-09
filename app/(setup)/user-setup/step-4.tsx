@@ -23,6 +23,9 @@ export default function Step4({
   const hasPrefilledFromProfile = useRef(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const { updateProfile, isLoading } = useProfileStore();
+  const isStep4ProfileLocked = Boolean(
+    Array.isArray((user as any)?.interest) && (user as any).interest.length > 0
+  );
 
   useEffect(() => {
     if (!user || hasPrefilledFromProfile.current) return;
@@ -34,6 +37,11 @@ export default function Step4({
   }, [user]);
 
   const handleNext = async () => {
+    if (isStep4ProfileLocked) {
+      onComplete();
+      return;
+    }
+
     if (selectedInterests.length === 0) {
       return;
     }
@@ -100,7 +108,7 @@ export default function Step4({
       >
         <InterestSelection
           selectedInterests={selectedInterests}
-          onInterestsChange={setSelectedInterests}
+          onInterestsChange={isStep4ProfileLocked ? () => undefined : setSelectedInterests}
           maxSelections={8}
         />
       </ScrollView>

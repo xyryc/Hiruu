@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import DateOfBirthInput from "./DateOfBirthInput";
+import DatePicker from "./DatePicker";
 
 const MultiSelectCompanyDropdown = ({
   selectedCompanies,
@@ -350,13 +350,14 @@ const MultiSelectCompanyDropdown = ({
                   <View className="flex-row gap-3">
                     {/* Start Date */}
                     <View className="flex-1">
-                      <DateOfBirthInput
+                      <DatePicker
+                        title={t("user.profile.multiSelectCompany.startDate")}
                         value={
                           experience.startDate
                             ? new Date(experience.startDate)
-                            : null
+                            : undefined
                         }
-                        onDateChange={(date) =>
+                        onChange={(date) =>
                           updateWorkExperience(company.id, "startDate", date)
                         }
                       />
@@ -364,20 +365,26 @@ const MultiSelectCompanyDropdown = ({
 
                     {/* End Date */}
                     <View className="flex-1">
-                      <DateOfBirthInput
-                        value={
-                          experience.endDate
-                            ? new Date(experience.endDate)
-                            : null
-                        }
-                        onDateChange={(date) =>
-                          updateWorkExperience(company.id, "endDate", date)
-                        }
-                        disabled={Boolean(experience.isCurrent)}
-                        placeholder={experience.isCurrent
-                          ? t("user.setup.present", { defaultValue: "Present" })
-                          : undefined}
-                      />
+                      {experience.isCurrent ? (
+                        <View className="flex-row items-center justify-between border border-gray-300 rounded-xl px-4 py-3 bg-gray-100">
+                          <Text className="text-gray-500 text-base">
+                            {t("user.setup.present", { defaultValue: "Present" })}
+                          </Text>
+                          <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
+                        </View>
+                      ) : (
+                        <DatePicker
+                          title={t("user.profile.multiSelectCompany.endDate")}
+                          value={
+                            experience.endDate
+                              ? new Date(experience.endDate)
+                              : undefined
+                          }
+                          onChange={(date) =>
+                            updateWorkExperience(company.id, "endDate", date)
+                          }
+                        />
+                      )}
                     </View>
                   </View>
                 </View>

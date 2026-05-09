@@ -496,7 +496,11 @@ export default function Step1({
 
           <ConnectSocials
             value={socialLinks}
-            onChange={(next) => setSocialLinks((prev) => ({ ...prev, ...next }))}
+            onChange={(next) => {
+              if (isStep1ProfileLocked) return;
+              setSocialLinks((prev) => ({ ...prev, ...next }));
+            }}
+            canEdit={!isStep1ProfileLocked}
           />
         </View>
       </ScrollView>
