@@ -194,6 +194,14 @@ const UserProfilePreview = () => {
         String(profileTheme.gradientColors[1] || "#FFFFFF"),
       ]
       : ["#E5F4FD", "#FFFFFF"];
+  const sectionIconStyle = {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    overflow: "hidden" as const,
+  };
 
   const handleShare = async () => {
     try {
@@ -546,6 +554,7 @@ const UserProfilePreview = () => {
           <View className="flex-row gap-2.5 items-center">
             <DynamicBackground
               className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+              style={sectionIconStyle}
               pickerType={pickerType}
               profileColor={profileColor}
               gradientColors={gradientColors}
@@ -570,6 +579,7 @@ const UserProfilePreview = () => {
             <View className="mx-5 mt-8 flex-row gap-2.5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}
@@ -603,6 +613,7 @@ const UserProfilePreview = () => {
             <View className="mx-5 mt-8 flex-row gap-2.5">
               <DynamicBackground
                 className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+                style={sectionIconStyle}
                 pickerType={pickerType}
                 profileColor={profileColor}
                 gradientColors={gradientColors}
@@ -637,6 +648,7 @@ const UserProfilePreview = () => {
           <View className="flex-row gap-2.5 items-center">
             <DynamicBackground
               className="h-8 w-8 rounded-full flex-row items-center justify-center overflow-hidden"
+              style={sectionIconStyle}
               pickerType={pickerType}
               profileColor={profileColor}
               gradientColors={gradientColors}
@@ -686,6 +698,7 @@ const UserProfilePreview = () => {
         <View className="mx-5 mt-8 flex-row gap-2.5">
           <DynamicBackground
             className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            style={sectionIconStyle}
             pickerType={pickerType}
             profileColor={profileColor}
             gradientColors={gradientColors}
@@ -710,6 +723,7 @@ const UserProfilePreview = () => {
         <View className="flex-row items-center gap-2.5 mt-8 mx-5">
           <DynamicBackground
             className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            style={sectionIconStyle}
             pickerType={pickerType}
             profileColor={profileColor}
             gradientColors={gradientColors}
@@ -761,6 +775,7 @@ const UserProfilePreview = () => {
         <View className="flex-row items-center gap-2.5 mt-6 mx-5">
           <DynamicBackground
             className="h-8 w-8 rounded-full flex-row justify-center items-center overflow-hidden"
+            style={sectionIconStyle}
             pickerType={pickerType}
             profileColor={profileColor}
             gradientColors={gradientColors}

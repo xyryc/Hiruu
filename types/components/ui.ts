@@ -246,6 +246,7 @@ export interface WidgetsProps {
 
 export interface NoTaskCardProps {
   className?: string;
+  nextShiftAt?: string | null;
 }
 
 export interface ShiftHeaderProps {

@@ -5,8 +5,19 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
-const NoTaskCard = ({ className }: NoTaskCardProps) => {
+const NoTaskCard = ({ className, nextShiftAt }: NoTaskCardProps) => {
   const { t } = useTranslation();
+  const nextShiftDate = nextShiftAt ? new Date(nextShiftAt) : null;
+  const hasNextShift =
+    nextShiftDate instanceof Date && !Number.isNaN(nextShiftDate.getTime());
+  const formattedNextShift = hasNextShift
+    ? nextShiftDate.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "";
 
   return (
     <View
@@ -20,33 +31,35 @@ const NoTaskCard = ({ className }: NoTaskCardProps) => {
           {t("user.profile.noTaskCard.subtitle")}
         </Text>
 
-        <View className="flex-row items-center gap-1">
-          <Ionicons
-            className="bg-white border border-[#4FB2F3] p-1.5 rounded-full z-20"
-            name="calendar-outline"
-            size={16}
-            color="#4FB2F3"
-          />
-
-          <View className="flex-row gap-1">
-            <Text className="text-xs font-proximanova-regular">
-              {t("user.profile.noTaskCard.nextShiftLabel")}
-            </Text>
-            <Text className="text-xs font-proximanova-semibold">
-              {t("user.profile.noTaskCard.nextShiftTimeFallback")}
-            </Text>
-          </View>
-
-          <View className="absolute top-0.5 left-4 z-0">
-            <Image
-              source={require("@/assets/images/gradient-time-bg.svg")}
-              style={{
-                width: 160,
-                height: 25,
-              }}
+        {hasNextShift ? (
+          <View className="flex-row items-center gap-1">
+            <Ionicons
+              className="bg-white border border-[#4FB2F3] p-1.5 rounded-full z-20"
+              name="calendar-outline"
+              size={16}
+              color="#4FB2F3"
             />
+
+            <View className="flex-row gap-1">
+              <Text className="text-xs font-proximanova-regular">
+                {t("user.profile.noTaskCard.nextShiftLabel")}
+              </Text>
+              <Text className="text-xs font-proximanova-semibold">
+                {formattedNextShift}
+              </Text>
+            </View>
+
+            <View className="absolute top-0.5 left-4 z-0">
+              <Image
+                source={require("@/assets/images/gradient-time-bg.svg")}
+                style={{
+                  width: 160,
+                  height: 25,
+                }}
+              />
+            </View>
           </View>
-        </View>
+        ) : null}
       </View>
 
       <View>

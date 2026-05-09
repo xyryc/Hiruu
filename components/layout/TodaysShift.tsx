@@ -67,7 +67,14 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
     selectedEmploymentBusinessIds,
     setSelectedEmploymentBusinessIds,
   } = useJobStore();
-  const { homeShifts, homeShiftsLoading, fetchHomeShifts, clockIn, clockOut } =
+  const {
+    homeShifts,
+    homeShiftsLoading,
+    homeShiftsMeta,
+    fetchHomeShifts,
+    clockIn,
+    clockOut,
+  } =
     useShiftStore();
   const accessToken = useAuthStore((state) => state.accessToken);
 
@@ -409,7 +416,9 @@ const TodaysShift = ({ className }: TodaysShiftProps) => {
         </ScrollView>
       )}
 
-      {!homeShiftsLoading && cards.length === 0 && <NoTaskCard className="mb-7" />}
+      {!homeShiftsLoading && cards.length === 0 && (
+        <NoTaskCard className="mb-7" nextShiftAt={homeShiftsMeta?.nextShiftAt ?? null} />
+      )}
 
       {/* rank card */}
       <ActionCard

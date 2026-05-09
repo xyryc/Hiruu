@@ -24,6 +24,9 @@ type ShiftStoreState = {
   homeShifts: any[];
   homeShiftsLoading: boolean;
   homeShiftsError: string | null;
+  homeShiftsMeta: {
+    nextShiftAt?: string | null;
+  } | null;
   businessAssignments: any[];
   businessAssignmentsLoading: boolean;
   businessAssignmentsError: string | null;
@@ -359,6 +362,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   homeShifts: [],
   homeShiftsLoading: false,
   homeShiftsError: null,
+  homeShiftsMeta: null,
   businessAssignments: [],
   businessAssignmentsLoading: false,
   businessAssignmentsError: null,
@@ -421,6 +425,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
       set({ homeShiftsLoading: true, homeShiftsError: null });
 
       let merged: any[] = [];
+      let earliestNextShiftAt: string | null = null;
       let firstErrorMessage: string | null = null;
 
       if (uniqueIds.length === 0) {
@@ -431,6 +436,11 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
           throw new Error(payload?.message || "Failed to load home shifts");
         }
         merged = Array.isArray(payload?.data) ? payload.data : [];
+        const nextShiftAtRaw = payload?.metadata?.nextShiftAt;
+        earliestNextShiftAt =
+          typeof nextShiftAtRaw === "string" && nextShiftAtRaw.trim().length > 0
+            ? nextShiftAtRaw
+            : null;
       } else {
         const responses = await Promise.allSettled(
           uniqueIds.map((businessId) =>
@@ -453,6 +463,26 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
 
             const data = Array.isArray(payload?.data) ? payload.data : [];
             merged.push(...data);
+
+            const nextShiftAtRaw = payload?.metadata?.nextShiftAt;
+            const nextShiftAt =
+              typeof nextShiftAtRaw === "string" && nextShiftAtRaw.trim().length > 0
+                ? nextShiftAtRaw
+                : null;
+            if (nextShiftAt) {
+              if (!earliestNextShiftAt) {
+                earliestNextShiftAt = nextShiftAt;
+              } else {
+                const current = new Date(earliestNextShiftAt);
+                const candidate = new Date(nextShiftAt);
+                if (
+                  !Number.isNaN(candidate.getTime()) &&
+                  (Number.isNaN(current.getTime()) || candidate.getTime() < current.getTime())
+                ) {
+                  earliestNextShiftAt = nextShiftAt;
+                }
+              }
+            }
             return;
           }
 
@@ -467,6 +497,9 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         homeShifts: merged,
         homeShiftsLoading: false,
         homeShiftsError: firstErrorMessage,
+        homeShiftsMeta: {
+          nextShiftAt: earliestNextShiftAt,
+        },
       });
 
       return merged;
@@ -476,6 +509,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         homeShifts: [],
         homeShiftsLoading: false,
         homeShiftsError: message,
+        homeShiftsMeta: null,
       });
       throw error;
     }
