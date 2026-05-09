@@ -75,7 +75,7 @@ const ExperienceCard = ({
   const durationLabel = getDurationLabel();
   const subtitle = position
     ? durationLabel
-      ? `${durationLabel} As ${position}`
+      ? `${durationLabel} as ${position}`
       : `${t("user.profile.userProfile.workingAs")} ${position}`
     : t("user.profile.userProfile.roleNotSpecified");
 

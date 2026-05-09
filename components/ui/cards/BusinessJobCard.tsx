@@ -9,6 +9,7 @@ import {
   SimpleLineIcons,
 } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -69,9 +70,9 @@ const BusinessJobCard = ({
     : [];
   const preferredRoleName =
     Array.isArray(profile?.preferredRoles) &&
-    profile.preferredRoles.length > 0 &&
-    typeof profile.preferredRoles[0]?.name === "string" &&
-    profile.preferredRoles[0].name.trim().length > 0
+      profile.preferredRoles.length > 0 &&
+      typeof profile.preferredRoles[0]?.name === "string" &&
+      profile.preferredRoles[0].name.trim().length > 0
       ? profile.preferredRoles[0].name.trim()
       : "";
   const currentExperienceRole = experienceList.find(
@@ -98,6 +99,20 @@ const BusinessJobCard = ({
   const isVerified = Boolean(
     profile?.user?.isEmailVerified && profile?.user?.isNumberVerified
   );
+  const nameplateBackgroundImage =
+    profile?.user?.nameplate?.metadata?.background?.image?.url ||
+    profile?.user?.userAppearance?.equippedNameplateCosmetic?.metadata?.background?.image?.url ||
+    profile?.user?.nameplate?.metadata?.element?.icon?.url ||
+    profile?.user?.userAppearance?.equippedNameplateCosmetic?.metadata?.element?.icon?.url ||
+    null;
+  const nameplateBackgroundMeta =
+    profile?.user?.nameplate?.metadata?.background ||
+    profile?.user?.userAppearance?.equippedNameplateCosmetic?.metadata?.background ||
+    null;
+  const nameplateIconMeta =
+    profile?.user?.nameplate?.metadata?.element?.icon ||
+    profile?.user?.userAppearance?.equippedNameplateCosmetic?.metadata?.element?.icon ||
+    null;
   const rawRating =
     profile?.rating ??
     profile?.user?.rating ??
@@ -283,266 +298,310 @@ const BusinessJobCard = ({
       p-2.5 rounded-xl border border-[#4FB2F330]`}
     >
       {/* top */}
-      <View className="relative">
-          {alreadyOffered && (
-            <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
-              <Text className="text-xs font-proximanova-semibold text-white">
-                {t("user.jobs.businessJobCard.offerSent")}
-              </Text>
-            </View>
-          )}
-          {/* content */}
-          <Pressable
-            onPress={enableHeaderProfileTap ? () => handleViewProfile() : undefined}
-            onStartShouldSetResponder={() => true}
-            className="flex-row items-center gap-2.5 p-1 z-10"
-          >
-            {/* profile image */}
-            <Image
-              source={userAvatarSource}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 999,
-              }}
-              contentFit="cover"
-            />
-
-            {/* name */}
-            <View>
-              <Text className="text-base font-proximanova-semibold">
-                {headline}{" "}
-                {isPremium && (
-                  <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-                )}
-              </Text>
-
-              <Text className="text-sm font-proximanova-regular">
-                {userName}
-              </Text>
-            </View>
-          </Pressable>
-
-          {/* background */}
-          {status === "featured" && (
-            <View className="absolute top-0 left-0 w-full">
-              <Image
-                source={require("@/assets/images/featured.png")}
-                style={{
-                  width: "100%",
-                  height: 50,
-                  borderRadius: 10,
+      <View className="relative overflow-hidden rounded-lg border">
+        {alreadyOffered && (
+          <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
+            <Text className="text-xs font-proximanova-semibold text-white">
+              {t("user.jobs.businessJobCard.offerSent")}
+            </Text>
+          </View>
+        )}
+        {/* background */}
+        {nameplateBackgroundImage && (
+          <View className="absolute inset-0">
+            {nameplateBackgroundMeta?.type === "gradient" &&
+              Array.isArray(nameplateBackgroundMeta?.gradient?.colors) &&
+              nameplateBackgroundMeta.gradient.colors.length >= 2 ? (
+              <LinearGradient
+                colors={nameplateBackgroundMeta.gradient.colors}
+                start={{
+                  x: Number(nameplateBackgroundMeta?.gradient?.start?.x ?? 0),
+                  y: Number(nameplateBackgroundMeta?.gradient?.start?.y ?? 0),
                 }}
-                contentFit="cover"
+                end={{
+                  x: Number(nameplateBackgroundMeta?.gradient?.end?.x ?? 1),
+                  y: Number(nameplateBackgroundMeta?.gradient?.end?.y ?? 1),
+                }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                }}
               />
-            </View>
-          )}
-        </View>
+            ) : nameplateBackgroundMeta?.type === "color" &&
+              typeof nameplateBackgroundMeta?.color === "string" ? (
+              <View
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundColor: nameplateBackgroundMeta.color,
+                }}
+              />
+            ) : null}
 
-        {/* mid */}
-        <View className="flex-row items-center justify-between mt-2.5">
-          <View className="flex-row items-center gap-1.5">
-            <SimpleLineIcons name="location-pin" size={12} color="black" />
-            <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
-              {address}
+            <Image
+              source={{ uri: nameplateBackgroundImage }}
+              style={{
+                position: "absolute",
+                right:
+                  typeof nameplateIconMeta?.position?.right === "number"
+                    ? nameplateIconMeta.position.right
+                    : -8,
+                bottom:
+                  typeof nameplateIconMeta?.position?.bottom === "number"
+                    ? nameplateIconMeta.position.bottom
+                    : -8,
+                width:
+                  typeof nameplateIconMeta?.size?.width === "number"
+                    ? nameplateIconMeta.size.width
+                    : 96,
+                height:
+                  typeof nameplateIconMeta?.size?.height === "number"
+                    ? nameplateIconMeta.size.height
+                    : 96,
+                opacity: 0.22,
+              }}
+              contentFit="contain"
+            />
+          </View>
+        )}
+        {/* content */}
+        <Pressable
+          onPress={enableHeaderProfileTap ? () => handleViewProfile() : undefined}
+          onStartShouldSetResponder={() => true}
+          className="flex-row items-center gap-2.5 p-1 z-10"
+        >
+          {/* profile image */}
+          <Image
+            source={userAvatarSource}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 999,
+            }}
+            contentFit="cover"
+          />
+
+          {/* name */}
+          <View>
+            <Text className="text-base font-proximanova-semibold">
+              {headline}{" "}
+              {isPremium && (
+                <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+              )}
+            </Text>
+
+            <Text className="text-sm font-proximanova-regular">
+              {userName}
             </Text>
           </View>
+        </Pressable>
 
-          <View className="flex-row">
-            <Text className="text-xl font-proximanova-semibold text-primary">
-              {salaryMin}-{salaryMax}$
-            </Text>
-            <Text className="text-lg font-proximanova-regular text-secondary">
-              /{salaryType}{" "}
-            </Text>
-          </View>
+      </View>
+
+      {/* mid */}
+      <View className="flex-row items-center justify-between mt-2.5">
+        <View className="flex-row items-center gap-1.5">
+          <SimpleLineIcons name="location-pin" size={12} color="black" />
+          <Text className="text-sm font-proximanova-regular text-secondary dark:text-dark-secondary">
+            {address}
+          </Text>
         </View>
 
-        {/* badges */}
-        <View className="flex-row gap-1.5 mt-2.5">
-          {isVerified ? (
-            <View className="flex-row gap-1.5 items-center px-2.5 py-1 bg-[#3F98FF4D] rounded-full">
-              <MaterialIcons name="verified" size={16} color="#3090FF" />
-              <Text className="text-xs font-proximanova-regular text-primary">
-                {t("common.verified")}
-              </Text>
-            </View>
-          ) : !candidate && status !== "featured" && shouldShowAvailableBadge ? (
-            <StatusBadge status="available" size="small" />
-          ) : null}
+        <View className="flex-row">
+          <Text className="text-xl font-proximanova-semibold text-primary">
+            {salaryMin}-{salaryMax}$
+          </Text>
+          <Text className="text-lg font-proximanova-regular text-secondary">
+            /{salaryType}{" "}
+          </Text>
+        </View>
+      </View>
 
+      {/* badges */}
+      <View className="flex-row gap-1.5 mt-2.5">
+        {isVerified ? (
+          <View className="flex-row gap-1.5 items-center px-2.5 py-1 bg-[#3F98FF4D] rounded-full">
+            <MaterialIcons name="verified" size={16} color="#3090FF" />
+            <Text className="text-xs font-proximanova-regular text-primary">
+              {t("common.verified")}
+            </Text>
+          </View>
+        ) : !candidate && status !== "featured" && shouldShowAvailableBadge ? (
+          <StatusBadge status="available" size="small" />
+        ) : null}
+
+        <View
+          className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
+                ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
+          `}
+        >
+          <FontAwesome name="star" size={16} color="#F1C400" />
+          <Text className="text-xs font-proximanova-regular">{displayRating}</Text>
+        </View>
+
+        {preferenceJobType && (
+          <View
+            className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
+                  ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
+            `}
+          >
+            <Text className="text-xs font-proximanova-regular">
+              {preferenceJobType}
+            </Text>
+          </View>
+        )}
+
+        {distanceKm !== null && distanceKm !== undefined && (
           <View
             className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
                 ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
           `}
           >
-            <FontAwesome name="star" size={16} color="#F1C400" />
-            <Text className="text-xs font-proximanova-regular">{displayRating}</Text>
+            <Text className="text-xs font-proximanova-regular">
+              {t("common.kmAway", { distance: Number(distanceKm.toFixed(1)) })}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Image
+        source={require("@/assets/images/dotted-line.svg")}
+        style={{
+          height: 1,
+          width: "100%",
+          marginVertical: 10,
+        }}
+        contentFit="cover"
+      />
+
+      {/* bottom */}
+      {received || (
+        <View className="flex-row justify-between">
+          {/* left */}
+          <View className="flex-row gap-2.5 items-center">
+            <Pressable
+              onPress={handleMessageClick}
+              disabled={isCreatingChat}
+              className={`h-10 w-10 rounded-full flex-row items-center justify-center
+               ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}`}
+            >
+              {isCreatingChat ? (
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              ) : (
+                <Image
+                  source={require("@/assets/images/messages-fill.svg")}
+                  contentFit="contain"
+                  style={{ height: 22, width: 22 }}
+                />
+              )}
+            </Pressable>
+
+            <Image
+              source={require("@/assets/images/vertical-line.svg")}
+              style={{
+                height: 18,
+                width: 0.5,
+              }}
+            />
+
+            <Pressable
+              onPress={canCall ? handleCallClick : undefined}
+              disabled={!canCall || isCreatingChat || isCreatingCall}
+              className={`h-10 w-10 rounded-full flex-row items-center justify-center
+             ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}
+             ${canCall ? "" : "opacity-60 bg-[#E5E7EB]"}`}
+            >
+              {isCreatingCall ? (
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              ) : (
+                <Ionicons
+                  name="call"
+                  size={20}
+                  color={canCall ? "#4FB2F3" : "#9CA3AF"}
+                />
+              )}
+            </Pressable>
           </View>
 
-          {preferenceJobType && (
-            <View
-              className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
-                  ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
-            `}
-            >
-              <Text className="text-xs font-proximanova-regular">
-                {preferenceJobType}
-              </Text>
-            </View>
-          )}
-
-          {distanceKm !== null && distanceKm !== undefined && (
-            <View
-              className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
-                ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
-          `}
-            >
-              <Text className="text-xs font-proximanova-regular">
-                {t("common.kmAway", { distance: Number(distanceKm.toFixed(1)) })}
-              </Text>
+          {/* right */}
+          {candidate ? (
+            <StatusBadge status="submitted" />
+          ) : (
+            <View onStartShouldSetResponder={() => true}>
+              <SmallButton
+                title={t("common.viewProfile")}
+                onPress={() => handleViewProfile()}
+              />
             </View>
           )}
         </View>
+      )}
 
-        <Image
-          source={require("@/assets/images/dotted-line.svg")}
-          style={{
-            height: 1,
-            width: "100%",
-            marginVertical: 10,
-          }}
-          contentFit="cover"
-        />
+      {/* bottom */}
+      {received && (
+        <View className="flex-row items-end justify-between">
+          {/* left */}
+          <View onStartShouldSetResponder={() => true}>
+            <SecondaryButton
+              title={t("common.viewDetails")}
+              onPress={() => handleViewProfile()}
+              textClass="text-[#4FB2F3]"
+              iconBackground="bg-white"
+              iconColor="#4FB2F3"
+              className='pl-1.5'
+            />
+          </View>
 
-        {/* bottom */}
-        {received || (
-          <View className="flex-row justify-between">
-            {/* left */}
-            <View className="flex-row gap-2.5 items-center">
-              <Pressable
-                onPress={handleMessageClick}
-                disabled={isCreatingChat}
-                className={`h-10 w-10 rounded-full flex-row items-center justify-center
-               ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}`}
-              >
-                {isCreatingChat ? (
-                  <ActivityIndicator size="small" color="#4FB2F3" />
-                ) : (
-                  <Image
-                    source={require("@/assets/images/messages-fill.svg")}
-                    contentFit="contain"
-                    style={{ height: 22, width: 22 }}
-                  />
-                )}
-              </Pressable>
+          {/* right */}
+          <View className="flex-row items-center gap-1.5" onStartShouldSetResponder={() => true}>
+            <TouchableOpacity
+              onPress={handleMessageClick}
+              disabled={isCreatingChat}
+              className="bg-[#E5F4FD] border-[0.5px] border-[#FFFFFF00] rounded-full p-2"
+            >
+              {isCreatingChat ? (
+                <ActivityIndicator size="small" color="#4FB2F3" />
+              ) : (
+                <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
+              )}
+            </TouchableOpacity>
 
-              <Image
-                source={require("@/assets/images/vertical-line.svg")}
-                style={{
-                  height: 18,
-                  width: 0.5,
-                }}
-              />
-
-              <Pressable
-                onPress={canCall ? handleCallClick : undefined}
-                disabled={!canCall || isCreatingChat || isCreatingCall}
-                className={`h-10 w-10 rounded-full flex-row items-center justify-center
-             ${status === "featured" ? "bg-white" : "bg-[#E5F4FD]"}
-             ${canCall ? "" : "opacity-60 bg-[#E5E7EB]"}`}
-              >
-                {isCreatingCall ? (
-                  <ActivityIndicator size="small" color="#4FB2F3" />
-                ) : (
-                  <Ionicons
-                    name="call"
-                    size={20}
-                    color={canCall ? "#4FB2F3" : "#9CA3AF"}
-                  />
-                )}
-              </Pressable>
-            </View>
-
-            {/* right */}
-            {candidate ? (
-              <StatusBadge status="submitted" />
+            {finalReceivedStatus ? (
+              <StatusBadge status={finalReceivedStatus} />
             ) : (
-              <View onStartShouldSetResponder={() => true}>
-                <SmallButton
-                  title={t("common.viewProfile")}
-                  onPress={() => handleViewProfile()}
-                />
-              </View>
+              <>
+                <TouchableOpacity
+                  onPress={onReject}
+                  disabled={actionLoading !== null}
+                  className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                >
+                  {actionLoading === "rejected" ? (
+                    <ActivityIndicator size="small" color="#F34F4F" style={{ width: 40 }} />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={40}
+                      color="#F34F4F"
+                    />
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={onAccept}
+                  disabled={actionLoading !== null}
+                  className={`${actionLoading !== null ? "opacity-70" : ""}`}
+                >
+                  {actionLoading === "approved" ? (
+                    <ActivityIndicator size="small" color="#292D32" style={{ width: 40 }} />
+                  ) : (
+                    <Ionicons name="checkmark-circle" size={40} color="#292D32" />
+                  )}
+                </TouchableOpacity>
+              </>
             )}
           </View>
-        )}
-
-        {/* bottom */}
-        {received && (
-          <View className="flex-row items-end justify-between">
-            {/* left */}
-            <View onStartShouldSetResponder={() => true}>
-              <SecondaryButton
-                title={t("common.viewDetails")}
-                onPress={() => handleViewProfile()}
-                textClass="text-[#4FB2F3]"
-                iconBackground="bg-white"
-                iconColor="#4FB2F3"
-                className='pl-1.5'
-              />
-            </View>
-
-            {/* right */}
-            <View className="flex-row items-center gap-1.5" onStartShouldSetResponder={() => true}>
-              <TouchableOpacity
-                onPress={handleMessageClick}
-                disabled={isCreatingChat}
-                className="bg-[#E5F4FD] border-[0.5px] border-[#FFFFFF00] rounded-full p-2"
-              >
-                {isCreatingChat ? (
-                  <ActivityIndicator size="small" color="#4FB2F3" />
-                ) : (
-                  <Ionicons name="chatbubbles" size={22} color="#4FB2F3" />
-                )}
-              </TouchableOpacity>
-
-              {finalReceivedStatus ? (
-                <StatusBadge status={finalReceivedStatus} />
-              ) : (
-                <>
-                  <TouchableOpacity
-                    onPress={onReject}
-                    disabled={actionLoading !== null}
-                    className={`${actionLoading !== null ? "opacity-70" : ""}`}
-                  >
-                    {actionLoading === "rejected" ? (
-                      <ActivityIndicator size="small" color="#F34F4F" style={{ width: 40 }} />
-                    ) : (
-                      <MaterialCommunityIcons
-                        name="close-circle"
-                        size={40}
-                        color="#F34F4F"
-                      />
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={onAccept}
-                    disabled={actionLoading !== null}
-                    className={`${actionLoading !== null ? "opacity-70" : ""}`}
-                  >
-                    {actionLoading === "approved" ? (
-                      <ActivityIndicator size="small" color="#292D32" style={{ width: 40 }} />
-                    ) : (
-                      <Ionicons name="checkmark-circle" size={40} color="#292D32" />
-                    )}
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          </View>
-        )}
+        </View>
+      )}
 
       {/* modal */}
       <BusinessOfferModal

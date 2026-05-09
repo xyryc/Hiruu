@@ -65,9 +65,9 @@ const ShiftSchedule = () => {
             })
               .setZone(timezone || "UTC")
               .toFormat("ccc, d LLLL")} - ${formatUTCToLocalTime(
-              nextShiftStartAt,
-              timezone
-            )}`
+                nextShiftStartAt,
+                timezone
+              )}`
             : "No upcoming shifts";
 
         return {
@@ -246,8 +246,8 @@ const ShiftSchedule = () => {
       selectedEmploymentBusinessIds.length === 0
         ? uiShifts
         : uiShifts.filter((shift) =>
-      selectedEmploymentBusinessIds.includes(shift.businessId)
-    );
+          selectedEmploymentBusinessIds.includes(shift.businessId)
+        );
 
     // Keep active/assigned shifts first and move day-off cards to the end.
     return [...shifts].sort((a, b) => {
@@ -366,15 +366,13 @@ const ShiftSchedule = () => {
             />
           ))
         ) : (
-          <View className="mt-4 rounded-2xl border border-[#E5E7EB] bg-white p-4">
-            <HolidayCard
-              shift={{
-                subtitle: "No shifts scheduled for this day.",
-                companyLogo: selectedBusinessForFallback?.logo,
-                workTime: "--:--",
-              }}
-            />
-          </View>
+          <HolidayCard
+            shift={{
+              subtitle: "No shifts scheduled for this day.",
+              companyLogo: selectedBusinessForFallback?.logo,
+              workTime: "--:--",
+            }}
+          />
         )}
       </ScrollView>
 

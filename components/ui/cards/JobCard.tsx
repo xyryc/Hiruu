@@ -179,21 +179,6 @@ const JobCard = ({
           }}
           className="flex-1 relative"
         >
-          {isFeatured ? (
-            <Image
-              source={require("@/assets/images/featured.png")}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: 47,
-                borderRadius: 10,
-              }}
-              contentFit="cover"
-            />
-          ) : null}
-
           <View className={`flex-row gap-2.5 ${isFeatured ? "p-1" : ""}`}>
             <Image
               source={

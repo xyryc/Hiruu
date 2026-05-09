@@ -5,7 +5,7 @@ import ChatBell from "@/components/ui/notification/ChatBell";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useUnreadApplications } from "@/hooks/useUnreadApplications";
 import { useJobStore } from "@/stores/jobStore";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -118,6 +118,10 @@ const UserJobs = () => {
         limit: JOBS_PAGE_LIMIT,
         isFeatured: true,
       });
+      console.log(
+        "[UserJobs] getPublicRecruitments featured raw response",
+        JSON.stringify(result, null, 2)
+      );
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
         (item: any) => item?.isActive === true
       );
@@ -152,6 +156,10 @@ const UserJobs = () => {
         limit: JOBS_PAGE_LIMIT,
         isFeatured: false,
       });
+      console.log(
+        "[UserJobs] getPublicRecruitments suggested raw response",
+        JSON.stringify(result, null, 2)
+      );
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
         (item: any) => item?.isActive === true
       );
@@ -229,12 +237,12 @@ const UserJobs = () => {
         title={t("user.jobsTab.findJob")}
         components={
           <View className="flex-row items-center gap-2.5">
-
             <TouchableOpacity
               onPress={() => router.push("/screens/profile/user/job-profile")}
-              className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full"
+              className="h-10 w-10 bg-[#F5F5F5] flex-row justify-center items-center rounded-full border-[0.5px] border-[#b2b1b169]"
             >
-              <Ionicons name="add" size={18} color="black" />
+              {/* <Ionicons name="add" size={18} color="black" /> */}
+              <MaterialCommunityIcons name="briefcase-plus-outline" size={18} color="black" />
             </TouchableOpacity>
 
             {/* left */}

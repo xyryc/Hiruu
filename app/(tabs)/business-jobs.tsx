@@ -128,9 +128,6 @@ const BusinessJobs = () => {
   // Get current business ID
   const currentBusinessId = selectedBusinesses?.[0] || null;
 
-  console.log(JSON.stringify(featuredProfiles, null, 2));
-
-
   // Helper function to check if user is already employed by current business
   const isAlreadyEmployed = useCallback((profile: any) => {
     if (!currentBusinessId || !profile?.userId) return false;
@@ -169,10 +166,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      // console.log(
-      //   "[BusinessJobs] featured profiles response:",
-      //   JSON.stringify(result, null, 2)
-      // );
+      console.log(
+        "[BusinessJobs] getJobProfilesForBusiness featured raw response",
+        JSON.stringify(result, null, 2)
+      );
       setFeaturedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "featured")
@@ -206,10 +203,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      // console.log(
-      //   "[BusinessJobs] suggested profiles response:",
-      //   JSON.stringify(result, null, 2)
-      // );
+      console.log(
+        "[BusinessJobs] getJobProfilesForBusiness suggested raw response",
+        JSON.stringify(result, null, 2)
+      );
       setSuggestedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "suggested")
