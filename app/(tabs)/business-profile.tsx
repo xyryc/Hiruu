@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Linking,
+  Platform,
   RefreshControl,
   ScrollView,
   Share,
@@ -267,7 +268,12 @@ const BusinessProfile = () => {
       return;
     }
 
-    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    const mapUrl =
+      Platform.OS === "ios"
+        ? hasCoordinates
+          ? `http://maps.apple.com/?ll=${latitude},${longitude}&q=${encodeURIComponent(address || query)}`
+          : `http://maps.apple.com/?q=${encodeURIComponent(query)}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     try {
       const canOpen = await Linking.canOpenURL(mapUrl);
       if (!canOpen) {

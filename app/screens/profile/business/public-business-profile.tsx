@@ -4,6 +4,7 @@ import RatingBanner from "@/components/ui/cards/RatingBanner";
 import RatingProgress from "@/components/ui/cards/RatingProgress";
 import ConnectSocials from "@/components/ui/inputs/ConnectSocials";
 import { chatService } from "@/services/chatService";
+import { useAuthStore } from "@/stores/authStore";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
 import {
@@ -20,6 +21,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Linking,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -43,6 +46,7 @@ const PublicBusinessProfile = () => {
   const businessRatingSummary = useProfileStore(
     (state) => state.businessRatingSummary
   );
+  const currentUser = useAuthStore((state) => state.user);
 
   const [businessData, setBusinessData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -128,6 +132,10 @@ const PublicBusinessProfile = () => {
       }))
     : [];
   const showInitialSkeleton = loading && !businessData;
+  const isOwnBusinessProfile =
+    Boolean(currentUser?.id) &&
+    (currentUser?.id === businessData?.ownerId ||
+      currentUser?.id === businessData?.owner?.id);
 
   const handleOpenRatings = useCallback(() => {
     router.push({
@@ -168,8 +176,41 @@ const PublicBusinessProfile = () => {
     }
   }, [businessData?.owner?.id, businessId, isCreatingChat, t]);
 
+  const handleOpenBusinessLocation = useCallback(async () => {
+    const address = String(businessData?.address?.address || "").trim();
+    const latitude = Number(businessData?.address?.latitude);
+    const longitude = Number(businessData?.address?.longitude);
+
+    const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+    const query = hasCoordinates
+      ? `${latitude},${longitude}`
+      : address;
+
+    if (!query) {
+      toast.error(t("user.profile.businessProfile.locationUnavailable"));
+      return;
+    }
+
+    const mapUrl =
+      Platform.OS === "ios"
+        ? hasCoordinates
+          ? `http://maps.apple.com/?ll=${latitude},${longitude}&q=${encodeURIComponent(address || query)}`
+          : `http://maps.apple.com/?q=${encodeURIComponent(query)}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+    try {
+      const canOpen = await Linking.canOpenURL(mapUrl);
+      if (!canOpen) {
+        toast.error(t("common.failedToOpenMap"));
+        return;
+      }
+      await Linking.openURL(mapUrl);
+    } catch {
+      toast.error(t("common.failedToOpenMap"));
+    }
+  }, [businessData?.address?.address, businessData?.address?.latitude, businessData?.address?.longitude, t]);
+
   const socialLinks = businessData?.social || {};
-  const hasSocialLinks = Object.values(socialLinks).some((value) => Boolean(value));
 
   return (
     <SafeAreaView
@@ -356,7 +397,11 @@ const PublicBusinessProfile = () => {
                 ) : null}
               </View>
 
-              <View className="flex-row items-center gap-1">
+              <TouchableOpacity
+                className="flex-row items-center gap-1"
+                activeOpacity={0.8}
+                onPress={handleOpenBusinessLocation}
+              >
                 <EvilIcons name="location" size={18} color="black" />
 
                 <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
@@ -366,7 +411,7 @@ const PublicBusinessProfile = () => {
                     businessData?.address?.country ||
                     t("user.profile.businessProfile.locationUnavailable")}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             <View className="flex-row mx-5 mt-4 dark:bg-dark-background">
@@ -535,52 +580,56 @@ const PublicBusinessProfile = () => {
                   </View>
                 </View>
 
-                <View className="mx-5 mt-8 flex-row gap-2.5">
-                  <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
-                    <Ionicons name="person-outline" size={16} color="black" />
-                  </View>
-                  <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
-                    {t("user.profile.businessProfile.contactOwner")}
-                  </Text>
-                </View>
-
-                <View
-                  className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-3">
-                      <Image
-                        source={
-                          businessData?.owner?.avatar
-                            ? { uri: businessData.owner.avatar }
-                            : require("@/assets/images/placeholder.png")
-                        }
-                        style={{ width: 40, height: 40, borderRadius: 999 }}
-                        contentFit="cover"
-                      />
-
-                      <Text className="font-proximanova-semibold text-base text-white">
-                        {businessData?.owner?.name || t("user.profile.businessProfile.owner")}
+                {!isOwnBusinessProfile ? (
+                  <>
+                    <View className="mx-5 mt-8 flex-row gap-2.5">
+                      <View className="h-8 w-8 rounded-full bg-[#E5F4FD] flex-row justify-center items-center">
+                        <Ionicons name="person-outline" size={16} color="black" />
+                      </View>
+                      <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
+                        {t("user.profile.businessProfile.contactOwner")}
                       </Text>
                     </View>
 
-                    <TouchableOpacity
-                      onPress={handleContactOwner}
-                      disabled={isCreatingChat}
-                      className="h-11 w-11 rounded-full bg-white items-center justify-center"
+                    <View
+                      className={`mx-5 mt-4 rounded-2xl bg-[#4FB2F3] px-3 py-3 ${isCreatingChat ? "opacity-80" : ""}`}
                     >
-                      {isCreatingChat ? (
-                        <ActivityIndicator size="small" color="#4FB2F3" />
-                      ) : (
-                        <Image
-                          source={require("@/assets/images/messages-fill.svg")}
-                          contentFit="contain"
-                          style={{ height: 22, width: 22 }}
-                        />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-row items-center gap-3">
+                          <Image
+                            source={
+                              businessData?.owner?.avatar
+                                ? { uri: businessData.owner.avatar }
+                                : require("@/assets/images/placeholder.png")
+                            }
+                            style={{ width: 40, height: 40, borderRadius: 999 }}
+                            contentFit="cover"
+                          />
+
+                          <Text className="font-proximanova-semibold text-base text-white">
+                            {businessData?.owner?.name || t("user.profile.businessProfile.owner")}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          onPress={handleContactOwner}
+                          disabled={isCreatingChat}
+                          className="h-11 w-11 rounded-full bg-white items-center justify-center"
+                        >
+                          {isCreatingChat ? (
+                            <ActivityIndicator size="small" color="#4FB2F3" />
+                          ) : (
+                            <Image
+                              source={require("@/assets/images/messages-fill.svg")}
+                              contentFit="contain"
+                              style={{ height: 22, width: 22 }}
+                            />
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </>
+                ) : null}
 
                 <View className="flex-row justify-between items-center mx-5 mt-8">
                   <View className="flex-row gap-2.5">
@@ -593,16 +642,12 @@ const PublicBusinessProfile = () => {
                   </View>
                 </View>
 
-
-
-                {hasSocialLinks ? (
-                  <ConnectSocials
-                    className="mx-5 mb-4 mt-4"
-                    value={socialLinks}
-                    hideEmpty
-                    canEdit={false}
-                  />
-                ) : null}
+                <ConnectSocials
+                  className="mx-5 mb-4 mt-4"
+                  value={socialLinks}
+                  hideEmpty
+                  canEdit={false}
+                />
               </View>
             ) : (
               <View className="mx-5">

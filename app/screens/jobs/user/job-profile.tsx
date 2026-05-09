@@ -21,6 +21,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   Alert,
+  Linking,
+  Platform,
   ScrollView,
   Share,
   StatusBar,
@@ -264,6 +266,38 @@ const JobProfile = () => {
     });
   };
 
+  const handleOpenBusinessLocation = useCallback(async () => {
+    const address = String(job?.business?.address?.address || "").trim();
+    const latitude = Number(job?.business?.address?.latitude);
+    const longitude = Number(job?.business?.address?.longitude);
+
+    const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+    const query = hasCoordinates ? `${latitude},${longitude}` : address;
+
+    if (!query) {
+      toast.error("Location unavailable");
+      return;
+    }
+
+    const mapUrl =
+      Platform.OS === "ios"
+        ? hasCoordinates
+          ? `http://maps.apple.com/?ll=${latitude},${longitude}&q=${encodeURIComponent(address || query)}`
+          : `http://maps.apple.com/?q=${encodeURIComponent(query)}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+    try {
+      const canOpen = await Linking.canOpenURL(mapUrl);
+      if (!canOpen) {
+        toast.error("Failed to open map");
+        return;
+      }
+      await Linking.openURL(mapUrl);
+    } catch {
+      toast.error("Failed to open map");
+    }
+  }, [job?.business?.address?.address, job?.business?.address?.latitude, job?.business?.address?.longitude]);
+
   return (
     <SafeAreaView
       className="bg-[#E5F4FD] dark:bg-dark-background"
@@ -294,40 +328,46 @@ const JobProfile = () => {
           <View>
             {/* profile */}
             <View className="absolute -top-16 inset-x-0">
-              <TouchableOpacity activeOpacity={0.85} onPress={handleOpenBusinessProfile}>
+              <View>
                 {/* profile image */}
-                <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
-                  <Image
-                    source={companyLogo}
-                    style={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: 999,
-                    }}
-                    contentFit="cover"
-                  />
-                </View>
+                <TouchableOpacity activeOpacity={0.85} onPress={handleOpenBusinessProfile}>
+                  <View className="border-2 border-[#11293A] rounded-full mx-auto p-1">
+                    <Image
+                      source={companyLogo}
+                      style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 999,
+                      }}
+                      contentFit="cover"
+                    />
+                  </View>
 
-                {/* name */}
-                <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
-                  {companyName}{" "}
-                  <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-                </Text>
+                  {/* name */}
+                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary text-center mt-4">
+                    {companyName}{" "}
+                    <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+                  </Text>
+                </TouchableOpacity>
 
                 <View className="flex-row items-center justify-center mt-2.5 gap-7">
-                  <View className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7">
+                  <TouchableOpacity
+                    onPress={handleOpenBusinessLocation}
+                    activeOpacity={0.8}
+                    className="flex-row items-center gap-2.5 border-r-hairline border-[#7A7A7A] pr-7"
+                  >
                     <SimpleLineIcons name="location-pin" size={14} color="#7A7A7A" />
                     <Text className="font-proximanova-regular text-sm text-secondary dark:text-dark-secondary">
                       {locationLabel}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
 
                   <Text className="font-proximanova-semibold text-sm text-primary dark:text-dark-primary">
                     {companyRatingLabel}{" "}
                     <Fontisto name="star" size={14} color="#F1C400" />
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
 
             <ScrollView
