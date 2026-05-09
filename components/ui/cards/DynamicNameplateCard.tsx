@@ -81,14 +81,29 @@ const DynamicNameplateCard = ({
   // Border width comes from API per side, so we map each side explicitly.
   const rootStyle: ViewStyle = {
     borderRadius,
+    borderColor: "transparent",
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    overflow: "hidden",
+    minHeight: 120,
+  };
+  const borderOverlayStyle: ViewStyle = {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius,
     borderColor: border?.color || "transparent",
     borderTopWidth: border?.width?.top ?? 0,
     borderLeftWidth: border?.width?.left ?? 0,
     borderRightWidth: border?.width?.right ?? 0,
     borderBottomWidth: border?.width?.bottom ?? 0,
     borderStyle: border?.style || "solid",
-    overflow: "hidden",
-    minHeight: 120,
+    zIndex: 999,
+    pointerEvents: "none",
   };
 
   const gradientColorList = background?.gradient?.colors;
@@ -331,6 +346,7 @@ const DynamicNameplateCard = ({
       {background?.type === "gradient" && gradientColors ? (
         <LinearGradient
           colors={gradientColors}
+          style={{ borderRadius, overflow: "hidden" }}
           start={
             background?.gradient?.start
               ? {
@@ -353,6 +369,8 @@ const DynamicNameplateCard = ({
       ) : (
         <View
           style={{
+            borderRadius,
+            overflow: "hidden",
             backgroundColor:
               background?.type === "color" ? background.color || "transparent" : "transparent",
           }}
@@ -360,6 +378,7 @@ const DynamicNameplateCard = ({
           {content}
         </View>
       )}
+      <View style={borderOverlayStyle} />
     </View>
   );
 };

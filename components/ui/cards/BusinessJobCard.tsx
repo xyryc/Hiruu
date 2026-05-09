@@ -298,7 +298,7 @@ const BusinessJobCard = ({
       p-2.5 rounded-xl border border-[#4FB2F330]`}
     >
       {/* top */}
-      <View className="relative overflow-hidden rounded-lg border">
+      <View className="relative overflow-hidden rounded-lg">
         {alreadyOffered && (
           <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
             <Text className="text-xs font-proximanova-semibold text-white">
