@@ -9,7 +9,6 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -481,7 +480,7 @@ const EditBusinessProfile = () => {
             }}
           >
             {showInitialSkeleton ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={12}>
+              <View pointerEvents="none">
                 <View className="items-center">
                   <View className="h-[119px] w-[119px] rounded-full bg-[#E5E7EB]" />
                   <View className="h-4 w-40 rounded-md bg-[#E5E7EB] mt-3" />
@@ -513,16 +512,15 @@ const EditBusinessProfile = () => {
                 </View>
 
                 <View className="h-12 w-full rounded-full bg-[#E5E7EB] my-10" />
-              </AutoSkeletonView>
+              </View>
             ) : (
               <>
             {/* Profile Photo */}
             <View className="items-center">
               <View className="bg-[#ffffff] h-[119px] w-[119px] flex-row justify-center items-center rounded-full relative">
-                <AutoSkeletonView
-                  isLoading={isProfileUploading || (loadingProfile && !profileImage)}
-                  defaultRadius={100}
-                >
+                {isProfileUploading || (loadingProfile && !profileImage) ? (
+                  <View className="h-[116px] w-[116px] rounded-full bg-[#E5E7EB]" />
+                ) : (
                   <Image
                     source={
                       profileImage || require("@/assets/images/placeholder.png")
@@ -531,7 +529,7 @@ const EditBusinessProfile = () => {
                     transition={300}
                     contentFit="cover"
                   />
-                </AutoSkeletonView>
+                )}
 
                 {!isProfileUploading && (
                   <TouchableOpacity
@@ -560,13 +558,9 @@ const EditBusinessProfile = () => {
               </Text>
               <View className="relative">
                 {isCoverUploading ? (
-                  <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                    <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
-                  </AutoSkeletonView>
+                  <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
                 ) : loadingProfile && !coverImage ? (
-                  <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                    <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
-                  </AutoSkeletonView>
+                  <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
                 ) : coverImage ? (
                   <View>
                     <Image

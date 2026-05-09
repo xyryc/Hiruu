@@ -24,7 +24,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -579,12 +578,10 @@ const EditTemplate = () => {
 
               <View className="mt-4">
                 {rolesLoading ? (
-                  <AutoSkeletonView isLoading={true} defaultRadius={10}>
-                    <View
-                      pointerEvents="none"
-                      className="h-12 w-full bg-[#E5E7EB] rounded-[10px]"
-                    />
-                  </AutoSkeletonView>
+                  <View
+                    pointerEvents="none"
+                    className="h-12 w-full bg-[#E5E7EB] rounded-[10px]"
+                  />
                 ) : (
                   <SelectDropdown
                     placeholder={

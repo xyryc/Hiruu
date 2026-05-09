@@ -26,7 +26,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -198,7 +197,7 @@ const PublicBusinessProfile = () => {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {showInitialSkeleton ? (
-          <AutoSkeletonView isLoading={true} defaultRadius={12}>
+          <View pointerEvents="none">
             <View className="relative">
               <View className="w-full h-[137px] bg-[#E5E7EB]" />
               <View
@@ -300,7 +299,7 @@ const PublicBusinessProfile = () => {
               <View className="h-12 w-full rounded-xl bg-[#E5E7EB]" />
               <View className="h-12 w-full rounded-xl bg-[#E5E7EB] mt-3" />
             </View>
-          </AutoSkeletonView>
+          </View>
         ) : null}
 
         {!showInitialSkeleton ? (

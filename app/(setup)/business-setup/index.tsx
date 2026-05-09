@@ -10,9 +10,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
@@ -467,19 +467,20 @@ const BusinessSetup = () => {
           {/* Profile Photo */}
           <View className="items-center">
             <View className="bg-[#ffffff] h-[119px] w-[119px] flex-row justify-center items-center rounded-full relative">
-              <AutoSkeletonView
-                isLoading={uploadingType === "profile"}
-                defaultRadius={100}
-              >
-                <Image
-                  source={
-                    profileImage || require("@/assets/images/placeholder.png")
-                  }
-                  contentFit="cover"
-                  style={{ height: 116, width: 116, borderRadius: 100 }}
-                  transition={300}
-                />
-              </AutoSkeletonView>
+              <Image
+                source={
+                  profileImage || require("@/assets/images/placeholder.png")
+                }
+                contentFit="cover"
+                style={{ height: 116, width: 116, borderRadius: 100 }}
+                transition={300}
+              />
+
+              {uploadingType === "profile" && (
+                <View className="absolute inset-0 rounded-full bg-black/20 items-center justify-center">
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                </View>
+              )}
 
               {uploadingType !== "profile" && (
                 <TouchableOpacity
@@ -508,9 +509,9 @@ const BusinessSetup = () => {
             </Text>
             <View className="relative">
               {uploadingType === "cover" ? (
-                <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                  <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB]" />
-                </AutoSkeletonView>
+                <View className="w-full h-[150px] rounded-xl bg-[#E5E7EB] items-center justify-center">
+                  <ActivityIndicator size="small" color="#4FB2F3" />
+                </View>
               ) : coverImage ? (
                 <View>
                   <Image

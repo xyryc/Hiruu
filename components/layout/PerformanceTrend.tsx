@@ -4,7 +4,6 @@ import { BlurView } from "expo-blur";
 import { t } from "i18next";
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import ShiftsLineChart from "../ui/cards/ShiftLineChartVictory";
@@ -293,7 +292,21 @@ const PerformanceTrend = ({ className }: any) => {
         </TouchableOpacity>
       </View>
 
-      <AutoSkeletonView isLoading={isChartLoading} defaultRadius={16}>
+      {isChartLoading ? (
+        <View
+          pointerEvents="none"
+          className="rounded-2xl border border-[#E5E7EB] bg-white p-4"
+        >
+          <View className="h-5 w-32 rounded-md bg-[#E5E7EB]" />
+          <View className="mt-4 h-40 w-full rounded-xl bg-[#E5E7EB]" />
+          <View className="mt-4 flex-row justify-between">
+            <View className="h-3 w-10 rounded-md bg-[#E5E7EB]" />
+            <View className="h-3 w-10 rounded-md bg-[#E5E7EB]" />
+            <View className="h-3 w-10 rounded-md bg-[#E5E7EB]" />
+            <View className="h-3 w-10 rounded-md bg-[#E5E7EB]" />
+          </View>
+        </View>
+      ) : (
         <ShiftsLineChart
           completedShifts={chartData.completedShifts}
           missedShifts={chartData.missedShifts}
@@ -301,7 +314,7 @@ const PerformanceTrend = ({ className }: any) => {
           completedPercentage={chartData.completedPercentage}
           missedPercentage={chartData.missedPercentage}
         />
-      </AutoSkeletonView>
+      )}
 
       <Modal
         visible={showGraphMenu}

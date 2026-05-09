@@ -16,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -132,8 +131,7 @@ const YourNamePlates = () => {
 
         {/* dynamic nameplate cards */}
         {cosmeticsInventoryLoading ? (
-          <AutoSkeletonView isLoading={true}>
-            <View className="mt-4 gap-4">
+          <View className="mt-4 gap-4" pointerEvents="none">
               {Array.from({ length: 4 }).map((_, index) => (
                 <View key={`nameplate-skeleton-${index}`}>
                   <View className="h-5 w-40 rounded-md bg-[#E5E7EB] mb-2.5" />
@@ -141,8 +139,7 @@ const YourNamePlates = () => {
                   <View className="absolute top-12 right-3 h-6 w-6 rounded-full bg-[#D1D5DB]" />
                 </View>
               ))}
-            </View>
-          </AutoSkeletonView>
+          </View>
         ) : (
           <View className="mt-4 gap-3">
             {nameplateItems.map((item) => (

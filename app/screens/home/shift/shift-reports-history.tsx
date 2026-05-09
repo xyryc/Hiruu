@@ -190,7 +190,7 @@ const ShiftReports = () => {
       <ScreenHeader
         className="mx-5 my-2.5"
         onPressBack={() => router.back()}
-        title={tr("user.profile.todayShiftsSummary.shiftReports.title", "Shift Reports")}
+        title={t("user.profile.todayShiftsSummary.shiftReports.title", "Shift Reports")}
         titleClass="text-primary dark:text-dark-primary"
         iconColor={isDark ? "#fff" : "#111"}
       />
@@ -212,11 +212,11 @@ const ShiftReports = () => {
           <View className="pt-10">
             <StatusStateCard
               image={require("@/assets/images/toolbox.svg")}
-              title={tr(
+              title={t(
                 "user.profile.todayShiftsSummary.shiftReports.emptyTitle",
                 "No Shift Reports"
               )}
-              text={tr(
+              text={t(
                 "user.profile.todayShiftsSummary.shiftReports.emptyText",
                 "There are no shift reports to show right now."
               )}
@@ -227,7 +227,7 @@ const ShiftReports = () => {
             const user = item?.employee?.user;
             const issue = formatIssueType(
               item?.issueType,
-              tr(
+              t(
                 "user.profile.todayShiftsSummary.shiftReports.untitledIssue",
                 "General report"
               )
@@ -258,13 +258,13 @@ const ShiftReports = () => {
                     <View className="flex-1">
                       <Text className="font-proximanova-semibold text-base text-primary dark:text-dark-primary">
                         {user?.name ||
-                          tr(
+                          t(
                             "user.profile.todayShiftsSummary.shiftReports.unknownEmployee",
                             "Unknown employee"
                           )}
                       </Text>
                       <Text className="mt-0.5 text-xs text-secondary dark:text-dark-secondary">
-                        {tr(
+                        {t(
                           "user.profile.todayShiftsSummary.shiftReports.reportedBy",
                           "Reported by"
                         )}
@@ -281,7 +281,7 @@ const ShiftReports = () => {
 
                 <View className="mt-3">
                   <Text className="text-xs text-secondary dark:text-dark-secondary">
-                    {tr(
+                    {t(
                       "user.profile.todayShiftsSummary.shiftReports.shiftTime",
                       "Shift time"
                     )}
@@ -293,11 +293,11 @@ const ShiftReports = () => {
 
                 <View className="mt-3">
                   <Text className="text-xs text-secondary dark:text-dark-secondary">
-                    {tr("user.profile.todayShiftsSummary.shiftReports.notes", "Notes")}
+                    {t("user.profile.todayShiftsSummary.shiftReports.notes", "Notes")}
                   </Text>
                   <Text className="mt-1 text-sm text-primary dark:text-dark-primary font-proximanova-regular">
                     {item?.notes?.trim() ||
-                      tr(
+                      t(
                         "user.profile.todayShiftsSummary.shiftReports.noNotes",
                         "No notes provided."
                       )}
@@ -306,7 +306,7 @@ const ShiftReports = () => {
 
                 <View className="mt-3 flex-row justify-between items-center">
                   <Text className="text-xs text-secondary dark:text-dark-secondary">
-                    {tr(
+                    {t(
                       "user.profile.todayShiftsSummary.shiftReports.submittedAt",
                       "Submitted at"
                     )}

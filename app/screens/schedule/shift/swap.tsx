@@ -17,7 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -181,9 +180,9 @@ const SwapShiftsRequest = () => {
           {isLoading ? (
             <View className="flex-1" pointerEvents="none">
               {skeletonRows.map((id) => (
-                <AutoSkeletonView key={id} isLoading={true} defaultRadius={12}>
+                <View key={id}>
                   <SwapColleagueRowSkeleton />
-                </AutoSkeletonView>
+                </View>
               ))}
             </View>
           ) : (

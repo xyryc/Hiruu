@@ -11,7 +11,6 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   FlatList,
@@ -257,11 +256,9 @@ const TransferOwnership = () => {
 
             {loading ? (
               <View pointerEvents="none" className="px-5 pb-5">
-                <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <ColleagueCardSkeleton key={`colleague-skeleton-${i}`} />
-                  ))}
-                </AutoSkeletonView>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <ColleagueCardSkeleton key={`colleague-skeleton-${i}`} />
+                ))}
               </View>
             ) : (
               <FlatList

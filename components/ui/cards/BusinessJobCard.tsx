@@ -20,14 +20,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { toast } from "sonner-native";
 import StatusBadge from "../badges/StatusBadge";
 import SecondaryButton from "../buttons/SecondaryButton";
 import SmallButton from "../buttons/SmallButton";
 import BusinessOfferModal from "../modals/BusinessOfferModal";
-
-const JOB_CARD_RADIUS = 12;
 
 const BusinessJobCard = ({
   className,
@@ -54,18 +51,11 @@ const BusinessJobCard = ({
   const isSkeleton = !profile?.user && !profile?.headline && !profile?.highlightedExperience;
   const alreadyOffered = offerSent || Boolean(profile?.alreadyOffered);
   const modalDisabled = Boolean(disableModalOpen) || alreadyOffered;
-  // DEBUG-INTEGRATION: temporary profile payload log
-  console.log(JSON.stringify(profile, null, 2));
 
   useEffect(() => {
     // Keep local state in sync when the profile changes (e.g. refresh/list reload).
     setOfferSent(Boolean(profile?.alreadyOffered));
   }, [profile?.alreadyOffered]);
-
-  useEffect(() => {
-    // DEBUG-INTEGRATION: temporary profile payload log
-    console.log("[BusinessJobCard] profile response", JSON.stringify(profile, null, 2));
-  }, [profile]);
 
   // Extract profile data
   const userName = profile?.user?.name || t("common.user");
@@ -248,6 +238,42 @@ const BusinessJobCard = ({
     setShowModal(true);
   };
 
+  if (isSkeleton) {
+    return (
+      <View
+        className={`${className} p-2.5 rounded-xl border border-[#4FB2F330] bg-white`}
+        pointerEvents="none"
+      >
+        <View className="flex-row items-center gap-2.5 p-1">
+          <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+          <View>
+            <View className="h-4 w-32 rounded-md bg-[#E5E7EB]" />
+            <View className="mt-2 h-3 w-24 rounded-md bg-[#E5E7EB]" />
+          </View>
+        </View>
+
+        <View className="mt-3 h-3 w-44 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-3 h-3 w-full rounded-md bg-[#E5E7EB]" />
+
+        <View className="mt-3 flex-row gap-2">
+          <View className="h-6 w-20 rounded-full bg-[#E5E7EB]" />
+          <View className="h-6 w-20 rounded-full bg-[#E5E7EB]" />
+          <View className="h-6 w-20 rounded-full bg-[#E5E7EB]" />
+        </View>
+
+        <View className="my-3 h-[1px] w-full bg-[#E5E7EB]" />
+
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row gap-2.5">
+            <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+            <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+          </View>
+          <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <TouchableOpacity
       onPress={modalDisabled ? undefined : handleOpenOfferModal}
@@ -256,9 +282,8 @@ const BusinessJobCard = ({
       ${status === "featured" && "bg-[#E5F4FD]"}
       p-2.5 rounded-xl border border-[#4FB2F330]`}
     >
-      <AutoSkeletonView isLoading={isSkeleton} defaultRadius={JOB_CARD_RADIUS}>
-        {/* top */}
-        <View className="relative">
+      {/* top */}
+      <View className="relative">
           {alreadyOffered && (
             <View className="absolute right-2 top-2 z-20 px-2.5 py-1 rounded-full bg-[#0C2433]">
               <Text className="text-xs font-proximanova-semibold text-white">
@@ -518,7 +543,6 @@ const BusinessJobCard = ({
             </View>
           </View>
         )}
-      </AutoSkeletonView>
 
       {/* modal */}
       <BusinessOfferModal

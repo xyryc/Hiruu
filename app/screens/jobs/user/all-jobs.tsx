@@ -8,7 +8,6 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ActivityIndicator,
   FlatList,
@@ -47,7 +46,28 @@ const parseJobsTypeParam = (value?: string | string[]) => {
   return undefined;
 };
 
-const JOB_CARD_RADIUS = 12;
+
+const JobCardSkeleton = () => (
+  <View className="bg-white border border-[#EEEEEE] rounded-xl p-4 mb-4">
+    <View className="flex-row items-center">
+      <View className="h-10 w-10 rounded-full bg-[#E5E7EB]" />
+      <View className="ml-3 flex-1">
+        <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+        <View className="mt-2 h-3 w-28 rounded-md bg-[#E5E7EB]" />
+      </View>
+      <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+    </View>
+
+    <View className="mt-4 h-3 w-full rounded-md bg-[#E5E7EB]" />
+    <View className="mt-2 h-3 w-10/12 rounded-md bg-[#E5E7EB]" />
+    <View className="mt-2 h-3 w-4/5 rounded-md bg-[#E5E7EB]" />
+
+    <View className="mt-4 flex-row justify-between items-center">
+      <View className="h-3 w-24 rounded-md bg-[#E5E7EB]" />
+      <View className="h-8 w-24 rounded-full bg-[#E5E7EB]" />
+    </View>
+  </View>
+);
 
 const AllJobs = () => {
   const { colorScheme } = useColorScheme();
@@ -361,14 +381,9 @@ const AllJobs = () => {
         renderItem={({ item }) => (
           <View className="px-5 mt-4">
             {showInlineSkeleton ? (
-              <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-                <View pointerEvents="none">
-                  <JobCard
-                    job={item as any}
-                    className="bg-white border border-[#EEEEEE] mb-4"
-                  />
-                </View>
-              </AutoSkeletonView>
+              <View pointerEvents="none">
+                <JobCardSkeleton />
+              </View>
             ) : (
               <JobCard
                 job={item}
@@ -379,18 +394,13 @@ const AllJobs = () => {
         )}
         ListEmptyComponent={
           isLoading || !hasLoadedOnce ? (
-            <AutoSkeletonView isLoading={true} defaultRadius={JOB_CARD_RADIUS}>
-              <View className="px-5 pb-5">
-                {skeletonItems.map((item) => (
-                  <View key={item.id} className="mt-4">
-                    <JobCard
-                      job={item as any}
-                      className="bg-white border border-[#EEEEEE] mb-4"
-                    />
-                  </View>
-                ))}
-              </View>
-            </AutoSkeletonView>
+            <View className="px-5 pb-5" pointerEvents="none">
+              {skeletonItems.map((item) => (
+                <View key={item.id} className="mt-4">
+                  <JobCardSkeleton />
+                </View>
+              ))}
+            </View>
           ) : (
             <View className="px-5 pb-5 items-center justify-center">
               <View className="w-full max-w-[320px] bg-white border border-[#EEEEEE] rounded-2xl px-5 py-6 items-center">

@@ -21,7 +21,6 @@ import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -530,13 +529,9 @@ const TrackHours = () => {
             {missingLogsLoading ? (
               <View pointerEvents="none" className="flex-row py-1">
                 {Array.from({ length: 3 }, (_, index) => (
-                  <AutoSkeletonView
-                    key={`missing-log-skeleton-${index}`}
-                    isLoading={true}
-                    defaultRadius={14}
-                  >
+                  <View key={`missing-log-skeleton-${index}`}>
                     <MissingLogActivityCardSkeleton />
-                  </AutoSkeletonView>
+                  </View>
                 ))}
               </View>
             ) : missingLogItems.length === 0 ? (

@@ -18,7 +18,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
@@ -378,34 +377,32 @@ const JobRequest = () => {
           ListEmptyComponent={
             isLoading ? (
               <View className="px-5 pb-5">
-                <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                  {Array.from({ length: 3 }, (_, index) => (
-                    <View
-                      key={`job-request-skeleton-${index}`}
-                      className="bg-white border border-[#EEEEEE] rounded-xl mb-4 p-4"
-                    >
-                      <View className="flex-row items-start">
-                        <View
-                          className="h-12 w-12 bg-[#E5E7EB]"
-                          style={{ borderRadius: 999, overflow: "hidden" }}
-                        />
-                        <View className="flex-1 ml-3">
-                          <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
-                          <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-2" />
-                        </View>
-                        <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
+                {Array.from({ length: 3 }, (_, index) => (
+                  <View
+                    key={`job-request-skeleton-${index}`}
+                    className="bg-white border border-[#EEEEEE] rounded-xl mb-4 p-4"
+                  >
+                    <View className="flex-row items-start">
+                      <View
+                        className="h-12 w-12 bg-[#E5E7EB]"
+                        style={{ borderRadius: 999, overflow: "hidden" }}
+                      />
+                      <View className="flex-1 ml-3">
+                        <View className="h-4 w-40 rounded-md bg-[#E5E7EB]" />
+                        <View className="h-3 w-28 rounded-md bg-[#E5E7EB] mt-2" />
                       </View>
-
-                      <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-4" />
-                      <View className="h-3 w-10/12 rounded-md bg-[#E5E7EB] mt-2" />
-
-                      <View className="flex-row gap-3 mt-4">
-                        <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
-                        <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
-                      </View>
+                      <View className="h-6 w-16 rounded-full bg-[#E5E7EB]" />
                     </View>
-                  ))}
-                </AutoSkeletonView>
+
+                    <View className="h-3 w-full rounded-md bg-[#E5E7EB] mt-4" />
+                    <View className="h-3 w-10/12 rounded-md bg-[#E5E7EB] mt-2" />
+
+                    <View className="flex-row gap-3 mt-4">
+                      <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
+                      <View className="h-9 flex-1 rounded-lg bg-[#E5E7EB]" />
+                    </View>
+                  </View>
+                ))}
               </View>
             ) : (
               <View className="px-5 pb-5">

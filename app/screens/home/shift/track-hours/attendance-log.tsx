@@ -10,7 +10,6 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -276,18 +275,12 @@ const AttendanceLog = () => {
           <View pointerEvents="none" className="pt-2">
             {skeletonGroups.map((group, groupIndex) => (
               <View key={group.id} className={groupIndex === 0 ? "" : "mt-8"}>
-                <AutoSkeletonView isLoading={true} defaultRadius={8}>
-                  <View className="h-4 w-36 bg-[#E5E7EB] rounded-md" />
-                </AutoSkeletonView>
+                <View className="h-4 w-36 bg-[#E5E7EB] rounded-md" />
 
                 {group.cards.map((card) => (
-                  <AutoSkeletonView
-                    key={card.id}
-                    isLoading={true}
-                    defaultRadius={12}
-                  >
+                  <View key={card.id}>
                     <AttendanceLogCardSkeleton />
-                  </AutoSkeletonView>
+                  </View>
                 ))}
               </View>
             ))}

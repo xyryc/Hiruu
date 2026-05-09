@@ -9,7 +9,6 @@ import { StatusBar } from "expo-status-bar";
 import { t } from "i18next";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ScrollView,
   StyleSheet,
@@ -182,13 +181,9 @@ const LeaveRequest = () => {
             <View className="pt-4 pb-2">
               {businessShiftRequestsLoading
                 ? skeletonRequests.map((item) => (
-                    <AutoSkeletonView
-                      key={item.id}
-                      isLoading={true}
-                      defaultRadius={24}
-                    >
+                    <View key={item.id} pointerEvents="none">
                       <LeaveRequestCardSkeleton />
-                    </AutoSkeletonView>
+                    </View>
                   ))
                 : approvedRequests.map((item: any, i: number) => (
                     <LeaveRequestCard
@@ -225,13 +220,9 @@ const LeaveRequest = () => {
             <View className="pt-4 pb-2">
               {businessShiftRequestsLoading
                 ? skeletonRequests.map((item) => (
-                    <AutoSkeletonView
-                      key={item.id}
-                      isLoading={true}
-                      defaultRadius={24}
-                    >
+                    <View key={item.id} pointerEvents="none">
                       <LeaveRequestCardSkeleton showActions />
-                    </AutoSkeletonView>
+                    </View>
                   ))
                 : pendingRequests.map((item: any, i: number) => (
                     <LeaveRequestCard
@@ -292,14 +283,15 @@ const LeaveRequest = () => {
           </View>
         )}
 
-        <LeaveRequestApprovalModal
-          visible={isSuccess}
-          onClose={() => setIssuccess(false)}
-          reject={reject}
-          request={selectedRequest}
-          loading={approveShiftRequestLoading}
-        />
       </ScrollView>
+
+      <LeaveRequestApprovalModal
+        visible={isSuccess}
+        onClose={() => setIssuccess(false)}
+        reject={reject}
+        request={selectedRequest}
+        loading={approveShiftRequestLoading}
+      />
     </SafeAreaView>
   );
 };

@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -32,6 +31,9 @@ const AllCreatedRole = () => {
   const [menuRoleId, setMenuRoleId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const isFocused = useIsFocused();
+  const roleSkeletonRows = useState(
+    Array.from({ length: 5 }, (_, index) => `role-skeleton-${index}`)
+  )[0];
 
   const businessId = selectedBusinesses[0];
 
@@ -98,20 +100,24 @@ const AllCreatedRole = () => {
         }
       />
 
-      <ScrollView className="mx-5">
+      <ScrollView
+        className="mx-5"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
         <View className="mt-4">
           {isLoading ? (
-            <AutoSkeletonView isLoading={true} defaultRadius={10}>
-              {Array.from({ length: 5 }, (_, index) => (
+            <View pointerEvents="none">
+              {roleSkeletonRows.map((key) => (
                 <View
-                  key={`role-skeleton-${index}`}
+                  key={key}
                   className="flex-row justify-between items-center border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
                 >
                   <View className="h-4 w-36 bg-[#E5E7EB] rounded-md" />
                   <View className="h-4 w-4 bg-[#E5E7EB] rounded-full" />
                 </View>
               ))}
-            </AutoSkeletonView>
+            </View>
           ) : roles.length > 0 ? (
             roles.map((role, index) => {
               const roleName = String(role?.role?.name || "").trim().toLowerCase();
