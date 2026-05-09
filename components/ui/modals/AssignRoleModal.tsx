@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../buttons/PrimaryButton";
 
@@ -118,21 +117,19 @@ const AssignRoleModal = ({
               }}
             >
               {loading ? (
-                <AutoSkeletonView isLoading={true} defaultRadius={12}>
-                  <View pointerEvents="none">
-                    {SKELETON_ITEMS.map((index) => (
-                      <View
-                        key={`assign-role-skeleton-${index}`}
-                        className="flex-row items-center py-4 px-4 rounded-xl border-b border-[#eeeeee]"
-                      >
-                        <View className="flex-1">
-                          <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
-                        </View>
-                        <View className="w-6 h-6 rounded-full bg-[#E5E7EB]" />
+                <View pointerEvents="none">
+                  {SKELETON_ITEMS.map((index) => (
+                    <View
+                      key={`assign-role-skeleton-${index}`}
+                      className="flex-row items-center py-4 px-4 rounded-xl border-b border-[#eeeeee]"
+                    >
+                      <View className="flex-1">
+                        <View className="h-4 w-40 bg-[#E5E7EB] rounded-md" />
                       </View>
-                    ))}
-                  </View>
-                </AutoSkeletonView>
+                      <View className="w-6 h-6 rounded-full bg-[#E5E7EB]" />
+                    </View>
+                  ))}
+                </View>
               ) : assignRole.length === 0 ? (
                 <View className="py-8 items-center justify-center px-4">
                   <Text className="text-sm text-secondary text-center mb-4">

@@ -5,7 +5,7 @@ import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -13,23 +13,34 @@ import { toast } from "sonner-native";
 const ReportIssue = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{
+    id?: string | string[];
     shiftAssignmentId?: string | string[];
     employmentId?: string | string[];
   }>();
-  const shiftAssignmentId = Array.isArray(params.shiftAssignmentId)
+  const shiftAssignmentIdFromParams = Array.isArray(params.shiftAssignmentId)
     ? params.shiftAssignmentId[0]
     : params.shiftAssignmentId;
-  const employmentId = Array.isArray(params.employmentId)
+  const fallbackShiftAssignmentId = Array.isArray(params.id)
+    ? params.id[0]
+    : params.id;
+  const shiftAssignmentId = shiftAssignmentIdFromParams || fallbackShiftAssignmentId;
+  const employmentIdFromParams = Array.isArray(params.employmentId)
     ? params.employmentId[0]
     : params.employmentId;
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [selectedIssue, setSelectedIssue] = useState("");
   const createShiftReport = useShiftStore((state) => state.createShiftReport);
+  const getShiftAssignmentDetails = useShiftStore(
+    (state) => state.getShiftAssignmentDetails
+  );
   const createShiftReportLoading = useShiftStore(
     (state) => state.createShiftReportLoading
   );
   const [reason, setReason] = useState("");
+  const [resolvedEmploymentId, setResolvedEmploymentId] = useState<string>(
+    employmentIdFromParams || ""
+  );
   const issues = [
     { label: "System not working", value: "system_not_working" },
     { label: "Overstaffed shift", value: "overstaffed_shift" },
@@ -40,12 +51,39 @@ const ReportIssue = () => {
   const selectedIssueLabel =
     issues.find((item) => item.value === selectedIssue)?.label || "";
 
+  useEffect(() => {
+    if (employmentIdFromParams) {
+      setResolvedEmploymentId(employmentIdFromParams);
+      return;
+    }
+    if (!shiftAssignmentId) return;
+
+    let isMounted = true;
+    getShiftAssignmentDetails(shiftAssignmentId)
+      .then(() => {
+        const details = useShiftStore.getState().shiftAssignmentDetails;
+        const derivedEmploymentId =
+          details?.employmentId ||
+          details?.employment?.id ||
+          details?.employment?.employmentId ||
+          "";
+        if (isMounted && derivedEmploymentId) {
+          setResolvedEmploymentId(derivedEmploymentId);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [employmentIdFromParams, getShiftAssignmentDetails, shiftAssignmentId]);
+
   const handleSubmit = async () => {
     if (!shiftAssignmentId) {
       toast.error("Shift assignment id is missing");
       return;
     }
-    if (!employmentId) {
+    if (!resolvedEmploymentId) {
       toast.error("Employment id is missing");
       return;
     }
@@ -59,14 +97,14 @@ const ReportIssue = () => {
     }
 
     try {
-      const result = await createShiftReport({
-        shiftAssignmentId,
-        employmentId,
-        type: "report",
-        issueType: selectedIssue,
-        notes: reason.trim(),
-        attachment: null,
-      });
+      const formData = new FormData();
+      formData.append("type", "report");
+      formData.append("issueType", selectedIssue);
+      formData.append("notes", reason.trim());
+      formData.append("employmentId", resolvedEmploymentId);
+      formData.append("shiftAssignmentId", shiftAssignmentId);
+
+      const result = await createShiftReport(formData as any);
       toast.success(translateApiMessage(result?.message || "shift_report_created"));
       router.back();
     } catch (error: any) {

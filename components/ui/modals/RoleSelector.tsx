@@ -1,6 +1,5 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { useTranslation } from "react-i18next";
 import {
   ScrollView,
@@ -126,16 +125,14 @@ const RoleSelector = ({
             contentContainerStyle={{ paddingBottom: 8 }}
           >
             {loading && (
-              <AutoSkeletonView isLoading={true} defaultRadius={10}>
-                <View className="px-4 pb-3">
-                  {Array.from({ length: 4 }, (_, index) => (
-                    <View
-                      key={`role-option-skeleton-${index}`}
-                      className="h-10 bg-[#E5E7EB] rounded-md mt-3"
-                    />
-                  ))}
-                </View>
-              </AutoSkeletonView>
+              <View className="px-4 pb-3">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <View
+                    key={`role-option-skeleton-${index}`}
+                    className="h-10 bg-[#E5E7EB] rounded-md mt-3"
+                  />
+                ))}
+              </View>
             )}
             {!loading &&
               filteredRoles.map((item, index) => (

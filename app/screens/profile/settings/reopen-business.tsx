@@ -41,9 +41,18 @@ const ReopenBusiness = () => {
   const [isReopening, setIsReopening] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     getProfile()
-      .then((result) => setProfileData(result?.data || null))
-      .catch(() => setProfileData(null));
+      .then((result) => {
+        if (!isMounted) return;
+        setProfileData(result?.data || null);
+      })
+      .catch(() => {
+        // Keep previous data snapshot to avoid partial/blank flashes on iOS.
+      });
+    return () => {
+      isMounted = false;
+    };
   }, [getProfile]);
 
   const targetBusiness = useMemo(() => {

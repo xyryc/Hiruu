@@ -40,6 +40,7 @@ const ShiftDetails = () => {
   const details = shiftAssignmentDetails;
   const resolvedEmploymentId =
     details?.employmentId ||
+    details?.employment?.id ||
     details?.employment?.employmentId ||
     undefined;
 

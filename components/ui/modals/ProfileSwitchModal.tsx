@@ -12,11 +12,10 @@ import {
   Modal,
   ScrollView,
   Text,
-  useWindowDimensions,
   TouchableOpacity,
-  View
+  useWindowDimensions,
+  View,
 } from "react-native";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ProfileSwitchModal = ({
@@ -153,7 +152,16 @@ const ProfileSwitchModal = ({
                 {t("user.profile.switchProfile")}
               </Text>
 
-              <AutoSkeletonView isLoading={isProfileLoading} defaultRadius={12}>
+              {isProfileLoading ? (
+                <View className="mt-6 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center">
+                  <View className="h-[34px] w-[34px] rounded-full bg-[#E5E7EB]" />
+                  <View className="flex-1 ml-3">
+                    <View className="h-4 w-28 rounded-md bg-[#E5E7EB]" />
+                    <View className="h-3 w-40 rounded-md bg-[#E5E7EB] mt-2" />
+                  </View>
+                  <View className="h-5 w-5 rounded-full bg-[#E5E7EB]" />
+                </View>
+              ) : (
                 <TouchableOpacity
                   onPress={onSelectUserProfile}
                   className="mt-6 border border-[#EEEEEE] rounded-xl px-4 py-3 flex-row items-center"
@@ -176,7 +184,7 @@ const ProfileSwitchModal = ({
                     <Ionicons name="checkmark-circle" size={24} color="#4FB2F3" />
                   )}
                 </TouchableOpacity>
-              </AutoSkeletonView>
+              )}
 
               <Text className='font-proximanova-medium text-lg mt-3'>{t("user.profile.yourBusinessProfiles")}</Text>
 
@@ -185,7 +193,7 @@ const ProfileSwitchModal = ({
                 contentContainerStyle={{ paddingBottom: 30, flexGrow: 1 }}
               >
                 {myEmploymentsLoading ? (
-                  <AutoSkeletonView isLoading={true} defaultRadius={12}>
+                  <>
                     {Array.from({ length: 3 }, (_, index) => (
                       <View
                         key={`profile-switch-skeleton-${index}`}
@@ -199,7 +207,7 @@ const ProfileSwitchModal = ({
                         <View className="h-5 w-5 rounded-full bg-[#E5E7EB]" />
                       </View>
                     ))}
-                  </AutoSkeletonView>
+                  </>
                 ) : null}
 
                 {!myEmploymentsLoading && employmentEntries.length === 0 && (

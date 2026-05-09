@@ -12,7 +12,6 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AutoSkeletonView } from "react-native-auto-skeleton";
 import {
   ScrollView,
   Text,
@@ -24,6 +23,20 @@ import { toast } from "sonner-native";
 
 const tabs = ["limited time", "featured", "all"] as const;
 type TabType = (typeof tabs)[number];
+
+const NameplateRowSkeleton = ({ isFirst }: { isFirst?: boolean }) => (
+  <View className={isFirst ? "mt-8" : "mt-5"}>
+    <View className="flex-row items-center justify-between mb-2.5">
+      <View className="h-4 w-36 rounded-md bg-[#E5E7EB]" />
+      <View className="h-3 w-24 rounded-md bg-[#E5E7EB]" />
+    </View>
+    <View className="border border-[#EEEEEE] rounded-[14px] p-4 bg-white">
+      <View className="h-5 w-32 rounded-md bg-[#E5E7EB]" />
+      <View className="mt-4 h-16 rounded-xl bg-[#F3F4F6]" />
+      <View className="mt-4 h-10 rounded-full bg-[#E5E7EB]" />
+    </View>
+  </View>
+);
 
 const Nameplate = () => {
   const { t } = useTranslation();
@@ -287,30 +300,11 @@ const Nameplate = () => {
         </Text>
 
         {cosmeticsStoreLoading ? (
-          skeletonRows.map((item, index) => (
-            <AutoSkeletonView key={item.id} isLoading={true} defaultRadius={12}>
-              <View pointerEvents="none" className={index === 0 ? "mt-8" : "mt-5"}>
-                <View className="flex-row items-center justify-between mb-2.5">
-                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary">
-                    Loading
-                  </Text>
-
-                  <Text className="text-xs text-secondary dark:text-dark-secondary">
-                    Loading
-                  </Text>
-                </View>
-
-                <DynamicNameplateCard
-                  preview={{
-                    coins: 0,
-                    locked: true,
-                    isOwnedActive: false,
-                    isEquipped: false,
-                  }}
-                />
-              </View>
-            </AutoSkeletonView>
-          ))
+          <View pointerEvents="none">
+            {skeletonRows.map((item, index) => (
+              <NameplateRowSkeleton key={item.id} isFirst={index === 0} />
+            ))}
+          </View>
         ) : cosmeticsStoreItems.length === 0 ? (
           <View className="py-10 items-center">
             <Text className="text-secondary dark:text-dark-secondary">

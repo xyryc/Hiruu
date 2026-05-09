@@ -60,7 +60,7 @@ const Settings = () => {
       const result = await getProfile();
       setProfileData(result?.data || null);
     } catch {
-      setProfileData(null);
+      // Keep previous snapshot if refresh fails to avoid partial/blank flashes.
     }
   }, [getProfile]);
 

@@ -1,6 +1,5 @@
 import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { Entypo } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import React from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,26 +26,21 @@ const WeeklyBlockActionsModal = ({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={onClose}
-          className="absolute inset-0"
-        />
+      <View className="flex-1 justify-end bg-black/40">
+        <TouchableOpacity activeOpacity={1} onPress={onClose} className="absolute inset-0" />
 
-        <View className="bg-white rounded-t-3xl">
-          <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
-            <TouchableOpacity onPress={onClose}>
-              <View className="bg-[#000] rounded-full p-2.5">
-                <Entypo name="cross" size={30} color="white" />
-              </View>
+        <View className="bg-white rounded-t-3xl overflow-hidden">
+          <View className="px-6 pt-4 pb-2 flex-row justify-end">
+            <TouchableOpacity onPress={onClose} className="bg-[#111111] rounded-full p-2">
+              <Entypo name="cross" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
           <SafeAreaView edges={["bottom"]}>
-            <View className="px-6 pt-8 pb-4">
+            <View className="px-6 pt-2 pb-4">
               <Text className="font-proximanova-bold text-xl text-center text-primary">
                 {title}
               </Text>
@@ -60,18 +54,18 @@ const WeeklyBlockActionsModal = ({
                 title="Update"
                 onPress={onUpdate}
                 showIcon={false}
-                className="flex-1 rounded-xl py-3 px-4"
+                className="flex-1 rounded-xl py-3 px-4 min-h-[48px]"
               />
               <PrimaryButton
                 title="Delete"
                 onPress={onDelete}
                 showIcon={false}
-                className="flex-1 bg-[#EF4444] rounded-xl py-3 px-4"
+                className="flex-1 bg-[#EF4444] rounded-xl py-3 px-4 min-h-[48px]"
               />
             </View>
           </SafeAreaView>
         </View>
-      </BlurView>
+      </View>
     </Modal>
   );
 };

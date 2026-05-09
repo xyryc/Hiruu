@@ -121,17 +121,17 @@ const resolveNotificationVisual = (type: string) => {
     };
   }
 
-  if (normalized.includes("shift")) {
-    return {
-      icon: <Ionicons name="calendar-outline" size={20} color="#4FB2F3" />,
-      iconBackgroundColor: "#E5F4FD",
-    };
-  }
-
   if (normalized.includes("cancel")) {
     return {
       icon: <EvilIcons name="close-o" size={22} color="#F34F4F" />,
       iconBackgroundColor: "#F34F4F4D",
+    };
+  }
+
+  if (normalized.includes("shift")) {
+    return {
+      icon: <Ionicons name="calendar-outline" size={20} color="#4FB2F3" />,
+      iconBackgroundColor: "#E5F4FD",
     };
   }
 
@@ -207,6 +207,34 @@ const resolveNotificationTitle = (
       return t("notificationsScreen.title.newShiftAssignedAt", { businessName });
     }
     return t("notificationsScreen.title.newShiftAssigned");
+  }
+
+  if (item.type === "shift_cancelled") {
+    const businessName = String((metadata as any)?.businessName || "").trim();
+    if (businessName) {
+      return t("notificationsScreen.title.shiftCancelledAt", { businessName });
+    }
+    return t("notificationsScreen.title.shiftCancelled");
+  }
+
+  if (item.type === "shift_swap_requested") {
+    const requesterName = String((metadata as any)?.requesterName || "").trim();
+    if (requesterName) {
+      return t("notificationsScreen.title.shiftSwapRequestedBy", {
+        requesterName,
+      });
+    }
+    return t("notificationsScreen.title.shiftSwapRequested");
+  }
+
+  if (item.type === "shift_swap_approved") {
+    const acceptedByName = String((metadata as any)?.acceptedByName || "").trim();
+    if (acceptedByName) {
+      return t("notificationsScreen.title.shiftSwapApprovedBy", {
+        acceptedByName,
+      });
+    }
+    return t("notificationsScreen.title.shiftSwapApproved");
   }
 
   if (item.type === "achievement_unlocked") {
@@ -320,6 +348,87 @@ const resolveNotificationBody = (
       });
     }
     return t("notificationsScreen.body.shiftAssigned");
+  }
+
+  if (item.type === "shift_cancelled") {
+    const businessName = String((metadata as any)?.businessName || "").trim();
+    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
+    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
+    const formattedShiftDate =
+      shiftDate && !Number.isNaN(shiftDate.getTime())
+        ? shiftDate.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : shiftDateRaw;
+
+    if (businessName && formattedShiftDate) {
+      return t("notificationsScreen.body.shiftCancelledByBusinessOnDate", {
+        businessName,
+        formattedShiftDate,
+      });
+    }
+    if (formattedShiftDate) {
+      return t("notificationsScreen.body.shiftCancelledOnDate", {
+        formattedShiftDate,
+      });
+    }
+    return t("notificationsScreen.body.shiftCancelled");
+  }
+
+  if (item.type === "shift_swap_requested") {
+    const requesterName = String((metadata as any)?.requesterName || "").trim();
+    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
+    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
+    const formattedShiftDate =
+      shiftDate && !Number.isNaN(shiftDate.getTime())
+        ? shiftDate.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : shiftDateRaw;
+
+    if (requesterName && formattedShiftDate) {
+      return t("notificationsScreen.body.shiftSwapRequestedByOnDate", {
+        requesterName,
+        formattedShiftDate,
+      });
+    }
+    if (requesterName) {
+      return t("notificationsScreen.body.shiftSwapRequestedBy", {
+        requesterName,
+      });
+    }
+    return t("notificationsScreen.body.shiftSwapRequested");
+  }
+
+  if (item.type === "shift_swap_approved") {
+    const acceptedByName = String((metadata as any)?.acceptedByName || "").trim();
+    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
+    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
+    const formattedShiftDate =
+      shiftDate && !Number.isNaN(shiftDate.getTime())
+        ? shiftDate.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : shiftDateRaw;
+
+    if (acceptedByName && formattedShiftDate) {
+      return t("notificationsScreen.body.shiftSwapApprovedByOnDate", {
+        acceptedByName,
+        formattedShiftDate,
+      });
+    }
+    if (acceptedByName) {
+      return t("notificationsScreen.body.shiftSwapApprovedBy", {
+        acceptedByName,
+      });
+    }
+    return t("notificationsScreen.body.shiftSwapApproved");
   }
 
   if (item.type === "achievement_unlocked") {
@@ -507,6 +616,9 @@ const NotificationScreen = () => {
 
       if (
         actionKey === "view_shift_assignment" ||
+        actionKey === "view_shift_swap" ||
+        item.type === "shift_swap_requested" ||
+        item.type === "shift_swap_approved" ||
         targetType === "shift_assignment" ||
         item.relatedEntityType === "shift_assignment"
       ) {

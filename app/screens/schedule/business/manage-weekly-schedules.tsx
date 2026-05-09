@@ -211,7 +211,11 @@ const ManageWeeklySchedules = () => {
         iconColor={isDark ? "#fff" : "#111"}
       />
 
-      <ScrollView className="mx-5 pt-4" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="mx-5 pt-4"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <View className="border border-[#EEEEEE] dark:border-dark-border rounded-2xl p-4">
           <View className="flex-row items-center gap-3">
             <View className="h-10 w-10 rounded-full overflow-hidden bg-[#E5F4FD] dark:bg-dark-border items-center justify-center">

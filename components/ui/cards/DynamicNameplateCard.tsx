@@ -271,7 +271,7 @@ const DynamicNameplateCard = ({
             style={{
               borderColor: border?.color || "transparent",
               borderWidth: 2,
-              borderRadius: "100%"
+              borderRadius: 999
             }}
           >
             <Image
