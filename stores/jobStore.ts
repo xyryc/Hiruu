@@ -831,6 +831,7 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const data = (result?.data ?? null) as JobProfileData | null;
+      // DEBUG-INTEGRATION: temporary job profile fetch log
       console.log("[JobStore] getMyJobProfile response", {
         preferredRoleIds: data?.preferredRoleIds,
         data,
@@ -881,6 +882,7 @@ export const useJobStore = create<JobState>((set) => ({
     set({ isLoadingJobProfile: true, error: null });
 
     try {
+      // DEBUG-INTEGRATION: temporary job profile update request log
       console.log("[JobStore] updateMyJobProfile request", payload);
       const response = await axiosInstance.patch("/job-profile/me", payload);
       const result = response.data;
@@ -895,6 +897,7 @@ export const useJobStore = create<JobState>((set) => ({
       }
 
       const data = (result?.data ?? null) as JobProfileData | null;
+      // DEBUG-INTEGRATION: temporary job profile update response log
       console.log("[JobStore] updateMyJobProfile response", {
         preferredRoleIds: data?.preferredRoleIds,
         data,
@@ -1064,6 +1067,7 @@ export const useJobStore = create<JobState>((set) => ({
 
   updateBusinessApplicationStatus: async (businessId, id, status) => {
     try {
+      // DEBUG-INTEGRATION: temporary candidate request status update log
       console.log("[JobStore] updateBusinessApplicationStatus request", {
         businessId,
         applicationId: id,
@@ -1082,6 +1086,7 @@ export const useJobStore = create<JobState>((set) => ({
         throw new Error(translateApiMessage(result?.message || "UNKNOWN_ERROR"));
       }
 
+      // DEBUG-INTEGRATION: temporary candidate request status update log
       console.log("[JobStore] updateBusinessApplicationStatus response", {
         businessId,
         applicationId: id,

@@ -222,6 +222,7 @@ const Profile = () => {
   });
 
   useEffect(() => {
+    // DEBUG-INTEGRATION: temporary experiences payload log
     // console.log("[UserProfile] experiences", JSON.stringify(experiences, null, 2));
   }, [experiences, resolvedExperiences]);
   const jobProfilePreview = [

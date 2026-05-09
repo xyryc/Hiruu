@@ -54,6 +54,7 @@ const BusinessJobCard = ({
   const isSkeleton = !profile?.user && !profile?.headline && !profile?.highlightedExperience;
   const alreadyOffered = offerSent || Boolean(profile?.alreadyOffered);
   const modalDisabled = Boolean(disableModalOpen) || alreadyOffered;
+  // DEBUG-INTEGRATION: temporary profile payload log
   console.log(JSON.stringify(profile, null, 2));
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const BusinessJobCard = ({
   }, [profile?.alreadyOffered]);
 
   useEffect(() => {
+    // DEBUG-INTEGRATION: temporary profile payload log
     console.log("[BusinessJobCard] profile response", JSON.stringify(profile, null, 2));
   }, [profile]);
 

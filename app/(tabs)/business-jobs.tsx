@@ -366,6 +366,7 @@ const BusinessJobs = () => {
               </>
             ) : (
               filteredFeaturedProfiles.slice(0, 10).map((profile: any) => {
+                // DEBUG-INTEGRATION: temporary featured profile log
                 // console.log("[FindEmployee] BusinessJobCard featured profile", JSON.stringify(profile, null, 2));
                 return (
                   <BusinessJobCard
@@ -409,6 +410,7 @@ const BusinessJobs = () => {
               </>
             ) : (
               filteredSuggestedProfiles.slice(0, 4).map((profile: any) => {
+                // DEBUG-INTEGRATION: temporary suggested profile log
                 // console.log("[FindEmployee] BusinessJobCard suggested profile", profile);
                 return (
                   <BusinessJobCard
