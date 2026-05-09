@@ -66,6 +66,10 @@ const CreateRole = () => {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {}
   );
+  const permissionSkeletonRows = useMemo(
+    () => Array.from({ length: 3 }, (_, index) => index),
+    []
+  );
 
   const businessId = selectedBusinesses[0];
 
@@ -262,7 +266,12 @@ const CreateRole = () => {
           }
         />
 
-        <ScrollView showsVerticalScrollIndicator={false} className="mx-5">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="mx-5"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
           {/* predefine role */}
           <View className="mt-4">
             <Text className="font-proximanova-semibold text-lg text-primary dark:text-dark-primary">
@@ -315,9 +324,9 @@ const CreateRole = () => {
 
           {/* toggle button */}
           <View>
-            {permissionsLoading && (
+            {permissionsLoading ? (
               <>
-                {Array.from({ length: 3 }, (_, index) => (
+                {permissionSkeletonRows.map((index) => (
                   <View
                     key={`permission-skeleton-${index}`}
                     className="border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
@@ -329,55 +338,58 @@ const CreateRole = () => {
                   </View>
                 ))}
               </>
-            )}
-            {filteredGroups.map((group) => (
-              <View
-                key={group.id}
-                className="border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
-              >
-                <View className="flex-row justify-between items-center ">
-                  <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
-                    {localizePermissionText(group.label)}
-                  </Text>
-                  <ToggleButton
-                    isOn={Boolean(expandedGroups[group.id])}
-                    setIsOn={() => handleGroupToggle(group.id)}
-                  />
-                </View>
-                {expandedGroups[group.id] && (
-                  <View className="border-b border-[#EEEEEE] mt-3" />
-                )}
-                {expandedGroups[group.id] &&
-                  group.permissions.map((permission) => {
-                    const value = permissionValues[permission.key] || 0;
-                    return (
-                      <CheckButton
-                        key={permission.key}
-                        title={localizePermissionText(permission.title)}
-                        viewChecked={Boolean(value & 1)}
-                        editChecked={Boolean(value & 2)}
-                        onToggleView={() => togglePermission(permission.key, 1)}
-                        onToggleEdit={() => togglePermission(permission.key, 2)}
+            ) : (
+              <>
+                {filteredGroups.map((group) => (
+                  <View
+                    key={group.id}
+                    className="border border-[#EEEEEE] p-4 rounded-[10px] mt-4"
+                  >
+                    <View className="flex-row justify-between items-center ">
+                      <Text className="font-proximanova-semibold text-primary dark:text-dark-primary capitalize">
+                        {localizePermissionText(group.label)}
+                      </Text>
+                      <ToggleButton
+                        isOn={Boolean(expandedGroups[group.id])}
+                        setIsOn={() => handleGroupToggle(group.id)}
                       />
-                    );
-                  })}
-              </View>
-            ))}
-            {!permissionsLoading &&
-              permissionGroups.length > 0 &&
-              filteredGroups.length === 0 && (
-                <View className="py-8 items-center">
-                  <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                    {t("user.jobs.schedule.noPermissionsFound")}
-                  </Text>
-                </View>
-              )}
-            {!permissionsLoading && permissionGroups.length === 0 && (
-              <View className="py-8 items-center">
-                <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
-                  {t("user.jobs.schedule.noPermissionsAvailable")}
-                </Text>
-              </View>
+                    </View>
+                    {expandedGroups[group.id] && (
+                      <View className="border-b border-[#EEEEEE] mt-3" />
+                    )}
+                    {expandedGroups[group.id] &&
+                      group.permissions.map((permission) => {
+                        const value = permissionValues[permission.key] || 0;
+                        return (
+                          <CheckButton
+                            key={permission.key}
+                            title={localizePermissionText(permission.title)}
+                            viewChecked={Boolean(value & 1)}
+                            editChecked={Boolean(value & 2)}
+                            onToggleView={() => togglePermission(permission.key, 1)}
+                            onToggleEdit={() => togglePermission(permission.key, 2)}
+                          />
+                        );
+                      })}
+                  </View>
+                ))}
+
+                {permissionGroups.length > 0 && filteredGroups.length === 0 && (
+                  <View className="py-8 items-center">
+                    <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
+                      {t("user.jobs.schedule.noPermissionsFound")}
+                    </Text>
+                  </View>
+                )}
+
+                {permissionGroups.length === 0 && (
+                  <View className="py-8 items-center">
+                    <Text className="font-proximanova-regular text-secondary dark:text-dark-secondary">
+                      {t("user.jobs.schedule.noPermissionsAvailable")}
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
           </View>
 

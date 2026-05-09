@@ -1,4 +1,5 @@
 import { NoTaskCardProps } from "@/types";
+import { formatUTCToLocalDateTime } from "@/utils/timezone";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
@@ -11,12 +12,7 @@ const NoTaskCard = ({ className, nextShiftAt }: NoTaskCardProps) => {
   const hasNextShift =
     nextShiftDate instanceof Date && !Number.isNaN(nextShiftDate.getTime());
   const formattedNextShift = hasNextShift
-    ? nextShiftDate.toLocaleString([], {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      })
+    ? formatUTCToLocalDateTime(String(nextShiftAt))
     : "";
 
   return (

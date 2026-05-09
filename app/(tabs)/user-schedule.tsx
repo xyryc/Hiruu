@@ -3,23 +3,24 @@ import ShiftItem from "@/components/layout/ShiftItem";
 import HolidayCard from "@/components/ui/cards/HolidayCard";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import { useJobStore } from "@/stores/jobStore";
+import { usePreferencesStore } from "@/stores/preferencesStore";
 import { useShiftStore } from "@/stores/shiftStore";
 import { UserScheduleApiShift, UserScheduleUiShift } from "@/types";
 import { formatCountdownFromSeconds } from "@/utils/date";
 import { formatUTCToLocalTime } from "@/utils/timezone";
+import { DateTime } from "luxon";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 
 const ShiftSchedule = () => {
+  const timezone = usePreferencesStore((state) => state.timezone);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
-    const value = new Date();
-    const year = value.getFullYear();
-    const month = `${value.getMonth() + 1}`.padStart(2, "0");
-    const day = `${value.getDate()}`.padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return DateTime.now()
+      .setZone(timezone || "UTC")
+      .toFormat("yyyy-MM-dd");
   });
   const [refreshing, setRefreshing] = useState(false);
   const {
@@ -53,16 +54,20 @@ const ShiftSchedule = () => {
 
       if (shift?.itemType === "empty_day") {
         const hasNextShift = Boolean(shift?.hasNextShift);
-        const nextShiftDate = shift?.nextShiftStartDate
-          ? new Date(shift.nextShiftStartDate)
+        const nextShiftStartAt = shift?.startsAt || shift?.nextShiftStartDate || "";
+        const nextShiftDate = nextShiftStartAt
+          ? new Date(nextShiftStartAt)
           : null;
         const nextShiftText =
           hasNextShift && nextShiftDate && !Number.isNaN(nextShiftDate.getTime())
-            ? `Next shift: ${nextShiftDate.toLocaleDateString(undefined, {
-              weekday: "short",
-              day: "numeric",
-              month: "long",
-            })} - ${formatUTCToLocalTime(shift.nextShiftStartDate!)}`
+            ? `Next shift: ${DateTime.fromISO(nextShiftStartAt, {
+              zone: "utc",
+            })
+              .setZone(timezone || "UTC")
+              .toFormat("ccc, d LLLL")} - ${formatUTCToLocalTime(
+              nextShiftStartAt,
+              timezone
+            )}`
             : "No upcoming shifts";
 
         return {
@@ -112,19 +117,11 @@ const ShiftSchedule = () => {
 
       const displayStartTime =
         startAt && !Number.isNaN(startAt.getTime())
-          ? startAt.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })
+          ? formatUTCToLocalTime(shift.startsAt!, timezone)
           : to12Hour(start);
       const displayEndTime =
         endAt && !Number.isNaN(endAt.getTime())
-          ? endAt.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })
+          ? formatUTCToLocalTime(shift.endsAt!, timezone)
           : to12Hour(end);
 
       let type: UserScheduleUiShift["type"] = "upcoming";
@@ -185,12 +182,13 @@ const ShiftSchedule = () => {
         message,
       };
     },
-    [timeToMinutes, to12Hour]
+    [timeToMinutes, timezone, to12Hour]
   );
 
   const loadShifts = useCallback(async () => {
     try {
-      await fetchMyShifts(selectedDate);
+      const shifts = await fetchMyShifts(selectedDate);
+      console.log("[UserSchedule] fetchMyShifts response", shifts);
     } catch (error: any) {
       toast.error(error?.message || "Failed to load shifts");
     }
@@ -206,7 +204,9 @@ const ShiftSchedule = () => {
 
   useEffect(() => {
     const currentDate = new Date();
-    const today = `${currentDate.getFullYear()}-${`${currentDate.getMonth() + 1}`.padStart(2, "0")}-${`${currentDate.getDate()}`.padStart(2, "0")}`;
+    const today = DateTime.now()
+      .setZone(timezone || "UTC")
+      .toFormat("yyyy-MM-dd");
     if (selectedDate !== today) return;
 
     const shifts = Array.isArray(myShifts) ? myShifts : [];
@@ -228,7 +228,7 @@ const ShiftSchedule = () => {
     }, Math.max(nextShiftStartAt - now + 1000, 1000));
 
     return () => clearTimeout(timeout);
-  }, [loadShifts, myShifts, selectedDate]);
+  }, [loadShifts, myShifts, selectedDate, timezone]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

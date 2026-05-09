@@ -394,6 +394,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
       const response = await axiosInstance.get("/shift-assignment/my-shifts", {
         params: date ? { date } : undefined,
       });
+      console.log("[ShiftStore] fetchMyShifts raw response", response?.data);
       const result = response?.data;
 
       if (!result?.success) {
