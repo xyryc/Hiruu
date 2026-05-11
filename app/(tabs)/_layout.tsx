@@ -5,11 +5,16 @@ import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 import React from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 export default function TabLayout() {
   const selectedBusinesses = useBusinessStore((s) => s.selectedBusinesses);
   const isBusinessProfile = selectedBusinesses.length > 0;
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
+  const tabBarBaseHeight = 62;
+  const tabBarHeight = tabBarBaseHeight + bottomInset;
 
   return (
     <Tabs
@@ -21,9 +26,9 @@ export default function TabLayout() {
             contentFit="fill"
             style={{
               position: "absolute",
-              bottom: 0,
+              bottom: 14,
               width: "100%",
-              height: "125%",
+              height: tabBarHeight + 4,
             }}
             cachePolicy="memory"
           />
@@ -34,7 +39,9 @@ export default function TabLayout() {
 
         tabBarStyle: {
           backgroundColor: "transparent",
-          height: 70,
+          height: tabBarHeight,
+          paddingBottom: bottomInset,
+          paddingTop: 6,
           borderTopWidth: 0,
         },
       }}

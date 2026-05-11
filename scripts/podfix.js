@@ -12,7 +12,7 @@ const stripeInteropHeaderPath = path.join(
   "@stripe",
   "stripe-react-native",
   "ios",
-  "StripeSwiftInterop.h"
+  "StripeSwiftInterop.h",
 );
 
 const run = (cmd, cwd = projectRoot) => {
@@ -23,7 +23,7 @@ const run = (cmd, cwd = projectRoot) => {
 const applyPodfileFixes = () => {
   if (!fs.existsSync(podfilePath)) {
     console.error(
-      "Podfile not found at ios/Podfile. Run `npx expo prebuild --platform ios` first."
+      "Podfile not found at ios/Podfile. Run `npx expo prebuild --platform ios` first.",
     );
     process.exit(1);
   }
@@ -37,7 +37,7 @@ const applyPodfileFixes = () => {
       /(podfile_properties\s*=\s*JSON\.parse\([^\n]*\)\s*rescue\s*\{\}\n)/;
     if (!anchorRegex.test(content)) {
       console.error(
-        "Could not find podfile_properties line to insert RNFirebase static framework flag."
+        "Could not find podfile_properties line to insert RNFirebase static framework flag.",
       );
       process.exit(1);
     }
@@ -52,7 +52,7 @@ const applyPodfileFixes = () => {
   if (oldConditionalUseFrameworksRegex.test(content)) {
     content = content.replace(
       oldConditionalUseFrameworksRegex,
-      `\n${forcedUseFrameworksLine}\n`
+      `\n${forcedUseFrameworksLine}\n`,
     );
     changed = true;
   } else if (!content.includes(forcedUseFrameworksLine)) {
@@ -60,28 +60,30 @@ const applyPodfileFixes = () => {
       /(config\s*=\s*use_native_modules!\(config_command\)\n)/;
     if (!nativeModulesAnchor.test(content)) {
       console.error(
-        "Could not find native modules config line to insert static use_frameworks."
+        "Could not find native modules config line to insert static use_frameworks.",
       );
       process.exit(1);
     }
     content = content.replace(
       nativeModulesAnchor,
-      `$1\n${forcedUseFrameworksLine}\n`
+      `$1\n${forcedUseFrameworksLine}\n`,
     );
     changed = true;
   }
 
   content = content.replace(
     /(\n\s*use_frameworks!\s*:linkage\s*=>\s*:static)\s*use_react_native!\s*\(/m,
-    `$1\n\n  use_react_native!(`
+    `$1\n\n  use_react_native!(`,
   );
 
   const lines = content.split("\n");
   const postStart = lines.findIndex((line) =>
-    line.includes("post_install do |installer|")
+    line.includes("post_install do |installer|"),
   );
   if (postStart === -1) {
-    console.error("Could not find `post_install do |installer|` block in ios/Podfile.");
+    console.error(
+      "Could not find `post_install do |installer|` block in ios/Podfile.",
+    );
     process.exit(1);
   }
 
@@ -131,16 +133,22 @@ const applyPodfileFixes = () => {
     "    # END HIRUU RNFB WORKAROUND",
   ].join("\n");
 
-  if (!updatedPostBlock.includes("next unless target.name.start_with?('RNFB')")) {
+  if (
+    !updatedPostBlock.includes("next unless target.name.start_with?('RNFB')")
+  ) {
     updatedPostBlock = updatedPostBlock.replace(
       /\n\s*end\s*$/,
-      `${patchBlock}\n  end`
+      `${patchBlock}\n  end`,
     );
   }
 
   if (updatedPostBlock !== postBlock) {
     const nextLines = content.split("\n");
-    nextLines.splice(postStart, postEnd - postStart + 1, ...updatedPostBlock.split("\n"));
+    nextLines.splice(
+      postStart,
+      postEnd - postStart + 1,
+      ...updatedPostBlock.split("\n"),
+    );
     content = nextLines.join("\n");
     changed = true;
   }
@@ -168,7 +176,9 @@ const applyStripeInteropFix = () => {
       console.log("Stripe interop enum fix already applied.");
       return;
     }
-    console.warn("Stripe interop enum line not found. Skipping Stripe enum fix.");
+    console.warn(
+      "Stripe interop enum line not found. Skipping Stripe enum fix.",
+    );
     return;
   }
 
@@ -183,7 +193,7 @@ const runFullPodFix = () => {
   run("rm -rf Pods Podfile.lock", path.join(projectRoot, "ios"));
   run("pod install --repo-update", path.join(projectRoot, "ios"));
   run("rm -rf ~/Library/Developer/Xcode/DerivedData");
-  run("open ios/Hiruu.xcworkspace");
+  // run("open ios/Hiruu.xcworkspace");
 };
 
 runFullPodFix();
