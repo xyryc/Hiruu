@@ -121,10 +121,15 @@ const JobCard = ({
     typeof job?.salaryMin === "number" && typeof job?.salaryMax === "number";
   const isFeatured = Boolean(job?.isFeatured);
   const isPlainSurface = !isFeatured;
-  const isPremiumBusiness = Boolean(job?.business?.isPremium);
-  const metaBadgeLabel = isFeatured
-    ? t("user.jobs.postJob.featured")
-    : t("user.jobs.card.standard");
+  const isBusinessVerified = job?.business?.isVerified === true;
+  const rawRating = job?.business?.rating;
+  const ratingNumber =
+    typeof rawRating === "number" ? rawRating : Number(rawRating);
+  const ratingLabel = Number.isFinite(ratingNumber)
+    ? Number.isInteger(ratingNumber)
+      ? String(ratingNumber)
+      : ratingNumber.toFixed(1)
+    : "0";
   const shareCount =
     typeof job?.shareCount === "number" ? job.shareCount : 0;
   const distanceValue = job?.distanceKm || null;
@@ -240,20 +245,19 @@ const JobCard = ({
       </View>
 
       <View className="flex-row flex-wrap gap-1.5 mt-2.5">
-        <View
-          className="flex-row gap-1.5 items-center px-2.5 py-1 rounded-full"
-          style={{
-            backgroundColor:
-              compact || isPlainSurface ? "#3F98FF4D" : "#FFFFFF",
-          }}
-        >
-          <MaterialIcons name="verified" size={16} color="#3090FF" />
-          <Text className="text-xs font-proximanova-regular text-primary">
-            {isPremiumBusiness
-              ? t("user.jobs.card.premium")
-              : t("user.jobs.card.business")}
-          </Text>
-        </View>
+        {isBusinessVerified ? (
+          <View
+            className="flex-row gap-1.5 items-center px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: '#3F98FF4D'
+            }}
+          >
+            <MaterialIcons name="verified" size={16} color="#3090FF" />
+            <Text className="text-xs font-proximanova-regular text-primary">
+              Verified
+            </Text>
+          </View>
+        ) : null}
 
         <View
           className="flex-row gap-1.5 items-center px-2.5 py-1 rounded-full"
@@ -263,7 +267,7 @@ const JobCard = ({
           }}
         >
           <FontAwesome name="star" size={16} color="#F1C400" />
-          <Text className="text-xs font-proximanova-regular">{metaBadgeLabel}</Text>
+          <Text className="text-xs font-proximanova-regular">{ratingLabel}</Text>
         </View>
 
         <View

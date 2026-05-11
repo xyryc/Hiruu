@@ -113,6 +113,12 @@ const UserJobs = () => {
       } else {
         setIsLoadingFeatured(true);
       }
+      console.log("[UserJobs] getPublicRecruitments featured request", {
+        page,
+        limit: JOBS_PAGE_LIMIT,
+        isFeatured: true,
+        append,
+      });
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
@@ -130,6 +136,7 @@ const UserJobs = () => {
       setHasMoreFeatured(page < totalPages);
       setFeaturedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
+      console.error("[UserJobs] getPublicRecruitments featured failed", error);
       if (!append) {
         setFeaturedJobs([]);
         setHasMoreFeatured(false);
@@ -151,6 +158,12 @@ const UserJobs = () => {
       } else {
         setIsLoadingSuggested(true);
       }
+      console.log("[UserJobs] getPublicRecruitments suggested request", {
+        page,
+        limit: JOBS_PAGE_LIMIT,
+        isFeatured: false,
+        append,
+      });
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
@@ -168,6 +181,7 @@ const UserJobs = () => {
       setHasMoreSuggested(page < totalPages);
       setSuggestedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
+      console.error("[UserJobs] getPublicRecruitments suggested failed", error);
       if (!append) {
         setSuggestedJobs([]);
         setHasMoreSuggested(false);
