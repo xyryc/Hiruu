@@ -102,6 +102,27 @@ const buildRoleAwareAssignment = (template: any, employmentIds: string[]) => {
   return assignment;
 };
 
+const normalizeAssignmentsForTemplate = (
+  template: any,
+  selectedByRole: Record<string, string[]>
+) => {
+  const roleRequirements = Array.isArray(template?.roleRequirements)
+    ? template.roleRequirements
+    : [];
+  const normalizedByRole: Record<string, string[]> = {};
+
+  roleRequirements.forEach((role: any) => {
+    const roleId = String(role?.roleId || "");
+    const requiredCount = Math.max(Number(role?.count || 0), 0);
+    if (!roleId) return;
+    const current = Array.isArray(selectedByRole?.[roleId]) ? selectedByRole[roleId] : [];
+    const deduped = Array.from(new Set(current.filter(Boolean).map((id) => String(id))));
+    normalizedByRole[roleId] = requiredCount > 0 ? deduped.slice(0, requiredCount) : [];
+  });
+
+  return normalizedByRole;
+};
+
 const SavedShiftTemplate = () => {
   const params = useLocalSearchParams<{
     mode?: string;
@@ -271,7 +292,10 @@ const SavedShiftTemplate = () => {
         if (requiredRoles.length === 0) return true;
 
         const assignmentKey = `${day.label}::${template?.id}`;
-        const selectedByRole = weeklyRoleAssignments[assignmentKey] || {};
+        const selectedByRole = normalizeAssignmentsForTemplate(
+          template,
+          weeklyRoleAssignments[assignmentKey] || {}
+        );
 
         return requiredRoles.every((role: any) => {
           const roleId = String(role?.roleId || "");
@@ -280,7 +304,7 @@ const SavedShiftTemplate = () => {
           const selectedCount = Array.isArray(selectedByRole[roleId])
             ? selectedByRole[roleId].length
             : 0;
-          return selectedCount >= requiredCount;
+          return selectedCount === requiredCount;
         });
       });
     });
@@ -296,7 +320,10 @@ const SavedShiftTemplate = () => {
         .filter((template: any) => Boolean(template?.id))
         .map((template: any, sequence: number) => {
           const assignmentKey = `${day.label}::${template?.id}`;
-          const selectedByRole = weeklyRoleAssignments[assignmentKey] || {};
+          const selectedByRole = normalizeAssignmentsForTemplate(
+            template,
+            weeklyRoleAssignments[assignmentKey] || {}
+          );
           const employmentIds = Array.from(
             new Set(
               Object.values(selectedByRole)

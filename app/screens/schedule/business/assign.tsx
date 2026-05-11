@@ -119,6 +119,13 @@ const Assign = () => {
       };
     });
   }, [availabilityCandidates, requiredRoles, selectedEmployeesByRole, t]);
+  const requiredCountByRole = useMemo(() => {
+    const map: Record<string, number> = {};
+    tabs.forEach((item) => {
+      map[item.id] = Math.max(Number(item.requiredCount || 0), 0);
+    });
+    return map;
+  }, [tabs]);
 
   useEffect(() => {
     if (!selectedRoleId && tabs.length > 0) {
@@ -145,14 +152,26 @@ const Assign = () => {
     return tabs.every(
       (item) =>
         item.requiredCount <= 0 ||
-        (selectedEmployeesByRole[item.id]?.length || 0) >= item.requiredCount
+        (selectedEmployeesByRole[item.id]?.length || 0) === item.requiredCount
     );
   }, [selectedEmployeesByRole, tabs]);
 
   const handleToggleEmployee = (roleId: string, employmentId: string) => {
     setSelectedEmployeesByRole((prev) => {
       const current = prev[roleId] || [];
-      const next = current.includes(employmentId)
+      const isAlreadySelected = current.includes(employmentId);
+      const requiredCount = Math.max(Number(requiredCountByRole[roleId] || 0), 0);
+
+      if (!isAlreadySelected && requiredCount > 0 && current.length >= requiredCount) {
+        toast.error(
+          t("user.jobs.schedule.assignment.limitReached", {
+            defaultValue: "Required headcount already reached for this role.",
+          })
+        );
+        return prev;
+      }
+
+      const next = isAlreadySelected
         ? current.filter((id) => id !== employmentId)
         : [...current, employmentId];
       return { ...prev, [roleId]: next };
@@ -174,6 +193,12 @@ const Assign = () => {
   const selectedRoleMemberIds = selectedRoleId
     ? selectedEmployeesByRole[selectedRoleId] || []
     : [];
+  const selectedRoleRequiredCount = selectedRoleId
+    ? Math.max(Number(requiredCountByRole[selectedRoleId] || 0), 0)
+    : 0;
+  const selectedRoleIsFull =
+    selectedRoleRequiredCount > 0 &&
+    selectedRoleMemberIds.length >= selectedRoleRequiredCount;
 
   return (
     <KeyboardAvoidingView
@@ -260,13 +285,17 @@ const Assign = () => {
               <TouchableOpacity
                 key={item?.employmentId}
                 onPress={() =>
-                  item?.isAvailable !== false && selectedRoleId
+                  item?.isAvailable !== false &&
+                  selectedRoleId &&
+                  (selectedRoleMemberIds.includes(item?.employmentId) || !selectedRoleIsFull)
                     ? handleToggleEmployee(selectedRoleId, item?.employmentId)
                     : undefined
                 }
                 className={`flex-row items-center p-4 mt-4 rounded-xl border ${
                   item?.isAvailable === false
                     ? "border-[#eeeeee] opacity-60"
+                    : !selectedRoleMemberIds.includes(item?.employmentId) && selectedRoleIsFull
+                      ? "border-[#eeeeee] opacity-60"
                     : "border-[#eeeeee]"
                 }`}
               >
