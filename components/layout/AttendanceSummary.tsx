@@ -1,8 +1,8 @@
-import { useBusinessStore } from "@/stores/businessStore";
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
-import { t } from "i18next";
+import { useBusinessStore } from "@/stores/businessStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { t } from "i18next";
 import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
@@ -133,10 +133,11 @@ const AttendanceSummary = ({ className }: { className: string }) => {
           <Image
             source={require("@/assets/images/dotted-line.svg")}
             style={{
-              width: "100%",
+              width: "90%",
               height: 1,
+              alignSelf: "center"
             }}
-            contentFit="contain"
+            contentFit="cover"
           />
 
           <TouchableOpacity className="flex-row justify-between items-center p-4">
@@ -161,10 +162,11 @@ const AttendanceSummary = ({ className }: { className: string }) => {
           <Image
             source={require("@/assets/images/dotted-line.svg")}
             style={{
-              width: "100%",
+              width: "90%",
               height: 1,
+              alignSelf: "center"
             }}
-            contentFit="contain"
+            contentFit="cover"
           />
 
           <TouchableOpacity className="flex-row justify-between items-center p-4 ">

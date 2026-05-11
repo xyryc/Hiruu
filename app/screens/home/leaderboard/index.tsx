@@ -1,4 +1,5 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
+import BusinessSelectionTrigger from "@/components/ui/dropdown/BusinessSelectionTrigger";
 import BusinessSelectionModal from "@/components/ui/modals/BusinessSelectionModal";
 import CountdownTimer from "@/components/ui/timer/CountdownTimer";
 import { useAuthStore } from "@/stores/authStore";
@@ -114,60 +115,8 @@ export default function LeaderboardScreen() {
       });
     });
 
-    (Array.isArray((authUser as any)?.employments) ? (authUser as any).employments : []).forEach(
-      (employment: any) => {
-        const employmentStatus = String(employment?.status || "").toLowerCase();
-        const businessStatus = String(employment?.business?.status || "").toLowerCase();
-        const business = employment?.business;
-        const businessId = business?.id || employment?.businessId;
-        const isPremium = business?.isPremium === true;
-        if (
-          !businessId ||
-          uniqueByBusinessId.has(businessId) ||
-          employmentStatus !== "active" ||
-          businessStatus !== "active" ||
-          !isPremium
-        ) {
-          return;
-        }
-
-        uniqueByBusinessId.set(businessId, {
-          id: businessId,
-          name: business?.name || "Business",
-          address: business?.address,
-          imageUrl: business?.logo,
-          logo: business?.logo,
-        });
-      }
-    );
-
-    (Array.isArray((authUser as any)?.ownedBusinesses)
-      ? (authUser as any).ownedBusinesses
-      : []
-    ).forEach((business: any) => {
-      const businessId = business?.id;
-      const isPremium = business?.isPremium === true;
-      const businessStatus = String(business?.status || "").toLowerCase();
-      if (
-        !businessId ||
-        uniqueByBusinessId.has(businessId) ||
-        businessStatus !== "active" ||
-        !isPremium
-      ) {
-        return;
-      }
-
-      uniqueByBusinessId.set(businessId, {
-        id: businessId,
-        name: business?.name || "Business",
-        address: business?.address,
-        imageUrl: business?.logo,
-        logo: business?.logo,
-      });
-    });
-
     return Array.from(uniqueByBusinessId.values());
-  }, [authUser, myEmployments]);
+  }, [myEmployments]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -266,6 +215,18 @@ export default function LeaderboardScreen() {
     setLeaderboardBusinessId(nextBusinessId);
   };
   const hasPremiumBusinesses = activeBusinesses.length > 0;
+  const leaderboardDisplayContent = useMemo(() => {
+    if (!leaderboardBusinessId) {
+      return { type: "all", content: t("common.all") };
+    }
+    const selectedBusiness = activeBusinesses.find(
+      (business) => business.id === leaderboardBusinessId
+    );
+    if (selectedBusiness) {
+      return { type: "single", content: selectedBusiness };
+    }
+    return { type: "all", content: t("common.all") };
+  }, [activeBusinesses, leaderboardBusinessId]);
 
   const getRankBadge = (rank: number) => {
     switch (rank) {
@@ -305,12 +266,21 @@ export default function LeaderboardScreen() {
         onPressBack={() => router.back()}
         className="px-4 mt-2.5"
         title={t("user.profile.leaderboard.title")}
+        components={
+          <View className="mb-4">
+            <BusinessSelectionTrigger
+              displayContent={leaderboardDisplayContent as any}
+              onPress={() => setShowModal(true)}
+            />
+          </View>
+        }
       />
 
       <BusinessSelectionModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        businesses={[]}
+        businesses={activeBusinesses}
+        disableStoreFallback
         selectedBusinesses={leaderboardBusinessId ? [leaderboardBusinessId] : []}
         onSelectionChange={handleLeaderboardBusinessSelection}
       />
@@ -324,6 +294,8 @@ export default function LeaderboardScreen() {
           showsVerticalScrollIndicator={false}
           className="h-screen-safe mx-4 pt-8"
         >
+
+
           {!hasPremiumBusinesses ? (
             <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl px-5 py-6">
               <Text className="text-center font-proximanova-semibold text-lg text-primary">
@@ -340,135 +312,135 @@ export default function LeaderboardScreen() {
             </View>
           ) : (
             <>
-          {/* Countdown Timer Card */}
-          <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl dark:bg-dark-surface">
-            <Text className="text-center text-sm text-secondary dark:text-dark-secondary font-proximanova-regular mb-4">
-              {t("user.profile.leaderboard.resultsIn")}
-            </Text>
+              {/* Countdown Timer Card */}
+              <View className="pt-2.5 bg-white border border-[#EEEEEE] rounded-2xl dark:bg-dark-surface">
+                <Text className="text-center text-sm text-secondary dark:text-dark-secondary font-proximanova-regular mb-4">
+                  {t("user.profile.leaderboard.resultsIn")}
+                </Text>
 
-            {/* countdown timer */}
-            <CountdownTimer targetTime={resetAt} className="mb-20" />
+                {/* countdown timer */}
+                <CountdownTimer targetTime={resetAt} className="mb-20" />
 
-            {/* bars */}
-            <View className="absolute bottom-0 inset-x-0 items-center">
-              <Image
-                source={require("@/assets/images/pillar.svg")}
-                style={{
-                  width: 143,
-                  height: 65,
-                }}
-                contentFit="contain"
-              />
-            </View>
-          </View>
+                {/* bars */}
+                <View className="absolute bottom-0 inset-x-0 items-center">
+                  <Image
+                    source={require("@/assets/images/pillar.svg")}
+                    style={{
+                      width: 143,
+                      height: 65,
+                    }}
+                    contentFit="contain"
+                  />
+                </View>
+              </View>
 
-          {/* Top 3 Performer Section */}
-          <View className="mt-7">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
-                {t("user.profile.leaderboard.top3")}
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/screens/home/leaderboard/info")}
-                className="p-2"
-              >
-                <SimpleLineIcons name="info" size={18} color="#282930" />
-              </TouchableOpacity>
-            </View>
+              {/* Top 3 Performer Section */}
+              <View className="mt-7">
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="text-xl font-proximanova-semibold text-primary dark:text-dark-primary">
+                    {t("user.profile.leaderboard.top3")}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/screens/home/leaderboard/info")}
+                    className="p-2"
+                  >
+                    <SimpleLineIcons name="info" size={18} color="#282930" />
+                  </TouchableOpacity>
+                </View>
 
-            {/* Performer Cards */}
-            <View>
-              {topPerformers.map((performer) => (
-                <TouchableOpacity
-                  key={performer.id}
-                  className={`
+                {/* Performer Cards */}
+                <View>
+                  {topPerformers.map((performer) => (
+                    <TouchableOpacity
+                      key={performer.id}
+                      className={`
                     flex-row items-center p-4 rounded-2xl border ml-5 pl-7 mb-4
                     ${performer.rank === 1 ? "bg-[#f1c6ba09] border-[#F3934F]" : ""}
                     ${performer.rank === 2 ? "bg-[#e3f6e763] border-[#3EBF5A]" : ""}
                     ${performer.rank === 3 ? "bg-[#badcf125] border-[#4FB2F3]" : ""}
                 `}
-                >
-                  {/* Rank Badge */}
-                  <View className="absolute -left-6">
-                    <Image
-                      source={getRankBadge(performer.rank)}
-                      style={{
-                        width: 40,
-                        height: 40,
-                      }}
-                      contentFit="contain"
-                    />
-                  </View>
-
-                  {/* Avatar */}
-                  <Image
-                    source={
-                      performer.avatar
-                        ? { uri: performer.avatar }
-                        : require("@/assets/images/placeholder.png")
-                    }
-                    style={{
-                      width: 50,
-                      height: 50,
-                      borderWidth: 1,
-                      borderRadius: 999,
-                      borderColor: "#CECECE",
-                    }}
-                  />
-
-                  {/* Name & Verified */}
-                  <View className="flex-1 ml-2">
-                    <View className="flex-row items-center gap-1.5">
-                      <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
-                        {performer.name}
-                      </Text>
-                      {performer.isPremium && (
-                        <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
-                      )}
-                    </View>
-
-                    <View className="flex-row items-center mt-2">
-                      <Image
-                        source={require("@/assets/images/hiruu-coin.svg")}
-                        style={{
-                          width: 22,
-                          height: 22,
-                        }}
-                        contentFit="contain"
-                      />
-                      <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
-                        <Text className="text-xs font-proximanova-semibold">
-                          {`${getRewardCoins(performer.rank)} ${t("user.profile.leaderboard.tokenReward")}`}
-                        </Text>
+                    >
+                      {/* Rank Badge */}
+                      <View className="absolute -left-6">
+                        <Image
+                          source={getRankBadge(performer.rank)}
+                          style={{
+                            width: 40,
+                            height: 40,
+                          }}
+                          contentFit="contain"
+                        />
                       </View>
-                    </View>
-                  </View>
 
-                  {/* Points */}
-                  <View
-                    className={`
+                      {/* Avatar */}
+                      <Image
+                        source={
+                          performer.avatar
+                            ? { uri: performer.avatar }
+                            : require("@/assets/images/placeholder.png")
+                        }
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderWidth: 1,
+                          borderRadius: 999,
+                          borderColor: "#CECECE",
+                        }}
+                      />
+
+                      {/* Name & Verified */}
+                      <View className="flex-1 ml-2">
+                        <View className="flex-row items-center gap-1.5">
+                          <Text className="text-base font-proximanova-semibold text-primary dark:text-dark-primary">
+                            {performer.name}
+                          </Text>
+                          {performer.isPremium && (
+                            <MaterialCommunityIcons name="crown" size={14} color="#4FB2F3" />
+                          )}
+                        </View>
+
+                        <View className="flex-row items-center mt-2">
+                          <Image
+                            source={require("@/assets/images/hiruu-coin.svg")}
+                            style={{
+                              width: 22,
+                              height: 22,
+                            }}
+                            contentFit="contain"
+                          />
+                          <View className="px-4 py-1 bg-[#DDF1FF] -ml-3 -z-10 rounded-r-[40px]">
+                            <Text className="text-xs font-proximanova-semibold">
+                              {`${getRewardCoins(performer.rank)} ${t("user.profile.leaderboard.tokenReward")}`}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Points */}
+                      <View
+                        className={`
                       px-4 py-2 rounded-full border-[0.5px]
                       ${performer.rank === 1 ? "bg-[#F3934F1A] border-[#F3934F4D] dark:bg-orange-900/20" : ""}
                       ${performer.rank === 2 ? "bg-green-50 border-[#3EBF5A] dark:bg-green-900/20" : ""}
                       ${performer.rank === 3 ? "bg-blue-50 border-[#4FB2F34D] dark:bg-blue-900/20" : ""}
                 `}
-                  >
-                    <Text
-                      className={`font-proximanova-regular text-sm ${getPointsColor(performer.rank)}`}
-                    >
-                      {performer.points} {t("user.profile.leaderboard.points")}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                      >
+                        <Text
+                          className={`font-proximanova-regular text-sm ${getPointsColor(performer.rank)}`}
+                        >
+                          {performer.points} {t("user.profile.leaderboard.points")}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </>
           )}
         </ScrollView>
 
         {hasPremiumBusinesses ? (
-          <View className="bg-[#E5F4FD] dark:bg-blue-900/20 border border-[#EEEEEE] rounded-2xl px-4 py-6 flex-row items-center justify-between absolute bottom-0 inset-x-0">
+          <View className="bg-[#E5F4FD] dark:bg-blue-900/20 border border-[#EEEEEE] rounded-2xl px-4 pt-6 pb-16 flex-row items-center justify-between absolute bottom-0 inset-x-0">
             <View className="flex-row items-center gap-4">
               <Image
                 source={

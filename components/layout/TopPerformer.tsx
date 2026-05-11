@@ -1,11 +1,11 @@
-import { useBusinessStore } from "@/stores/businessStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { toast } from "sonner-native";
-import { useTranslation } from "react-i18next";
 import PerformerCard from "../ui/cards/PerformerCard";
 
 type LeaderboardTopItem = {
@@ -137,12 +137,12 @@ const TopPerformer = ({ className }: any) => {
           {t("user.profile.leaderboard.topPerformer")}
         </Text>
 
-        <Text
+        {/* <Text
           onPress={() => router.push("/screens/home/leaderboard")}
           className="text-sm font-proximanova-semibold text-[#4FB2F3] p-1"
         >
           {t("common.seeAll")}
-        </Text>
+        </Text> */}
       </View>
 
       {/* main content */}
