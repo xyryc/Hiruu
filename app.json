@@ -87,6 +87,7 @@
           "cameraPermission": "Allow Hiruu to access your camera to scan QR codes."
         }
       ],
+      ["expo-apple-authentication"],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",
