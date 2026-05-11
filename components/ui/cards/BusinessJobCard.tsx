@@ -172,7 +172,7 @@ const BusinessJobCard = ({
   const numericRating = Number(rawRating);
   const displayRating =
     Number.isFinite(numericRating) && numericRating > 0
-      ? `${numericRating.toFixed(1)}/5`
+      ? `${numericRating.toFixed(1)}`
       : "N/A";
 
   // Handle address - check for user.address.address structure

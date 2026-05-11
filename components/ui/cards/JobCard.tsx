@@ -279,7 +279,7 @@ const JobCard = ({
           }}
         >
           <FontAwesome name="star" size={16} color="#F1C400" />
-          <Text className="text-xs font-proximanova-regular">{ratingLabel}</Text>
+          <Text className="text-xs font-proximanova-regular">{Number(ratingLabel) > 0 ? ratingLabel : 'N/A'}</Text>
         </View>
 
         <View
