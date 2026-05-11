@@ -113,23 +113,15 @@ const UserJobs = () => {
       } else {
         setIsLoadingFeatured(true);
       }
-      console.log("[UserJobs] getPublicRecruitments featured request", {
-        page,
-        limit: JOBS_PAGE_LIMIT,
-        isFeatured: true,
-        append,
-      });
+
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
         isFeatured: true,
       });
-      console.log(
-        "[UserJobs] getPublicRecruitments featured raw response",
-        JSON.stringify(result, null, 2)
-      );
+
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
-        (item: any) => item?.isActive === true
+        (item: any) => item?.isActive === true && item?.isFeatured === true
       );
       const totalPages = Number(result?.pagination?.totalPages || 1);
       setFeaturedPage(page);
@@ -158,23 +150,15 @@ const UserJobs = () => {
       } else {
         setIsLoadingSuggested(true);
       }
-      console.log("[UserJobs] getPublicRecruitments suggested request", {
-        page,
-        limit: JOBS_PAGE_LIMIT,
-        isFeatured: false,
-        append,
-      });
+
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
         isFeatured: false,
       });
-      console.log(
-        "[UserJobs] getPublicRecruitments suggested raw response",
-        JSON.stringify(result, null, 2)
-      );
+
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
-        (item: any) => item?.isActive === true
+        (item: any) => item?.isActive === true && item?.isFeatured !== true
       );
       const totalPages = Number(result?.pagination?.totalPages || 1);
       setSuggestedPage(page);

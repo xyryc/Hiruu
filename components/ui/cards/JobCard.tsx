@@ -132,17 +132,29 @@ const JobCard = ({
     : "0";
   const shareCount =
     typeof job?.shareCount === "number" ? job.shareCount : 0;
-  const distanceValue = job?.distanceKm || null;
+  const rawDistanceValue = job?.distanceKm;
+  const distanceValue =
+    typeof rawDistanceValue === "number"
+      ? rawDistanceValue
+      : Number(rawDistanceValue);
+  const formattedDistance = Number.isFinite(distanceValue)
+    ? distanceValue < 1
+      ? Number(distanceValue.toFixed(1))
+      : Math.round(distanceValue)
+    : null;
   const distanceLabel = Number.isFinite(distanceValue)
-    ? t("common.kmAway", { distance: distanceValue })
+    ? t("common.kmAway", {
+      distance: formattedDistance,
+    })
     : null;
   const formatLabel = (value?: string) =>
     (value || t("common.na"))
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
-  const typeLabel =
-    job?.jobType || job?.shiftType
-      ? `${formatLabel(job?.jobType)}${job?.shiftType ? ` • ${formatLabel(job?.shiftType)}` : ""}`
+  const typeLabel = job?.jobType
+    ? formatLabel(job?.jobType)
+    : job?.shiftType
+      ? formatLabel(job?.shiftType)
       : formatLabel(job?.salaryType);
   const compactFormatter = useMemo(
     () =>
