@@ -30,6 +30,7 @@ const UserHome = () => {
   const router = useRouter()
   const [profileData, setProfileData] = useState<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [businessWidgetsRefreshKey, setBusinessWidgetsRefreshKey] = useState(0);
   const getProfile = useProfileStore((state) => state.getProfile);
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const isUserProfile = (selectedBusinesses?.length || 0) === 0;
@@ -78,6 +79,7 @@ const UserHome = () => {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
+      setBusinessWidgetsRefreshKey((prev) => prev + 1);
 
       const hydrateProfile = async () => {
         try {
@@ -146,7 +148,10 @@ const UserHome = () => {
             {/* Business Summary */}
             {canViewBusinessOverview && (
               <>
-                <BusinessSummary className='mt-7' />
+                <BusinessSummary
+                  key={`business-summary-${businessWidgetsRefreshKey}`}
+                  className='mt-7'
+                />
 
                 {/* todays shift summary */}
                 <TodayShiftsSummary />
@@ -162,6 +167,7 @@ const UserHome = () => {
             {/* Team Insights */}
             {canViewBusinessUserStats && (
               <BusinessWorkInsights
+                key={`business-work-insights-${businessWidgetsRefreshKey}`}
                 title={t("common.teamInsights")}
                 className="mt-7"
               />

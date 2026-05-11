@@ -785,7 +785,9 @@ const ManageTeamPanel = () => {
                 keyExtractor={(item) => item.id}
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode="on-drag"
-
+                contentContainerStyle={{
+                  paddingBottom: 120
+                }}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                   <View className="px-5 pt-10">
