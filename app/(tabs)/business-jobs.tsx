@@ -166,10 +166,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] getJobProfilesForBusiness featured raw response",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] getJobProfilesForBusiness featured raw response",
+      //   JSON.stringify(result, null, 2)
+      // );
       setFeaturedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "featured")
@@ -203,10 +203,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] getJobProfilesForBusiness suggested raw response",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] getJobProfilesForBusiness suggested raw response",
+      //   JSON.stringify(result, null, 2)
+      // );
       setSuggestedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "suggested")
