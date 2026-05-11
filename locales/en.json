@@ -1435,6 +1435,8 @@
     "internal_server_error": "Something went wrong on the server. Please try again.",
     "bad_request": "Please check your input and try again.",
     "experience_invalid_date_range": "Start date must be before end date.",
+    "experience_user_dob_missing": "Please add your date of birth in your profile before updating experience.",
+    "exceptions_system_added_experiences_cannot_be_edited_or_deleted": "System-added experiences cannot be edited or deleted.",
     "business_created_successfully": "Business created successfully.",
     "shift_template_created_successfully": "Shift template created successfully.",
     "business_updated_successfully": "Profile updated successfully.",

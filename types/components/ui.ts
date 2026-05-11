@@ -77,6 +77,7 @@ export interface Companies {
   id?: string;
   companyId: string;
   businessId?: string;
+  isOfficial?: boolean;
   companyName: string;
   logo?: string;
   customBusinessName?: string;
@@ -93,6 +94,7 @@ export interface MultiSelectCompanyDropdownProps {
   workExperiences: Companies[];
   onCompaniesChange: (companies: Company[]) => void;
   onWorkExperiencesChange: (experiences: Companies[]) => void;
+  onRemoveExperience?: (experience: Companies) => Promise<boolean>;
 }
 
 export interface HomeHeaderProps {

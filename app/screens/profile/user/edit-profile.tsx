@@ -88,6 +88,7 @@ const Edit = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [workExperiences, setWorkExperiences] = useState<Companies[]>([]);
+  const [hasExperienceEdits, setHasExperienceEdits] = useState(false);
   const [socialLinks, setSocialLinks] = useState<any>({});
   const [pickerType, setPickerType] = useState<"solid" | "gradient">("solid");
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -191,6 +192,7 @@ const Edit = () => {
               exp?.business?.logo ||
               exp?.customBusinessLogo ||
               undefined,
+            isOfficial: exp?.isOfficial === true,
             customBusinessName: exp?.customBusinessName || undefined,
             customBusinessLogo: exp?.customBusinessLogo || null,
             startDate: exp.startDate || "",
@@ -216,6 +218,7 @@ const Edit = () => {
 
         setWorkExperiences(mappedExperiences);
         setSelectedCompanies(Array.from(companyMap.values()));
+        setHasExperienceEdits(false);
       }
       if (result.data?.social && typeof result.data.social === "object") {
         setSocialLinks(result.data.social);
@@ -543,17 +546,21 @@ const Edit = () => {
         profileColor,
         gradientColors,
       });
-      const experienceSyncSummary = await syncExperiences(
-        Array.from(uniqueExperienceDrafts.values()),
-        Array.isArray(profileData?.experiences) ? profileData.experiences : []
-      );
-      console.log("[EditProfile] syncExperiences completed", {
-        draftCount: uniqueExperienceDrafts.size,
-        summary: experienceSyncSummary,
-      });
+      let experienceSyncSummary: any = null;
+      if (hasExperienceEdits) {
+        experienceSyncSummary = await syncExperiences(
+          Array.from(uniqueExperienceDrafts.values()),
+          Array.isArray(profileData?.experiences) ? profileData.experiences : []
+        );
+        console.log("[EditProfile] syncExperiences completed", {
+          draftCount: uniqueExperienceDrafts.size,
+          summary: experienceSyncSummary,
+        });
+      }
       await getProfile();
 
       if (
+        hasExperienceEdits &&
         experienceSyncSummary?.skippedSystemManaged > 0 &&
         experienceSyncSummary?.created === 0 &&
         experienceSyncSummary?.updated === 0 &&
@@ -586,6 +593,33 @@ const Edit = () => {
       setIsSaving(false);
     }
   };
+
+  const handleRemoveExperience = useCallback(async (experience: Companies) => {
+    try {
+      if (experience?.isOfficial === true) {
+        toast.error(
+          translateApiMessage(
+            "exceptions_system_added_experiences_cannot_be_edited_or_deleted"
+          )
+        );
+        return false;
+      }
+
+      if (!experience?.id) {
+        return true;
+      }
+
+      await axiosInstance.delete(`/experiences/${experience.id}`);
+      return true;
+    } catch (error: any) {
+      const messageKey =
+        error?.response?.data?.message ||
+        error?.message ||
+        "failed_to_delete_experience";
+      toast.error(translateApiMessage(messageKey));
+      return false;
+    }
+  }, []);
 
   return (
     <SafeAreaView
@@ -902,8 +936,15 @@ const Edit = () => {
                 <MultiSelectCompanyDropdown
                   selectedCompanies={selectedCompanies}
                   workExperiences={workExperiences}
-                  onCompaniesChange={setSelectedCompanies}
-                  onWorkExperiencesChange={setWorkExperiences}
+                  onCompaniesChange={(companies) => {
+                    setSelectedCompanies(companies);
+                    setHasExperienceEdits(true);
+                  }}
+                  onWorkExperiencesChange={(experiences) => {
+                    setWorkExperiences(experiences);
+                    setHasExperienceEdits(true);
+                  }}
+                  onRemoveExperience={handleRemoveExperience}
                 />
               </View>
             </View>
