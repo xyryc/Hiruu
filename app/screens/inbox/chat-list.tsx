@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +32,8 @@ const ChatList = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuthStore();
   const typingTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const hasLoadedOnceRef = useRef(false);
+  const joinedRoomIdsRef = useRef<Set<string>>(new Set());
 
   const loadRooms = useCallback(
     async (isRefresh = false) => {
@@ -41,7 +44,26 @@ const ChatList = () => {
           setLoading(true);
         }
         const result = await chatService.getChatRooms();
+        console.log("[CHAT_LIST_DEBUG] getChatRooms raw:", JSON.stringify(result, null, 2));
         const data = result?.data || [];
+        const snapshot = Array.isArray(data)
+          ? data.map((room: any, index: number) => ({
+              index,
+              id: room?.id,
+              type: room?.type,
+              unreadCount: room?.unreadCount,
+              updatedAt: room?.updatedAt,
+              lastMessageAt: room?.lastMessageAt,
+              lastMessageId: room?.lastMessage?.id,
+              lastMessageCreatedAt: room?.lastMessage?.createdAt,
+              lastMessageText:
+                room?.lastMessage?.content ||
+                room?.lastMessage?.text ||
+                room?.lastMessage?.message ||
+                null,
+            }))
+          : [];
+        console.log("[CHAT_LIST_DEBUG] parsed rooms snapshot:", JSON.stringify(snapshot, null, 2));
         setRooms(Array.isArray(data) ? data : []);
       } catch (error: any) {
         toast.error(error?.message || t("common.chat.failedToLoadChats"));
@@ -58,7 +80,15 @@ const ChatList = () => {
 
   useEffect(() => {
     loadRooms().catch(() => undefined);
+    hasLoadedOnceRef.current = true;
   }, [loadRooms]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasLoadedOnceRef.current) return;
+      loadRooms(true).catch(() => undefined);
+    }, [loadRooms])
+  );
 
   useEffect(() => {
     const unsubscribe = chatService.onRoomDeleted((deletedRoomId) => {
@@ -83,7 +113,9 @@ const ChatList = () => {
             data?.chatRoomId ||
             data?.roomId ||
             data?.chatId ||
-            incomingMessage?.chatRoomId;
+            incomingMessage?.chatRoomId ||
+            incomingMessage?.chatRoom?.id ||
+            incomingMessage?.roomId;
           if (!roomId) return;
 
           setTypingByRoom((prev) => {
@@ -95,7 +127,9 @@ const ChatList = () => {
 
           setRooms((prev) => {
             const index = prev.findIndex((room) => room?.id === roomId);
-            if (index < 0) return prev;
+            if (index < 0) {
+              return prev;
+            }
 
             const room = prev[index];
             const isOwnMessage = incomingMessage?.senderId === user?.id;
@@ -105,7 +139,10 @@ const ChatList = () => {
 
             const updatedRoom = {
               ...room,
-              lastMessage: incomingMessage,
+              lastMessage: {
+                ...(room?.lastMessage || {}),
+                ...(incomingMessage || {}),
+              },
               lastMessageAt:
                 incomingMessage?.createdAt ||
                 incomingMessage?.updatedAt ||
@@ -240,8 +277,35 @@ const ChatList = () => {
         clearTimeout(timeout)
       );
       typingTimeoutsRef.current = {};
+      joinedRoomIdsRef.current.clear();
     };
-  }, [user?.id]);
+  }, [loadRooms, user?.id]);
+
+  // Mirror chat-screen behavior: join room channels so backend room-scoped events
+  // (new_message, message_read, typing) are delivered to list in realtime.
+  useEffect(() => {
+    if (!rooms.length) return;
+    let isCancelled = false;
+
+    const joinRooms = async () => {
+      const socket = await socketService.connect();
+      if (isCancelled || !socket?.connected) return;
+
+      for (const room of rooms) {
+        const roomId = String(room?.id || "");
+        if (!roomId) continue;
+        if (joinedRoomIdsRef.current.has(roomId)) continue;
+        socketService.joinChat(roomId);
+        joinedRoomIdsRef.current.add(roomId);
+      }
+    };
+
+    joinRooms().catch(() => undefined);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [rooms]);
 
   const getDirectUser = useCallback(
     (room: any) => {
@@ -302,6 +366,48 @@ const ChatList = () => {
   const handleRefresh = useCallback(() => {
     loadRooms(true).catch(() => undefined);
   }, [loadRooms]);
+
+  const handleOpenRoom = useCallback((room: any) => {
+    const roomId = String(room?.id || "");
+    if (!roomId) return;
+
+    setRooms((prev) =>
+      prev.map((item) =>
+        item?.id === roomId
+          ? {
+              ...item,
+              unreadCount: 0,
+            }
+          : item
+      )
+    );
+
+    console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:start", {
+      roomId,
+      at: new Date().toISOString(),
+    });
+    chatService
+      .markRoomAsRead(roomId)
+      .then((res) => {
+        console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:success", {
+          roomId,
+          at: new Date().toISOString(),
+          response: res,
+        });
+      })
+      .catch((error: any) => {
+        console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:error", {
+          roomId,
+          at: new Date().toISOString(),
+          message: error?.message,
+        });
+      });
+
+    router.push({
+      pathname: "/screens/inbox/chat-screen",
+      params: { roomId },
+    });
+  }, [router]);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
@@ -408,12 +514,7 @@ const ChatList = () => {
             return (
               <ChatListItem
                 key={room.id}
-                onPress={() =>
-                  router.push({
-                    pathname: "/screens/inbox/chat-screen",
-                    params: { roomId: room.id },
-                  })
-                }
+                onPress={() => handleOpenRoom(room)}
                 title={title}
                 subtitle={subtitle}
                 time={time}

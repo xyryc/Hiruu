@@ -487,8 +487,35 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
 
                         // If peer's message arrives while room is open, mark it read immediately.
                         if (!isMine && normalizedMessage?.id) {
-                            void chatService.markAsRead(String(normalizedMessage.id)).catch(() => undefined);
+                            console.log('[CHAT_READ_DEBUG][SCREEN] markAsRead:start', {
+                                roomId,
+                                messageId: String(normalizedMessage.id),
+                                via: 'chatService.markAsRead',
+                                at: new Date().toISOString(),
+                            });
+                            void chatService.markAsRead(String(normalizedMessage.id))
+                                .then((res) => {
+                                    console.log('[CHAT_READ_DEBUG][SCREEN] markAsRead:success', {
+                                        roomId,
+                                        messageId: String(normalizedMessage.id),
+                                        at: new Date().toISOString(),
+                                        response: res,
+                                    });
+                                })
+                                .catch((error: any) => {
+                                    console.log('[CHAT_READ_DEBUG][SCREEN] markAsRead:error', {
+                                        roomId,
+                                        messageId: String(normalizedMessage.id),
+                                        at: new Date().toISOString(),
+                                        message: error?.message,
+                                    });
+                                });
                             if (socketService.isConnected()) {
+                                console.log('[CHAT_READ_DEBUG][SCREEN] socket.markAsRead:emit', {
+                                    roomId,
+                                    messageId: String(normalizedMessage.id),
+                                    at: new Date().toISOString(),
+                                });
                                 socketService.markAsRead(roomId, String(normalizedMessage.id));
                             }
                         }
@@ -599,9 +626,34 @@ export const useChat = ({ roomId, onError }: UseChatOptions) => {
         // Setup socket and load messages once
         setupSocket();
         loadMessages().finally(() => {
-            void chatService.markRoomAsRead(roomId).catch(() => undefined);
+            console.log('[CHAT_READ_DEBUG][SCREEN] markRoomAsRead:start', {
+                roomId,
+                at: new Date().toISOString(),
+                via: 'loadMessages.finally',
+            });
+            void chatService.markRoomAsRead(roomId)
+                .then((res) => {
+                    console.log('[CHAT_READ_DEBUG][SCREEN] markRoomAsRead:success', {
+                        roomId,
+                        at: new Date().toISOString(),
+                        response: res,
+                    });
+                })
+                .catch((error: any) => {
+                    console.log('[CHAT_READ_DEBUG][SCREEN] markRoomAsRead:error', {
+                        roomId,
+                        at: new Date().toISOString(),
+                        message: error?.message,
+                    });
+                });
             if (socketService.isConnected()) {
                 const latestIncoming = messagesRef.current.find((msg) => msg.senderId !== user?.id);
+                console.log('[CHAT_READ_DEBUG][SCREEN] socket.markAsRead:emit', {
+                    roomId,
+                    messageId: latestIncoming?.id,
+                    at: new Date().toISOString(),
+                    via: 'loadMessages.finally',
+                });
                 socketService.markAsRead(roomId, latestIncoming?.id);
             }
         });

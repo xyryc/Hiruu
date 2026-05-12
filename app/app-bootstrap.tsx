@@ -207,44 +207,63 @@ const AppBootstrap = () => {
 
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
+      console.log("[NOTIF_DEBUG][FG][FCM]", {
+        messageId: remoteMessage?.messageId,
+        notification: remoteMessage?.notification,
+        data: remoteMessage?.data,
+        sentTime: remoteMessage?.sentTime,
+        ttl: remoteMessage?.ttl,
+      });
       const { title, body } = resolveFcmDisplayText(remoteMessage);
+      console.log("[NOTIF_DEBUG][FG][RESOLVED]", {
+        title,
+        body,
+      });
       toast(title || "Notification", {
         description: body || "",
       });
     });
 
     const unsubscribeOnOpen = onNotificationOpenedApp(messaging, (remoteMessage) => {
-      // console.log("[NotifDebug] onNotificationOpenedApp", {
-      //   messageId: remoteMessage?.messageId,
-      //   data: remoteMessage?.data,
-      // });
+      console.log("[NOTIF_DEBUG][BG_TAP][FCM]", {
+        messageId: remoteMessage?.messageId,
+        notification: remoteMessage?.notification,
+        data: remoteMessage?.data,
+        sentTime: remoteMessage?.sentTime,
+        ttl: remoteMessage?.ttl,
+      });
       navigateFromNotificationData(remoteMessage?.data);
     });
 
     getInitialNotification(messaging)
       .then((remoteMessage) => {
         if (remoteMessage) {
-          // console.log("[NotifDebug] getInitialNotification:hit", {
-          //   messageId: remoteMessage?.messageId,
-          //   data: remoteMessage?.data,
-          // });
+          console.log("[NOTIF_DEBUG][COLD_START_TAP][FCM]", {
+            messageId: remoteMessage?.messageId,
+            notification: remoteMessage?.notification,
+            data: remoteMessage?.data,
+            sentTime: remoteMessage?.sentTime,
+            ttl: remoteMessage?.ttl,
+          });
           navigateFromNotificationData(remoteMessage?.data);
-        } else {
-          // console.log("[NotifDebug] getInitialNotification:empty");
         }
       })
       .catch((error) => {
-        // console.log("[NotifDebug] getInitialNotification:error", {
-        //   message: error?.message,
-        // });
+        console.log("[NOTIF_DEBUG][COLD_START_TAP][FCM_ERROR]", {
+          message: error?.message,
+          name: error?.name,
+        });
       });
 
     const notificationResponseSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        // console.log("[NotifDebug] addNotificationResponseReceivedListener", {
-        //   identifier: response?.notification?.request?.identifier,
-        //   data: response?.notification?.request?.content?.data,
-        // });
+        console.log("[NOTIF_DEBUG][TAP][EXPO]", {
+          identifier: response?.notification?.request?.identifier,
+          actionIdentifier: response?.actionIdentifier,
+          title: response?.notification?.request?.content?.title,
+          body: response?.notification?.request?.content?.body,
+          data: response?.notification?.request?.content?.data,
+        });
         const payload = extractChatNotificationPayload(
           response.notification.request.content.data
         );
