@@ -29,6 +29,7 @@ import {
 } from "@react-native-firebase/messaging";
 import { Platform } from "react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner-native";
 import SplashScreen from "./splash";
 
 
@@ -168,6 +169,16 @@ const AppBootstrap = () => {
   }, []);
 
   useEffect(() => {
+    const logNotificationPermissions = async () => {
+      try {
+        await Notifications.getPermissionsAsync();
+      } catch (_error: any) {}
+    };
+
+    logNotificationPermissions();
+  }, []);
+
+  useEffect(() => {
     const setupFcm = async () => {
       if (!user?.id) return;
       if (fcmSetupDoneForUserRef.current === user.id) return;
@@ -196,26 +207,10 @@ const AppBootstrap = () => {
 
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
-      // console.log("[NotifDebug] onMessage:foreground", {
-      //   messageId: remoteMessage?.messageId,
-      //   data: remoteMessage?.data,
-      //   title: remoteMessage?.notification?.title,
-      // });
       const { title, body } = resolveFcmDisplayText(remoteMessage);
-
-      // Show a visible banner while app is foregrounded.
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          sound: "default",
-          data: remoteMessage.data,
-        },
-        trigger: null,
+      toast(title || "Notification", {
+        description: body || "",
       });
-      // console.log("[NotifDebug] onMessage:local-notification-scheduled", {
-      //   title,
-      // });
     });
 
     const unsubscribeOnOpen = onNotificationOpenedApp(messaging, (remoteMessage) => {
