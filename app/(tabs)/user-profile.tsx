@@ -192,34 +192,39 @@ const Profile = () => {
   const experiences = Array.isArray(profileData?.experiences)
     ? profileData.experiences
     : [];
-  const resolvedExperiences = experiences.map((experience: any) => {
-    const companyName =
-      experience?.business?.name ||
-      experience?.company?.name ||
-      experience?.customBusinessName ||
-      t("user.profile.userProfile.company");
-    const companyLogo =
-      experience?.business?.logo ||
-      experience?.company?.logo ||
-      experience?.customBusinessLogo ||
-      require("@/assets/images/placeholder.png");
+  const resolvedExperiences = experiences
+    .map((experience: any) => {
+      const companyName =
+        experience?.business?.name ||
+        experience?.company?.name ||
+        experience?.customBusinessName ||
+        t("user.profile.userProfile.company");
+      const companyLogo =
+        experience?.business?.logo ||
+        experience?.company?.logo ||
+        experience?.customBusinessLogo ||
+        require("@/assets/images/placeholder.png");
 
-    return {
-      id: experience?.id,
-      companyId: experience?.companyId,
-      companyName,
-      position: experience?.position,
-      startDate: experience?.startDate || null,
-      endDate: experience?.endDate || null,
-      workedWeeks:
-        typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
-          ? experience.workedWeeks
-          : null,
-      companyLogo,
-      isCurrent: Boolean(experience?.isCurrent),
-      isVerified: Boolean(experience?.isOfficial || experience?.company?.isVerified),
-    };
-  });
+      return {
+        id: experience?.id,
+        companyId: experience?.companyId,
+        companyName,
+        position: experience?.position,
+        startDate: experience?.startDate || null,
+        endDate: experience?.endDate || null,
+        workedWeeks:
+          typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
+            ? experience.workedWeeks
+            : null,
+        companyLogo,
+        isCurrent: Boolean(experience?.isCurrent),
+        isVerified: Boolean(experience?.isOfficial || experience?.company?.isVerified),
+      };
+    })
+    .sort(
+      (a: { isCurrent: boolean }, b: { isCurrent: boolean }) =>
+        Number(b.isCurrent) - Number(a.isCurrent)
+    );
 
   useEffect(() => {
     // DEBUG-INTEGRATION: temporary experiences payload log

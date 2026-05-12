@@ -141,29 +141,34 @@ const UserProfilePreview = () => {
       ? profile.user.experiences
       : [];
 
-    return source.map((experience: any) => ({
-      id: experience?.id,
-      companyName:
-        experience?.business?.name ||
-        experience?.customBusinessName ||
-        t("user.profile.userProfile.company"),
-      position:
-        experience?.position || t("user.profile.userProfile.roleNotSpecified"),
-      startDate: experience?.startDate || null,
-      endDate: experience?.endDate || null,
-      workedWeeks:
-        typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
-          ? experience.workedWeeks
-          : null,
-      companyLogo:
-        experience?.business?.logo ||
-        experience?.customBusinessLogo ||
-        require("@/assets/images/placeholder.png"),
-      isVerified: Boolean(
-        experience?.business?.isVerified || experience?.isOfficial
-      ),
-      isCurrent: Boolean(experience?.isCurrent),
-    }));
+    return source
+      .map((experience: any) => ({
+        id: experience?.id,
+        companyName:
+          experience?.business?.name ||
+          experience?.customBusinessName ||
+          t("user.profile.userProfile.company"),
+        position:
+          experience?.position || t("user.profile.userProfile.roleNotSpecified"),
+        startDate: experience?.startDate || null,
+        endDate: experience?.endDate || null,
+        workedWeeks:
+          typeof experience?.workedWeeks === "number" && Number.isFinite(experience.workedWeeks)
+            ? experience.workedWeeks
+            : null,
+        companyLogo:
+          experience?.business?.logo ||
+          experience?.customBusinessLogo ||
+          require("@/assets/images/placeholder.png"),
+        isVerified: Boolean(
+          experience?.business?.isVerified || experience?.isOfficial
+        ),
+        isCurrent: Boolean(experience?.isCurrent),
+      }))
+      .sort(
+        (a: { isCurrent: boolean }, b: { isCurrent: boolean }) =>
+          Number(b.isCurrent) - Number(a.isCurrent)
+      );
   }, [profile, t]);
 
   const formatMetric = (value?: number) => {
