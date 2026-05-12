@@ -166,10 +166,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] getJobProfilesForBusiness featured raw response",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] getJobProfilesForBusiness featured raw response",
+      //   JSON.stringify(result, null, 2)
+      // );
       setFeaturedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "featured")
@@ -203,10 +203,10 @@ const BusinessJobs = () => {
         limit: 10,
         ...businessCandidateFilters,
       });
-      console.log(
-        "[BusinessJobs] getJobProfilesForBusiness suggested raw response",
-        JSON.stringify(result, null, 2)
-      );
+      // console.log(
+      //   "[BusinessJobs] getJobProfilesForBusiness suggested raw response",
+      //   JSON.stringify(result, null, 2)
+      // );
       setSuggestedProfiles(
         withDialPhoneNumber(
           filterProfilesByFeaturedType(result.data, "suggested")
@@ -355,26 +355,35 @@ const BusinessJobs = () => {
               </TouchableOpacity>
             </View>
 
-            {isLoadingFeatured ? (
-              <>
-                {featuredSkeletonItems.map((profile: any) => (
-                  <CandidateCardSkeleton key={profile.id} className="mt-4" />
-                ))}
-              </>
-            ) : (
-              filteredFeaturedProfiles.slice(0, 10).map((profile: any) => {
-                // DEBUG-INTEGRATION: temporary featured profile log
-                // console.log("[FindEmployee] BusinessJobCard featured profile", JSON.stringify(profile, null, 2));
-                return (
-                  <BusinessJobCard
-                    key={profile.id}
-                    className="mt-4"
-                    status="featured"
-                    profile={profile}
-                  />
-                );
-              })
-            )}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="mt-4"
+            >
+              {isLoadingFeatured ? (
+                <>
+                  {featuredSkeletonItems.map((profile: any) => (
+                    <CandidateCardSkeleton
+                      key={profile.id}
+                      className="mr-2.5 w-[360px]"
+                    />
+                  ))}
+                </>
+              ) : (
+                filteredFeaturedProfiles.slice(0, 10).map((profile: any) => {
+                  // DEBUG-INTEGRATION: temporary featured profile log
+                  // console.log("[FindEmployee] BusinessJobCard featured profile", JSON.stringify(profile, null, 2));
+                  return (
+                    <BusinessJobCard
+                      key={profile.id}
+                      className="mr-2.5 w-[360px]"
+                      status="featured"
+                      profile={profile}
+                    />
+                  );
+                })
+              )}
+            </ScrollView>
           </View>
         )}
 

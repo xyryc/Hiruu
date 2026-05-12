@@ -84,6 +84,59 @@ const BusinessJobCard = ({
   const fallbackExperienceRole = experienceList.find(
     (item: any) => typeof item?.position === "string" && item.position.trim().length > 0
   )?.position;
+  const experienceRoleForBadge =
+    currentExperienceRole || fallbackExperienceRole || preferredRoleName || "";
+  const primaryExperience = experienceList.find((item: any) => item?.isCurrent === true)
+    || experienceList[0];
+  const startDateMs = primaryExperience?.startDate
+    ? new Date(primaryExperience.startDate).getTime()
+    : Number.NaN;
+  const endDateMs = primaryExperience?.isCurrent === true
+    ? Date.now()
+    : primaryExperience?.endDate
+      ? new Date(primaryExperience.endDate).getTime()
+      : Number.NaN;
+  const hasValidDateRange =
+    Number.isFinite(startDateMs) &&
+    Number.isFinite(endDateMs) &&
+    endDateMs >= startDateMs;
+  const workedWeeksFromDates = hasValidDateRange
+    ? Math.max(0, Math.floor((endDateMs - startDateMs) / (1000 * 60 * 60 * 24 * 7)))
+    : 0;
+  const rawWorkedWeeks = Number(primaryExperience?.workedWeeks);
+  const workedWeeks = Number.isFinite(rawWorkedWeeks) ? Math.max(0, rawWorkedWeeks) : 0;
+  const effectiveWorkedWeeks =
+    primaryExperience?.isOfficial === false
+      ? (workedWeeksFromDates > 0 ? workedWeeksFromDates : workedWeeks)
+      : workedWeeks;
+  const isOfficialExperience = primaryExperience?.isOfficial === true;
+  const formatWeeksLabel = (weeks: number) =>
+    `${weeks} week${weeks === 1 ? "" : "s"}`;
+  const formatExperienceDuration = (weeks: number) => {
+    if (weeks < 4) return `${weeks} week${weeks === 1 ? "" : "s"}`;
+
+    const years = Math.floor(weeks / 52);
+    const remainingWeeks = weeks % 52;
+    const months = Math.floor(remainingWeeks / 4.345);
+    const parts: string[] = [];
+
+    if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
+    if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
+
+    if (parts.length === 0) {
+      const monthOnly = Math.max(1, Math.round(weeks / 4.345));
+      return `${monthOnly} month${monthOnly === 1 ? "" : "s"}`;
+    }
+
+    return parts.join(" ");
+  };
+  const experienceBadgeLabel =
+    effectiveWorkedWeeks > 0 && experienceRoleForBadge
+      ? `${isOfficialExperience
+        ? formatWeeksLabel(effectiveWorkedWeeks)
+        : formatExperienceDuration(effectiveWorkedWeeks)
+      } as ${experienceRoleForBadge}`
+      : null;
   const headline =
     profile?.headline ||
     preferredRoleName ||
@@ -96,9 +149,7 @@ const BusinessJobCard = ({
     applicationStatus === "approved" || applicationStatus === "rejected"
       ? applicationStatus
       : null;
-  const isVerified = Boolean(
-    profile?.user?.isEmailVerified && profile?.user?.isNumberVerified
-  );
+  const isVerified = profile?.user?.isNumberVerified === true;
   const nameplateBackgroundImage =
     profile?.user?.nameplate?.metadata?.background?.image?.url ||
     profile?.user?.userAppearance?.equippedNameplateCosmetic?.metadata?.background?.image?.url ||
@@ -121,7 +172,7 @@ const BusinessJobCard = ({
   const numericRating = Number(rawRating);
   const displayRating =
     Number.isFinite(numericRating) && numericRating > 0
-      ? `${numericRating.toFixed(1)}/5`
+      ? `${numericRating.toFixed(1)}`
       : "N/A";
 
   // Handle address - check for user.address.address structure
@@ -252,6 +303,9 @@ const BusinessJobCard = ({
     }
     setShowModal(true);
   };
+
+  console.log(JSON.stringify(profile, null, 2));
+
 
   if (isSkeleton) {
     return (
@@ -426,7 +480,9 @@ const BusinessJobCard = ({
               {t("common.verified")}
             </Text>
           </View>
-        ) : !candidate && status !== "featured" && shouldShowAvailableBadge ? (
+        ) : null}
+
+        {!candidate && status !== "featured" && shouldShowAvailableBadge ? (
           <StatusBadge status="available" size="small" />
         ) : null}
 
@@ -438,6 +494,18 @@ const BusinessJobCard = ({
           <FontAwesome name="star" size={16} color="#F1C400" />
           <Text className="text-xs font-proximanova-regular">{displayRating}</Text>
         </View>
+
+        {experienceBadgeLabel ? (
+          <View
+            className={`flex-row gap-1.5 items-center px-2.5 py-1 rounded-full
+                  ${status === "featured" ? "bg-white" : "bg-[#F5F5F5]"}
+            `}
+          >
+            <Text className="text-xs font-proximanova-regular">
+              {experienceBadgeLabel}
+            </Text>
+          </View>
+        ) : null}
 
         {preferenceJobType && (
           <View

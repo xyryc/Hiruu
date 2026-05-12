@@ -113,23 +113,22 @@ const UserJobs = () => {
       } else {
         setIsLoadingFeatured(true);
       }
+
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
         isFeatured: true,
       });
-      console.log(
-        "[UserJobs] getPublicRecruitments featured raw response",
-        JSON.stringify(result, null, 2)
-      );
+
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
-        (item: any) => item?.isActive === true
+        (item: any) => item?.isActive === true && item?.isFeatured === true
       );
       const totalPages = Number(result?.pagination?.totalPages || 1);
       setFeaturedPage(page);
       setHasMoreFeatured(page < totalPages);
       setFeaturedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
+      console.error("[UserJobs] getPublicRecruitments featured failed", error);
       if (!append) {
         setFeaturedJobs([]);
         setHasMoreFeatured(false);
@@ -151,23 +150,22 @@ const UserJobs = () => {
       } else {
         setIsLoadingSuggested(true);
       }
+
       const result = await getPublicRecruitments({
         page,
         limit: JOBS_PAGE_LIMIT,
         isFeatured: false,
       });
-      console.log(
-        "[UserJobs] getPublicRecruitments suggested raw response",
-        JSON.stringify(result, null, 2)
-      );
+
       const jobs = (Array.isArray(result?.data) ? result.data : []).filter(
-        (item: any) => item?.isActive === true
+        (item: any) => item?.isActive === true && item?.isFeatured !== true
       );
       const totalPages = Number(result?.pagination?.totalPages || 1);
       setSuggestedPage(page);
       setHasMoreSuggested(page < totalPages);
       setSuggestedJobs((prev) => (append ? mergeById(prev, jobs) : jobs));
     } catch (error: any) {
+      console.error("[UserJobs] getPublicRecruitments suggested failed", error);
       if (!append) {
         setSuggestedJobs([]);
         setHasMoreSuggested(false);

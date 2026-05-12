@@ -25,6 +25,7 @@ const MultiSelectCompanyDropdown = ({
   workExperiences,
   onCompaniesChange,
   onWorkExperiencesChange,
+  onRemoveExperience,
 }: MultiSelectCompanyDropdownProps) => {
   const { t } = useTranslation();
   const { fetchBusinesses } = useBusinessStore();
@@ -224,7 +225,21 @@ const MultiSelectCompanyDropdown = ({
     onWorkExperiencesChange(updatedExperiences);
   };
 
-  const removeCompany = (companyId: string) => {
+  const removeCompany = async (companyId: string) => {
+    const experience = workExperiences.find(
+      (exp) => exp.companyId === companyId,
+    );
+    if (!experience) return;
+    if (experience.isOfficial === true) {
+      toast.error(
+        t("exceptions_system_added_experiences_cannot_be_edited_or_deleted")
+      );
+      return;
+    }
+    if (onRemoveExperience) {
+      const canRemove = await onRemoveExperience(experience);
+      if (!canRemove) return;
+    }
     const updatedCompanies = selectedCompanies.filter(
       (c) => c.id !== companyId,
     );
@@ -315,7 +330,9 @@ const MultiSelectCompanyDropdown = ({
                     </Text>
                   </View>
                   <TouchableOpacity
-                    onPress={() => removeCompany(company.id)}
+                    onPress={() => {
+                      void removeCompany(company.id);
+                    }}
                     className="w-6 h-6 bg-black rounded-full justify-center items-center"
                   >
                     <Text className="text-white text-sm">×</Text>
@@ -329,7 +346,10 @@ const MultiSelectCompanyDropdown = ({
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => toggleCurrentExperience(company.id)}
+                    onPress={() => {
+                      if (experience.isOfficial === true) return;
+                      toggleCurrentExperience(company.id);
+                    }}
                     className="flex-row items-center mb-3"
                     activeOpacity={0.8}
                   >
@@ -357,9 +377,10 @@ const MultiSelectCompanyDropdown = ({
                             ? new Date(experience.startDate)
                             : undefined
                         }
-                        onChange={(date) =>
-                          updateWorkExperience(company.id, "startDate", date)
-                        }
+                        onChange={(date) => {
+                          if (experience.isOfficial === true) return;
+                          updateWorkExperience(company.id, "startDate", date);
+                        }}
                       />
                     </View>
 
@@ -380,9 +401,10 @@ const MultiSelectCompanyDropdown = ({
                               ? new Date(experience.endDate)
                               : undefined
                           }
-                          onChange={(date) =>
-                            updateWorkExperience(company.id, "endDate", date)
-                          }
+                          onChange={(date) => {
+                            if (experience.isOfficial === true) return;
+                            updateWorkExperience(company.id, "endDate", date);
+                          }}
                         />
                       )}
                     </View>
@@ -398,6 +420,7 @@ const MultiSelectCompanyDropdown = ({
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm"
                     placeholder={t("user.profile.multiSelectCompany.enterYourRole")}
                     value={experience.position}
+                    editable={experience.isOfficial !== true}
                     onChangeText={(text) =>
                       updateWorkExperience(company.id, "position", text)
                     }
