@@ -12,8 +12,8 @@ export default function TabLayout() {
   const selectedBusinesses = useBusinessStore((s) => s.selectedBusinesses);
   const isBusinessProfile = selectedBusinesses.length > 0;
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, 8);
-  const tabBarBaseHeight = 62;
+  const bottomInset = Math.max(insets.bottom, 6);
+  const tabBarBaseHeight = 58;
   const tabBarHeight = tabBarBaseHeight + bottomInset;
 
   return (
