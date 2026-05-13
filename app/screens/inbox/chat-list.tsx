@@ -33,7 +33,6 @@ const ChatList = () => {
   const { user } = useAuthStore();
   const typingTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const hasLoadedOnceRef = useRef(false);
-  const joinedRoomIdsRef = useRef<Set<string>>(new Set());
 
   const loadRooms = useCallback(
     async (isRefresh = false) => {
@@ -277,35 +276,8 @@ const ChatList = () => {
         clearTimeout(timeout)
       );
       typingTimeoutsRef.current = {};
-      joinedRoomIdsRef.current.clear();
     };
   }, [loadRooms, user?.id]);
-
-  // Mirror chat-screen behavior: join room channels so backend room-scoped events
-  // (new_message, message_read, typing) are delivered to list in realtime.
-  useEffect(() => {
-    if (!rooms.length) return;
-    let isCancelled = false;
-
-    const joinRooms = async () => {
-      const socket = await socketService.connect();
-      if (isCancelled || !socket?.connected) return;
-
-      for (const room of rooms) {
-        const roomId = String(room?.id || "");
-        if (!roomId) continue;
-        if (joinedRoomIdsRef.current.has(roomId)) continue;
-        socketService.joinChat(roomId);
-        joinedRoomIdsRef.current.add(roomId);
-      }
-    };
-
-    joinRooms().catch(() => undefined);
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [rooms]);
 
   const getDirectUser = useCallback(
     (room: any) => {
@@ -370,38 +342,6 @@ const ChatList = () => {
   const handleOpenRoom = useCallback((room: any) => {
     const roomId = String(room?.id || "");
     if (!roomId) return;
-
-    setRooms((prev) =>
-      prev.map((item) =>
-        item?.id === roomId
-          ? {
-              ...item,
-              unreadCount: 0,
-            }
-          : item
-      )
-    );
-
-    console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:start", {
-      roomId,
-      at: new Date().toISOString(),
-    });
-    chatService
-      .markRoomAsRead(roomId)
-      .then((res) => {
-        console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:success", {
-          roomId,
-          at: new Date().toISOString(),
-          response: res,
-        });
-      })
-      .catch((error: any) => {
-        console.log("[CHAT_READ_DEBUG][LIST] markRoomAsRead:error", {
-          roomId,
-          at: new Date().toISOString(),
-          message: error?.message,
-        });
-      });
 
     router.push({
       pathname: "/screens/inbox/chat-screen",

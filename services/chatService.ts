@@ -46,7 +46,11 @@ class ChatService {
 
   async getChatRooms(): Promise<any> {
     try {
-      const response = await axiosInstance.get("/chat/rooms");
+      const response = await axiosInstance.get("/chat/rooms", {
+        params: {
+          sort: "updatedAt:desc",
+        },
+      });
       const result = response.data;
 
       if (!this.isApiSuccess(result)) {
