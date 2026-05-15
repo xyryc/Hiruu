@@ -81,6 +81,10 @@ const SocialAuth = () => {
         return;
       }
 
+      const oAuthToken = credential.identityToken;
+      const fcmToken = await registerForFcmToken().catch(() => undefined);
+      const timeZone = getCalendars()[0]?.timeZone || "UTC";
+
       console.log("[APPLE_LOGIN] credential:", {
         user: credential.user,
         email: credential.email,
@@ -90,7 +94,22 @@ const SocialAuth = () => {
         realUserStatus: credential.realUserStatus,
         state: credential.state,
       });
-      toast.success("Apple sign-in successful (logged only).");
+      console.log("[APPLE_LOGIN] oauth payload:", {
+        provider: "apple",
+        hasFcmToken: Boolean(fcmToken),
+        timeZone,
+      });
+
+      const response = await oauthLogin({
+        provider: "apple",
+        oAuthToken,
+        fcmToken,
+        timeZone,
+      });
+
+      console.log("[APPLE_LOGIN] Backend oauth login success:", response);
+      toast.success(translateApiMessage(response?.message || "auth_login_success"));
+      router.replace("/(tabs)/home");
     } catch (e: any) {
       if (e?.code === "ERR_REQUEST_CANCELED") return;
 
