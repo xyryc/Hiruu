@@ -6,6 +6,7 @@ import { Text, View } from "react-native";
 
 const HolidayCard = ({ shift }) => {
   const { t } = useTranslation();
+  const shouldShowNextShift = Boolean(shift?.workTime);
 
   return (
     <View className="rounded-2xl border border-[#acdcf8] bg-[#e5f4fdc2] p-4">
@@ -24,59 +25,64 @@ const HolidayCard = ({ shift }) => {
         </Text>
       </View>
 
-      <Image
-        source={require("@/assets/images/dotted-line.svg")}
-        style={{
-          paddingVertical: 12,
-          width: "100%",
-          height: 1,
-        }}
-        contentFit="contain"
-      />
-
-      <View className="flex-row items-center gap-2">
-        <Image
-          source={
-            shift.companyLogo
-              ? { uri: shift.companyLogo }
-              : require("@/assets/images/placeholder.png")
-          }
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 999,
-          }}
-          contentFit="cover"
-        />
-
-        <View className="flex-row items-center gap-1">
-          <Ionicons
-            className="bg-white border border-[#4FB2F3] p-1.5 rounded-full z-20"
-            name="calendar-outline"
-            size={16}
-            color="#4FB2F3"
+      {shouldShowNextShift ? (
+        <>
+          {/* bottom block */}
+          <Image
+            source={require("@/assets/images/dotted-line.svg")}
+            style={{
+              paddingVertical: 12,
+              width: "100%",
+              height: 1,
+            }}
+            contentFit="contain"
           />
 
-          <View className="flex-row gap-1">
-            <Text className="text-xs font-proximanova-regular text-primary dark:text-dark-primary">
-              {t("user.jobs.schedule.nextShift")}
-            </Text>
-            <Text className="text-xs font-proximanova-semibold text-primary dark:text-dark-primary">
-              {shift.workTime}
-            </Text>
-          </View>
-
-          <View className="absolute top-0.5 left-4 z-0">
+          <View className="flex-row items-center gap-2">
             <Image
-              source={require("@/assets/images/gradient-time-bg.svg")}
+              source={
+                shift.companyLogo
+                  ? { uri: shift.companyLogo }
+                  : require("@/assets/images/placeholder.png")
+              }
               style={{
-                width: 212,
-                height: 25,
+                width: 30,
+                height: 30,
+                borderRadius: 999,
               }}
+              contentFit="cover"
             />
+
+            <View className="flex-row items-center gap-1">
+              <Ionicons
+                className="bg-white border border-[#4FB2F3] p-1.5 rounded-full z-20"
+                name="calendar-outline"
+                size={16}
+                color="#4FB2F3"
+              />
+
+              <View className="flex-row gap-1">
+                <Text className="text-xs font-proximanova-regular text-primary dark:text-dark-primary">
+                  {t("user.jobs.schedule.nextShift")}
+                </Text>
+                <Text className="text-xs font-proximanova-semibold text-primary dark:text-dark-primary">
+                  {shift.workTime}
+                </Text>
+              </View>
+
+              <View className="absolute top-0.5 left-4 z-0">
+                <Image
+                  source={require("@/assets/images/gradient-time-bg.svg")}
+                  style={{
+                    width: 212,
+                    height: 25,
+                  }}
+                />
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
+        </>
+      ) : null}
     </View>
   );
 };

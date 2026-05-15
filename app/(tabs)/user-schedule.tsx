@@ -29,7 +29,7 @@ const ShiftSchedule = () => {
     selectedEmploymentBusinessIds,
     setSelectedEmploymentBusinessIds,
   } = useJobStore();
-  const { myShifts, myShiftsLoading, fetchMyShifts } = useShiftStore();
+  const { myShifts, myShiftsLoading, myShiftsMeta, fetchMyShifts } = useShiftStore();
 
   const to12Hour = useCallback((value?: string) => {
     if (!value) return "--:--";
@@ -283,6 +283,12 @@ const ShiftSchedule = () => {
     return modalBusinesses[0];
   }, [modalBusinesses, selectedEmploymentBusinessIds]);
 
+  const fallbackNextShiftTime = useMemo(() => {
+    const raw = myShiftsMeta?.nextShiftAt;
+    if (!raw) return undefined;
+    return formatUTCToLocalTime(raw, timezone);
+  }, [myShiftsMeta?.nextShiftAt, timezone]);
+
   // Get display content for header button
   const getDisplayContent = () => {
     if (selectedEmploymentBusinessIds.length === 0 || modalBusinesses.length === 0) {
@@ -370,7 +376,7 @@ const ShiftSchedule = () => {
             shift={{
               subtitle: "No shifts scheduled for this day.",
               companyLogo: selectedBusinessForFallback?.logo,
-              workTime: "--:--",
+              workTime: fallbackNextShiftTime,
             }}
           />
         )}
