@@ -286,7 +286,16 @@ const ShiftSchedule = () => {
   const fallbackNextShiftTime = useMemo(() => {
     const raw = myShiftsMeta?.nextShiftAt;
     if (!raw) return undefined;
-    return formatUTCToLocalTime(raw, timezone);
+    return DateTime.fromISO(raw, { zone: "utc" })
+      .setZone(timezone || "UTC")
+      .toFormat("d LLL yyyy, h:mm a");
+  }, [myShiftsMeta?.nextShiftAt, timezone]);
+  const fallbackNextShiftDate = useMemo(() => {
+    const raw = myShiftsMeta?.nextShiftAt;
+    if (!raw) return undefined;
+    return DateTime.fromISO(raw, { zone: "utc" })
+      .setZone(timezone || "UTC")
+      .toFormat("yyyy-MM-dd");
   }, [myShiftsMeta?.nextShiftAt, timezone]);
 
   // Get display content for header button
@@ -377,6 +386,9 @@ const ShiftSchedule = () => {
               subtitle: "No shifts scheduled for this day.",
               companyLogo: selectedBusinessForFallback?.logo,
               workTime: fallbackNextShiftTime,
+              onPressNextShift: fallbackNextShiftDate
+                ? () => setSelectedDate(fallbackNextShiftDate)
+                : undefined,
             }}
           />
         )}

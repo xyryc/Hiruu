@@ -2,11 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 const HolidayCard = ({ shift }) => {
   const { t } = useTranslation();
   const shouldShowNextShift = Boolean(shift?.workTime);
+  const canOpenNextShift = shouldShowNextShift && typeof shift?.onPressNextShift === "function";
 
   return (
     <View className="rounded-2xl border border-[#acdcf8] bg-[#e5f4fdc2] p-4">
@@ -38,7 +39,12 @@ const HolidayCard = ({ shift }) => {
             contentFit="contain"
           />
 
-          <View className="flex-row items-center gap-2">
+          <TouchableOpacity
+            activeOpacity={canOpenNextShift ? 0.8 : 1}
+            disabled={!canOpenNextShift}
+            onPress={shift?.onPressNextShift}
+            className="flex-row items-center gap-2"
+          >
             <Image
               source={
                 shift.companyLogo
@@ -80,7 +86,7 @@ const HolidayCard = ({ shift }) => {
                 />
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </>
       ) : null}
     </View>
