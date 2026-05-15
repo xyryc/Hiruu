@@ -2322,6 +2322,134 @@
     "selectDateOfBirth": "Please select your date of birth",
     "selectGender": "Please select your gender"
   },
+  "notifications": {
+    "events": {
+      "chat_message": {
+        "chat_message": {
+          "title": "Message from {{senderName}}",
+          "body": "{{messagePreview}}"
+        }
+      },
+      "call_incoming": {
+        "call_incoming": {
+          "title": "Incoming {{callType}} Call",
+          "body": "{{callerName}} is calling you"
+        }
+      },
+      "shift_assigned": {
+        "shift_assigned": {
+          "title": "New shift assigned at {{businessName}}",
+          "body": "You have been assigned a shift on {{formattedShiftDate}}."
+        }
+      },
+      "shift_cancelled": {
+        "shift_cancelled": {
+          "title": "Shift cancelled at {{businessName}}",
+          "body": "Your shift on {{formattedShiftDate}} was cancelled."
+        }
+      },
+      "clock_in_reminder": {
+        "clock_in_reminder": {
+          "title": "Shift reminder",
+          "body": "Your shift starts in {{smartAlertMinutes}} minutes."
+        }
+      },
+      "shift_changed": {
+        "shift_request_created": {
+          "title": "New {{requestType}} request",
+          "body": "{{requesterName}} submitted a {{requestType}} request."
+        },
+        "shift_request_approved": {
+          "title": "{{requestType}} request approved",
+          "body": "Your {{requestType}} request was approved."
+        },
+        "shift_request_rejected": {
+          "title": "{{requestType}} request rejected",
+          "body": "Your {{requestType}} request was rejected."
+        }
+      },
+      "coins_earned": {
+        "monthly_leaderboard_reward": {
+          "title": "You earned {{rewardCoins}} coins (Rank #{{rank}})",
+          "body": "You ranked #{{rank}} on the {{periodType}} leaderboard and earned {{rewardCoins}} coins."
+        }
+      },
+      "achievement_unlocked": {
+        "achievement_unlocked": {
+          "title": "Achievement unlocked: {{achievementTitle}}",
+          "body": "{{achievementTitle}} completed. Reward: {{rewardCoins}} coins."
+        },
+        "badge_tier_unlocked": {
+          "title": "Badge tier unlocked",
+          "body": "You unlocked tier {{tier}} for this achievement."
+        }
+      },
+      "leave_approved": {
+        "leave_approved": {
+          "title": "Leave approved",
+          "body": "Your leave request has been approved."
+        }
+      },
+      "leave_rejected": {
+        "leave_rejected": {
+          "title": "Leave rejected",
+          "body": "Your leave request has been rejected."
+        }
+      },
+      "business_announcement": {
+        "employee_joined_business": {
+          "title": "Employee joined business",
+          "body": "{{joinedEmployeeName}} joined {{businessName}}."
+        },
+        "employee_terminated_business": {
+          "title": "Employee removed from business",
+          "body": "{{terminatedEmployeeName}} is no longer working at {{businessName}}."
+        },
+        "recruitment_application_received": {
+          "title": "New job application",
+          "body": "{{applicantName}} applied to your job post."
+        },
+        "recruitment_offer_received": {
+          "title": "Job offer received",
+          "body": "{{invitedByName}} invited you to join {{businessName}}."
+        }
+      },
+      "support_ticket_update": {
+        "support_started": {
+          "title": "Support conversation started",
+          "body": "{{starterName}} started a support conversation."
+        }
+      },
+      "system_maintenance": {
+        "manual_test": {
+          "title": "System notice",
+          "body": "Maintenance notice from {{source}}."
+        },
+        "subscription_purchased": {
+          "title": "Subscription purchased",
+          "body": "Your {{planTier}} plan ({{billingCycle}}) was activated."
+        }
+      },
+      "shift_swap_requested": {
+        "shift_swap_requested": {
+          "title": "Shift swap request from {{requesterName}}",
+          "body": "{{requesterName}} requested a shift swap."
+        }
+      },
+      "shift_swap_approved": {
+        "shift_swap_approved": {
+          "title": "Shift swap approved",
+          "body": "Your shift swap request was approved."
+        }
+      },
+      "shift_swap_rejected": {
+        "shift_swap_rejected": {
+          "title": "Shift swap rejected",
+          "body": "Your shift swap request was rejected."
+        }
+      }
+    }
+  },
   "notificationsScreen": {
     "headerTitle": "Notifications",
     "empty": "No notifications yet.",

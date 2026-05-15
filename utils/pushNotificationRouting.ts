@@ -1,4 +1,4 @@
-import { translateApiMessage } from "@/utils/apiMessages";
+import { resolveNotificationText, parseNotificationInput } from "@/utils/notificationEventLocalization";
 import { t } from "i18next";
 
 export type NotificationRoutePayload = {
@@ -11,29 +11,10 @@ const toNonEmptyString = (value: unknown) => {
   return value.trim();
 };
 
-const parseJsonField = (value: unknown) => {
-  if (value && typeof value === "object") return value;
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    return null;
-  }
-};
-
 export const extractChatNotificationPayload = (rawData: any) => {
-  if (!rawData || typeof rawData !== "object") return null;
+  const normalized = parseNotificationInput(rawData);
+  const firstAction = normalized.actions[0];
 
-  const type = toNonEmptyString(rawData?.type).toLowerCase();
-  const metadata =
-    (parseJsonField(rawData?.metadata) as Record<string, any> | null) || null;
-  const actionsParsed = parseJsonField(rawData?.actions);
-  const actions = Array.isArray(actionsParsed)
-    ? (actionsParsed as Record<string, any>[])
-    : [];
-  const firstAction = actions.length > 0 ? actions[0] : null;
   const payload =
     firstAction?.payload && typeof firstAction.payload === "object"
       ? firstAction.payload
@@ -41,10 +22,10 @@ export const extractChatNotificationPayload = (rawData: any) => {
 
   const chatRoomId =
     toNonEmptyString(payload?.chatRoomId) ||
-    toNonEmptyString(metadata?.chatRoomId);
-  const messageId = toNonEmptyString(rawData?.messageId);
+    toNonEmptyString(normalized.metadata?.chatRoomId);
+  const messageId = toNonEmptyString((rawData as any)?.messageId);
 
-  if (type !== "chat_message" || !chatRoomId) return null;
+  if (normalized.type !== "chat_message" || !chatRoomId) return null;
 
   return {
     chatRoomId,
@@ -55,21 +36,12 @@ export const extractChatNotificationPayload = (rawData: any) => {
 export const extractNotificationRoutePayload = (
   rawData: any
 ): NotificationRoutePayload | null => {
-  if (!rawData || typeof rawData !== "object") return null;
-
-  const type = toNonEmptyString(rawData?.type).toLowerCase();
-  const relatedEntityType = toNonEmptyString(rawData?.relatedEntityType).toLowerCase();
-  const relatedEntityId = toNonEmptyString(rawData?.relatedEntityId);
-  const metadata =
-    (parseJsonField(rawData?.metadata) as Record<string, any> | null) || null;
-  const actionsParsed = parseJsonField(rawData?.actions);
-  const actions = Array.isArray(actionsParsed)
-    ? (actionsParsed as Record<string, any>[])
-    : [];
-  const firstAction = actions.length > 0 ? actions[0] : null;
+  const normalized = parseNotificationInput(rawData);
+  const firstAction = normalized.actions[0] || null;
   const actionKey = toNonEmptyString(firstAction?.key).toLowerCase();
   const targetType = toNonEmptyString(firstAction?.targetType).toLowerCase();
-  const targetId = toNonEmptyString(firstAction?.targetId) || relatedEntityId;
+  const targetId =
+    toNonEmptyString(firstAction?.targetId) || normalized.relatedEntityId || "";
   const payload =
     firstAction?.payload && typeof firstAction.payload === "object"
       ? firstAction.payload
@@ -77,25 +49,25 @@ export const extractNotificationRoutePayload = (
 
   const chatRoomId =
     toNonEmptyString(payload?.chatRoomId) ||
-    toNonEmptyString(metadata?.chatRoomId);
+    toNonEmptyString(normalized.metadata?.chatRoomId);
   const callTypeRaw =
     toNonEmptyString(payload?.callType) ||
-    toNonEmptyString(metadata?.callType);
+    toNonEmptyString(normalized.metadata?.callType);
   const callType = callTypeRaw.toLowerCase() === "video" ? "video" : "audio";
   const shiftAssignmentId =
     toNonEmptyString(payload?.shiftAssignmentId) ||
-    toNonEmptyString(metadata?.shiftAssignmentId) ||
+    toNonEmptyString(normalized.metadata?.shiftAssignmentId) ||
     targetId;
   const achievementId =
     toNonEmptyString(payload?.achievementId) ||
-    toNonEmptyString(metadata?.achievementId) ||
+    toNonEmptyString(normalized.metadata?.achievementId) ||
     targetId;
 
   if (
     actionKey === "open_chat" ||
-    type === "chat_message" ||
+    normalized.type === "chat_message" ||
     targetType === "chat_message" ||
-    relatedEntityType === "chat_message"
+    normalized.relatedEntityType === "chat_message"
   ) {
     if (!chatRoomId) return null;
     return {
@@ -106,9 +78,9 @@ export const extractNotificationRoutePayload = (
 
   if (
     actionKey === "join_call" ||
-    type === "call_incoming" ||
+    normalized.type === "call_incoming" ||
     targetType === "call" ||
-    relatedEntityType === "call"
+    normalized.relatedEntityType === "call"
   ) {
     if (!targetId) return null;
     return {
@@ -125,12 +97,14 @@ export const extractNotificationRoutePayload = (
   if (
     actionKey === "view_shift_assignment" ||
     actionKey === "view_shift_swap" ||
-    type === "shift_swap_requested" ||
-    type === "shift_swap_approved" ||
-    type === "shift_cancelled" ||
+    actionKey === "review_shift_request" ||
+    normalized.type === "shift_swap_requested" ||
+    normalized.type === "shift_swap_approved" ||
+    normalized.type === "shift_cancelled" ||
+    normalized.type === "shift_changed" ||
     targetType === "shift_assignment" ||
-    relatedEntityType === "shift_assignment" ||
-    type === "shift_assigned"
+    normalized.relatedEntityType === "shift_assignment" ||
+    normalized.type === "shift_assigned"
   ) {
     if (!shiftAssignmentId) return null;
     return {
@@ -142,12 +116,24 @@ export const extractNotificationRoutePayload = (
   if (
     actionKey === "view_achievement" ||
     targetType === "achievement_unlock" ||
-    relatedEntityType === "achievement_unlock" ||
-    type === "achievement_unlocked"
+    normalized.relatedEntityType === "achievement_unlock" ||
+    normalized.type === "achievement_unlocked"
   ) {
     return {
       pathname: "/screens/rewards/challenges",
       params: achievementId ? { highlight: achievementId } : undefined,
+    };
+  }
+
+  if (actionKey === "view_business_update") {
+    return {
+      pathname: "/screens/notifications",
+    };
+  }
+
+  if (actionKey === "view_system_notice") {
+    return {
+      pathname: "/screens/notifications",
     };
   }
 
@@ -156,240 +142,23 @@ export const extractNotificationRoutePayload = (
 
 export const resolveFcmDisplayText = (remoteMessage: any) => {
   const data = remoteMessage?.data || {};
-  const type = toNonEmptyString(data?.type).toLowerCase();
-  const metadata =
-    (parseJsonField(data?.metadata) as Record<string, any> | null) || {};
 
-  const fallbackTitleRaw = String(
-    remoteMessage?.notification?.title ||
-      data?.title ||
-      data?.titleKey ||
-      "Notification"
-  ).trim();
-  const fallbackBodyRaw = String(
-    remoteMessage?.notification?.body ||
-      data?.body ||
-      data?.message ||
-      data?.bodyKey ||
-      "You have a new message"
-  ).trim();
-  const fallbackTitle = translateApiMessage(fallbackTitleRaw) || fallbackTitleRaw;
-  const fallbackBody = translateApiMessage(fallbackBodyRaw) || fallbackBodyRaw;
-
-  let title = fallbackTitle;
-  let body = fallbackBody;
-
-  if (type === "chat_message") {
-    const senderName = toNonEmptyString(metadata?.senderName);
-    const roomName = toNonEmptyString(metadata?.roomName);
-    const preview = toNonEmptyString(metadata?.messagePreview);
-
-    if (senderName) {
-      title = roomName
-        ? t("notificationsScreen.title.messageFromWithRoom", {
-            senderName,
-            roomName,
-          })
-        : t("notificationsScreen.title.messageFrom", { senderName });
-    }
-    if (preview) body = preview;
-  } else if (type === "call_incoming") {
-    const callTypeRaw = toNonEmptyString(metadata?.callType).toLowerCase();
-    const callType =
-      callTypeRaw === "video"
-        ? t("notificationsScreen.callType.video")
-        : t("notificationsScreen.callType.audio");
-    const callerName = toNonEmptyString(metadata?.callerName);
-
-    title = t("notificationsScreen.title.incomingCall", { callType });
-    body = callerName
-      ? t("notificationsScreen.body.callerIsCalling", { callerName })
-      : t("notificationsScreen.body.incomingCall");
-  } else if (type === "business_announcement") {
-    const employeeName = toNonEmptyString(metadata?.joinedEmployeeName);
-    title = t("notificationsScreen.title.employeeJoinedBusiness");
-    body = employeeName
-      ? t("notificationsScreen.body.employeeJoinedWithName", { employeeName })
-      : t("notificationsScreen.body.employeeJoined");
-  } else if (type === "clock_in_reminder") {
-    title = fallbackTitle || t("notificationsScreen.title.shiftReminder");
-    if (!fallbackBodyRaw) {
-      const smartAlertMinutes = Number(metadata?.smartAlertMinutes);
-      body =
-        Number.isFinite(smartAlertMinutes) && smartAlertMinutes > 0
-          ? t("notificationsScreen.body.shiftStartsInMinutes", {
-              smartAlertMinutes,
-            })
-          : t("notificationsScreen.body.shiftStartsSoon");
-    }
-  } else if (type === "coins_earned") {
-    const rewardCoins = Number(metadata?.rewardCoins);
-    const rank = Number(metadata?.rank);
-    const periodType = toNonEmptyString(metadata?.periodType).toLowerCase();
-    const periodLabel =
-      periodType === "monthly"
-        ? "monthly"
-        : periodType === "weekly"
-        ? "weekly"
-        : periodType === "daily"
-        ? "daily"
-        : "leaderboard";
-
-    if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
-      title =
-        Number.isFinite(rank) && rank > 0
-          ? t("notificationsScreen.title.coinsEarnedWithRank", {
-              rewardCoins,
-              rank,
-            })
-          : t("notificationsScreen.title.coinsEarned", { rewardCoins });
-
-      body =
-        Number.isFinite(rank) && rank > 0
-          ? t("notificationsScreen.body.coinsEarnedWithRank", {
-              rank,
-              periodLabel,
-              rewardCoins,
-            })
-          : t("notificationsScreen.body.coinsEarnedLeaderboard", {
-              rewardCoins,
-              periodLabel,
-            });
-    }
-  } else if (type === "shift_assigned") {
-    const businessName = toNonEmptyString(metadata?.businessName);
-    const shiftDateRaw = toNonEmptyString(metadata?.shiftDate);
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    title = businessName
-      ? t("notificationsScreen.title.newShiftAssignedAt", { businessName })
-      : t("notificationsScreen.title.newShiftAssigned");
-
-    body =
-      businessName && formattedShiftDate
-        ? t("notificationsScreen.body.shiftAssignedByBusinessOnDate", {
-            businessName,
-            formattedShiftDate,
-          })
-        : formattedShiftDate
-        ? t("notificationsScreen.body.shiftAssignedOnDate", {
-            formattedShiftDate,
-          })
-        : t("notificationsScreen.body.shiftAssigned");
-  } else if (type === "shift_cancelled") {
-    const businessName = toNonEmptyString(metadata?.businessName);
-    const shiftDateRaw = toNonEmptyString(metadata?.shiftDate);
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    title = businessName
-      ? t("notificationsScreen.title.shiftCancelledAt", { businessName })
-      : t("notificationsScreen.title.shiftCancelled");
-
-    body =
-      businessName && formattedShiftDate
-        ? t("notificationsScreen.body.shiftCancelledByBusinessOnDate", {
-            businessName,
-            formattedShiftDate,
-          })
-        : formattedShiftDate
-        ? t("notificationsScreen.body.shiftCancelledOnDate", {
-            formattedShiftDate,
-          })
-        : t("notificationsScreen.body.shiftCancelled");
-  } else if (type === "shift_swap_requested") {
-    const requesterName = toNonEmptyString(metadata?.requesterName);
-    const shiftDateRaw = toNonEmptyString(metadata?.shiftDate);
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    title = requesterName
-      ? t("notificationsScreen.title.shiftSwapRequestedBy", { requesterName })
-      : t("notificationsScreen.title.shiftSwapRequested");
-
-    body =
-      requesterName && formattedShiftDate
-        ? t("notificationsScreen.body.shiftSwapRequestedByOnDate", {
-            requesterName,
-            formattedShiftDate,
-          })
-        : requesterName
-        ? t("notificationsScreen.body.shiftSwapRequestedBy", { requesterName })
-        : t("notificationsScreen.body.shiftSwapRequested");
-  } else if (type === "shift_swap_approved") {
-    const acceptedByName = toNonEmptyString(metadata?.acceptedByName);
-    const shiftDateRaw = toNonEmptyString(metadata?.shiftDate);
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    title = acceptedByName
-      ? t("notificationsScreen.title.shiftSwapApprovedBy", { acceptedByName })
-      : t("notificationsScreen.title.shiftSwapApproved");
-
-    body =
-      acceptedByName && formattedShiftDate
-        ? t("notificationsScreen.body.shiftSwapApprovedByOnDate", {
-            acceptedByName,
-            formattedShiftDate,
-          })
-        : acceptedByName
-        ? t("notificationsScreen.body.shiftSwapApprovedBy", { acceptedByName })
-        : t("notificationsScreen.body.shiftSwapApproved");
-  } else if (type === "achievement_unlocked") {
-    const achievementTitle = toNonEmptyString(metadata?.achievementTitle);
-    const rewardCoins = Number(metadata?.rewardCoins);
-
-    title = achievementTitle
-      ? t("notificationsScreen.title.achievementUnlockedWithTitle", {
-          achievementTitle,
-        })
-      : t("notificationsScreen.title.achievementUnlocked");
-
-    body =
-      Number.isFinite(rewardCoins) && rewardCoins > 0
-        ? t("notificationsScreen.body.achievementCompletedWithReward", {
-            achievementTitle:
-              achievementTitle || t("notificationsScreen.title.achievementUnlocked"),
-            rewardCoins,
-          })
-        : achievementTitle
-        ? t("notificationsScreen.body.achievementCompleted", {
-            achievementTitle,
-          })
-        : t("notificationsScreen.body.achievementUnlocked");
-  }
+  const { title, body } = resolveNotificationText(
+    {
+      type: data?.type,
+      event: data?.event,
+      metadata: data?.metadata,
+      actions: data?.actions,
+      relatedEntityType: data?.relatedEntityType,
+      relatedEntityId: data?.relatedEntityId,
+      title: data?.title || remoteMessage?.notification?.title,
+      message: data?.message || data?.body || remoteMessage?.notification?.body,
+    },
+    t
+  );
 
   return {
-    title: title || fallbackTitle,
-    body: body || fallbackBody,
+    title,
+    body,
   };
 };

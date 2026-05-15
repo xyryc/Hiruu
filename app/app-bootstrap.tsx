@@ -172,7 +172,7 @@ const AppBootstrap = () => {
     const logNotificationPermissions = async () => {
       try {
         await Notifications.getPermissionsAsync();
-      } catch (_error: any) {}
+      } catch {}
     };
 
     logNotificationPermissions();
@@ -207,63 +207,26 @@ const AppBootstrap = () => {
 
   useEffect(() => {
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
-      console.log("[NOTIF_DEBUG][FG][FCM]", {
-        messageId: remoteMessage?.messageId,
-        notification: remoteMessage?.notification,
-        data: remoteMessage?.data,
-        sentTime: remoteMessage?.sentTime,
-        ttl: remoteMessage?.ttl,
-      });
       const { title, body } = resolveFcmDisplayText(remoteMessage);
-      console.log("[NOTIF_DEBUG][FG][RESOLVED]", {
-        title,
-        body,
-      });
       toast(title || "Notification", {
         description: body || "",
       });
     });
 
     const unsubscribeOnOpen = onNotificationOpenedApp(messaging, (remoteMessage) => {
-      console.log("[NOTIF_DEBUG][BG_TAP][FCM]", {
-        messageId: remoteMessage?.messageId,
-        notification: remoteMessage?.notification,
-        data: remoteMessage?.data,
-        sentTime: remoteMessage?.sentTime,
-        ttl: remoteMessage?.ttl,
-      });
       navigateFromNotificationData(remoteMessage?.data);
     });
 
     getInitialNotification(messaging)
       .then((remoteMessage) => {
         if (remoteMessage) {
-          console.log("[NOTIF_DEBUG][COLD_START_TAP][FCM]", {
-            messageId: remoteMessage?.messageId,
-            notification: remoteMessage?.notification,
-            data: remoteMessage?.data,
-            sentTime: remoteMessage?.sentTime,
-            ttl: remoteMessage?.ttl,
-          });
           navigateFromNotificationData(remoteMessage?.data);
         }
       })
-      .catch((error) => {
-        console.log("[NOTIF_DEBUG][COLD_START_TAP][FCM_ERROR]", {
-          message: error?.message,
-          name: error?.name,
-        });
-      });
+      .catch(() => undefined);
 
     const notificationResponseSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("[NOTIF_DEBUG][TAP][EXPO]", {
-          identifier: response?.notification?.request?.identifier,
-          actionIdentifier: response?.actionIdentifier,
-          title: response?.notification?.request?.content?.title,
-          body: response?.notification?.request?.content?.body,
-          data: response?.notification?.request?.content?.data,
-        });
         const payload = extractChatNotificationPayload(
           response.notification.request.content.data
         );

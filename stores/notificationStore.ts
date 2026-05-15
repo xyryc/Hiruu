@@ -1,4 +1,5 @@
 import axiosInstance from "@/utils/axios";
+import { normalizeNotificationPayload } from "@/utils/notificationEventLocalization";
 import { create } from "zustand";
 
 export type NotificationSort = "createdAt:asc" | "createdAt:desc";
@@ -8,6 +9,7 @@ export type NotificationItem = {
   userId: string;
   businessId: string | null;
   type: string;
+  event: string;
   title: string;
   message: string;
   priority: "low" | "medium" | "high" | "urgent";
@@ -141,7 +143,30 @@ export const useNotificationStore = create<NotificationStoreState>((set) => ({
       }
 
       const fetched: NotificationItem[] = Array.isArray(result?.data)
-        ? result.data
+        ? result.data.map((rawItem: any) => {
+            const normalized = normalizeNotificationPayload({
+              type: rawItem?.type,
+              event: rawItem?.event,
+              title: rawItem?.title,
+              message: rawItem?.message,
+              metadata: rawItem?.metadata,
+              actions: rawItem?.actions,
+              relatedEntityType: rawItem?.relatedEntityType,
+              relatedEntityId: rawItem?.relatedEntityId,
+            });
+
+            return {
+              ...rawItem,
+              type: normalized.type,
+              event: normalized.event,
+              title: normalized.title || "",
+              message: normalized.message || "",
+              metadata: normalized.metadata,
+              actions: normalized.actions,
+              relatedEntityType: normalized.relatedEntityType || null,
+              relatedEntityId: normalized.relatedEntityId || null,
+            } as NotificationItem;
+          })
         : [];
       const pagination = result?.pagination || {};
 
@@ -200,7 +225,27 @@ export const useNotificationStore = create<NotificationStoreState>((set) => ({
         throw new Error(result?.message || "Failed to mark notification as read");
       }
 
-      const updated: NotificationItem = result?.data;
+      const normalizedUpdated = normalizeNotificationPayload({
+        type: result?.data?.type,
+        event: result?.data?.event,
+        title: result?.data?.title,
+        message: result?.data?.message,
+        metadata: result?.data?.metadata,
+        actions: result?.data?.actions,
+        relatedEntityType: result?.data?.relatedEntityType,
+        relatedEntityId: result?.data?.relatedEntityId,
+      });
+      const updated: NotificationItem = {
+        ...(result?.data || {}),
+        type: normalizedUpdated.type,
+        event: normalizedUpdated.event,
+        title: normalizedUpdated.title || "",
+        message: normalizedUpdated.message || "",
+        metadata: normalizedUpdated.metadata,
+        actions: normalizedUpdated.actions,
+        relatedEntityType: normalizedUpdated.relatedEntityType || null,
+        relatedEntityId: normalizedUpdated.relatedEntityId || null,
+      };
       const nowIso = new Date().toISOString();
 
       set((state) => {
@@ -283,4 +328,3 @@ export const useNotificationStore = create<NotificationStoreState>((set) => ({
   clearUnreadCountError: () => set({ unreadCountError: null }),
   clearNotificationsError: () => set({ notificationsError: null }),
 }));
-

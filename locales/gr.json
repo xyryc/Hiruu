@@ -2323,6 +2323,134 @@
     "selectDateOfBirth": "Παρακαλώ επιλέξτε την ημερομηνία γέννησής σας",
     "selectGender": "Παρακαλώ επιλέξτε το φύλο σας"
   },
+  "notifications": {
+    "events": {
+      "chat_message": {
+        "chat_message": {
+          "title": "Μήνυμα από {{senderName}}",
+          "body": "{{messagePreview}}"
+        }
+      },
+      "call_incoming": {
+        "call_incoming": {
+          "title": "Εισερχόμενη {{callType}} κλήση",
+          "body": "{{callerName}} σας καλεί"
+        }
+      },
+      "shift_assigned": {
+        "shift_assigned": {
+          "title": "Νέα βάρδια στο {{businessName}}",
+          "body": "Σας ανατέθηκε βάρδια στις {{formattedShiftDate}}."
+        }
+      },
+      "shift_cancelled": {
+        "shift_cancelled": {
+          "title": "Η βάρδια ακυρώθηκε στο {{businessName}}",
+          "body": "Η βάρδια σας στις {{formattedShiftDate}} ακυρώθηκε."
+        }
+      },
+      "clock_in_reminder": {
+        "clock_in_reminder": {
+          "title": "Υπενθύμιση βάρδιας",
+          "body": "Η βάρδιά σας ξεκινά σε {{smartAlertMinutes}} λεπτά."
+        }
+      },
+      "shift_changed": {
+        "shift_request_created": {
+          "title": "Νέο αίτημα {{requestType}}",
+          "body": "Ο/Η {{requesterName}} υπέβαλε αίτημα {{requestType}}."
+        },
+        "shift_request_approved": {
+          "title": "Το αίτημα {{requestType}} εγκρίθηκε",
+          "body": "Το αίτημα {{requestType}} εγκρίθηκε."
+        },
+        "shift_request_rejected": {
+          "title": "Το αίτημα {{requestType}} απορρίφθηκε",
+          "body": "Το αίτημα {{requestType}} απορρίφθηκε."
+        }
+      },
+      "coins_earned": {
+        "monthly_leaderboard_reward": {
+          "title": "Κερδίσατε {{rewardCoins}} νομίσματα (Θέση #{{rank}})",
+          "body": "Καταταχθήκατε #{{rank}} στο {{periodType}} leaderboard και κερδίσατε {{rewardCoins}} νομίσματα."
+        }
+      },
+      "achievement_unlocked": {
+        "achievement_unlocked": {
+          "title": "Ξεκλειδώθηκε επίτευγμα: {{achievementTitle}}",
+          "body": "Ολοκληρώθηκε το {{achievementTitle}}. Ανταμοιβή: {{rewardCoins}} νομίσματα."
+        },
+        "badge_tier_unlocked": {
+          "title": "Ξεκλειδώθηκε επίπεδο badge",
+          "body": "Ξεκλειδώσατε το επίπεδο {{tier}} για αυτό το επίτευγμα."
+        }
+      },
+      "leave_approved": {
+        "leave_approved": {
+          "title": "Η άδεια εγκρίθηκε",
+          "body": "Το αίτημα άδειάς σας εγκρίθηκε."
+        }
+      },
+      "leave_rejected": {
+        "leave_rejected": {
+          "title": "Η άδεια απορρίφθηκε",
+          "body": "Το αίτημα άδειάς σας απορρίφθηκε."
+        }
+      },
+      "business_announcement": {
+        "employee_joined_business": {
+          "title": "Νέος εργαζόμενος στην επιχείρηση",
+          "body": "Ο/Η {{joinedEmployeeName}} εντάχθηκε στο {{businessName}}."
+        },
+        "employee_terminated_business": {
+          "title": "Αποχώρηση εργαζομένου",
+          "body": "Ο/Η {{terminatedEmployeeName}} δεν εργάζεται πλέον στο {{businessName}}."
+        },
+        "recruitment_application_received": {
+          "title": "Νέα αίτηση εργασίας",
+          "body": "Ο/Η {{applicantName}} έκανε αίτηση στην αγγελία σας."
+        },
+        "recruitment_offer_received": {
+          "title": "Λήψη προσφοράς εργασίας",
+          "body": "Ο/Η {{invitedByName}} σας προσκάλεσε να ενταχθείτε στο {{businessName}}."
+        }
+      },
+      "support_ticket_update": {
+        "support_started": {
+          "title": "Ξεκίνησε συνομιλία υποστήριξης",
+          "body": "Ο/Η {{starterName}} ξεκίνησε συνομιλία υποστήριξης."
+        }
+      },
+      "system_maintenance": {
+        "manual_test": {
+          "title": "Ειδοποίηση συστήματος",
+          "body": "Ειδοποίηση συντήρησης από {{source}}."
+        },
+        "subscription_purchased": {
+          "title": "Αγορά συνδρομής",
+          "body": "Ενεργοποιήθηκε το πλάνο {{planTier}} ({{billingCycle}})."
+        }
+      },
+      "shift_swap_requested": {
+        "shift_swap_requested": {
+          "title": "Αίτημα ανταλλαγής από {{requesterName}}",
+          "body": "Ο/Η {{requesterName}} ζήτησε ανταλλαγή βάρδιας."
+        }
+      },
+      "shift_swap_approved": {
+        "shift_swap_approved": {
+          "title": "Η ανταλλαγή βάρδιας εγκρίθηκε",
+          "body": "Το αίτημα ανταλλαγής βάρδιας εγκρίθηκε."
+        }
+      },
+      "shift_swap_rejected": {
+        "shift_swap_rejected": {
+          "title": "Η ανταλλαγή βάρδιας απορρίφθηκε",
+          "body": "Το αίτημα ανταλλαγής βάρδιας απορρίφθηκε."
+        }
+      }
+    }
+  },
   "notificationsScreen": {
     "headerTitle": "Ειδοποιήσεις",
     "empty": "Δεν υπάρχουν ειδοποιήσεις ακόμα.",

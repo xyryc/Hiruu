@@ -6,6 +6,7 @@ import {
   useNotificationStore,
 } from "@/stores/notificationStore";
 import { translateApiMessage } from "@/utils/apiMessages";
+import { resolveNotificationText } from "@/utils/notificationEventLocalization";
 import { Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
@@ -44,15 +45,6 @@ const getActionPayloadValue = (
   const payload = action?.payload;
   if (!payload || typeof payload !== "object") return undefined;
   return toNonEmptyString((payload as Record<string, unknown>)[key]);
-};
-
-const isGenericNotificationText = (value?: string | null) => {
-  const normalized = String(value || "").trim().toLowerCase();
-  return (
-    normalized === "" ||
-    normalized === "notification" ||
-    normalized === "you have a new notification."
-  );
 };
 
 const formatRelativeTime = (
@@ -148,310 +140,23 @@ const resolveNotificationVisual = (type: string) => {
   };
 };
 
-const resolveNotificationTitle = (
+const resolveNotificationCopy = (
   item: NotificationItem,
   t: (key: string, options?: Record<string, unknown>) => string
-) => {
-  const metadata = item.metadata || {};
-
-  if (item.type === "chat_message") {
-    const senderName = String((metadata as any)?.senderName || "").trim();
-    const roomName = String((metadata as any)?.roomName || "").trim();
-
-    if (senderName) {
-      return roomName
-        ? t("notificationsScreen.title.messageFromWithRoom", {
-            senderName,
-            roomName,
-          })
-        : t("notificationsScreen.title.messageFrom", { senderName });
-    }
-  }
-
-  if (item.type === "call_incoming") {
-    const callTypeRaw = String((metadata as any)?.callType || "").trim().toLowerCase();
-    const callType =
-      callTypeRaw === "video"
-        ? t("notificationsScreen.callType.video")
-        : t("notificationsScreen.callType.audio");
-    return t("notificationsScreen.title.incomingCall", { callType });
-  }
-
-  if (item.type === "business_announcement") {
-    return t("notificationsScreen.title.employeeJoinedBusiness");
-  }
-
-  if (item.type === "clock_in_reminder") {
-    const rawTitle = String(item.title || "").trim();
-    return rawTitle || t("notificationsScreen.title.shiftReminder");
-  }
-
-  if (item.type === "coins_earned") {
-    const rewardCoins = Number((metadata as any)?.rewardCoins);
-    const rank = Number((metadata as any)?.rank);
-
-    if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
-      if (Number.isFinite(rank) && rank > 0) {
-        return t("notificationsScreen.title.coinsEarnedWithRank", {
-          rewardCoins,
-          rank,
-        });
-      }
-      return t("notificationsScreen.title.coinsEarned", { rewardCoins });
-    }
-  }
-
-  if (item.type === "shift_assigned") {
-    const businessName = String((metadata as any)?.businessName || "").trim();
-    if (businessName) {
-      return t("notificationsScreen.title.newShiftAssignedAt", { businessName });
-    }
-    return t("notificationsScreen.title.newShiftAssigned");
-  }
-
-  if (item.type === "shift_cancelled") {
-    const businessName = String((metadata as any)?.businessName || "").trim();
-    if (businessName) {
-      return t("notificationsScreen.title.shiftCancelledAt", { businessName });
-    }
-    return t("notificationsScreen.title.shiftCancelled");
-  }
-
-  if (item.type === "shift_swap_requested") {
-    const requesterName = String((metadata as any)?.requesterName || "").trim();
-    if (requesterName) {
-      return t("notificationsScreen.title.shiftSwapRequestedBy", {
-        requesterName,
-      });
-    }
-    return t("notificationsScreen.title.shiftSwapRequested");
-  }
-
-  if (item.type === "shift_swap_approved") {
-    const acceptedByName = String((metadata as any)?.acceptedByName || "").trim();
-    if (acceptedByName) {
-      return t("notificationsScreen.title.shiftSwapApprovedBy", {
-        acceptedByName,
-      });
-    }
-    return t("notificationsScreen.title.shiftSwapApproved");
-  }
-
-  if (item.type === "achievement_unlocked") {
-    const achievementTitle = String((metadata as any)?.achievementTitle || "").trim();
-    if (achievementTitle) {
-      return t("notificationsScreen.title.achievementUnlockedWithTitle", {
-        achievementTitle,
-      });
-    }
-    return t("notificationsScreen.title.achievementUnlocked");
-  }
-
-  const raw = String(item.title || "").trim();
-  if (isGenericNotificationText(raw)) return t("notificationsScreen.title.notification");
-
-  const translated = translateApiMessage(raw);
-  return translated || raw;
-};
-
-const resolveNotificationBody = (
-  item: NotificationItem,
-  t: (key: string, options?: Record<string, unknown>) => string
-) => {
-  const metadata = item.metadata || {};
-  const raw = String(item.message || "").trim();
-  const translated = raw ? translateApiMessage(raw) : "";
-
-  // Show actual preview for chat notifications when available.
-  if (item.type === "chat_message") {
-    const preview = String((metadata as any)?.messagePreview || "").trim();
-    if (preview) return preview;
-  }
-
-  if (item.type === "call_incoming") {
-    const callerName = String((metadata as any)?.callerName || "").trim();
-    if (callerName) return t("notificationsScreen.body.callerIsCalling", { callerName });
-    return t("notificationsScreen.body.incomingCall");
-  }
-
-  if (item.type === "business_announcement") {
-    const employeeName = String((metadata as any)?.joinedEmployeeName || "").trim();
-    if (employeeName) {
-      return t("notificationsScreen.body.employeeJoinedWithName", { employeeName });
-    }
-    return t("notificationsScreen.body.employeeJoined");
-  }
-
-  if (item.type === "clock_in_reminder") {
-    const rawMessage = String(item.message || "").trim();
-    if (rawMessage) return rawMessage;
-
-    const smartAlertMinutes = Number((metadata as any)?.smartAlertMinutes);
-    if (Number.isFinite(smartAlertMinutes) && smartAlertMinutes > 0) {
-      return t("notificationsScreen.body.shiftStartsInMinutes", {
-        smartAlertMinutes,
-      });
-    }
-    return t("notificationsScreen.body.shiftStartsSoon");
-  }
-
-  if (item.type === "coins_earned") {
-    const rewardCoins = Number((metadata as any)?.rewardCoins);
-    const rank = Number((metadata as any)?.rank);
-    const periodType = String((metadata as any)?.periodType || "").trim().toLowerCase();
-    const periodLabel =
-      periodType === "monthly"
-        ? "monthly"
-        : periodType === "weekly"
-          ? "weekly"
-          : periodType === "daily"
-            ? "daily"
-            : "leaderboard";
-
-    if (Number.isFinite(rewardCoins) && rewardCoins > 0) {
-      if (Number.isFinite(rank) && rank > 0) {
-        return t("notificationsScreen.body.coinsEarnedWithRank", {
-          rank,
-          periodLabel,
-          rewardCoins,
-        });
-      }
-      return t("notificationsScreen.body.coinsEarnedLeaderboard", {
-        rewardCoins,
-        periodLabel,
-      });
-    }
-  }
-
-  if (item.type === "shift_assigned") {
-    const businessName = String((metadata as any)?.businessName || "").trim();
-    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    if (businessName && formattedShiftDate) {
-      return t("notificationsScreen.body.shiftAssignedByBusinessOnDate", {
-        businessName,
-        formattedShiftDate,
-      });
-    }
-    if (formattedShiftDate) {
-      return t("notificationsScreen.body.shiftAssignedOnDate", {
-        formattedShiftDate,
-      });
-    }
-    return t("notificationsScreen.body.shiftAssigned");
-  }
-
-  if (item.type === "shift_cancelled") {
-    const businessName = String((metadata as any)?.businessName || "").trim();
-    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    if (businessName && formattedShiftDate) {
-      return t("notificationsScreen.body.shiftCancelledByBusinessOnDate", {
-        businessName,
-        formattedShiftDate,
-      });
-    }
-    if (formattedShiftDate) {
-      return t("notificationsScreen.body.shiftCancelledOnDate", {
-        formattedShiftDate,
-      });
-    }
-    return t("notificationsScreen.body.shiftCancelled");
-  }
-
-  if (item.type === "shift_swap_requested") {
-    const requesterName = String((metadata as any)?.requesterName || "").trim();
-    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    if (requesterName && formattedShiftDate) {
-      return t("notificationsScreen.body.shiftSwapRequestedByOnDate", {
-        requesterName,
-        formattedShiftDate,
-      });
-    }
-    if (requesterName) {
-      return t("notificationsScreen.body.shiftSwapRequestedBy", {
-        requesterName,
-      });
-    }
-    return t("notificationsScreen.body.shiftSwapRequested");
-  }
-
-  if (item.type === "shift_swap_approved") {
-    const acceptedByName = String((metadata as any)?.acceptedByName || "").trim();
-    const shiftDateRaw = String((metadata as any)?.shiftDate || "").trim();
-    const shiftDate = shiftDateRaw ? new Date(shiftDateRaw) : null;
-    const formattedShiftDate =
-      shiftDate && !Number.isNaN(shiftDate.getTime())
-        ? shiftDate.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })
-        : shiftDateRaw;
-
-    if (acceptedByName && formattedShiftDate) {
-      return t("notificationsScreen.body.shiftSwapApprovedByOnDate", {
-        acceptedByName,
-        formattedShiftDate,
-      });
-    }
-    if (acceptedByName) {
-      return t("notificationsScreen.body.shiftSwapApprovedBy", {
-        acceptedByName,
-      });
-    }
-    return t("notificationsScreen.body.shiftSwapApproved");
-  }
-
-  if (item.type === "achievement_unlocked") {
-    const achievementTitle = String((metadata as any)?.achievementTitle || "").trim();
-    const rewardCoins = Number((metadata as any)?.rewardCoins);
-    if (achievementTitle && Number.isFinite(rewardCoins) && rewardCoins > 0) {
-      return t("notificationsScreen.body.achievementCompletedWithReward", {
-        achievementTitle,
-        rewardCoins,
-      });
-    }
-    if (achievementTitle) {
-      return t("notificationsScreen.body.achievementCompleted", {
-        achievementTitle,
-      });
-    }
-    return t("notificationsScreen.body.achievementUnlocked");
-  }
-
-  if (translated) return translated;
-  if (raw) return raw;
-  return t("notificationsScreen.body.newNotification");
-};
+) =>
+  resolveNotificationText(
+    {
+      type: item.type,
+      event: item.event,
+      title: item.title,
+      message: item.message,
+      metadata: item.metadata,
+      actions: item.actions,
+      relatedEntityType: item.relatedEntityType,
+      relatedEntityId: item.relatedEntityId,
+    },
+    t
+  );
 
 const NotificationScreen = () => {
   const { t } = useTranslation();
@@ -617,9 +322,12 @@ const NotificationScreen = () => {
       if (
         actionKey === "view_shift_assignment" ||
         actionKey === "view_shift_swap" ||
+        actionKey === "review_shift_request" ||
         item.type === "shift_swap_requested" ||
         item.type === "shift_swap_approved" ||
+        item.type === "shift_changed" ||
         targetType === "shift_assignment" ||
+        targetType === "shift_request" ||
         item.relatedEntityType === "shift_assignment"
       ) {
         if (!shiftAssignmentId) {
@@ -647,6 +355,10 @@ const NotificationScreen = () => {
           router.push("/screens/rewards/challenges");
         }
         return;
+      }
+
+      if (actionKey === "view_business_update" || actionKey === "view_system_notice") {
+        router.push("/screens/notifications");
       }
     },
     [markNotificationAsRead, t]
@@ -705,11 +417,12 @@ const NotificationScreen = () => {
         renderItem={({ item: entry, index }) => {
           const { item, timeTitle } = entry;
           const visual = resolveNotificationVisual(item.type);
+          const resolvedCopy = resolveNotificationCopy(item, t);
           return (
             <NotificationCard
               timeTitle={timeTitle}
-              title={resolveNotificationTitle(item, t)}
-              details={resolveNotificationBody(item, t)}
+              title={resolvedCopy.title}
+              details={resolvedCopy.body}
               time={formatRelativeTime(item.createdAt, t)}
               onPress={() => handleNotificationPress(item)}
               isUnread={!item.isRead}
