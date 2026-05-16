@@ -365,7 +365,15 @@ const PublicBusinessProfile = () => {
                     />
                   </View>
                 </View>
-              ) : null}
+              ) : <View className="absolute -bottom-11 left-6">
+                <View className="h-[90px] w-[90px] bg-white flex-row justify-center items-center rounded-full">
+                  <Image
+                    source={require("@/assets/images/placeholder.png")}
+                    contentFit="cover"
+                    style={{ height: 86, width: 86, borderRadius: 100 }}
+                  />
+                </View>
+              </View>}
 
               {businessData?.isRecruiting ? (
                 <View className="absolute -bottom-3 right-6">

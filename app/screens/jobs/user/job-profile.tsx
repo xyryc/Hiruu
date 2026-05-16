@@ -141,7 +141,7 @@ const JobProfile = () => {
   const companyName = job?.business?.name || "Farout Beach Club";
   const companyLogo =
     resolveMediaUrl(job?.business?.logo) ||
-    "https://images-platform.99static.com//gkoGE5-VZ1k4SXxg0mrUj7O0V38=/250x0:1750x1500/fit-in/500x500/99designs-contests-attachments/102/102585/attachment_102585463";
+    require("@/assets/images/placeholder.png")
   const companyRatingValue = Math.max(
     0,
     Math.min(5, Number(job?.business?.rating ?? 0))
