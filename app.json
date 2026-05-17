@@ -118,6 +118,7 @@
       ],
       "expo-web-browser",
       "expo-localization",
+      "./plugins/withNotificationServiceLocalization",
       "expo-audio",
       "expo-asset",
       [
@@ -133,6 +134,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "notificationServiceExtensionSuffix": "nsext",
       "router": {},
       "eas": {
         "projectId": "37ca5d2f-44fb-4783-ab28-c8b32b0b2d21"
