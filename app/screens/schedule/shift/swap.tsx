@@ -4,8 +4,8 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import SearchBar from "@/components/ui/inputs/SearchBar";
 import SwapRequestModal from "@/components/ui/modals/SwapRequestModal";
 import { useBusinessStore } from "@/stores/businessStore";
-import { BusinessColleagueItem, useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
+import axiosInstance from "@/utils/axios";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -19,6 +19,22 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
+
+type SwapCandidateItem = {
+  id: string;
+  user?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    avatar?: string | null;
+  };
+  role?: {
+    role?: {
+      id?: string;
+      name?: string;
+    };
+  };
+};
 
 const SwapColleagueRowSkeleton = () => (
   <View className="flex-row items-center pb-3 mb-3 border-b border-[#0B113C1A]">
@@ -40,7 +56,6 @@ const SwapShiftsRequest = () => {
   const params = useLocalSearchParams<{
     businessId?: string | string[];
     shiftAssignmentId?: string | string[];
-    employmentId?: string | string[];
   }>();
   const businessIdFromParams = Array.isArray(params.businessId)
     ? params.businessId[0]
@@ -48,44 +63,45 @@ const SwapShiftsRequest = () => {
   const shiftAssignmentIdFromParams = Array.isArray(params.shiftAssignmentId)
     ? params.shiftAssignmentId[0]
     : params.shiftAssignmentId;
-  const employmentIdFromParams = Array.isArray(params.employmentId)
-    ? params.employmentId[0]
-    : params.employmentId;
   const selectedBusinesses = useBusinessStore((state) => state.selectedBusinesses);
   const resolvedBusinessId = businessIdFromParams || selectedBusinesses?.[0] || "";
 
-  const getBusinessColleagues = useShiftStore((state) => state.getBusinessColleagues);
-  const createShiftRequest = useShiftStore((state) => state.createShiftRequest);
-  const createShiftRequestLoading = useShiftStore(
-    (state) => state.createShiftRequestLoading
-  );
   const [showModal, setShowModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [colleagues, setColleagues] = useState<BusinessColleagueItem[]>([]);
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [candidates, setCandidates] = useState<SwapCandidateItem[]>([]);
 
   useEffect(() => {
     let active = true;
 
     const loadColleagues = async () => {
-      if (!resolvedBusinessId) {
-        if (active) setColleagues([]);
+      if (!resolvedBusinessId || !shiftAssignmentIdFromParams) {
+        if (active) setCandidates([]);
         return;
       }
 
       try {
         if (active) setIsLoading(true);
-        const response = await getBusinessColleagues(resolvedBusinessId);
+        const response = await axiosInstance.get(
+          `/shift-assignment/${resolvedBusinessId}/${shiftAssignmentIdFromParams}/swap-candidates`
+        );
+        const result = response?.data;
+
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to fetch swap candidates");
+        }
+
         if (active) {
-          setColleagues(Array.isArray(response) ? response : []);
+          setCandidates(Array.isArray(result?.data) ? result.data : []);
         }
       } catch (error: any) {
         if (active) {
           toast.error(
             translateApiMessage(error?.message || "failed_to_load_colleagues")
           );
-          setColleagues([]);
+          setCandidates([]);
         }
       } finally {
         if (active) setIsLoading(false);
@@ -97,35 +113,36 @@ const SwapShiftsRequest = () => {
     return () => {
       active = false;
     };
-  }, [getBusinessColleagues, resolvedBusinessId]);
+  }, [resolvedBusinessId, shiftAssignmentIdFromParams]);
 
   const filteredColleagues = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return colleagues;
+    if (!q) return candidates;
 
-    return colleagues.filter((item) => {
+    return candidates.filter((item) => {
       const name = item?.user?.name || "";
-      const role = item?.role?.name || "";
-      return `${name} ${role}`.toLowerCase().includes(q);
+      const email = item?.user?.email || "";
+      const role = item?.role?.role?.name || "";
+      return `${name} ${email} ${role}`.toLowerCase().includes(q);
     });
-  }, [colleagues, search]);
+  }, [candidates, search]);
   const skeletonRows = useMemo(
     () => Array.from({ length: 8 }, (_, index) => `swap-colleague-skeleton-${index}`),
     []
   );
 
-  const isSelected = (employmentId: string) => selectedUsers.includes(employmentId);
+  const isSelected = (candidateId: string) => selectedUsers.includes(candidateId);
 
-  const toggleUser = (employmentId: string) => {
+  const toggleUser = (candidateId: string) => {
     setSelectedUsers((prev) =>
-      prev.includes(employmentId)
-        ? prev.filter((id) => id !== employmentId)
-        : [...prev, employmentId]
+      prev.includes(candidateId)
+        ? prev.filter((id) => id !== candidateId)
+        : [...prev, candidateId]
     );
   };
 
   const handleSendRequest = async () => {
-    if (!employmentIdFromParams || !shiftAssignmentIdFromParams) {
+    if (!resolvedBusinessId || !shiftAssignmentIdFromParams) {
       toast.error("Missing shift context for swap request");
       return;
     }
@@ -136,17 +153,27 @@ const SwapShiftsRequest = () => {
     }
 
     try {
-      await createShiftRequest({
-        employmentId: employmentIdFromParams,
-        type: "shift_swap",
-        shiftAssignmentId: shiftAssignmentIdFromParams,
-        targetEmploymentIds: selectedUsers,
-      });
+      setRequestLoading(true);
+      const response = await axiosInstance.post(
+        `/shift-assignment/${resolvedBusinessId}/${shiftAssignmentIdFromParams}/request-swap`,
+        {
+          targetEmploymentIds: selectedUsers,
+          reason: "",
+        }
+      );
+      const result = response?.data;
+
+      if (!result?.success) {
+        throw new Error(result?.message || "Failed to submit swap request");
+      }
+
       setShowModal(true);
     } catch (error: any) {
       toast.error(
         translateApiMessage(error?.message || "failed_to_submit_swap_request")
       );
+    } finally {
+      setRequestLoading(false);
     }
   };
 
@@ -174,7 +201,7 @@ const SwapShiftsRequest = () => {
 
         <View className="mt-4 flex-1">
           <Text className="font-semibold text-primary dark:text-dark-primary mb-4">
-            Select ({Math.max(colleagues.length - selectedUsers.length, 0)}/{colleagues.length})
+            Select ({Math.max(candidates.length - selectedUsers.length, 0)}/{candidates.length})
           </Text>
 
           {isLoading ? (
@@ -188,15 +215,16 @@ const SwapShiftsRequest = () => {
           ) : (
             <ScrollView showsVerticalScrollIndicator={false}>
               {filteredColleagues.map((item) => {
-                const employmentId = item?.employmentId;
+                const candidateId = item?.id;
+                if (!candidateId) return null;
                 const avatar = item?.user?.avatar;
                 const name = item?.user?.name || "User";
-                const selected = isSelected(employmentId);
+                const selected = isSelected(candidateId);
 
                 return (
                   <TouchableOpacity
-                    key={employmentId}
-                    onPress={() => toggleUser(employmentId)}
+                    key={candidateId}
+                    onPress={() => toggleUser(candidateId)}
                     className="flex-row items-center pb-3 mb-3 border-b border-[#0B113C1A]"
                   >
                     <View className="rounded-full mr-4 justify-center items-center">
@@ -243,8 +271,8 @@ const SwapShiftsRequest = () => {
           className="mx-5"
           title="Send Request"
           onPress={handleSendRequest}
-          loading={createShiftRequestLoading}
-          disabled={createShiftRequestLoading}
+          loading={requestLoading}
+          disabled={requestLoading}
         />
       </View>
 
