@@ -21,6 +21,9 @@ type ShiftStoreState = {
   myShifts: any[];
   myShiftsLoading: boolean;
   myShiftsError: string | null;
+  myShiftsMeta: {
+    nextShiftAt?: string | null;
+  } | null;
   homeShifts: any[];
   homeShiftsLoading: boolean;
   homeShiftsError: string | null;
@@ -359,6 +362,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
   myShifts: [],
   myShiftsLoading: false,
   myShiftsError: null,
+  myShiftsMeta: null,
   homeShifts: [],
   homeShiftsLoading: false,
   homeShiftsError: null,
@@ -402,7 +406,18 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
       }
 
       const shifts = Array.isArray(result?.data) ? result.data : [];
-      set({ myShifts: shifts, myShiftsLoading: false });
+      const nextShiftAtRaw = result?.metadata?.nextShiftAt;
+      const nextShiftAt =
+        typeof nextShiftAtRaw === "string" && nextShiftAtRaw.trim().length > 0
+          ? nextShiftAtRaw
+          : null;
+      set({
+        myShifts: shifts,
+        myShiftsLoading: false,
+        myShiftsMeta: {
+          nextShiftAt,
+        },
+      });
       return shifts;
     } catch (error: any) {
       const message = error?.message || "Failed to load shifts";
@@ -410,6 +425,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
         myShifts: [],
         myShiftsLoading: false,
         myShiftsError: message,
+        myShiftsMeta: null,
       });
       throw error;
     }

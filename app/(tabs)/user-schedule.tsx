@@ -29,7 +29,7 @@ const ShiftSchedule = () => {
     selectedEmploymentBusinessIds,
     setSelectedEmploymentBusinessIds,
   } = useJobStore();
-  const { myShifts, myShiftsLoading, fetchMyShifts } = useShiftStore();
+  const { myShifts, myShiftsLoading, myShiftsMeta, fetchMyShifts } = useShiftStore();
 
   const to12Hour = useCallback((value?: string) => {
     if (!value) return "--:--";
@@ -283,6 +283,21 @@ const ShiftSchedule = () => {
     return modalBusinesses[0];
   }, [modalBusinesses, selectedEmploymentBusinessIds]);
 
+  const fallbackNextShiftTime = useMemo(() => {
+    const raw = myShiftsMeta?.nextShiftAt;
+    if (!raw) return undefined;
+    return DateTime.fromISO(raw, { zone: "utc" })
+      .setZone(timezone || "UTC")
+      .toFormat("d LLL yyyy, h:mm a");
+  }, [myShiftsMeta?.nextShiftAt, timezone]);
+  const fallbackNextShiftDate = useMemo(() => {
+    const raw = myShiftsMeta?.nextShiftAt;
+    if (!raw) return undefined;
+    return DateTime.fromISO(raw, { zone: "utc" })
+      .setZone(timezone || "UTC")
+      .toFormat("yyyy-MM-dd");
+  }, [myShiftsMeta?.nextShiftAt, timezone]);
+
   // Get display content for header button
   const getDisplayContent = () => {
     if (selectedEmploymentBusinessIds.length === 0 || modalBusinesses.length === 0) {
@@ -370,7 +385,10 @@ const ShiftSchedule = () => {
             shift={{
               subtitle: "No shifts scheduled for this day.",
               companyLogo: selectedBusinessForFallback?.logo,
-              workTime: "--:--",
+              workTime: fallbackNextShiftTime,
+              onPressNextShift: fallbackNextShiftDate
+                ? () => setSelectedDate(fallbackNextShiftDate)
+                : undefined,
             }}
           />
         )}

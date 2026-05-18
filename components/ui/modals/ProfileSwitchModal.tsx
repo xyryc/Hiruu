@@ -66,6 +66,10 @@ const ProfileSwitchModal = ({
           shouldFetchProfile
             ? getProfile()
               .then((result) => {
+                console.log(
+                  "[ProfileSwitchModal] getProfile raw response",
+                  JSON.stringify(result, null, 2)
+                );
                 if (isMounted) {
                   setProfile(result.data);
                 }
@@ -173,7 +177,8 @@ const ProfileSwitchModal = ({
                   />
                   <View className="flex-1 ml-3">
                     <Text className="font-proximanova-semibold text-primary">
-                      {profile?.name || t("user.profile.userProfile")}
+                      {profile?.name ||
+                        t("user.profile.userProfileLabel", { defaultValue: "User profile" })}
                     </Text>
                     {!!profile?.email && (
                       <Text className="text-xs text-secondary">{profile.email}</Text>

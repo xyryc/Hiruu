@@ -284,19 +284,24 @@ const Assign = () => {
             members.map((item: any) => (
               <TouchableOpacity
                 key={item?.employmentId}
-                onPress={() =>
-                  item?.isAvailable !== false &&
-                  selectedRoleId &&
-                  (selectedRoleMemberIds.includes(item?.employmentId) || !selectedRoleIsFull)
-                    ? handleToggleEmployee(selectedRoleId, item?.employmentId)
-                    : undefined
-                }
+                onPress={() => {
+                  if (!selectedRoleId) return;
+
+                  const isSelected = selectedRoleMemberIds.includes(item?.employmentId);
+                  if (isSelected) {
+                    handleToggleEmployee(selectedRoleId, item?.employmentId);
+                    return;
+                  }
+
+                  if (item?.isAvailable === false || selectedRoleIsFull) return;
+                  handleToggleEmployee(selectedRoleId, item?.employmentId);
+                }}
                 className={`flex-row items-center p-4 mt-4 rounded-xl border ${
-                  item?.isAvailable === false
-                    ? "border-[#eeeeee] opacity-60"
-                    : !selectedRoleMemberIds.includes(item?.employmentId) && selectedRoleIsFull
+                  selectedRoleMemberIds.includes(item?.employmentId)
+                    ? "border-[#eeeeee]"
+                    : item?.isAvailable === false || selectedRoleIsFull
                       ? "border-[#eeeeee] opacity-60"
-                    : "border-[#eeeeee]"
+                      : "border-[#eeeeee]"
                 }`}
               >
                 <Image
