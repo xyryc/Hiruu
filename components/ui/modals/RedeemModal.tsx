@@ -43,7 +43,7 @@ const RedeemModal = ({
       transparent
       onRequestClose={onClose}
     >
-      <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
+      <BlurView intensity={80} tint="dark" className="flex-1" style={{ flex: 1, justifyContent: "flex-end" }}>
         <View className="bg-white rounded-t-3xl">
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
             <TouchableOpacity onPress={handleDone}>

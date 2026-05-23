@@ -62,7 +62,7 @@ const AssignRoleModal = ({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
+      <BlurView intensity={80} tint="dark" className="flex-1" style={{ flex: 1, justifyContent: "flex-end" }}>
         <View
           style={{ justifyContent: "flex-end", paddingBottom: keyboardInset }}
           className="flex-1"

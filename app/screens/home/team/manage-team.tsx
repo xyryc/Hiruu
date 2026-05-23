@@ -833,7 +833,7 @@ const ManageTeamPanel = () => {
           setShowFireModal(false);
         }}
       >
-        <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
+        <BlurView intensity={80} tint="dark" className="flex-1" style={{ flex: 1, justifyContent: "flex-end" }}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => {

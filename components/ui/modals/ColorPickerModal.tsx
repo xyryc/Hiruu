@@ -69,7 +69,7 @@ const ColorPickerModal = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
+      <BlurView intensity={80} tint="dark" className="flex-1" style={{ flex: 1, justifyContent: "flex-end" }}>
         <View className="bg-white dark:bg-dark-card rounded-t-3xl p-6">
           {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">
