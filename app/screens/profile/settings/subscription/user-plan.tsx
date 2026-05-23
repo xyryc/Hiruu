@@ -3,7 +3,7 @@ import GradientButton from "@/components/ui/buttons/GradientButton";
 import { ActiveSubscriptionItem, billingService } from '@/services/billingService';
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";

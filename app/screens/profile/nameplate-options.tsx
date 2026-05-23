@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";

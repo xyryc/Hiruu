@@ -7,7 +7,7 @@ import { ActiveSubscriptionItem, billingService } from "@/services/billingServic
 import { useBusinessStore } from "@/stores/businessStore";
 import { useSubscriptionStore } from "@/stores/subscriptionStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";

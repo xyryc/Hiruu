@@ -6,7 +6,7 @@ import {
 } from "@expo/vector-icons";
 import { ChatInputProps } from "@/types";
 import { Image } from "expo-image";
-import { EmojiSheetModule } from "expo-native-sheet-emojis";
+// import { EmojiSheetModule } from "expo-native-sheet-emojis";
 import React from "react";
 import {
   ActivityIndicator,
@@ -70,29 +70,29 @@ const ChatInput = ({
     }
   };
 
-  const handlePickEmoji = async () => {
-    if (disabled || isSending) {
-      return;
-    }
+  // const handlePickEmoji = async () => {
+  //   if (disabled || isSending) {
+  //     return;
+  //   }
 
-    try {
-      const result = await EmojiSheetModule.present({
-        theme: colorScheme === "dark" ? "dark" : "light",
-        layoutDirection: I18nManager.isRTL ? "rtl" : "ltr",
-        showSearch: true,
-      });
+  //   try {
+  //     const result = await EmojiSheetModule.present({
+  //       theme: colorScheme === "dark" ? "dark" : "light",
+  //       layoutDirection: I18nManager.isRTL ? "rtl" : "ltr",
+  //       showSearch: true,
+  //     });
 
-      if ("cancelled" in result) {
-        return;
-      }
+  //     if ("cancelled" in result) {
+  //       return;
+  //     }
 
-      const next = `${message}${result.emoji}`;
-      handleTextChange(next);
-      inputRef.current?.focus();
-    } catch (error) {
-      console.error("[ChatInput] Failed to open emoji sheet:", error);
-    }
-  };
+  //     const next = `${message}${result.emoji}`;
+  //     handleTextChange(next);
+  //     inputRef.current?.focus();
+  //   } catch (error) {
+  //     console.error("[ChatInput] Failed to open emoji sheet:", error);
+  //   }
+  // };
 
   return (
     <View className="px-4 py-3.5 border-t border-[#ECECEC]">
@@ -129,7 +129,9 @@ const ChatInput = ({
 
       <View className="flex-row items-center gap-3">
         <View className="px-3.5 py-1.5 flex-1 bg-[#F5F5F5] rounded-full flex-row items-center gap-1.5 min-h-12">
-          <TouchableOpacity disabled={disabled || isSending} onPress={handlePickEmoji}>
+          <TouchableOpacity disabled={disabled || isSending}
+          // onPress={handlePickEmoji}
+          >
             <MaterialCommunityIcons
               name="emoticon-outline"
               size={22}

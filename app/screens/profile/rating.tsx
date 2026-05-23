@@ -5,7 +5,7 @@ import RatingCard from "@/components/ui/cards/RatingCard";
 import RatingBar from "@/components/ui/inputs/RatingBar";
 import RatingStarModal from "@/components/ui/modals/RatingStarModal";
 import { useProfileStore } from "@/stores/profileStore";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";

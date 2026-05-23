@@ -6,7 +6,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { Image } from "expo-image";
 import { getCalendars } from "expo-localization";
 import { router } from "expo-router";
-import React, { useEffect } from "react";
+import { useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from "react-native";
 import { toast } from "sonner-native";
 

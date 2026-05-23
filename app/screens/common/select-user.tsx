@@ -3,7 +3,7 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import { SelectableUser, useUserSelectionStore } from "@/stores/userSelectionStore";
 import axiosInstance from "@/utils/axios";
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";

@@ -8,7 +8,7 @@ import { useRewardStore } from "@/stores/rewardStore";
 import { useUserSelectionStore } from "@/stores/userSelectionStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { t } from "i18next";

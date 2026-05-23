@@ -131,7 +131,11 @@ const ProfileSwitchModal = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
+      <BlurView
+        intensity={80}
+        tint="dark"
+        style={{ flex: 1, justifyContent: "flex-end" }}
+      >
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}

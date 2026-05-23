@@ -4,7 +4,7 @@ import { useShiftStore } from "@/stores/shiftStore";
 import { ApiShift, ShiftCardData, TodaysShiftProps } from "@/types";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { formatUTCToLocalTime, utcTimeToLocal } from "@/utils/timezone";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "expo-router";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

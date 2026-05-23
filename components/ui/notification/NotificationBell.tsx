@@ -2,7 +2,7 @@ import { useNotificationStore } from "@/stores/notificationStore";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
 type NotificationBellProps = {

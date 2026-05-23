@@ -5,7 +5,7 @@ import { walletService } from "@/services/walletService";
 import { useAuthStore } from "@/stores/authStore";
 import { useRewardStore } from "@/stores/rewardStore";
 import { translateApiMessage } from "@/utils/apiMessages";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";

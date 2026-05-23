@@ -8,7 +8,7 @@ import PreviewTemplateModal from "@/components/ui/modals/PreviewTemplateModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { usePreferencesStore } from "@/stores/preferencesStore";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";

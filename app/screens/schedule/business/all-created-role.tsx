@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import DeleteConfirmModal from "@/components/ui/modals/DeleteConfirmModal";
 import { useBusinessStore } from "@/stores/businessStore";
 import { Entypo, Feather } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";

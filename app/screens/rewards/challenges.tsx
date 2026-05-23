@@ -8,7 +8,7 @@ import {
 } from "@/stores/achievementStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";

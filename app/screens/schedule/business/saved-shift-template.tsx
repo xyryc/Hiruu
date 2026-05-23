@@ -2,7 +2,7 @@ import ScreenHeader from "@/components/header/ScreenHeader";
 import ShiftTemplateCard from "@/components/ui/cards/ShiftTemplateCard";
 import DeleteConfirmModal from "@/components/ui/modals/DeleteConfirmModal";
 import { useBusinessStore } from "@/stores/businessStore";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";

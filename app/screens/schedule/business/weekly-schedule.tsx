@@ -4,7 +4,7 @@ import PrimaryButton from "@/components/ui/buttons/PrimaryButton";
 import ShiftTemplateCard from "@/components/ui/cards/ShiftTemplateCard";
 import { useBusinessStore } from "@/stores/businessStore";
 import { Ionicons, SimpleLineIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { router, useLocalSearchParams } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";

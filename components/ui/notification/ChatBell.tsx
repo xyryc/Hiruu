@@ -1,7 +1,7 @@
 import { chatService } from "@/services/chatService";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 

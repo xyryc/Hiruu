@@ -3,7 +3,7 @@ import SwapRequestCard from "@/components/ui/cards/SwapRequestCard";
 import StatusStateCard from "@/components/ui/states/StatusStateCard";
 import { useShiftStore } from "@/stores/shiftStore";
 import { EvilIcons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";

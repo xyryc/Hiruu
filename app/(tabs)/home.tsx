@@ -19,7 +19,7 @@ import ActionCard from '@/components/ui/cards/ActionCard';
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { useRouter } from 'expo-router';
 import { t } from "i18next";
 import React, { useCallback, useMemo, useState } from "react";

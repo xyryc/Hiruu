@@ -21,7 +21,7 @@ const ShareVia = ({ visible, onClose }: any) => {
       transparent={true}
       onRequestClose={handleDone}
     >
-      <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
+      <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
         <View className="bg-white rounded-t-3xl max-h-[60%]">
           {/* Close Button */}
           <View className="absolute -top-24 inset-x-0 items-center pt-4 pb-2">

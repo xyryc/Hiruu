@@ -9,7 +9,7 @@ import { useBusinessStore } from "@/stores/businessStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import { AntDesign, Entypo, EvilIcons, Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -833,7 +833,7 @@ const ManageTeamPanel = () => {
           setShowFireModal(false);
         }}
       >
-        <BlurView intensity={80} tint="dark" className="flex-1 justify-end">
+        <BlurView intensity={80} tint="dark" className="flex-1" style={{ justifyContent: "flex-end" }}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => {

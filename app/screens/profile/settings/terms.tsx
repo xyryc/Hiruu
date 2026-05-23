@@ -1,6 +1,6 @@
 import ScreenHeader from "@/components/header/ScreenHeader";
 import { useSettingsStore } from "@/stores/settingsStore";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useCallback } from "react";
