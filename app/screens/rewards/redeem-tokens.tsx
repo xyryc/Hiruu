@@ -8,12 +8,12 @@ import { useRewardStore } from "@/stores/rewardStore";
 import { useUserSelectionStore } from "@/stores/userSelectionStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import { Feather } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useIsFocused } from "expo-router";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { t } from "i18next";
 import { useColorScheme } from "nativewind";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -140,6 +140,9 @@ const RedeemTokens = () => {
   >([]);
   const selectedBusinessId = selectedEmploymentBusinessIds?.[0];
   const [showBusinessModal, setShowBusinessModal] = useState(false);
+  const reopenGiftModalOnReturnRef = useRef(false);
+  const hasNavigatedAwayAfterGiftRef = useRef(false);
+  const isFocused = useIsFocused();
 
   const redeemBusinesses = useMemo(() => {
     const seen = new Set<string>();
@@ -213,7 +216,24 @@ const RedeemTokens = () => {
 
   const openBusinessSelector = useCallback(async () => {
     try {
-      await getMyEmployments();
+      const employments = await getMyEmployments();
+      const uniqueBusinessIds = Array.from(
+        new Set(
+          (Array.isArray(employments) ? employments : [])
+            .map((employment: any) => employment?.business?.id || employment?.businessId)
+            .filter(Boolean)
+        )
+      ) as string[];
+
+      if (uniqueBusinessIds.length <= 1) {
+        const onlyBusinessId = uniqueBusinessIds[0];
+        if (onlyBusinessId) {
+          setSelectedEmploymentBusinessIds([onlyBusinessId]);
+        }
+        setShowBusinessModal(false);
+        return;
+      }
+
       setShowBusinessModal(true);
     } catch {
       toast.error(t("common.failedToLoadBusinesses"));
@@ -454,6 +474,7 @@ const RedeemTokens = () => {
         translateApiMessage(result?.message || "Redeemed successfully")
       );
       setModalVisible(false);
+      setShowBusinessModal(false);
       await fetchCoreRedeemItems();
       await loadWallet();
     } catch (error: any) {
@@ -499,7 +520,10 @@ const RedeemTokens = () => {
         ],
         selectUserLabel: selectedUser?.name || t("user.profile.redeemTokens.selectUserToGift"),
         selectUserAvatar: selectedUser?.avatar || null,
-        onPressSelectUser: () =>
+        onPressSelectUser: () => {
+          reopenGiftModalOnReturnRef.current = true;
+          hasNavigatedAwayAfterGiftRef.current = false;
+          setModalVisible(false);
           router.push({
             pathname: "/screens/common/select-user",
             params: {
@@ -507,7 +531,8 @@ const RedeemTokens = () => {
               title: t("user.profile.redeemTokens.selectUserToGift"),
               searchPlaceholder: t("common.searchUser"),
             },
-          }),
+          });
+        },
       });
       setModalVisible(true);
     } else if (key === "job") {
@@ -553,6 +578,24 @@ const RedeemTokens = () => {
       router.push("/screens/rewards/nameplate");
     }
   };
+
+  useEffect(() => {
+    if (!isFocused) {
+      if (reopenGiftModalOnReturnRef.current) {
+        hasNavigatedAwayAfterGiftRef.current = true;
+      }
+      return;
+    }
+
+    if (
+      reopenGiftModalOnReturnRef.current &&
+      hasNavigatedAwayAfterGiftRef.current
+    ) {
+      reopenGiftModalOnReturnRef.current = false;
+      hasNavigatedAwayAfterGiftRef.current = false;
+      handleModal("gift");
+    }
+  }, [coreRedeemItems, isFocused, selectedUser, totalTokens]);
 
   return (
     <SafeAreaView
@@ -796,6 +839,7 @@ const RedeemTokens = () => {
         visible={modalVisible}
         onClose={() => {
           setModalVisible(false);
+          setShowBusinessModal(false);
           setSelectedRedeemKey(null);
         }}
         data={data}
