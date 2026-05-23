@@ -138,6 +138,12 @@ const PerformanceTrend = ({ className }: any) => {
 
         const data = await getBusinessPerformanceTrends(selectedBusinessId, graphType);
         if (!mounted || !data) return;
+        if (__DEV__) {
+          console.log(
+            "[PerformanceTrend] raw trend api response",
+            JSON.stringify(data, null, 2)
+          );
+        }
 
         const summary = data?.summary;
         const series = Array.isArray(data?.series) ? data.series : [];

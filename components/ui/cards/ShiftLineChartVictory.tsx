@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Dimensions, ScrollView, Text, View } from "react-native";
-import { CartesianChart, Line } from "victory-native";
+import { LineChart } from "react-native-chart-kit";
 
 const { width } = Dimensions.get("window");
 
@@ -30,7 +30,7 @@ const ShiftsLineChartVictory = ({
   const chartScrollRef = useRef<ScrollView | null>(null);
   const autoFocusKeyRef = useRef("");
   const isDaily = graphType === "daily";
-  const perPointWidth = isDaily ? 68 : graphType === "monthly" ? 50 : 46;
+  const perPointWidth = isDaily ? 68 : graphType === "monthly" ? 50 : 64;
   const visibleChartWidth = width - 80;
 
   const fallbackCompleted = [
@@ -42,8 +42,7 @@ const ShiftsLineChartVictory = ({
 
   const chartCompleted =
     completedShifts.length > 0 ? completedShifts : fallbackCompleted;
-  const chartMissed =
-    missedShifts.length > 0 ? missedShifts : fallbackMissed;
+  const chartMissed = missedShifts.length > 0 ? missedShifts : fallbackMissed;
 
   const chartData = useMemo<TrendDatum[]>(
     () =>
@@ -57,15 +56,8 @@ const ShiftsLineChartVictory = ({
 
   const chartWidth = Math.max(
     visibleChartWidth,
-    Math.max(1, chartData.length) * perPointWidth + 72
+    Math.max(1, chartData.length) * perPointWidth + 64
   );
-
-  const xTickCount = useMemo(() => {
-    const pointCount = Math.max(2, chartData.length);
-    if (graphType === "daily") return Math.min(pointCount, 10);
-    if (graphType === "monthly") return Math.min(pointCount, 6);
-    return Math.min(pointCount, 6);
-  }, [chartData.length, graphType]);
 
   const latestNonZeroIndex = useMemo(
     () =>
@@ -78,31 +70,50 @@ const ShiftsLineChartVictory = ({
   );
 
   const focusKey = useMemo(() => {
-    const completedTotal = chartData.reduce(
-      (sum, item) => sum + item.completed,
-      0
-    );
-    const missedTotal = chartData.reduce(
-      (sum, item) => sum + item.missed,
-      0
-    );
+    const completedTotal = chartData.reduce((sum, item) => sum + item.completed, 0);
+    const missedTotal = chartData.reduce((sum, item) => sum + item.missed, 0);
     return `${graphType}:${chartData.length}:${latestNonZeroIndex}:${completedTotal}:${missedTotal}`;
   }, [chartData, graphType, latestNonZeroIndex]);
+
+  const yAxisMax = useMemo(() => {
+    const maxValue = chartData.reduce(
+      (max, point) => Math.max(max, point.completed, point.missed),
+      0
+    );
+    if (maxValue <= 0) return 5;
+    if (maxValue <= 5) return 5;
+    return Math.ceil(maxValue / 5) * 5;
+  }, [chartData]);
+
+  const normalizedChartData = useMemo(() => {
+    if (chartData.length !== 1) return chartData;
+    const only = chartData[0];
+    return [only, { ...only, label: "" }];
+  }, [chartData]);
+
+  const labels = useMemo(
+    () => normalizedChartData.map((item) => item.label || ""),
+    [normalizedChartData]
+  );
+  const completedValues = useMemo(
+    () => normalizedChartData.map((item) => item.completed),
+    [normalizedChartData]
+  );
+  const missedValues = useMemo(
+    () => normalizedChartData.map((item) => item.missed),
+    [normalizedChartData]
+  );
 
   useEffect(() => {
     if (graphType !== "daily") return;
     if (autoFocusKeyRef.current === focusKey) return;
     autoFocusKeyRef.current = focusKey;
 
-    const targetIndex =
-      latestNonZeroIndex >= 0
-        ? latestNonZeroIndex
-        : chartData.length - 1;
+    const targetIndex = latestNonZeroIndex >= 0 ? latestNonZeroIndex : chartData.length - 1;
 
     const targetX = Math.max(
       0,
-      Math.max(0, targetIndex) * perPointWidth -
-      visibleChartWidth * 0.55
+      Math.max(0, targetIndex) * perPointWidth - visibleChartWidth * 0.55
     );
 
     const run = () =>
@@ -151,41 +162,67 @@ const ShiftsLineChartVictory = ({
         nestedScrollEnabled
         showsHorizontalScrollIndicator
       >
-        <View style={{ width: chartWidth, height: 220 }}>
-          <CartesianChart
-            key={focusKey}
-            data={chartData}
-            xKey={"label"}
-            yKeys={["completed", "missed"]}
-            axisOptions={{
-              tickCount: {
-                x: xTickCount,
-                y: 5,
+        <LineChart
+          key={focusKey}
+          data={{
+            labels,
+            datasets: [
+              {
+                data: completedValues,
+                color: () => "#22C55E",
+                strokeWidth: 2.5,
               },
-              labelColor: "#6B7280",
-              formatYLabel: (value) =>
-                `${Math.max(0, Number(value) || 0)}`,
-              formatXLabel: (value) => `${value ?? ""}`,
-            }}
-          >
-            {({ points }) => (
-              <>
-                <Line
-                  points={points.completed}
-                  color="#22C55E"
-                  strokeWidth={2.5}
-                  curveType="catmullRom"
-                />
-                <Line
-                  points={points.missed}
-                  color="#EF4444"
-                  strokeWidth={2.5}
-                  curveType="catmullRom"
-                />
-              </>
-            )}
-          </CartesianChart>
-        </View>
+              {
+                data: missedValues,
+                color: () => "#EF4444",
+                strokeWidth: 2.5,
+              },
+            ],
+          }}
+          width={chartWidth}
+          height={220}
+          fromZero
+          withInnerLines
+          withOuterLines={false}
+          withVerticalLines={false}
+          withHorizontalLines
+          withVerticalLabels
+          withHorizontalLabels
+          yAxisInterval={1}
+          segments={5}
+          bezier
+          xLabelsOffset={10}
+          chartConfig={{
+            backgroundColor: "#E5F4FD",
+            backgroundGradientFrom: "#E5F4FD",
+            backgroundGradientTo: "#E5F4FD",
+            decimalPlaces: 0,
+            color: () => "#6B7280",
+            labelColor: () => "#6B7280",
+            strokeWidth: 2,
+            propsForBackgroundLines: {
+              stroke: "#E5E7EB",
+              strokeDasharray: "4,4",
+            },
+            propsForDots: {
+              r: "0",
+            },
+            propsForLabels: {
+              fontSize: 10,
+            },
+          }}
+          style={{
+            borderRadius: 0,
+            marginLeft: 10,
+            paddingRight: 8,
+          }}
+          formatYLabel={(value) => {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return "0";
+            return `${Math.max(0, Math.min(yAxisMax, Math.round(n)))}`;
+          }}
+          formatXLabel={(value) => `${value ?? ""}`}
+        />
       </ScrollView>
 
       <View className="flex-row gap-6 mt-6">
