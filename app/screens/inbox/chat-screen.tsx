@@ -219,6 +219,15 @@ const ChatScreen = () => {
     return String(roomDetails?.type || "").toLowerCase() === "direct" && Boolean(targetParticipantUserId);
   }, [roomDetails?.type, targetParticipantUserId]);
 
+  const handleBackNavigation = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/screens/inbox/chat-list");
+  }, [router]);
+
   const blockStatus = useMemo(() => {
     return roomDetails?.blockStatus || null;
   }, [roomDetails?.blockStatus]);
@@ -880,7 +889,7 @@ const ChatScreen = () => {
           result?.message || "chat_chat_room_hard_deleted_successfully"
         )
       );
-      router.back();
+      handleBackNavigation();
     } catch (error: any) {
       toast.error(
         translateApiMessage(
@@ -892,7 +901,7 @@ const ChatScreen = () => {
     } finally {
       setIsDeletingConversation(false);
     }
-  }, [actualRoomId, router, t]);
+  }, [actualRoomId, handleBackNavigation, t]);
 
   const handleConfirmAction = useCallback(async () => {
     if (confirmAction === "toggle-block") {
@@ -1006,6 +1015,7 @@ const ChatScreen = () => {
             title={chatTitle}
             avatar={chatAvatar}
             isOnline={chatIsOnline}
+            onBackPress={handleBackNavigation}
             onAudioCallPress={handleStartAudioCall}
             onVideoCallPress={handleStartVideoCall}
             onSeeProfilePress={handleSeeProfile}

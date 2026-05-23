@@ -9,6 +9,7 @@ interface ChatScreenHeaderProps {
   title?: string;
   avatar?: string | null;
   isOnline?: boolean;
+  onBackPress?: () => void;
   onAudioCallPress?: () => void;
   onVideoCallPress?: () => void;
   onSeeProfilePress?: () => void;
@@ -26,6 +27,7 @@ const ChatScreenHeader = ({
   title,
   avatar,
   isOnline,
+  onBackPress,
   onAudioCallPress,
   onVideoCallPress,
   onSeeProfilePress,
@@ -45,7 +47,10 @@ const ChatScreenHeader = ({
     return (
       <View className="bg-white px-4 pt-2.5 pb-5 flex-row items-center justify-between border-b border-[#EEEEEE]">
         <View className="flex-row items-center flex-1 min-w-0 mr-2">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <TouchableOpacity
+            onPress={onBackPress || (() => router.back())}
+            className="mr-3"
+          >
             <Ionicons name="arrow-back-outline" size={24} color="black" />
           </TouchableOpacity>
 
@@ -70,7 +75,10 @@ const ChatScreenHeader = ({
   return (
     <View className="bg-white px-4 pt-2.5 pb-5 flex-row items-center justify-between border-b border-[#EEEEEE]">
       <View className="flex-row items-center flex-1 min-w-0 mr-2">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+        <TouchableOpacity
+          onPress={onBackPress || (() => router.back())}
+          className="mr-3"
+        >
           <Ionicons name="arrow-back-outline" size={24} color="black" />
         </TouchableOpacity>
 

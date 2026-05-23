@@ -349,6 +349,15 @@ const ChatList = () => {
     });
   }, [router]);
 
+  const handleBackNavigation = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/(tabs)/home");
+  }, [router]);
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-dark-background" edges={["left", "right", "bottom"]}>
       <StatusBar style={isDark ? "light" : "dark"} backgroundColor="#E5F4FD" translucent={false} />
@@ -359,7 +368,7 @@ const ChatList = () => {
         style={{ paddingTop: insets.top }}
       >
         <ScreenHeader
-          onPressBack={() => router.back()}
+          onPressBack={handleBackNavigation}
           className="px-5 pt-2.5 pb-4"
           title={t("common.chat.messagesTitle")}
           titleClass="text-primary dark:text-dark-primary"
