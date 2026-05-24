@@ -1,5 +1,6 @@
 import axiosInstance from "@/utils/axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetch as expoFetch } from "expo/fetch";
 import { create } from "zustand";
 
 export type BusinessColleagueItem = {
@@ -1163,7 +1164,7 @@ export const useShiftStore = create<ShiftStoreState>((set, get) => ({
           throw new Error("API base URL is missing");
         }
         const accessToken = await AsyncStorage.getItem("auth_access_token");
-        const response = await fetch(`${baseURL}/shift-reports`, {
+        const response = await expoFetch(`${baseURL}/shift-reports`, {
           method: "POST",
           headers: {
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),

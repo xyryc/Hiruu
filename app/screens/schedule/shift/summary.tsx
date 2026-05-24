@@ -4,6 +4,7 @@ import AttachmentUpload from "@/components/ui/inputs/AttachmentUpload";
 import { useShiftStore } from "@/stores/shiftStore";
 import { translateApiMessage } from "@/utils/apiMessages";
 import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
 import * as FileSystem from "expo-file-system/legacy";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -133,11 +134,8 @@ const ShiftSummary = () => {
           uploadUri = targetPath;
         }
 
-        formData.append("attachment", {
-          uri: uploadUri,
-          name: safeFileName,
-          type: attachment.type,
-        } as any);
+        const attachmentFile = new File(uploadUri);
+        formData.append("attachment", attachmentFile as any, safeFileName);
       }
 
       const result = await createShiftReport(formData as any);
