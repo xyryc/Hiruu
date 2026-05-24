@@ -6,6 +6,8 @@ import {
 } from '@/types';
 import axiosInstance from '@/utils/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch as expoFetch } from "expo/fetch";
+import { File } from "expo-file-system";
 import * as FileSystem from "expo-file-system/legacy";
 
 const ACCESS_TOKEN_STORAGE_KEY = 'auth_access_token';
@@ -144,7 +146,11 @@ class ProfileService {
         Object.entries(payload).forEach(([key, value]) => {
             if (value === null || value === undefined || value === "") return;
             if (this.isFileLike(value)) {
-                formData.append(key, value as any);
+                const fileUri = String(value.uri || "").trim();
+                if (!fileUri) return;
+                const fileName = String(value.name || `${key}.jpg`).trim() || `${key}.jpg`;
+                const file = new File(fileUri);
+                formData.append(key, file as any, fileName);
                 return;
             }
             formData.append(key, String(value));
@@ -192,7 +198,7 @@ class ProfileService {
         }
         const accessToken = await AsyncStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
         const formData = this.buildExperienceFormData(payload);
-        const response = await fetch(`${baseUrl}${path}`, {
+        const response = await expoFetch(`${baseUrl}${path}`, {
             method,
             headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
             body: formData,
@@ -411,15 +417,27 @@ class ProfileService {
 
                 for (const [key, value] of Object.entries(filePayload)) {
                     const formData = new FormData();
-                    formData.append(key, value as any);
+                    const fileUri = String(value?.uri || "").trim();
+                    if (!fileUri) {
+                        throw new Error("Invalid file uri");
+                    }
+                    const fileName = String(value?.name || `${key}.jpg`).trim() || `${key}.jpg`;
+                    const file = new File(fileUri);
+                    formData.append(key, file as any, fileName);
 
-                    const response = await fetch(`${baseUrl}/users/profile`, {
+                    const response = await expoFetch(`${baseUrl}/users/profile`, {
                         method: 'PATCH',
                         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
                         body: formData,
                     });
 
-                    const result = await response.json();
+                    const rawText = await response.text();
+                    let result: any = null;
+                    try {
+                        result = rawText ? JSON.parse(rawText) : null;
+                    } catch {
+                        result = null;
+                    }
 
                     if (!response.ok || !result?.success) {
                         throw new Error(result?.message || 'Profile update failed');
