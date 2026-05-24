@@ -19,10 +19,9 @@ import ActionCard from '@/components/ui/cards/ActionCard';
 import { useBusinessPermission } from "@/hooks/useBusinessPermission";
 import { useBusinessStore } from "@/stores/businessStore";
 import { useProfileStore } from "@/stores/profileStore";
-import { useFocusEffect } from "expo-router";
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from "expo-router";
 import { t } from "i18next";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -206,9 +205,10 @@ const UserHome = () => {
             )}
 
             {/* create business */}
-            {(profileData?.ownedBusinesses?.length ?? 0) === 0 && (
+            {!hasJoinedAtLeastOneBusiness && (
               <BusinessProfile className="mt-7" />
             )}
+
 
             {hasJoinedAtLeastOneBusiness && (
               <>
