@@ -70,40 +70,7 @@ npx expo --version
 
 ## 🏃 Running the Project
 
-### Development Mode
-
-#### Start the Development Server
-
-```bash
-npx expo start
-# or
-npm start
-# or
-yarn start
-```
-
-#### 📲 Run on Physical Device (Recommended for beginners)
-
-1. Install **Expo Go** app on your phone
-2. Start the development server (skip if it's running already):
-
-```bash
-npx expo start
-# or
-npm start
-# or
-yarn start
-```
-
-3. Scan the QR code with:
-   - **iOS**: Camera app
-   - **Android**: Expo Go app
-
-**Make sure your phone and computer are on the SAME WiFi network.**
-
-## Run on Different Platforms
-
-### 🤖 Run on Android Emulator/Physical Device through USB debugging
+### Run on Android Emulator/Physical Device through USB debugging
 
 ```bash
 npx expo run:android
@@ -130,27 +97,6 @@ npx expo run:ios
 cd ios && pod install && cd ..
 ```
 
-## 📱 How to Change Role (User/Business)
-
-Find **_user.json_** in this directory: **_\root\assets\data\user.json_**
-
-```bash
-{
-  "user": {
-    "email": "abc@gmail.com",
-    "token": "e4544fsefs46ty24f",
-    "role": "user",
-    "subRole": "manager",
-    "permission": {
-      "business_overview": true,
-      "people_management": true,
-      "job_management": true,
-      "shift_and_schedule": true
-}
-```
-
-Update the "role" field to "user" or "business" to navigate into different role. This project has been configured this way by keeping the API integration phase in mind, so it becomes easier to integrate quickly.
-
 ## 📱 How to build APK
 
 #### Prerequisites
@@ -158,6 +104,7 @@ Update the "role" field to "user" or "business" to navigate into different role.
 - Android Studio installed
 - Java JDK 17 installed
 - Android SDK configured
+- NDK 27.~
 
 ### 📲 Safe: Build Unsigned APK Locally (For Development/Testing)
 
@@ -306,13 +253,12 @@ adb logcat | grep -i expo
 
 ## 🛠 Available Scripts
 
-| Command                | Description                    |
-| ---------------------- | ------------------------------ |
-| `npx expo start`       | Run on Expo Go App (Easy)      |
-| `npm run android`      | Run on Android emulator/device |
-| `npx expo run:android` | Run on Android emulator/device |
-| `npm start`            | Start Expo development server  |
-| `npm run ios`          | Run on iOS simulator/device    |
+| Command                     | Description                                 |
+| --------------------------- | ------------------------------------------- |
+| `npx expo prebuild --clean` | Regenerates android & ios folder            |
+| `npx expo run --device`     | Run the project                             |
+| `npx expo run:android`      | Run on Android emulator/device              |
+| `npm expo run:ios`          | Run on iOS simulator/device(requires macOS) |
 
 ---
 
@@ -323,8 +269,10 @@ adb logcat | grep -i expo
 Create a `.env` file in the root directory:
 
 ```env
-API_URL=https://api.yourapp.com
-EXPO_PUBLIC_API_KEY=your_api_key_here
+EXPO_PUBLIC_API_URL=api_url
+EXPO_PUBLIC_GEOAPIFY_API_KEY=geoapify_api_key
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=stripe_public_key
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=google_web_client_id
 ```
 
 ### 2. Configure app.json
@@ -349,6 +297,18 @@ Update the following fields in `app.json`:
 
 ---
 
+## 🐛 Last used envionment
+
+- Expo: ~56.0.4
+- Node version: v20.20.2
+- Android Sdk Build tools: 37.0.0
+- Android Sdk Platform tools: 37.0.0
+- NDK: 27.1.12297006
+- CMAKE: 3.22.1
+- Xcode: 26.5 (17F42)
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Common Issues and Solutions
@@ -357,7 +317,7 @@ Update the following fields in `app.json`:
 
 ```bash
 # Clear cache and restart
-npx expo start -c
+npx expo prebuild --clean
 ```
 
 #### 2. **Module not found errors**
@@ -373,7 +333,9 @@ npm install
 ```bash
 # Reinstall pods
 cd ios
+rm -rf Pods
 rm -rf Pods Podfile.lock
+rm -rf ~/Library/Developer/Xcode/DerivedData
 pod install
 cd ..
 ```
@@ -387,27 +349,6 @@ cd android
 cd ..
 ```
 
-#### 5. **Font loading issues**
-
-```bash
-# Clear Expo cache
-npx expo start -c
-```
-
-#### 6. **Network connection issues (Can't connect to development server)**
-
-- Ensure phone and computer are on the same WiFi
-- Try tunnel mode: `npx expo start --tunnel`
-- Check firewall settings
-
-#### 7. **Error: ENOSPC (Linux)**
-
-```bash
-# Increase file watchers
-echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-```
-
 ## 📚 Additional Resources
 
 - [Expo Documentation](https://docs.expo.dev/)
@@ -417,12 +358,12 @@ sudo sysctl -p
 
 ---
 
-## 👥 Team
+## 👥 Developer
 
-- **Md Talath Un Nabi** - _Lead Developer_ - [GitHub](https://github.com/xyryc)
+- **Md Talath Un Nabi** - _Lead App Developer_ - [GitHub](https://github.com/xyryc)
 
 ---
 
 ## 📞 Support
 
-For support, email mdtalathunnabi@gmail.com
+For support, email `mdtalathunnabi@gmail.com`
