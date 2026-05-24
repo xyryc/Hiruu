@@ -1,4 +1,8 @@
 import axiosInstance from "@/utils/axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetch as expoFetch } from "expo/fetch";
+import { File } from "expo-file-system";
+import * as FileSystemLegacy from "expo-file-system/legacy";
 
 export interface ChatUploadMedia {
   uri: string;
@@ -8,6 +12,23 @@ export interface ChatUploadMedia {
 
 class ChatService {
   private roomDeletedListeners = new Set<(roomId: string) => void>();
+
+  private async resolveUploadUri(input: string, fallbackName: string) {
+    const uri = String(input || "").trim();
+    if (!uri) return "";
+    if (uri.startsWith("file://")) return uri;
+    if (!uri.startsWith("content://")) return "";
+
+    const safeName = String(fallbackName || "upload.bin")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .slice(0, 80);
+    const targetPath = `${FileSystemLegacy.cacheDirectory}${Date.now()}_${safeName}`;
+    await FileSystemLegacy.copyAsync({
+      from: uri,
+      to: targetPath,
+    });
+    return targetPath;
+  }
 
   private extractRoomId(payload: any): string {
     return (
@@ -169,20 +190,36 @@ class ChatService {
         throw new Error("No valid media files selected");
       }
 
-      normalizedMedia.forEach((file) => {
-        formData.append("media", {
-          uri: file.uri,
-          type: file.type,
-          name: file.name,
-        } as any);
+      for (const file of normalizedMedia) {
+        const uploadUri = await this.resolveUploadUri(file.uri, file.name);
+        if (!uploadUri) continue;
+        const uploadFile = new File(uploadUri);
+        formData.append("media", uploadFile as any, file.name);
+      }
+
+      const baseUrl = process.env.EXPO_PUBLIC_API_URL;
+      if (!baseUrl) {
+        throw new Error("API URL not configured");
+      }
+      const accessToken = await AsyncStorage.getItem("auth_access_token");
+
+      const response = await expoFetch(`${baseUrl}/chat/rooms/${roomId}/messages`, {
+        method: "POST",
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        body: formData,
       });
 
-      const response = await axiosInstance.post(`/chat/rooms/${roomId}/messages`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      const result = response.data;
+      const rawText = await response.text();
+      let result: any = null;
+      try {
+        result = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        result = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(result?.message || "Failed to send message");
+      }
       if (!this.isApiSuccess(result)) {
         throw new Error(result?.message || "Failed to send message");
       }
