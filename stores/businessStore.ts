@@ -2,6 +2,8 @@ import { translateApiMessage } from "@/utils/apiMessages";
 import axiosInstance from "@/utils/axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
+import { fetch as expoFetch } from "expo/fetch";
+import { File } from "expo-file-system";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -1362,34 +1364,50 @@ export const useBusinessStore = create<BusinessState>()(
           const accessToken = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
           const formData = new FormData();
-          if (payload.name) formData.append("name", payload.name);
-          if (payload.description) formData.append("description", payload.description);
+          if (payload.name != null) {
+            const name = String(payload.name).trim();
+            if (name) formData.append("name", name);
+          }
+          if (payload.description != null) {
+            const description = String(payload.description).trim();
+            if (description) formData.append("description", description);
+          }
           appendAddressToFormData(formData, payload.address);
-          if (payload.phoneNumber) formData.append("phoneNumber", payload.phoneNumber);
-          if (payload.countryCode) formData.append("countryCode", payload.countryCode);
-          if (payload.email) formData.append("email", payload.email);
-          if (payload.website) formData.append("website", payload.website);
+          if (payload.phoneNumber != null) {
+            const phoneNumber = String(payload.phoneNumber).trim();
+            if (phoneNumber) formData.append("phoneNumber", phoneNumber);
+          }
+          if (payload.countryCode != null) {
+            const countryCode = String(payload.countryCode).trim();
+            if (countryCode) formData.append("countryCode", countryCode);
+          }
+          if (payload.email != null) {
+            const email = String(payload.email).trim();
+            if (email) formData.append("email", email);
+          }
+          if (payload.website != null) {
+            const website = String(payload.website).trim();
+            if (website) formData.append("website", website);
+          }
           appendSocialToFormData(formData, payload.social);
 
           if (payload.logo) {
-            const logoFile = {
-              uri: payload.logo,
-              type: "image/jpeg",
-              name: "logo.jpg",
-            } as any;
-            formData.append("logo", logoFile);
+            const logoUri = String(payload.logo || "").trim();
+            if (logoUri) {
+              const logoFile = new File(logoUri);
+              formData.append("logo", logoFile as any, "logo.jpg");
+            }
           }
 
           if (payload.coverPhoto) {
-            const coverFile = {
-              uri: payload.coverPhoto,
-              type: "image/jpeg",
-              name: "cover.jpg",
-            } as any;
-            formData.append("coverPhoto", coverFile);
+            const coverUri = String(payload.coverPhoto || "").trim();
+            if (coverUri) {
+              const coverFile = new File(coverUri);
+              formData.append("coverPhoto", coverFile as any, "cover.jpg");
+            }
           }
 
-          const response = await fetch(`${baseUrl}/business`, {
+          const response = await expoFetch(`${baseUrl}/business`, {
             method: "POST",
             headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
             body: formData,
