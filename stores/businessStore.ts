@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
 import { fetch as expoFetch } from "expo/fetch";
 import { File } from "expo-file-system";
+import * as FileSystemLegacy from "expo-file-system/legacy";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -252,6 +253,23 @@ const appendSocialToFormData = (formData: FormData, social: any) => {
       formData.append(`social[${key}]`, trimmed);
     }
   });
+};
+
+const resolveUploadUri = async (input: string, fallbackName: string) => {
+  const uri = String(input || "").trim();
+  if (!uri) return "";
+  if (uri.startsWith("file://")) return uri;
+  if (!uri.startsWith("content://")) return "";
+
+  const safeName = String(fallbackName || "upload.bin")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .slice(0, 80);
+  const targetPath = `${FileSystemLegacy.cacheDirectory}${Date.now()}_${safeName}`;
+  await FileSystemLegacy.copyAsync({
+    from: uri,
+    to: targetPath,
+  });
+  return targetPath;
 };
 
 const normalizeSocialPayload = (social: any) => {
@@ -1235,8 +1253,14 @@ export const useBusinessStore = create<BusinessState>()(
             const accessToken = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
             const formData = new FormData();
 
-            if (payload.name) formData.append("name", payload.name);
-            if (payload.description) formData.append("description", payload.description);
+            if (payload.name != null) {
+              const name = String(payload.name).trim();
+              if (name) formData.append("name", name);
+            }
+            if (payload.description != null) {
+              const description = String(payload.description).trim();
+              if (description) formData.append("description", description);
+            }
             appendAddressToFormData(formData, payload.address);
             appendSocialToFormData(formData, payload.social);
             if (typeof payload.isRecruiting === "boolean") {
@@ -1244,24 +1268,22 @@ export const useBusinessStore = create<BusinessState>()(
             }
 
             if (payload.logo) {
-              const logoFile = {
-                uri: payload.logo,
-                type: "image/jpeg",
-                name: "logo.jpg",
-              } as any;
-              formData.append("logo", logoFile);
+              const logoUri = await resolveUploadUri(payload.logo, "logo.jpg");
+              if (logoUri) {
+                const logoFile = new File(logoUri);
+                formData.append("logo", logoFile as any, "logo.jpg");
+              }
             }
 
             if (payload.coverPhoto) {
-              const coverFile = {
-                uri: payload.coverPhoto,
-                type: "image/jpeg",
-                name: "cover.jpg",
-              } as any;
-              formData.append("coverPhoto", coverFile);
+              const coverUri = await resolveUploadUri(payload.coverPhoto, "cover.jpg");
+              if (coverUri) {
+                const coverFile = new File(coverUri);
+                formData.append("coverPhoto", coverFile as any, "cover.jpg");
+              }
             }
 
-            const response = await fetch(`${baseUrl}/business/${businessId}`, {
+            const response = await expoFetch(`${baseUrl}/business/${businessId}`, {
               method: "PATCH",
               headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
               body: formData,
@@ -1310,12 +1332,20 @@ export const useBusinessStore = create<BusinessState>()(
         try {
           const formData = new FormData();
 
-          if (companyData.companyName) {
-            formData.append("name", companyData.companyName);
+          if (companyData.companyName != null) {
+            const companyName = String(companyData.companyName).trim();
+            if (companyName) formData.append("name", companyName);
           }
 
           if (companyData.logo && companyData.logo.uri) {
-            formData.append("logo", companyData.logo as any);
+            const logoUri = await resolveUploadUri(
+              companyData.logo.uri,
+              companyData.logo.name || "logo.jpg"
+            );
+            if (logoUri) {
+              const logoFile = new File(logoUri);
+              formData.append("logo", logoFile as any, companyData.logo.name || "logo.jpg");
+            }
           }
 
           const baseUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -1324,7 +1354,7 @@ export const useBusinessStore = create<BusinessState>()(
           }
 
           const accessToken = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-          const response = await fetch(`${baseUrl}/companies`, {
+          const response = await expoFetch(`${baseUrl}/companies`, {
             method: "POST",
             headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
             body: formData,
@@ -1392,7 +1422,7 @@ export const useBusinessStore = create<BusinessState>()(
           appendSocialToFormData(formData, payload.social);
 
           if (payload.logo) {
-            const logoUri = String(payload.logo || "").trim();
+            const logoUri = await resolveUploadUri(payload.logo, "logo.jpg");
             if (logoUri) {
               const logoFile = new File(logoUri);
               formData.append("logo", logoFile as any, "logo.jpg");
@@ -1400,7 +1430,7 @@ export const useBusinessStore = create<BusinessState>()(
           }
 
           if (payload.coverPhoto) {
-            const coverUri = String(payload.coverPhoto || "").trim();
+            const coverUri = await resolveUploadUri(payload.coverPhoto, "cover.jpg");
             if (coverUri) {
               const coverFile = new File(coverUri);
               formData.append("coverPhoto", coverFile as any, "cover.jpg");
