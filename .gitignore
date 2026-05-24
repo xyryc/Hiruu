@@ -55,7 +55,6 @@ android/app/release.keystore
 
 
 # env files
-.env
 
 # firebase configs
 google-services.json
@@ -70,3 +69,4 @@ RATING_REACT_NATIVE_INTEGRATION.md
 open-to-work-query.md
 JOB_FILTER_ROUTES.md
 OPEN_TO_WORK_AND_RECRUITMENT_PUBLIC_INTEGRATION.md
+config.bat
